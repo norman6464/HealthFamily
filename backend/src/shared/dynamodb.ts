@@ -13,14 +13,14 @@ export const docClient = DynamoDBDocumentClient.from(client, {
 });
 
 export const TABLE_NAMES = {
-  USERS: 'HealthFamily-Users',
-  MEMBERS: 'HealthFamily-Members',
-  MEDICATIONS: 'HealthFamily-Medications',
-  SCHEDULES: 'HealthFamily-Schedules',
-  MEDICATION_RECORDS: 'HealthFamily-MedicationRecords',
-  HOSPITALS: 'HealthFamily-Hospitals',
-  APPOINTMENTS: 'HealthFamily-Appointments',
-  MEDICAL_HISTORY: 'HealthFamily-MedicalHistory',
-  NUTRITION_RECORDS: 'HealthFamily-NutritionRecords',
-  EXERCISE_RECORDS: 'HealthFamily-ExerciseRecords',
+  USERS: process.env.USERS_TABLE || 'HealthFamily-Users',
+  MEMBERS: process.env.MEMBERS_TABLE || 'HealthFamily-Members',
+  MEDICATIONS: process.env.MEDICATIONS_TABLE || 'HealthFamily-Medications',
+  SCHEDULES: process.env.SCHEDULES_TABLE || 'HealthFamily-Schedules',
+  MEDICATION_RECORDS: process.env.MEDICATION_RECORDS_TABLE || 'HealthFamily-MedicationRecords',
+  HOSPITALS: process.env.HOSPITALS_TABLE || 'HealthFamily-Hospitals',
+  APPOINTMENTS: process.env.APPOINTMENTS_TABLE || 'HealthFamily-Appointments',
+  MEDICAL_HISTORY: process.env.MEDICAL_HISTORY_TABLE || 'HealthFamily-MedicalHistory',
+  NUTRITION_RECORDS: process.env.NUTRITION_RECORDS_TABLE || 'HealthFamily-NutritionRecords',
+  EXERCISE_RECORDS: process.env.EXERCISE_RECORDS_TABLE || 'HealthFamily-ExerciseRecords',
 } as const;
