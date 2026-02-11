@@ -1,0 +1,35 @@
+{
+  "name": "health-family-backend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "vitest",
+    "create-tables": "tsx src/scripts/create-tables.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.682.0",
+    "@aws-sdk/lib-dynamodb": "^3.682.0",
+    "@aws-sdk/client-s3": "^3.682.0",
+    "@aws-sdk/client-sns": "^3.682.0",
+    "@aws-sdk/s3-request-presigner": "^3.682.0",
+    "express": "^4.21.1",
+    "cors": "^2.8.5",
+    "ulid": "^2.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.0",
+    "eslint": "^9.14.0",
+    "prettier": "^3.4.1"
+  }
+}
