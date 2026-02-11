@@ -18,6 +18,7 @@
 - [通知システム設計](#通知システム設計)
 - [キャラクターシステム](#キャラクターシステム)
 - [ディレクトリ構成](#ディレクトリ構成)
+- [Terraform インフラ管理](#terraform-インフラ管理)
 - [開発環境セットアップ](#開発環境セットアップ)
 - [開発ルール](#開発ルール)
 
@@ -249,7 +250,7 @@
 | Amazon S3 | 画像・音声ファイル保存 |
 | Amazon SNS | プッシュ通知 |
 | Amazon EventBridge | スケジュールベースのリマインダー実行 |
-| AWS SAM | IaC (Infrastructure as Code) |
+| Terraform | IaC (Infrastructure as Code) |
 
 ### 開発ツール
 
@@ -948,14 +949,104 @@ HealthFamily/
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── vitest.config.ts
-│   ├── template.yaml           # SAM テンプレート
 │   └── src/
 │       ├── functions/
 │       ├── shared/
 │       └── utils/
 └── infrastructure/
-    ├── samconfig.toml
-    └── template.yaml           # メインSAMテンプレート
+    └── terraform/
+        ├── main.tf                 # プロバイダ・バックエンド設定
+        ├── versions.tf             # バージョン制約
+        ├── variables.tf            # 変数定義
+        ├── locals.tf               # ローカル変数
+        ├── outputs.tf              # 出力定義
+        ├── dynamodb.tf             # DynamoDB 10テーブル
+        ├── cognito.tf              # Cognito認証基盤
+        ├── lambda.tf               # Lambda関数定義
+        ├── api_gateway.tf          # API Gateway REST API
+        ├── lambda_permissions.tf   # Lambda呼び出し権限
+        ├── s3.tf                   # S3バケット
+        ├── sns.tf                  # SNSトピック
+        ├── eventbridge.tf          # EventBridgeスケジュール
+        ├── cloudfront.tf           # CloudFront CDN
+        ├── iam.tf                  # IAMロール・ポリシー
+        └── environments/
+            ├── dev.tfvars          # 開発環境設定
+            ├── staging.tfvars      # ステージング環境設定
+            └── prod.tfvars         # 本番環境設定
+```
+
+---
+
+## Terraform インフラ管理
+
+### 概要
+
+AWSサーバーレスアーキテクチャの全リソースをTerraformで管理しています。環境別（dev/staging/prod）のデプロイに対応し、S3バックエンドで状態管理を行います。
+
+### 管理対象リソース
+
+| リソース | 説明 | 数 |
+|---------|------|-----|
+| DynamoDB テーブル | 全データストア + GSI | 10テーブル |
+| Lambda 関数 | API用 + 通知用 | 10関数 |
+| API Gateway | REST API + Cognitoオーソライザー + CORS | 1 API |
+| Cognito | User Pool + App Client | 1セット |
+| S3 バケット | アセット + フロントエンド + Lambdaデプロイ | 3バケット |
+| CloudFront | SPA配信 + APIプロキシ | 1ディストリビューション |
+| EventBridge | 通知スケジュール | 4ルール |
+| SNS | プッシュ通知 | 1トピック |
+| IAM | Lambda実行ロール + ポリシー | 1ロール + 5ポリシー |
+
+### Terraform 使用方法
+
+```bash
+cd infrastructure/terraform
+
+# 初期化
+terraform init
+
+# 開発環境のプラン確認
+terraform plan -var-file=environments/dev.tfvars
+
+# 開発環境にデプロイ
+terraform apply -var-file=environments/dev.tfvars
+
+# ステージング環境にデプロイ
+terraform apply -var-file=environments/staging.tfvars
+
+# 本番環境にデプロイ
+terraform apply -var-file=environments/prod.tfvars
+```
+
+### 環境別設定
+
+| 環境 | PITR | 削除保護 | ログ保持 | スロットリング |
+|------|------|---------|---------|-------------|
+| dev | 無効 | 無効 | 7日 | 50 req/s |
+| staging | 有効 | 無効 | 14日 | 100 req/s |
+| prod | 有効 | 有効 | 90日 | 200 req/s |
+
+### 状態管理ブートストラップ
+
+初回のみ、Terraform状態管理用のS3バケットとDynamoDBロックテーブルを手動で作成する必要があります。
+
+```bash
+aws s3api create-bucket \
+  --bucket healthfamily-terraform-state \
+  --region ap-northeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-northeast-1
+
+aws s3api put-bucket-versioning \
+  --bucket healthfamily-terraform-state \
+  --versioning-configuration Status=Enabled
+
+aws dynamodb create-table \
+  --table-name healthfamily-terraform-lock \
+  --attribute-definitions AttributeName=LockID,AttributeType=S \
+  --key-schema AttributeName=LockID,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region ap-northeast-1
 ```
 
 ---
@@ -967,7 +1058,7 @@ HealthFamily/
 - Node.js 20.x
 - Docker / Docker Compose
 - AWS CLI v2
-- AWS SAM CLI
+- Terraform >= 1.6.0
 - Git
 
 ### ローカル開発起動
