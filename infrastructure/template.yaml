@@ -1,0 +1,311 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: HealthFamily - 今お薬飲んでよ通知アプリ
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: nodejs20.x
+    MemorySize: 256
+    Environment:
+      Variables:
+        REGION: !Ref AWS::Region
+        USERS_TABLE: !Ref UsersTable
+        MEMBERS_TABLE: !Ref MembersTable
+        MEDICATIONS_TABLE: !Ref MedicationsTable
+        SCHEDULES_TABLE: !Ref SchedulesTable
+        MEDICATION_RECORDS_TABLE: !Ref MedicationRecordsTable
+        HOSPITALS_TABLE: !Ref HospitalsTable
+        APPOINTMENTS_TABLE: !Ref AppointmentsTable
+        MEDICAL_HISTORY_TABLE: !Ref MedicalHistoryTable
+        NUTRITION_RECORDS_TABLE: !Ref NutritionRecordsTable
+        EXERCISE_RECORDS_TABLE: !Ref ExerciseRecordsTable
+
+Resources:
+  # ===== DynamoDB テーブル =====
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-Users
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+
+  MembersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-Members
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: memberId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: memberType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: memberId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserMembers-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: memberType
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  MedicationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-Medications
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: medicationId
+          AttributeType: S
+        - AttributeName: memberId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+      KeySchema:
+        - AttributeName: medicationId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: MemberMedications-index
+          KeySchema:
+            - AttributeName: memberId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: UserMedications-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: category
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  SchedulesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-Schedules
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: scheduleId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: scheduledTime
+          AttributeType: S
+        - AttributeName: medicationId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: scheduleId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserSchedules-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: scheduledTime
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: MedicationSchedules-index
+          KeySchema:
+            - AttributeName: medicationId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  MedicationRecordsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-MedicationRecords
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: recordId
+          AttributeType: S
+        - AttributeName: memberId
+          AttributeType: S
+        - AttributeName: takenAt
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: recordId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: MemberRecords-index
+          KeySchema:
+            - AttributeName: memberId
+              KeyType: HASH
+            - AttributeName: takenAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: UserDailyRecords-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: takenAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  HospitalsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-Hospitals
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: hospitalId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: hospitalType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: hospitalId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserHospitals-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: hospitalType
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  AppointmentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-Appointments
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: appointmentId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: appointmentDate
+          AttributeType: S
+        - AttributeName: memberId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: appointmentId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserAppointments-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: appointmentDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: MemberAppointments-index
+          KeySchema:
+            - AttributeName: memberId
+              KeyType: HASH
+            - AttributeName: appointmentDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  MedicalHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-MedicalHistory
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: historyId
+          AttributeType: S
+        - AttributeName: memberId
+          AttributeType: S
+        - AttributeName: historyType
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: historyId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: MemberHistory-index
+          KeySchema:
+            - AttributeName: memberId
+              KeyType: HASH
+            - AttributeName: historyType
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: UserHistory-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: historyType
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  NutritionRecordsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-NutritionRecords
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: nutritionId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: recordDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: nutritionId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserNutrition-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: recordDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  ExerciseRecordsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: HealthFamily-ExerciseRecords
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: exerciseId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: recordDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: exerciseId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserExercises-index
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: recordDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
