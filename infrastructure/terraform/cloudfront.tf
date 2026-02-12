@@ -33,7 +33,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   comment             = "${local.name_prefix} フロントエンド配信"
   default_root_object = "index.html"
   price_class         = "PriceClass_200"
-  aliases             = var.domain_name != "" ? [var.domain_name] : []
+  aliases             = var.domain_name != "" && var.acm_certificate_arn != "" ? [var.domain_name] : []
 
   # S3オリジン（フロントエンドSPA）
   origin {
@@ -76,7 +76,7 @@ resource "aws_cloudfront_distribution" "frontend" {
     compress               = true
   }
 
-  # API動作: API Gatewayにプロキシ（/api/* → /{stage}/members/… へ書き換え）
+  # API動作: API Gatewayにプロキシ（/api/* → /{stage}/* へ書き換え）
   ordered_cache_behavior {
     path_pattern     = "/api/*"
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
