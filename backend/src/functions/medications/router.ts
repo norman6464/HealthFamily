@@ -16,7 +16,7 @@ medicationsRouter.get('/member/:memberId', async (req, res) => {
       ExpressionAttributeValues: { ':memberId': req.params.memberId },
     }));
     return success(res, result.Items || []);
-  } catch (e) {
+  } catch {
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -39,7 +39,7 @@ medicationsRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch (e) {
+  } catch {
     return error(res, '登録に失敗しました', 500);
   }
 });
@@ -53,7 +53,7 @@ medicationsRouter.get('/:medicationId', async (req, res) => {
     }));
     if (!result.Item) return notFound(res, 'お薬');
     return success(res, result.Item);
-  } catch (e) {
+  } catch {
     return error(res, '取得に失敗しました', 500);
   }
 });
@@ -73,7 +73,7 @@ medicationsRouter.put('/:medicationId/stock', async (req, res) => {
       ReturnValues: 'ALL_NEW',
     }));
     return success(res, result.Attributes);
-  } catch (e) {
+  } catch {
     return error(res, '更新に失敗しました', 500);
   }
 });
@@ -86,7 +86,7 @@ medicationsRouter.delete('/:medicationId', async (req, res) => {
       Key: { medicationId: req.params.medicationId },
     }));
     return success(res, { message: '削除しました' });
-  } catch (e) {
+  } catch {
     return error(res, '削除に失敗しました', 500);
   }
 });

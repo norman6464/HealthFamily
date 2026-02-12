@@ -18,7 +18,7 @@ appointmentsRouter.get('/', async (req, res) => {
       ScanIndexForward: true,
     }));
     return success(res, result.Items || []);
-  } catch (e) {
+  } catch {
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -40,7 +40,7 @@ appointmentsRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch (e) {
+  } catch {
     return error(res, '登録に失敗しました', 500);
   }
 });
@@ -64,7 +64,7 @@ appointmentsRouter.put('/:appointmentId', async (req, res) => {
       ReturnValues: 'ALL_NEW',
     }));
     return success(res, result.Attributes);
-  } catch (e) {
+  } catch {
     return error(res, '更新に失敗しました', 500);
   }
 });
@@ -77,7 +77,7 @@ appointmentsRouter.delete('/:appointmentId', async (req, res) => {
       Key: { appointmentId: req.params.appointmentId },
     }));
     return success(res, { message: '削除しました' });
-  } catch (e) {
+  } catch {
     return error(res, '削除に失敗しました', 500);
   }
 });

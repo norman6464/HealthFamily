@@ -21,7 +21,7 @@ recordsRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch (e) {
+  } catch {
     return error(res, '記録に失敗しました', 500);
   }
 });
@@ -39,7 +39,7 @@ recordsRouter.get('/', async (req, res) => {
       Limit: 50,
     }));
     return success(res, result.Items || []);
-  } catch (e) {
+  } catch {
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -56,7 +56,7 @@ recordsRouter.get('/member/:memberId', async (req, res) => {
       Limit: 50,
     }));
     return success(res, result.Items || []);
-  } catch (e) {
+  } catch {
     return error(res, '取得に失敗しました', 500);
   }
 });
