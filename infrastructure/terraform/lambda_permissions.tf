@@ -6,7 +6,7 @@ resource "aws_lambda_permission" "api_gateway_domain" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.api[each.key].function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/${var.api_gateway_stage_name}/*/*"
 }
 
 # ===== EventBridge -> Lambda 呼び出し権限 =====

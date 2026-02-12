@@ -8,6 +8,17 @@ resource "aws_s3_bucket" "assets" {
   }
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "assets" {
+  bucket = aws_s3_bucket.assets.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "aws:kms"
+    }
+    bucket_key_enabled = true
+  }
+}
+
 resource "aws_s3_bucket_versioning" "assets" {
   bucket = aws_s3_bucket.assets.id
 
@@ -44,6 +55,17 @@ resource "aws_s3_bucket" "frontend" {
 
   tags = {
     Name = "${local.name_prefix}-frontend"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "frontend" {
+  bucket = aws_s3_bucket.frontend.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "aws:kms"
+    }
+    bucket_key_enabled = true
   }
 }
 
@@ -84,7 +106,8 @@ resource "aws_s3_bucket_policy" "frontend" {
         Resource = "${aws_s3_bucket.frontend.arn}/*"
         Condition = {
           StringEquals = {
-            "AWS:SourceArn" = aws_cloudfront_distribution.frontend.arn
+            "AWS:SourceArn"     = aws_cloudfront_distribution.frontend.arn
+            "AWS:SourceAccount" = local.account_id
           }
         }
       }

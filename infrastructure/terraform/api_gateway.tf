@@ -159,12 +159,12 @@ resource "aws_api_gateway_deployment" "main" {
 
   triggers = {
     redeployment = sha1(jsonencode([
-      aws_api_gateway_resource.domain,
-      aws_api_gateway_resource.domain_proxy,
-      aws_api_gateway_method.domain_any,
-      aws_api_gateway_method.domain_proxy_any,
-      aws_api_gateway_integration.domain_lambda,
-      aws_api_gateway_integration.domain_proxy_lambda,
+      { for k, v in aws_api_gateway_resource.domain : k => v.id },
+      { for k, v in aws_api_gateway_resource.domain_proxy : k => v.id },
+      { for k, v in aws_api_gateway_method.domain_any : k => v.id },
+      { for k, v in aws_api_gateway_method.domain_proxy_any : k => v.id },
+      { for k, v in aws_api_gateway_integration.domain_lambda : k => v.id },
+      { for k, v in aws_api_gateway_integration.domain_proxy_lambda : k => v.id },
     ]))
   }
 
