@@ -17,7 +17,7 @@ hospitalsRouter.get('/', async (req, res) => {
       ExpressionAttributeValues: { ':userId': userId },
     }));
     return success(res, result.Items || []);
-  } catch (e) {
+  } catch {
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -37,7 +37,7 @@ hospitalsRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch (e) {
+  } catch {
     return error(res, '登録に失敗しました', 500);
   }
 });
@@ -61,7 +61,7 @@ hospitalsRouter.put('/:hospitalId', async (req, res) => {
       ReturnValues: 'ALL_NEW',
     }));
     return success(res, result.Attributes);
-  } catch (e) {
+  } catch {
     return error(res, '更新に失敗しました', 500);
   }
 });
@@ -74,7 +74,7 @@ hospitalsRouter.delete('/:hospitalId', async (req, res) => {
       Key: { hospitalId: req.params.hospitalId },
     }));
     return success(res, { message: '削除しました' });
-  } catch (e) {
+  } catch {
     return error(res, '削除に失敗しました', 500);
   }
 });

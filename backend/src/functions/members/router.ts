@@ -17,7 +17,7 @@ membersRouter.get('/', async (req, res) => {
       ExpressionAttributeValues: { ':userId': userId },
     }));
     return success(res, result.Items || []);
-  } catch (e) {
+  } catch {
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -39,7 +39,7 @@ membersRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch (e) {
+  } catch {
     return error(res, '登録に失敗しました', 500);
   }
 });
@@ -53,7 +53,7 @@ membersRouter.get('/:memberId', async (req, res) => {
     }));
     if (!result.Item) return notFound(res, 'メンバー');
     return success(res, result.Item);
-  } catch (e) {
+  } catch {
     return error(res, '取得に失敗しました', 500);
   }
 });
@@ -66,7 +66,7 @@ membersRouter.delete('/:memberId', async (req, res) => {
       Key: { memberId: req.params.memberId },
     }));
     return success(res, { message: '削除しました' });
-  } catch (e) {
+  } catch {
     return error(res, '削除に失敗しました', 500);
   }
 });

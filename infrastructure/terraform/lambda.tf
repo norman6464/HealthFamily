@@ -8,6 +8,17 @@ resource "aws_s3_bucket" "lambda_deploy" {
   }
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "lambda_deploy" {
+  bucket = aws_s3_bucket.lambda_deploy.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "aws:kms"
+    }
+    bucket_key_enabled = true
+  }
+}
+
 # ===== API Lambda関数 =====
 locals {
   api_lambda_functions = {

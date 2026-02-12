@@ -991,20 +991,31 @@ AWSサーバーレスアーキテクチャの全リソースをTerraformで管�
 | DynamoDB テーブル | 全データストア + GSI | 10テーブル |
 | Lambda 関数 | API用 + 通知用 | 10関数 |
 | API Gateway | REST API + Cognitoオーソライザー + CORS | 1 API |
-| Cognito | User Pool + App Client | 1セット |
-| S3 バケット | アセット + フロントエンド + Lambdaデプロイ | 3バケット |
-| CloudFront | SPA配信 + APIプロキシ | 1ディストリビューション |
+| Cognito | User Pool + App Client（Authorization Code Flowのみ） | 1セット |
+| S3 バケット | アセット + フロントエンド + Lambdaデプロイ（全てSSE-KMS暗号化） | 3バケット |
+| CloudFront | SPA配信 + APIプロキシ（CloudFront Functionによるパスリライト） | 1ディストリビューション |
 | EventBridge | 通知スケジュール | 4ルール |
 | SNS | プッシュ通知 | 1トピック |
 | IAM | Lambda実行ロール + ポリシー | 1ロール + 5ポリシー |
+
+### セキュリティ対策
+
+| 項目 | 対策 |
+|------|------|
+| S3暗号化 | 全バケットにSSE-KMS（サーバーサイド暗号化）を適用 |
+| CloudFront OAC | Confused Deputy対策としてSourceArn + SourceAccount条件を設定 |
+| Cognito OAuth | Authorization Code Flowのみ許可（Implicit Flow無効化） |
+| Lambda権限 | API Gateway呼び出し権限をデプロイステージに限定 |
+| 状態管理 | Terraform stateを環境別に分離（S3バックエンドのkey） |
+| API Gatewayデプロイ | 安定したリソースIDによるトリガー管理 |
 
 ### Terraform 使用方法
 
 ```bash
 cd infrastructure/terraform
 
-# 初期化
-terraform init
+# 初期化（環境別にstateを分離）
+terraform init -backend-config="key=infrastructure/dev/terraform.tfstate"
 
 # 開発環境のプラン確認
 terraform plan -var-file=environments/dev.tfvars
@@ -1012,10 +1023,12 @@ terraform plan -var-file=environments/dev.tfvars
 # 開発環境にデプロイ
 terraform apply -var-file=environments/dev.tfvars
 
-# ステージング環境にデプロイ
+# ステージング環境（別stateで初期化が必要）
+terraform init -reconfigure -backend-config="key=infrastructure/staging/terraform.tfstate"
 terraform apply -var-file=environments/staging.tfvars
 
-# 本番環境にデプロイ
+# 本番環境（別stateで初期化が必要）
+terraform init -reconfigure -backend-config="key=infrastructure/prod/terraform.tfstate"
 terraform apply -var-file=environments/prod.tfvars
 ```
 

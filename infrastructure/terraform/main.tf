@@ -7,9 +7,12 @@ provider "aws" {
 }
 
 terraform {
+  # key は環境ごとに分離するため、terraform init 時に指定する:
+  #   terraform init -backend-config="key=infrastructure/dev/terraform.tfstate"
+  #   terraform init -backend-config="key=infrastructure/staging/terraform.tfstate"
+  #   terraform init -backend-config="key=infrastructure/prod/terraform.tfstate"
   backend "s3" {
     bucket         = "healthfamily-terraform-state"
-    key            = "infrastructure/terraform.tfstate"
     region         = "ap-northeast-1"
     dynamodb_table = "healthfamily-terraform-lock"
     encrypt        = true

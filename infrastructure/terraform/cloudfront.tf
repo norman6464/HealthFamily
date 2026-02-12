@@ -7,6 +7,25 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
   signing_protocol                  = "sigv4"
 }
 
+# ===== CloudFront Function: APIパスリライト =====
+resource "aws_cloudfront_function" "api_rewrite" {
+  name    = "${local.name_prefix}-api-rewrite"
+  runtime = "cloudfront-js-2.0"
+  comment = "/api/* プレフィックスを除去してAPI Gatewayに転送"
+  publish = true
+
+  code = <<-EOF
+    function handler(event) {
+      var request = event.request;
+      request.uri = request.uri.replace(/^\/api/, '');
+      if (request.uri === '') {
+        request.uri = '/';
+      }
+      return request;
+    }
+  EOF
+}
+
 # ===== CloudFrontディストリビューション =====
 resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
@@ -14,6 +33,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   comment             = "${local.name_prefix} フロントエンド配信"
   default_root_object = "index.html"
   price_class         = "PriceClass_200"
+  aliases             = var.domain_name != "" && var.acm_certificate_arn != "" ? [var.domain_name] : []
 
   # S3オリジン（フロントエンドSPA）
   origin {
@@ -56,7 +76,7 @@ resource "aws_cloudfront_distribution" "frontend" {
     compress               = true
   }
 
-  # API動作: API Gatewayにプロキシ
+  # API動作: API Gatewayにプロキシ（/api/* → /{stage}/* へ書き換え）
   ordered_cache_behavior {
     path_pattern     = "/api/*"
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
@@ -69,6 +89,11 @@ resource "aws_cloudfront_distribution" "frontend" {
       cookies {
         forward = "none"
       }
+    }
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.api_rewrite.arn
     }
 
     viewer_protocol_policy = "https-only"
