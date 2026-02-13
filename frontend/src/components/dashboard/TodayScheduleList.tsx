@@ -9,7 +9,6 @@ interface TodayScheduleListProps {
 
 export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, error }) => {
   // 時刻順にソート（useMemoでパフォーマンス最適化）
-  // Hooksは条件分岐より前に呼び出す必要がある
   const sortedSchedules = useMemo(() => {
     return [...schedules].sort((a, b) => {
       return a.scheduledTime.localeCompare(b.scheduledTime);
@@ -72,7 +71,7 @@ interface ScheduleCardProps {
 const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
   return (
     <div
-      className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2"
+      className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
       data-testid="schedule-item"
       role="article"
       aria-label={`${schedule.scheduledTime}の服薬スケジュール - ${schedule.medicationName}`}
