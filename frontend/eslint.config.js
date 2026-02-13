@@ -18,6 +18,14 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      // アンダースコアで始まる未使用変数を許可（モック実装用）
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+        },
+      ],
     },
   },
   {
