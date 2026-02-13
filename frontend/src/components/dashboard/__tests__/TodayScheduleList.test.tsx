@@ -107,6 +107,14 @@ describe('TodayScheduleList', () => {
     expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
+  it('エラー状態が正しく表示される', () => {
+    const errorMessage = 'データの読み込みに失敗しました';
+    render(<TodayScheduleList schedules={[]} isLoading={false} error={errorMessage} />);
+
+    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
   it('時間超過のステータスが正しく表示される', () => {
     const overdueSchedule = [
       {
@@ -135,5 +143,21 @@ describe('TodayScheduleList', () => {
     // 人間用のアイコンが表示される
     const humanIcons = screen.getAllByTestId('member-type-human');
     expect(humanIcons).toHaveLength(2);
+  });
+
+  it('スケジュールカードにアクセシビリティ属性が設定されている', () => {
+    render(<TodayScheduleList schedules={[mockSchedules[0]]} isLoading={false} />);
+
+    const scheduleCard = screen.getByRole('article');
+    expect(scheduleCard).toHaveAttribute('aria-label');
+    expect(scheduleCard).toHaveAttribute('tabIndex', '0');
+  });
+
+  it('時刻がtime要素として表示される', () => {
+    const { container } = render(<TodayScheduleList schedules={[mockSchedules[0]]} isLoading={false} />);
+
+    const timeElement = container.querySelector('time');
+    expect(timeElement).toBeInTheDocument();
+    expect(timeElement).toHaveAttribute('dateTime', '08:00');
   });
 });

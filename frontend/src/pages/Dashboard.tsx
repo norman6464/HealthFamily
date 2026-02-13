@@ -54,15 +54,23 @@ const mockSchedules: TodayScheduleItem[] = [
 export default function Dashboard() {
   const [schedules, setSchedules] = useState<TodayScheduleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // モックデータをロード（後でAPI呼び出しに置き換え）
     const loadSchedules = async () => {
       setIsLoading(true);
-      // 実際のAPI呼び出しをシミュレート
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSchedules(mockSchedules);
-      setIsLoading(false);
+      setError(null);
+      try {
+        // 実際のAPI呼び出しをシミュレート
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setSchedules(mockSchedules);
+      } catch (err) {
+        setError('スケジュールの読み込みに失敗しました');
+        console.error('Failed to load schedules:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadSchedules();
@@ -84,7 +92,7 @@ export default function Dashboard() {
       <section className="mb-6">
         <h2 className="text-sm font-semibold text-gray-500 mb-3">今日の予定</h2>
         <div className="bg-white rounded-xl shadow-sm">
-          <TodayScheduleList schedules={schedules} isLoading={isLoading} />
+          <TodayScheduleList schedules={schedules} isLoading={isLoading} error={error} />
         </div>
       </section>
 

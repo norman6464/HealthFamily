@@ -1,16 +1,43 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TodayScheduleItem } from '../../types/dashboard';
 
 interface TodayScheduleListProps {
   schedules: TodayScheduleItem[];
   isLoading: boolean;
+  error?: string | null;
 }
 
-export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading }) => {
+export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, error }) => {
+  // 時刻順にソート（useMemoでパフォーマンス最適化）
+  // Hooksは条件分岐より前に呼び出す必要がある
+  const sortedSchedules = useMemo(() => {
+    return [...schedules].sort((a, b) => {
+      return a.scheduledTime.localeCompare(b.scheduledTime);
+    });
+  }, [schedules]);
+
+  // エラー状態
+  if (error) {
+    return (
+      <div 
+        className="flex flex-col justify-center items-center py-12"
+        role="alert"
+        aria-live="assertive"
+      >
+        <p className="text-red-500 text-lg">{error}</p>
+      </div>
+    );
+  }
+
   // ローディング状態
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
+      <div 
+        className="flex justify-center items-center py-8"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
         <p className="text-gray-500">読み込み中...</p>
       </div>
     );
@@ -19,16 +46,15 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
   // 空状態
   if (schedules.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
+      <div 
+        className="flex flex-col justify-center items-center py-12"
+        role="status"
+        aria-live="polite"
+      >
         <p className="text-gray-500 text-lg">今日の服薬スケジュールはありません</p>
       </div>
     );
   }
-
-  // 時刻順にソート
-  const sortedSchedules = [...schedules].sort((a, b) => {
-    return a.scheduledTime.localeCompare(b.scheduledTime);
-  });
 
   return (
     <div className="space-y-4">
@@ -46,22 +72,24 @@ interface ScheduleCardProps {
 const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
   return (
     <div
-      className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow"
+      className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2"
       data-testid="schedule-item"
       role="article"
       aria-label={`${schedule.scheduledTime}の服薬スケジュール - ${schedule.medicationName}`}
+      tabIndex={0}
     >
       <div className="flex items-center justify-between">
         {/* 左側: 時刻とメンバー情報 */}
         <div className="flex items-center space-x-4">
           {/* 時刻 */}
           <div className="flex flex-col items-center">
-            <span
+            <time
               className="text-2xl font-bold text-gray-800"
               data-testid="schedule-time"
+              dateTime={schedule.scheduledTime}
             >
               {schedule.scheduledTime}
-            </span>
+            </time>
           </div>
 
           {/* メンバーアイコン */}
