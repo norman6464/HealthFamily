@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TodayScheduleList } from '../TodayScheduleList';
+import { TodayScheduleViewModel } from '../../../domain/usecases/GetTodaySchedules';
 
-// モックデータ
-const mockSchedules = [
+// モックデータ（クリーンアーキテクチャのViewModel）
+const mockSchedules: TodayScheduleViewModel[] = [
   {
     scheduleId: '1',
     medicationId: 'med-1',
@@ -11,13 +12,11 @@ const mockSchedules = [
     userId: 'user-1',
     memberId: 'member-1',
     memberName: 'パパ',
-    memberType: 'human' as const,
+    memberType: 'human',
     scheduledTime: '08:00',
-    status: 'completed' as const,
-    daysOfWeek: ['mon', 'tue', 'wed', 'thu', 'fri'] as const,
+    status: 'completed',
     isEnabled: true,
     reminderMinutesBefore: 10,
-    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     scheduleId: '2',
@@ -26,13 +25,11 @@ const mockSchedules = [
     userId: 'user-1',
     memberId: 'member-2',
     memberName: 'ママ',
-    memberType: 'human' as const,
+    memberType: 'human',
     scheduledTime: '12:00',
-    status: 'pending' as const,
-    daysOfWeek: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const,
+    status: 'pending',
     isEnabled: true,
     reminderMinutesBefore: 30,
-    createdAt: '2024-01-01T00:00:00Z',
   },
   {
     scheduleId: '3',
@@ -41,13 +38,11 @@ const mockSchedules = [
     userId: 'user-1',
     memberId: 'member-3',
     memberName: 'ポチ',
-    memberType: 'pet' as const,
+    memberType: 'pet',
     scheduledTime: '18:00',
-    status: 'pending' as const,
-    daysOfWeek: ['mon', 'wed', 'fri'] as const,
+    status: 'pending',
     isEnabled: true,
     reminderMinutesBefore: 15,
-    createdAt: '2024-01-01T00:00:00Z',
   },
 ];
 
@@ -71,7 +66,7 @@ describe('TodayScheduleList', () => {
     expect(screen.getByText('18:00')).toBeInTheDocument();
   });
 
-  it('服薬時刻順にソートされて表示される', () => {
+  it('服薬時刻順に表示される（ユースケースでソート済み）', () => {
     const { container } = render(<TodayScheduleList schedules={mockSchedules} isLoading={false} />);
 
     const scheduleItems = container.querySelectorAll('[data-testid="schedule-item"]');
@@ -108,11 +103,11 @@ describe('TodayScheduleList', () => {
   });
 
   it('時間超過のステータスが正しく表示される', () => {
-    const overdueSchedule = [
+    const overdueSchedule: TodayScheduleViewModel[] = [
       {
         ...mockSchedules[0],
         scheduledTime: '06:00',
-        status: 'overdue' as const,
+        status: 'overdue',
       },
     ];
 

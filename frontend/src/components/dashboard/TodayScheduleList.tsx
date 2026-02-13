@@ -1,8 +1,8 @@
 import React from 'react';
-import { TodayScheduleItem } from '../../types/dashboard';
+import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 
 interface TodayScheduleListProps {
-  schedules: TodayScheduleItem[];
+  schedules: TodayScheduleViewModel[];
   isLoading: boolean;
 }
 
@@ -25,14 +25,10 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
     );
   }
 
-  // 時刻順にソート
-  const sortedSchedules = [...schedules].sort((a, b) => {
-    return a.scheduledTime.localeCompare(b.scheduledTime);
-  });
-
+  // すでにユースケースでソート済み
   return (
     <div className="space-y-4">
-      {sortedSchedules.map((schedule) => (
+      {schedules.map((schedule) => (
         <ScheduleCard key={schedule.scheduleId} schedule={schedule} />
       ))}
     </div>
@@ -40,7 +36,7 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
 };
 
 interface ScheduleCardProps {
-  schedule: TodayScheduleItem;
+  schedule: TodayScheduleViewModel;
 }
 
 const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
