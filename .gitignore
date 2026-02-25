@@ -8,3 +8,5 @@ dist/
 coverage/
 .aws-sam/
 .vite/
+.claude/
+CLAUDE.md
