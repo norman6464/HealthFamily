@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import Medications from '../Medications';
+
+const mockCreateMedication = vi.fn().mockResolvedValue({
+  id: 'med-2',
+  name: '新しい薬',
+  category: 'regular',
+  createdAt: new Date(),
+});
+const mockDeleteMedication = vi.fn().mockResolvedValue(undefined);
 
 // medicationApiをモック
 vi.mock('../../data/api/medicationApi', () => ({
@@ -21,17 +30,12 @@ vi.mock('../../data/api/medicationApi', () => ({
         createdAt: new Date(),
       },
     ]),
-    createMedication: vi.fn().mockResolvedValue({
-      id: 'med-2',
-      name: '新しい薬',
-      category: 'regular',
-      createdAt: new Date(),
-    }),
+    createMedication: (...args: unknown[]) => mockCreateMedication(...args),
     getMedicationById: vi.fn().mockResolvedValue({
       id: 'med-1',
       name: '血圧の薬',
     }),
-    deleteMedication: vi.fn().mockResolvedValue(undefined),
+    deleteMedication: (...args: unknown[]) => mockDeleteMedication(...args),
   },
 }));
 
@@ -83,5 +87,52 @@ describe('Medications Page', () => {
 
     expect(screen.getByText('新しい薬を追加')).toBeInTheDocument();
     expect(screen.getByText('閉じる')).toBeInTheDocument();
+  });
+
+  it('フォーム送信で薬が作成される', async () => {
+    const user = userEvent.setup();
+    renderWithRouter();
+
+    // フォームを開く
+    await user.click(screen.getByText('+ 追加'));
+
+    // 薬名を入力して送信
+    await user.type(screen.getByPlaceholderText('薬の名前を入力'), '胃薬');
+    await user.click(screen.getByText('追加する'));
+
+    await waitFor(() => {
+      expect(mockCreateMedication).toHaveBeenCalled();
+    });
+  });
+
+  it('フォーム送信後にフォームが閉じる', async () => {
+    const user = userEvent.setup();
+    renderWithRouter();
+
+    await user.click(screen.getByText('+ 追加'));
+    expect(screen.getByText('新しい薬を追加')).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('薬の名前を入力'), '胃薬');
+    await user.click(screen.getByText('追加する'));
+
+    await waitFor(() => {
+      expect(screen.queryByText('新しい薬を追加')).not.toBeInTheDocument();
+    });
+  });
+
+  it('削除ボタンで薬が削除される', async () => {
+    const user = userEvent.setup();
+    renderWithRouter();
+
+    await waitFor(() => {
+      expect(screen.getByText('血圧の薬')).toBeInTheDocument();
+    });
+
+    const deleteButton = screen.getByLabelText('削除');
+    await user.click(deleteButton);
+
+    await waitFor(() => {
+      expect(mockDeleteMedication).toHaveBeenCalledWith('med-1');
+    });
   });
 });
