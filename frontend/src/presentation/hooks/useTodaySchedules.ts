@@ -16,6 +16,7 @@ export interface UseTodaySchedulesResult {
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
+  markAsCompleted: (scheduleId: string) => Promise<void>;
 }
 
 export const useTodaySchedules = (userId: string): UseTodaySchedulesResult => {
@@ -46,10 +47,21 @@ export const useTodaySchedules = (userId: string): UseTodaySchedulesResult => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  const markAsCompleted = async (scheduleId: string) => {
+    try {
+      await scheduleRepository.markAsCompleted(scheduleId, new Date());
+      // 完了後にスケジュールを再取得して表示を更新
+      await fetchSchedules();
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Unknown error'));
+    }
+  };
+
   return {
     schedules,
     isLoading,
     error,
     refetch: fetchSchedules,
+    markAsCompleted,
   };
 };
