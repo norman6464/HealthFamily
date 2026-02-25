@@ -2,13 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
 jobs:
   frontend:
-    name: フロントエンド CI
+    name: Frontend CI
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,12 +21,15 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npm run lint
-      - run: npm run build
-      - run: npm test -- --run
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Test with coverage
+        run: npx vitest run --coverage
 
   backend:
-    name: バックエンド CI
+    name: Backend CI
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,6 +42,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: npm run lint
-      - run: npm run build
-      - run: npm test -- --run
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Test with coverage
+        run: npx vitest run --coverage
