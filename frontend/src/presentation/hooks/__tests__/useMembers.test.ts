@@ -2,29 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useMembers } from '../useMembers';
 import * as memberApiModule from '../../../data/api/memberApi';
-import { Member } from '../../../domain/entities/Member';
-
-const mockMembers: Member[] = [
-  {
-    id: 'member-1',
-    userId: 'user-1',
-    memberType: 'human',
-    name: 'パパ',
-    birthDate: new Date('1985-06-15'),
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
-  },
-  {
-    id: 'member-2',
-    userId: 'user-1',
-    memberType: 'pet',
-    name: 'ポチ',
-    petType: 'dog',
-    birthDate: new Date('2020-03-10'),
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
-  },
-];
 
 describe('useMembers Hook', () => {
   beforeEach(() => {
