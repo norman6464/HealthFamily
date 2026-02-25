@@ -47,9 +47,10 @@ describe('useMedications Hook', () => {
     await act(async () => {
       await result.current.createMedication({
         memberId: 'member-1',
+        userId: 'user-1',
         name: '新しい薬',
         category: 'regular',
-        dosageAmount: '1錠',
+        dosage: '1錠',
         frequency: '1日1回',
       });
     });
