@@ -1,12 +1,11 @@
 /**
  * スケジュール管理カスタムフック（ViewModel）
+ * Presentation層とDomain層を繋ぐ
  */
 
-import { useState, useCallback } from 'react';
-import { ScheduleRepositoryImpl } from '../../data/repositories/ScheduleRepositoryImpl';
+import { useState, useCallback, useMemo } from 'react';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
-
-const scheduleRepository = new ScheduleRepositoryImpl();
+import { getDIContainer } from '../../infrastructure/DIContainer';
 
 export interface CreateScheduleInput {
   medicationId: string;
@@ -24,6 +23,7 @@ export interface UseScheduleManagementResult {
 }
 
 export const useScheduleManagement = (): UseScheduleManagementResult => {
+  const scheduleRepository = useMemo(() => getDIContainer().scheduleRepository, []);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -48,7 +48,7 @@ export const useScheduleManagement = (): UseScheduleManagementResult => {
     } finally {
       setIsCreating(false);
     }
-  }, []);
+  }, [scheduleRepository]);
 
   return {
     isCreating,

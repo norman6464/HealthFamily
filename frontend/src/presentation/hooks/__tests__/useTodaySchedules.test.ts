@@ -1,44 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useTodaySchedules } from '../useTodaySchedules';
-import * as ScheduleRepositoryModule from '../../../data/repositories/ScheduleRepositoryImpl';
-import { ScheduleRepository } from '../../../domain/repositories/ScheduleRepository';
-import { Schedule } from '../../../domain/entities/Schedule';
-
-// モックリポジトリ
-const createMockRepository = (): ScheduleRepository => {
-  const mockSchedule: Schedule = {
-    id: 'schedule-1',
-    medicationId: 'med-1',
-    userId: 'user-1',
-    memberId: 'member-1',
-    scheduledTime: '08:00',
-    daysOfWeek: ['mon', 'tue', 'wed', 'thu', 'fri'],
-    isEnabled: true,
-    reminderMinutesBefore: 10,
-    createdAt: new Date('2024-01-01'),
-  };
-
-  return {
-    getTodaySchedules: vi.fn().mockResolvedValue([
-      {
-        schedule: mockSchedule,
-        medicationName: '血圧の薬',
-        memberName: 'テストユーザー',
-        memberType: 'human' as const,
-        isCompleted: false,
-      },
-    ]),
-    createSchedule: vi.fn(),
-    updateSchedule: vi.fn(),
-    deleteSchedule: vi.fn(),
-    markAsCompleted: vi.fn(),
-  };
-};
+import * as scheduleApiModule from '../../../data/api/scheduleApi';
 
 describe('useTodaySchedules Hook', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('スケジュールを正常に取得できる', async () => {
@@ -60,17 +27,9 @@ describe('useTodaySchedules Hook', () => {
   });
 
   it('エラーが発生した場合、エラー状態を保持する', async () => {
-    // リポジトリをモックしてエラーを発生させる
-    const mockError = new Error('API Error');
-    vi.spyOn(ScheduleRepositoryModule, 'ScheduleRepositoryImpl').mockImplementation(() => {
-      return {
-        getTodaySchedules: vi.fn().mockRejectedValue(mockError),
-        createSchedule: vi.fn(),
-        updateSchedule: vi.fn(),
-        deleteSchedule: vi.fn(),
-        markAsCompleted: vi.fn(),
-      } as unknown as ScheduleRepositoryModule.ScheduleRepositoryImpl;
-    });
+    vi.spyOn(scheduleApiModule.scheduleApi, 'getTodaySchedules').mockRejectedValue(
+      new Error('API Error')
+    );
 
     const { result } = renderHook(() => useTodaySchedules('user-1'));
 
@@ -102,16 +61,7 @@ describe('useTodaySchedules Hook', () => {
   });
 
   it('空のスケジュール一覧が返される場合も正常に処理される', async () => {
-    // 空のスケジュールを返すモック
-    vi.spyOn(ScheduleRepositoryModule, 'ScheduleRepositoryImpl').mockImplementation(() => {
-      return {
-        getTodaySchedules: vi.fn().mockResolvedValue([]),
-        createSchedule: vi.fn(),
-        updateSchedule: vi.fn(),
-        deleteSchedule: vi.fn(),
-        markAsCompleted: vi.fn(),
-      } as unknown as ScheduleRepositoryModule.ScheduleRepositoryImpl;
-    });
+    vi.spyOn(scheduleApiModule.scheduleApi, 'getTodaySchedules').mockResolvedValue([]);
 
     const { result } = renderHook(() => useTodaySchedules('user-1'));
 
