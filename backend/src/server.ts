@@ -7,14 +7,13 @@ import { recordsRouter } from './functions/records/router.js';
 import { hospitalsRouter } from './functions/hospitals/router.js';
 import { appointmentsRouter } from './functions/appointments/router.js';
 import { requireAuth } from './shared/auth.js';
+import { env } from './shared/env.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = env.PORT;
 
 // CORS設定（許可オリジンを制限）
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173'];
+const allowedOrigins = env.ALLOWED_ORIGINS.split(',');
 app.use(cors({
   origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
