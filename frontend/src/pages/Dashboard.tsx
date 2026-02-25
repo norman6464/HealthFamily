@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import { TodayScheduleList } from '../components/dashboard/TodayScheduleList';
 import { useTodaySchedules } from '../presentation/hooks/useTodaySchedules';
+import { useCharacterStore } from '../stores/characterStore';
 
 export default function Dashboard() {
   // ViewModelから状態を取得（クリーンアーキテクチャ）
   const { schedules, isLoading, markAsCompleted } = useTodaySchedules('user-1'); // TODO: 実際のuserIdに置き換え
+  const { getConfig, getMessage } = useCharacterStore();
+  const character = getConfig();
 
   const handleMarkCompleted = async (scheduleId: string) => {
     await markAsCompleted(scheduleId);
@@ -17,9 +20,9 @@ export default function Dashboard() {
       </header>
 
       <div className="bg-white rounded-2xl shadow-sm p-4 mb-4 text-center">
-        <div className="text-4xl mb-2">🐈️</div>
+        <div className="text-4xl mb-2">{character.icon}</div>
         <p className="text-lg font-medium text-gray-700">
-          お薬の時間だにゃい！
+          {getMessage('medicationReminder')}
         </p>
       </div>
 
@@ -44,10 +47,10 @@ export default function Dashboard() {
             <span className="text-lg">💊</span>
             お薬
           </button>
-          <button className="flex flex-col items-center text-gray-400 text-xs">
+          <Link to="/settings" className="flex flex-col items-center text-gray-400 text-xs">
             <span className="text-lg">👤</span>
             設定
-          </button>
+          </Link>
         </div>
       </nav>
     </div>
