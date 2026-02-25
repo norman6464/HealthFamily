@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { CharacterType, CharacterConfig, CHARACTER_CONFIGS } from '../types/character';
+import { CharacterType, CharacterConfig, CHARACTER_CONFIGS } from '../domain/entities/Character';
 
 type MessageKey = keyof CharacterConfig['messages'];
 
