@@ -4,10 +4,9 @@ import { ulid } from 'ulid';
 import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, notFound, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
-import { pickAllowedFields, isNonEmptyString } from '../../shared/validation.js';
+import { validate } from '../../shared/validation.js';
 import { logger } from '../../shared/logger.js';
-
-const ALLOWED_MEMBER_FIELDS = ['name', 'memberType', 'petType', 'birthDate', 'notes'];
+import { createMemberSchema } from '../../shared/schemas.js';
 
 export const membersRouter = Router();
 
@@ -29,14 +28,10 @@ membersRouter.get('/', async (req, res) => {
 });
 
 // メンバー登録
-membersRouter.post('/', async (req, res) => {
+membersRouter.post('/', validate(createMemberSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
-    const fields = pickAllowedFields(req.body, ALLOWED_MEMBER_FIELDS);
-
-    if (!isNonEmptyString(fields.name)) {
-      return error(res, '名前は必須です', 400);
-    }
+    const fields = req.body;
 
     const now = new Date().toISOString();
     const item = {

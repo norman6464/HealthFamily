@@ -4,20 +4,17 @@ import { ulid } from 'ulid';
 import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
-import { pickAllowedFields } from '../../shared/validation.js';
+import { validate } from '../../shared/validation.js';
 import { logger } from '../../shared/logger.js';
-
-const ALLOWED_RECORD_FIELDS = [
-  'memberId', 'medicationId', 'scheduleId', 'notes', 'dosageAmount',
-];
+import { createRecordSchema } from '../../shared/schemas.js';
 
 export const recordsRouter = Router();
 
 // 服薬記録登録
-recordsRouter.post('/', async (req, res) => {
+recordsRouter.post('/', validate(createRecordSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
-    const fields = pickAllowedFields(req.body, ALLOWED_RECORD_FIELDS);
+    const fields = req.body;
 
     const item = {
       recordId: ulid(),

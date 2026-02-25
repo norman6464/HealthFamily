@@ -19,7 +19,7 @@ const USER_ID = 'test-user-123';
 
 describe('appointments router', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockSend.mockReset();
   });
 
   describe('GET /', () => {
@@ -67,13 +67,22 @@ describe('appointments router', () => {
       expect(res.body.data.userId).toBe(USER_ID);
     });
 
+    it('必須フィールドが不足している場合は400を返す', async () => {
+      const res = await request(app)
+        .post('/appointments')
+        .set('x-user-id', USER_ID)
+        .send({ memberId: 'mem-1' });
+
+      expect(res.status).toBe(400);
+    });
+
     it('エラー時に500を返す', async () => {
       mockSend.mockRejectedValueOnce(new Error('DB error'));
 
       const res = await request(app)
         .post('/appointments')
         .set('x-user-id', USER_ID)
-        .send({ memberId: 'mem-1' });
+        .send({ memberId: 'mem-1', appointmentDate: '2026-03-01' });
 
       expect(res.status).toBe(500);
     });

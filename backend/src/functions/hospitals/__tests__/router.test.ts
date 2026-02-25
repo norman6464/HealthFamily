@@ -19,7 +19,7 @@ const USER_ID = 'test-user-123';
 
 describe('hospitals router', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockSend.mockReset();
   });
 
   describe('GET /', () => {
@@ -67,7 +67,7 @@ describe('hospitals router', () => {
         .send({ address: '東京都' });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('病院名は必須です');
+      expect(res.body.error).toContain('病院名は必須です');
     });
   });
 

@@ -4,13 +4,9 @@ import { ulid } from 'ulid';
 import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, notFound, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
-import { pickAllowedFields } from '../../shared/validation.js';
+import { validate } from '../../shared/validation.js';
 import { logger } from '../../shared/logger.js';
-
-const ALLOWED_SCHEDULE_FIELDS = [
-  'medicationId', 'memberId', 'scheduledTime', 'daysOfWeek',
-  'isEnabled', 'reminderMinutesBefore',
-];
+import { createScheduleSchema, updateScheduleSchema } from '../../shared/schemas.js';
 
 export const schedulesRouter = Router();
 
@@ -32,10 +28,10 @@ schedulesRouter.get('/', async (req, res) => {
 });
 
 // スケジュール登録
-schedulesRouter.post('/', async (req, res) => {
+schedulesRouter.post('/', validate(createScheduleSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
-    const fields = pickAllowedFields(req.body, ALLOWED_SCHEDULE_FIELDS);
+    const fields = req.body;
 
     const item = {
       scheduleId: ulid(),
@@ -57,7 +53,7 @@ schedulesRouter.post('/', async (req, res) => {
 });
 
 // スケジュール更新（所有権チェック付き）
-schedulesRouter.put('/:scheduleId', async (req, res) => {
+schedulesRouter.put('/:scheduleId', validate(updateScheduleSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
 
@@ -70,17 +66,24 @@ schedulesRouter.put('/:scheduleId', async (req, res) => {
       return notFound(res, 'スケジュール');
     }
 
-    const { scheduledTime, daysOfWeek, isEnabled, reminderMinutesBefore } = req.body;
+    const fields = req.body;
+    const updateExpressions: string[] = [];
+    const expressionValues: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(fields)) {
+      updateExpressions.push(`${key} = :${key}`);
+      expressionValues[`:${key}`] = value;
+    }
+
+    if (updateExpressions.length === 0) {
+      return error(res, '更新するフィールドがありません', 400);
+    }
+
     const result = await docClient.send(new UpdateCommand({
       TableName: TABLE_NAMES.SCHEDULES,
       Key: { scheduleId: req.params.scheduleId },
-      UpdateExpression: 'SET scheduledTime = :time, daysOfWeek = :days, isEnabled = :enabled, reminderMinutesBefore = :mins',
-      ExpressionAttributeValues: {
-        ':time': scheduledTime,
-        ':days': daysOfWeek,
-        ':enabled': isEnabled,
-        ':mins': reminderMinutesBefore,
-      },
+      UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+      ExpressionAttributeValues: expressionValues,
       ReturnValues: 'ALL_NEW',
     }));
     return success(res, result.Attributes);

@@ -19,7 +19,7 @@ const USER_ID = 'test-user-123';
 
 describe('records router', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockSend.mockReset();
   });
 
   describe('POST /', () => {
@@ -45,10 +45,19 @@ describe('records router', () => {
       const res = await request(app)
         .post('/records')
         .set('x-user-id', USER_ID)
-        .send({ memberId: 'mem-1', userId: 'hacker', isAdmin: true });
+        .send({ memberId: 'mem-1', medicationId: 'med-1', userId: 'hacker', isAdmin: true });
 
       expect(res.body.data.userId).toBe(USER_ID);
       expect(res.body.data.isAdmin).toBeUndefined();
+    });
+
+    it('必須フィールドが不足している場合は400を返す', async () => {
+      const res = await request(app)
+        .post('/records')
+        .set('x-user-id', USER_ID)
+        .send({ memberId: 'mem-1' });
+
+      expect(res.status).toBe(400);
     });
 
     it('エラー時に500を返す', async () => {
@@ -57,7 +66,7 @@ describe('records router', () => {
       const res = await request(app)
         .post('/records')
         .set('x-user-id', USER_ID)
-        .send({ memberId: 'mem-1' });
+        .send({ memberId: 'mem-1', medicationId: 'med-1' });
 
       expect(res.status).toBe(500);
     });
