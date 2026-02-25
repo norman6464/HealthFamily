@@ -87,4 +87,15 @@ export class MemberEntity {
   get data(): Member {
     return this.member;
   }
+
+  /**
+   * 表示用の情報を取得
+   */
+  getDisplayInfo(): { icon: string; name: string; typeLabel: string } {
+    return {
+      icon: this.getIcon(),
+      name: this.member.name,
+      typeLabel: this.isPet() ? 'ペット' : '家族',
+    };
+  }
 }
