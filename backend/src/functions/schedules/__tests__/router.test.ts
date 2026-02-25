@@ -19,7 +19,7 @@ const USER_ID = 'test-user-123';
 
 describe('schedules router', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockSend.mockReset();
   });
 
   describe('GET /', () => {
@@ -77,13 +77,22 @@ describe('schedules router', () => {
       expect(res.body.data.userId).toBe(USER_ID);
     });
 
+    it('必須フィールドが不足している場合は400を返す', async () => {
+      const res = await request(app)
+        .post('/schedules')
+        .set('x-user-id', USER_ID)
+        .send({ scheduledTime: '08:00' });
+
+      expect(res.status).toBe(400);
+    });
+
     it('エラー時に500を返す', async () => {
       mockSend.mockRejectedValueOnce(new Error('DB error'));
 
       const res = await request(app)
         .post('/schedules')
         .set('x-user-id', USER_ID)
-        .send({ scheduledTime: '08:00' });
+        .send({ medicationId: 'med-1', memberId: 'mem-1', scheduledTime: '08:00' });
 
       expect(res.status).toBe(500);
     });

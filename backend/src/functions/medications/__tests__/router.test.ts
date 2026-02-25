@@ -19,7 +19,7 @@ const USER_ID = 'test-user-123';
 
 describe('medications router', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockSend.mockReset();
   });
 
   describe('GET /member/:memberId', () => {
@@ -68,7 +68,7 @@ describe('medications router', () => {
         .send({ memberId: 'mem-1' });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('薬の名前は必須です');
+      expect(res.body.error).toContain('薬の名前は必須です');
     });
   });
 

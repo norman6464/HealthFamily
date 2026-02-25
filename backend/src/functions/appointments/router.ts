@@ -4,17 +4,9 @@ import { ulid } from 'ulid';
 import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, notFound, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
-import { pickAllowedFields } from '../../shared/validation.js';
+import { validate } from '../../shared/validation.js';
 import { logger } from '../../shared/logger.js';
-
-const ALLOWED_APPOINTMENT_FIELDS = [
-  'memberId', 'hospitalId', 'appointmentDate', 'appointmentTime',
-  'type', 'notes', 'reminderEnabled', 'reminderDaysBefore',
-];
-const ALLOWED_APPOINTMENT_UPDATE_FIELDS = [
-  'appointmentDate', 'appointmentTime', 'type', 'notes',
-  'reminderEnabled', 'reminderDaysBefore',
-];
+import { createAppointmentSchema, updateAppointmentSchema } from '../../shared/schemas.js';
 
 export const appointmentsRouter = Router();
 
@@ -37,10 +29,10 @@ appointmentsRouter.get('/', async (req, res) => {
 });
 
 // 予約登録
-appointmentsRouter.post('/', async (req, res) => {
+appointmentsRouter.post('/', validate(createAppointmentSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
-    const fields = pickAllowedFields(req.body, ALLOWED_APPOINTMENT_FIELDS);
+    const fields = req.body;
 
     const item = {
       appointmentId: ulid(),
@@ -62,7 +54,7 @@ appointmentsRouter.post('/', async (req, res) => {
 });
 
 // 予約更新（所有権チェック + フィールド制限）
-appointmentsRouter.put('/:appointmentId', async (req, res) => {
+appointmentsRouter.put('/:appointmentId', validate(updateAppointmentSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
 
@@ -75,18 +67,13 @@ appointmentsRouter.put('/:appointmentId', async (req, res) => {
       return notFound(res, '予約');
     }
 
-    // 許可フィールドのみ抽出
-    const fields = pickAllowedFields(req.body, ALLOWED_APPOINTMENT_UPDATE_FIELDS);
+    const fields = req.body;
     const updateExpressions: string[] = [];
     const expressionValues: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(fields)) {
       updateExpressions.push(`#${key} = :${key}`);
       expressionValues[`:${key}`] = value;
-    }
-
-    if (updateExpressions.length === 0) {
-      return error(res, '更新するフィールドがありません', 400);
     }
 
     const expressionNames: Record<string, string> = {};

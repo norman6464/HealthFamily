@@ -1,3 +1,6 @@
+import type { Request, Response, NextFunction } from 'express';
+import { ZodSchema, ZodError } from 'zod';
+
 /**
  * 入力バリデーションユーティリティ
  * リクエストボディから許可されたフィールドのみを抽出する
@@ -32,4 +35,22 @@ export function isNonEmptyString(value: unknown): value is string {
  */
 export function isValidLength(value: string, maxLength: number): boolean {
   return value.length <= maxLength;
+}
+
+/**
+ * Zodスキーマによるバリデーションミドルウェア
+ */
+export function validate(schema: ZodSchema) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      req.body = schema.parse(req.body);
+      next();
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const message = err.errors.map((e) => e.message).join(', ');
+        return res.status(400).json({ success: false, error: message });
+      }
+      next(err);
+    }
+  };
 }

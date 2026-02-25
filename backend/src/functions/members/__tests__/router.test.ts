@@ -20,7 +20,7 @@ const USER_ID = 'test-user-123';
 
 describe('members router', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockSend.mockReset();
   });
 
   describe('GET /', () => {
@@ -82,7 +82,7 @@ describe('members router', () => {
         .send({ name: '' });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('名前は必須です');
+      expect(res.body.error).toContain('名前は必須です');
     });
 
     it('名前がない場合は400を返す', async () => {

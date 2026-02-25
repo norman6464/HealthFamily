@@ -4,13 +4,9 @@ import { ulid } from 'ulid';
 import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, notFound, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
-import { pickAllowedFields, isNonEmptyString } from '../../shared/validation.js';
+import { validate } from '../../shared/validation.js';
 import { logger } from '../../shared/logger.js';
-
-const ALLOWED_MEDICATION_FIELDS = [
-  'memberId', 'name', 'category', 'dosageAmount', 'frequency',
-  'stockQuantity', 'lowStockThreshold', 'instructions',
-];
+import { createMedicationSchema, updateStockSchema } from '../../shared/schemas.js';
 
 export const medicationsRouter = Router();
 
@@ -31,14 +27,10 @@ medicationsRouter.get('/member/:memberId', async (req, res) => {
 });
 
 // お薬登録
-medicationsRouter.post('/', async (req, res) => {
+medicationsRouter.post('/', validate(createMedicationSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
-    const fields = pickAllowedFields(req.body, ALLOWED_MEDICATION_FIELDS);
-
-    if (!isNonEmptyString(fields.name)) {
-      return error(res, '薬の名前は必須です', 400);
-    }
+    const fields = req.body;
 
     const now = new Date().toISOString();
     const item = {
@@ -78,14 +70,10 @@ medicationsRouter.get('/:medicationId', async (req, res) => {
 });
 
 // 残数更新（所有権チェック付き）
-medicationsRouter.put('/:medicationId/stock', async (req, res) => {
+medicationsRouter.put('/:medicationId/stock', validate(updateStockSchema), async (req, res) => {
   try {
     const userId = getUserId(req);
     const { stockQuantity } = req.body;
-
-    if (typeof stockQuantity !== 'number' || stockQuantity < 0) {
-      return error(res, '在庫数は0以上の数値を指定してください', 400);
-    }
 
     const existing = await docClient.send(new GetCommand({
       TableName: TABLE_NAMES.MEDICATIONS,
