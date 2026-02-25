@@ -25,29 +25,33 @@ export default function Members() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-20">
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-primary-700">メンバー管理</h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
-        >
-          {showForm ? '閉じる' : '+ 追加'}
-        </button>
-      </header>
+    <>
+      <main className="max-w-md mx-auto p-4 pb-20">
+        <header className="flex items-center justify-between mb-6">
+          <h1 className="text-xl font-bold text-primary-700">メンバー管理</h1>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            aria-expanded={showForm}
+            aria-controls="member-form-section"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+          >
+            {showForm ? '閉じる' : '+ 追加'}
+          </button>
+        </header>
 
-      {showForm && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <h2 className="text-lg font-semibold mb-3">新しいメンバーを追加</h2>
-          <MemberForm onSubmit={handleSubmit} />
-        </div>
-      )}
+        {showForm && (
+          <div id="member-form-section" className="bg-white rounded-xl shadow-sm p-4 mb-4">
+            <h2 className="text-lg font-semibold mb-3">新しいメンバーを追加</h2>
+            <MemberForm onSubmit={handleSubmit} />
+          </div>
+        )}
 
-      <section>
-        <MemberList members={members} isLoading={isLoading} onDelete={handleDelete} />
-      </section>
+        <section aria-label="メンバー一覧">
+          <MemberList members={members} isLoading={isLoading} onDelete={handleDelete} />
+        </section>
+      </main>
 
       <BottomNavigation activePath="/members" />
-    </div>
+    </>
   );
 }

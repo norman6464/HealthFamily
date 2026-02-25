@@ -29,16 +29,18 @@ export default function Medications() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-20">
+    <main className="max-w-md mx-auto p-4 pb-20">
       <header className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
-          <Link to="/members" className="text-gray-500 hover:text-gray-700">
+          <Link to="/members" className="text-gray-500 hover:text-gray-700" aria-label="メンバー一覧に戻る">
             &larr;
           </Link>
           <h1 className="text-xl font-bold text-primary-700">お薬管理</h1>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
+          aria-expanded={showForm}
+          aria-controls="medication-form-section"
           className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
         >
           {showForm ? '閉じる' : '+ 追加'}
@@ -46,15 +48,15 @@ export default function Medications() {
       </header>
 
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <div id="medication-form-section" className="bg-white rounded-xl shadow-sm p-4 mb-4">
           <h2 className="text-lg font-semibold mb-3">新しい薬を追加</h2>
           <MedicationForm onSubmit={handleSubmit} />
         </div>
       )}
 
-      <section>
+      <section aria-label="お薬一覧">
         <MedicationList medications={medications} isLoading={isLoading} onDelete={handleDelete} />
       </section>
-    </div>
+    </main>
   );
 }
