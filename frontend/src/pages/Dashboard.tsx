@@ -1,10 +1,9 @@
-import { Link } from 'react-router-dom';
 import { TodayScheduleList } from '../components/dashboard/TodayScheduleList';
+import { BottomNavigation } from '../components/shared/BottomNavigation';
 import { useTodaySchedules } from '../presentation/hooks/useTodaySchedules';
 import { useCharacterStore } from '../stores/characterStore';
 
 export default function Dashboard() {
-  // ViewModelから状態を取得（クリーンアーキテクチャ）
   const { schedules, isLoading, markAsCompleted } = useTodaySchedules('user-1'); // TODO: 実際のuserIdに置き換え
   const { getConfig, getMessage } = useCharacterStore();
   const character = getConfig();
@@ -33,26 +32,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <div className="max-w-md mx-auto flex justify-around py-2">
-          <Link to="/" className="flex flex-col items-center text-primary-600 text-xs">
-            <span className="text-lg">🏠</span>
-            ホーム
-          </Link>
-          <Link to="/members" className="flex flex-col items-center text-gray-400 text-xs">
-            <span className="text-lg">👥</span>
-            メンバー
-          </Link>
-          <button className="flex flex-col items-center text-gray-400 text-xs">
-            <span className="text-lg">💊</span>
-            お薬
-          </button>
-          <Link to="/settings" className="flex flex-col items-center text-gray-400 text-xs">
-            <span className="text-lg">👤</span>
-            設定
-          </Link>
-        </div>
-      </nav>
+      <BottomNavigation activePath="/" />
     </div>
   );
 }

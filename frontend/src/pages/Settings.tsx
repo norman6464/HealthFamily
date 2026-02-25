@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import { CharacterSelector } from '../components/character/CharacterSelector';
+import { BottomNavigation } from '../components/shared/BottomNavigation';
 
 export default function Settings() {
   return (
@@ -15,26 +15,7 @@ export default function Settings() {
         </div>
       </section>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <div className="max-w-md mx-auto flex justify-around py-2">
-          <Link to="/" className="flex flex-col items-center text-gray-400 text-xs">
-            <span className="text-lg">🏠</span>
-            ホーム
-          </Link>
-          <Link to="/members" className="flex flex-col items-center text-gray-400 text-xs">
-            <span className="text-lg">👥</span>
-            メンバー
-          </Link>
-          <button className="flex flex-col items-center text-gray-400 text-xs">
-            <span className="text-lg">💊</span>
-            お薬
-          </button>
-          <Link to="/settings" className="flex flex-col items-center text-primary-600 text-xs">
-            <span className="text-lg">👤</span>
-            設定
-          </Link>
-        </div>
-      </nav>
+      <BottomNavigation activePath="/settings" />
     </div>
   );
 }

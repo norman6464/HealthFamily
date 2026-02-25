@@ -1,5 +1,5 @@
 import React from 'react';
-import { CharacterType, CHARACTER_CONFIGS } from '../../types/character';
+import { CharacterType, CHARACTER_CONFIGS } from '../../domain/entities/Character';
 import { useCharacterStore } from '../../stores/characterStore';
 
 const characterTypes: CharacterType[] = ['dog', 'cat', 'rabbit', 'bird'];
