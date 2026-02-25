@@ -4,7 +4,11 @@ import { useTodaySchedules } from '../presentation/hooks/useTodaySchedules';
 
 export default function Dashboard() {
   // ViewModelから状態を取得（クリーンアーキテクチャ）
-  const { schedules, isLoading } = useTodaySchedules('user-1'); // TODO: 実際のuserIdに置き換え
+  const { schedules, isLoading, markAsCompleted } = useTodaySchedules('user-1'); // TODO: 実際のuserIdに置き換え
+
+  const handleMarkCompleted = async (scheduleId: string) => {
+    await markAsCompleted(scheduleId);
+  };
 
   return (
     <div className="max-w-md mx-auto p-4 pb-20">
@@ -22,7 +26,7 @@ export default function Dashboard() {
       <section className="mb-6">
         <h2 className="text-sm font-semibold text-gray-500 mb-3">今日の予定</h2>
         <div className="bg-white rounded-xl shadow-sm">
-          <TodayScheduleList schedules={schedules} isLoading={isLoading} />
+          <TodayScheduleList schedules={schedules} isLoading={isLoading} onMarkCompleted={handleMarkCompleted} />
         </div>
       </section>
 

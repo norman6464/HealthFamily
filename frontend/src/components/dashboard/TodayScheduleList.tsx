@@ -4,10 +4,10 @@ import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules'
 interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
   isLoading: boolean;
+  onMarkCompleted?: (scheduleId: string) => void;
 }
 
-export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading }) => {
-  // ローディング状態
+export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, onMarkCompleted }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -16,7 +16,6 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
     );
   }
 
-  // 空状態
   if (schedules.length === 0) {
     return (
       <div className="flex flex-col justify-center items-center py-12">
@@ -25,11 +24,14 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
     );
   }
 
-  // すでにユースケースでソート済み
   return (
     <div className="space-y-4">
       {schedules.map((schedule) => (
-        <ScheduleCard key={schedule.scheduleId} schedule={schedule} />
+        <ScheduleCard
+          key={schedule.scheduleId}
+          schedule={schedule}
+          onMarkCompleted={onMarkCompleted}
+        />
       ))}
     </div>
   );
@@ -37,9 +39,12 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
 
 interface ScheduleCardProps {
   schedule: TodayScheduleViewModel;
+  onMarkCompleted?: (scheduleId: string) => void;
 }
 
-const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
+const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }) => {
+  const showCompleteButton = schedule.status !== 'completed';
+
   return (
     <div
       className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow"
@@ -48,9 +53,7 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
       aria-label={`${schedule.scheduledTime}の服薬スケジュール - ${schedule.medicationName}`}
     >
       <div className="flex items-center justify-between">
-        {/* 左側: 時刻とメンバー情報 */}
         <div className="flex items-center space-x-4">
-          {/* 時刻 */}
           <div className="flex flex-col items-center">
             <span
               className="text-2xl font-bold text-gray-800"
@@ -60,7 +63,6 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
             </span>
           </div>
 
-          {/* メンバーアイコン */}
           <div className="flex items-center space-x-2">
             <MemberIcon memberType={schedule.memberType} />
             <div className="flex flex-col">
@@ -74,8 +76,18 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
           </div>
         </div>
 
-        {/* 右側: ステータスバッジ */}
-        <StatusBadge status={schedule.status} />
+        <div className="flex items-center space-x-2">
+          {showCompleteButton && onMarkCompleted && (
+            <button
+              onClick={() => onMarkCompleted(schedule.scheduleId)}
+              className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-green-600 transition-colors"
+              aria-label="飲んだ"
+            >
+              飲んだ
+            </button>
+          )}
+          <StatusBadge status={schedule.status} />
+        </div>
       </div>
     </div>
   );

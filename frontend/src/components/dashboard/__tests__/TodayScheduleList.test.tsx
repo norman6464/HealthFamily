@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TodayScheduleList } from '../TodayScheduleList';
 import { TodayScheduleViewModel } from '../../../domain/usecases/GetTodaySchedules';
 
@@ -46,33 +46,35 @@ const mockSchedules: TodayScheduleViewModel[] = [
   },
 ];
 
+const defaultProps = {
+  schedules: mockSchedules,
+  isLoading: false,
+  onMarkCompleted: vi.fn(),
+};
+
 describe('TodayScheduleList', () => {
   it('今日のスケジュール一覧が正しく表示される', () => {
-    render(<TodayScheduleList schedules={mockSchedules} isLoading={false} />);
+    render(<TodayScheduleList {...defaultProps} />);
 
-    // スケジュールが3件表示される
     expect(screen.getByText('血圧の薬')).toBeInTheDocument();
     expect(screen.getByText('胃薬')).toBeInTheDocument();
     expect(screen.getByText('フィラリア薬')).toBeInTheDocument();
 
-    // メンバー名が表示される
     expect(screen.getByText('パパ')).toBeInTheDocument();
     expect(screen.getByText('ママ')).toBeInTheDocument();
     expect(screen.getByText('ポチ')).toBeInTheDocument();
 
-    // 時刻が表示される
     expect(screen.getByText('08:00')).toBeInTheDocument();
     expect(screen.getByText('12:00')).toBeInTheDocument();
     expect(screen.getByText('18:00')).toBeInTheDocument();
   });
 
   it('服薬時刻順に表示される（ユースケースでソート済み）', () => {
-    const { container } = render(<TodayScheduleList schedules={mockSchedules} isLoading={false} />);
+    const { container } = render(<TodayScheduleList {...defaultProps} />);
 
     const scheduleItems = container.querySelectorAll('[data-testid="schedule-item"]');
     expect(scheduleItems).toHaveLength(3);
 
-    // 時系列順（08:00 -> 12:00 -> 18:00）で表示されることを確認
     const times = Array.from(scheduleItems).map(item =>
       item.querySelector('[data-testid="schedule-time"]')?.textContent
     );
@@ -80,24 +82,22 @@ describe('TodayScheduleList', () => {
   });
 
   it('ステータスバッジが正しく表示される', () => {
-    render(<TodayScheduleList schedules={mockSchedules} isLoading={false} />);
+    render(<TodayScheduleList {...defaultProps} />);
 
-    // 服薬済みステータス
     expect(screen.getByText('服薬済み')).toBeInTheDocument();
 
-    // 未服薬ステータス（2件）
     const pendingBadges = screen.getAllByText('未服薬');
     expect(pendingBadges).toHaveLength(2);
   });
 
   it('空状態が正しく表示される', () => {
-    render(<TodayScheduleList schedules={[]} isLoading={false} />);
+    render(<TodayScheduleList {...defaultProps} schedules={[]} />);
 
     expect(screen.getByText('今日の服薬スケジュールはありません')).toBeInTheDocument();
   });
 
   it('ローディング状態が正しく表示される', () => {
-    render(<TodayScheduleList schedules={[]} isLoading={true} />);
+    render(<TodayScheduleList {...defaultProps} schedules={[]} isLoading={true} />);
 
     expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
@@ -111,24 +111,50 @@ describe('TodayScheduleList', () => {
       },
     ];
 
-    render(<TodayScheduleList schedules={overdueSchedule} isLoading={false} />);
+    render(<TodayScheduleList {...defaultProps} schedules={overdueSchedule} />);
 
     expect(screen.getByText('時間超過')).toBeInTheDocument();
   });
 
   it('ペットのアイコンが表示される', () => {
-    render(<TodayScheduleList schedules={mockSchedules} isLoading={false} />);
+    render(<TodayScheduleList {...defaultProps} />);
 
-    // ペット用のアイコンが表示される（data-testid で確認）
     const petIcons = screen.getAllByTestId('member-type-pet');
     expect(petIcons).toHaveLength(1);
   });
 
   it('人間のアイコンが表示される', () => {
-    render(<TodayScheduleList schedules={mockSchedules} isLoading={false} />);
+    render(<TodayScheduleList {...defaultProps} />);
 
-    // 人間用のアイコンが表示される
     const humanIcons = screen.getAllByTestId('member-type-human');
     expect(humanIcons).toHaveLength(2);
+  });
+
+  // 服薬記録関連のテスト
+  it('未服薬のスケジュールに「飲んだ」ボタンが表示される', () => {
+    render(<TodayScheduleList {...defaultProps} />);
+
+    const completeButtons = screen.getAllByRole('button', { name: '飲んだ' });
+    expect(completeButtons).toHaveLength(2); // pending が2件
+  });
+
+  it('服薬済みのスケジュールには「飲んだ」ボタンが表示されない', () => {
+    const completedOnly: TodayScheduleViewModel[] = [
+      { ...mockSchedules[0], status: 'completed' },
+    ];
+
+    render(<TodayScheduleList {...defaultProps} schedules={completedOnly} />);
+
+    expect(screen.queryByRole('button', { name: '飲んだ' })).not.toBeInTheDocument();
+  });
+
+  it('「飲んだ」ボタンをクリックするとonMarkCompletedが呼ばれる', () => {
+    const onMarkCompleted = vi.fn();
+    render(<TodayScheduleList {...defaultProps} onMarkCompleted={onMarkCompleted} />);
+
+    const completeButtons = screen.getAllByRole('button', { name: '飲んだ' });
+    fireEvent.click(completeButtons[0]);
+
+    expect(onMarkCompleted).toHaveBeenCalledWith('2'); // scheduleId '2' (最初のpending)
   });
 });
