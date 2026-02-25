@@ -5,6 +5,7 @@ import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, notFound, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
 import { pickAllowedFields, isNonEmptyString } from '../../shared/validation.js';
+import { logger } from '../../shared/logger.js';
 
 const ALLOWED_HOSPITAL_FIELDS = ['name', 'address', 'phone', 'type', 'notes', 'memberId'];
 const ALLOWED_HOSPITAL_UPDATE_FIELDS = ['name', 'address', 'phone', 'type', 'notes'];
@@ -22,7 +23,8 @@ hospitalsRouter.get('/', async (req, res) => {
       ExpressionAttributeValues: { ':userId': userId },
     }));
     return success(res, result.Items || []);
-  } catch {
+  } catch (err) {
+    logger.error('病院一覧取得に失敗', err);
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -48,7 +50,8 @@ hospitalsRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch {
+  } catch (err) {
+    logger.error('病院登録に失敗', err);
     return error(res, '登録に失敗しました', 500);
   }
 });
@@ -95,7 +98,8 @@ hospitalsRouter.put('/:hospitalId', async (req, res) => {
       ReturnValues: 'ALL_NEW',
     }));
     return success(res, result.Attributes);
-  } catch {
+  } catch (err) {
+    logger.error('病院更新に失敗', err);
     return error(res, '更新に失敗しました', 500);
   }
 });
@@ -117,7 +121,8 @@ hospitalsRouter.delete('/:hospitalId', async (req, res) => {
       Key: { hospitalId: req.params.hospitalId },
     }));
     return success(res, { message: '削除しました' });
-  } catch {
+  } catch (err) {
+    logger.error('病院削除に失敗', err);
     return error(res, '削除に失敗しました', 500);
   }
 });

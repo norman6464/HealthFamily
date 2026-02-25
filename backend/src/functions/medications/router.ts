@@ -5,6 +5,7 @@ import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, notFound, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
 import { pickAllowedFields, isNonEmptyString } from '../../shared/validation.js';
+import { logger } from '../../shared/logger.js';
 
 const ALLOWED_MEDICATION_FIELDS = [
   'memberId', 'name', 'category', 'dosageAmount', 'frequency',
@@ -23,7 +24,8 @@ medicationsRouter.get('/member/:memberId', async (req, res) => {
       ExpressionAttributeValues: { ':memberId': req.params.memberId },
     }));
     return success(res, result.Items || []);
-  } catch {
+  } catch (err) {
+    logger.error('お薬一覧取得に失敗', err);
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -52,7 +54,8 @@ medicationsRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch {
+  } catch (err) {
+    logger.error('お薬登録に失敗', err);
     return error(res, '登録に失敗しました', 500);
   }
 });
@@ -68,7 +71,8 @@ medicationsRouter.get('/:medicationId', async (req, res) => {
     if (!result.Item) return notFound(res, 'お薬');
     if (result.Item.userId !== userId) return notFound(res, 'お薬');
     return success(res, result.Item);
-  } catch {
+  } catch (err) {
+    logger.error('お薬詳細取得に失敗', err);
     return error(res, '取得に失敗しました', 500);
   }
 });
@@ -102,7 +106,8 @@ medicationsRouter.put('/:medicationId/stock', async (req, res) => {
       ReturnValues: 'ALL_NEW',
     }));
     return success(res, result.Attributes);
-  } catch {
+  } catch (err) {
+    logger.error('お薬在庫更新に失敗', err);
     return error(res, '更新に失敗しました', 500);
   }
 });
@@ -124,7 +129,8 @@ medicationsRouter.delete('/:medicationId', async (req, res) => {
       Key: { medicationId: req.params.medicationId },
     }));
     return success(res, { message: '削除しました' });
-  } catch {
+  } catch (err) {
+    logger.error('お薬削除に失敗', err);
     return error(res, '削除に失敗しました', 500);
   }
 });
