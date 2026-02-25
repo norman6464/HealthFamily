@@ -87,4 +87,21 @@ export class MedicationEntity {
   get data(): Medication {
     return this.medication;
   }
+
+  private static readonly categoryLabels: Record<MedicationCategory, string> = {
+    regular: '常用薬',
+    supplement: 'サプリメント',
+    prn: '頓服薬',
+    flea_tick: 'ノミ・ダニ薬',
+    heartworm: 'フィラリア薬',
+  };
+
+  getDisplayInfo(): { name: string; categoryLabel: string; dosageInfo: string } {
+    const dosageParts = [this.medication.dosage, this.medication.frequency].filter(Boolean);
+    return {
+      name: this.medication.name,
+      categoryLabel: MedicationEntity.categoryLabels[this.medication.category],
+      dosageInfo: dosageParts.join(' / '),
+    };
+  }
 }
