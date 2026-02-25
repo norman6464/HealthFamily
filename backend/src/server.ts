@@ -6,25 +6,45 @@ import { schedulesRouter } from './functions/schedules/router.js';
 import { recordsRouter } from './functions/records/router.js';
 import { hospitalsRouter } from './functions/hospitals/router.js';
 import { appointmentsRouter } from './functions/appointments/router.js';
+import { requireAuth } from './shared/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
+// CORS設定（許可オリジンを制限）
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173'];
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'x-user-id'],
+}));
 
-// ヘルスチェック
+// リクエストボディサイズ制限（DoS防止）
+app.use(express.json({ limit: '1mb' }));
+
+// セキュリティヘッダー
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
+// ヘルスチェック（認証不要）
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'HealthFamily API' });
 });
 
-// ルーター登録
-app.use('/members', membersRouter);
-app.use('/medications', medicationsRouter);
-app.use('/schedules', schedulesRouter);
-app.use('/records', recordsRouter);
-app.use('/hospitals', hospitalsRouter);
-app.use('/appointments', appointmentsRouter);
+// 認証ミドルウェア（全APIルートに適用）
+app.use('/members', requireAuth, membersRouter);
+app.use('/medications', requireAuth, medicationsRouter);
+app.use('/schedules', requireAuth, schedulesRouter);
+app.use('/records', requireAuth, recordsRouter);
+app.use('/hospitals', requireAuth, hospitalsRouter);
+app.use('/appointments', requireAuth, appointmentsRouter);
 
 app.listen(PORT, () => {
   console.log(`HealthFamily API サーバー起動: http://localhost:${PORT}`);

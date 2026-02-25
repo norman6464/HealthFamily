@@ -3,18 +3,26 @@ import { PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { ulid } from 'ulid';
 import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, error } from '../../shared/response.js';
+import { getUserId } from '../../shared/auth.js';
+import { pickAllowedFields } from '../../shared/validation.js';
+
+const ALLOWED_RECORD_FIELDS = [
+  'memberId', 'medicationId', 'scheduleId', 'notes', 'dosageAmount',
+];
 
 export const recordsRouter = Router();
 
 // 服薬記録登録
 recordsRouter.post('/', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = getUserId(req);
+    const fields = pickAllowedFields(req.body, ALLOWED_RECORD_FIELDS);
+
     const item = {
       recordId: ulid(),
       userId,
       takenAt: new Date().toISOString(),
-      ...req.body,
+      ...fields,
     };
     await docClient.send(new PutCommand({
       TableName: TABLE_NAMES.MEDICATION_RECORDS,
@@ -29,7 +37,7 @@ recordsRouter.post('/', async (req, res) => {
 // 服薬記録一覧取得
 recordsRouter.get('/', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = getUserId(req);
     const result = await docClient.send(new QueryCommand({
       TableName: TABLE_NAMES.MEDICATION_RECORDS,
       IndexName: 'UserDailyRecords-index',

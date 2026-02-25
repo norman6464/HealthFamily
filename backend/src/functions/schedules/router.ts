@@ -1,15 +1,22 @@
 import { Router } from 'express';
-import { PutCommand, QueryCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, QueryCommand, GetCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { ulid } from 'ulid';
 import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
-import { success, created, error } from '../../shared/response.js';
+import { success, created, notFound, error } from '../../shared/response.js';
+import { getUserId } from '../../shared/auth.js';
+import { pickAllowedFields } from '../../shared/validation.js';
+
+const ALLOWED_SCHEDULE_FIELDS = [
+  'medicationId', 'memberId', 'scheduledTime', 'daysOfWeek',
+  'isEnabled', 'reminderMinutesBefore',
+];
 
 export const schedulesRouter = Router();
 
 // スケジュール一覧取得
 schedulesRouter.get('/', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = getUserId(req);
     const result = await docClient.send(new QueryCommand({
       TableName: TABLE_NAMES.SCHEDULES,
       IndexName: 'UserSchedules-index',
@@ -25,13 +32,15 @@ schedulesRouter.get('/', async (req, res) => {
 // スケジュール登録
 schedulesRouter.post('/', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string || 'demo-user';
+    const userId = getUserId(req);
+    const fields = pickAllowedFields(req.body, ALLOWED_SCHEDULE_FIELDS);
+
     const item = {
       scheduleId: ulid(),
       userId,
       isEnabled: true,
       reminderMinutesBefore: 5,
-      ...req.body,
+      ...fields,
       createdAt: new Date().toISOString(),
     };
     await docClient.send(new PutCommand({
@@ -44,9 +53,20 @@ schedulesRouter.post('/', async (req, res) => {
   }
 });
 
-// スケジュール更新
+// スケジュール更新（所有権チェック付き）
 schedulesRouter.put('/:scheduleId', async (req, res) => {
   try {
+    const userId = getUserId(req);
+
+    // 所有権チェック
+    const existing = await docClient.send(new GetCommand({
+      TableName: TABLE_NAMES.SCHEDULES,
+      Key: { scheduleId: req.params.scheduleId },
+    }));
+    if (!existing.Item || existing.Item.userId !== userId) {
+      return notFound(res, 'スケジュール');
+    }
+
     const { scheduledTime, daysOfWeek, isEnabled, reminderMinutesBefore } = req.body;
     const result = await docClient.send(new UpdateCommand({
       TableName: TABLE_NAMES.SCHEDULES,
@@ -66,9 +86,18 @@ schedulesRouter.put('/:scheduleId', async (req, res) => {
   }
 });
 
-// スケジュール削除
+// スケジュール削除（所有権チェック付き）
 schedulesRouter.delete('/:scheduleId', async (req, res) => {
   try {
+    const userId = getUserId(req);
+    const existing = await docClient.send(new GetCommand({
+      TableName: TABLE_NAMES.SCHEDULES,
+      Key: { scheduleId: req.params.scheduleId },
+    }));
+    if (!existing.Item || existing.Item.userId !== userId) {
+      return notFound(res, 'スケジュール');
+    }
+
     await docClient.send(new DeleteCommand({
       TableName: TABLE_NAMES.SCHEDULES,
       Key: { scheduleId: req.params.scheduleId },
