@@ -5,6 +5,7 @@ import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
 import { pickAllowedFields } from '../../shared/validation.js';
+import { logger } from '../../shared/logger.js';
 
 const ALLOWED_RECORD_FIELDS = [
   'memberId', 'medicationId', 'scheduleId', 'notes', 'dosageAmount',
@@ -29,7 +30,8 @@ recordsRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch {
+  } catch (err) {
+    logger.error('服薬記録登録に失敗', err);
     return error(res, '記録に失敗しました', 500);
   }
 });
@@ -47,7 +49,8 @@ recordsRouter.get('/', async (req, res) => {
       Limit: 50,
     }));
     return success(res, result.Items || []);
-  } catch {
+  } catch (err) {
+    logger.error('服薬記録一覧取得に失敗', err);
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -64,7 +67,8 @@ recordsRouter.get('/member/:memberId', async (req, res) => {
       Limit: 50,
     }));
     return success(res, result.Items || []);
-  } catch {
+  } catch (err) {
+    logger.error('メンバー別服薬記録取得に失敗', err);
     return error(res, '取得に失敗しました', 500);
   }
 });

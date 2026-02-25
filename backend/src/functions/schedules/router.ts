@@ -5,6 +5,7 @@ import { docClient, TABLE_NAMES } from '../../shared/dynamodb.js';
 import { success, created, notFound, error } from '../../shared/response.js';
 import { getUserId } from '../../shared/auth.js';
 import { pickAllowedFields } from '../../shared/validation.js';
+import { logger } from '../../shared/logger.js';
 
 const ALLOWED_SCHEDULE_FIELDS = [
   'medicationId', 'memberId', 'scheduledTime', 'daysOfWeek',
@@ -24,7 +25,8 @@ schedulesRouter.get('/', async (req, res) => {
       ExpressionAttributeValues: { ':userId': userId },
     }));
     return success(res, result.Items || []);
-  } catch {
+  } catch (err) {
+    logger.error('スケジュール一覧取得に失敗', err);
     return error(res, '一覧取得に失敗しました', 500);
   }
 });
@@ -48,7 +50,8 @@ schedulesRouter.post('/', async (req, res) => {
       Item: item,
     }));
     return created(res, item);
-  } catch {
+  } catch (err) {
+    logger.error('スケジュール登録に失敗', err);
     return error(res, '登録に失敗しました', 500);
   }
 });
@@ -81,7 +84,8 @@ schedulesRouter.put('/:scheduleId', async (req, res) => {
       ReturnValues: 'ALL_NEW',
     }));
     return success(res, result.Attributes);
-  } catch {
+  } catch (err) {
+    logger.error('スケジュール更新に失敗', err);
     return error(res, '更新に失敗しました', 500);
   }
 });
@@ -103,7 +107,8 @@ schedulesRouter.delete('/:scheduleId', async (req, res) => {
       Key: { scheduleId: req.params.scheduleId },
     }));
     return success(res, { message: '削除しました' });
-  } catch {
+  } catch (err) {
+    logger.error('スケジュール削除に失敗', err);
     return error(res, '削除に失敗しました', 500);
   }
 });
