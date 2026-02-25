@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMembers } from '../presentation/hooks/useMembers';
 import { MemberList } from '../components/members/MemberList';
 import { MemberForm, MemberFormData } from '../components/members/MemberForm';
+import { BottomNavigation } from '../components/shared/BottomNavigation';
 
 export default function Members() {
   const { members, isLoading, createMember, deleteMember } = useMembers('user-1'); // TODO: 実際のuserIdに置き換え
@@ -45,6 +46,8 @@ export default function Members() {
       <section>
         <MemberList members={members} isLoading={isLoading} onDelete={handleDelete} />
       </section>
+
+      <BottomNavigation activePath="/members" />
     </div>
   );
 }
