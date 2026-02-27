@@ -1,22 +1,51 @@
 import type { Request, Response, NextFunction } from 'express';
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import { env } from './env.js';
+import { logger } from './logger.js';
+
+let verifier: ReturnType<typeof CognitoJwtVerifier.create> | null = null;
+
+function getVerifier() {
+  if (!verifier) {
+    verifier = CognitoJwtVerifier.create({
+      userPoolId: env.USER_POOL_ID,
+      tokenUse: 'id',
+      clientId: env.USER_POOL_CLIENT_ID,
+    });
+  }
+  return verifier;
+}
 
 /**
  * 認証ミドルウェア
- * x-user-idヘッダーの存在を検証する
- * 本番環境ではAPI Gateway + Cognitoで認証済みだが、
- * Express層でもユーザーIDの存在を保証する
+ * Authorization: Bearer <token> ヘッダーのCognito IDトークンを検証する
  */
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const userId = req.headers['x-user-id'] as string | undefined;
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
 
-  if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({
       success: false,
       error: '認証が必要です',
     });
   }
 
-  next();
+  const token = authHeader.slice(7);
+
+  try {
+    const payload = await getVerifier().verify(token);
+    (req as Request & { auth?: { userId: string; email: string } }).auth = {
+      userId: payload.sub,
+      email: (payload.email as string) || '',
+    };
+    next();
+  } catch (err) {
+    logger.error('トークン検証に失敗', err);
+    return res.status(401).json({
+      success: false,
+      error: '無効なトークンです',
+    });
+  }
 }
 
 /**
@@ -24,5 +53,12 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
  * requireAuthミドルウェア通過後に使用すること
  */
 export function getUserId(req: Request): string {
-  return req.headers['x-user-id'] as string;
+  return (req as Request & { auth?: { userId: string } }).auth?.userId || '';
+}
+
+/**
+ * リクエストからメールアドレスを取得する
+ */
+export function getUserEmail(req: Request): string {
+  return (req as Request & { auth?: { email: string } }).auth?.email || '';
 }

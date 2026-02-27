@@ -53,11 +53,11 @@ describe('MemberList', () => {
     expect(screen.getByText('ペット')).toBeInTheDocument();
   });
 
-  it('メンバーのアイコンが表示される', () => {
+  it('メンバーカードが表示される', () => {
     render(<MemberList members={mockMembers} isLoading={false} onDelete={vi.fn()} />);
 
-    expect(screen.getAllByText('👤')).toHaveLength(2);
-    expect(screen.getByText('🐕')).toBeInTheDocument();
+    const memberItems = screen.getAllByTestId('member-item');
+    expect(memberItems).toHaveLength(3);
   });
 
   it('空状態が正しく表示される', () => {

@@ -3,14 +3,17 @@ import { useMembers } from '../presentation/hooks/useMembers';
 import { MemberList } from '../components/members/MemberList';
 import { MemberForm, MemberFormData } from '../components/members/MemberForm';
 import { BottomNavigation } from '../components/shared/BottomNavigation';
+import { useAuthStore } from '../stores/authStore';
 
 export default function Members() {
-  const { members, isLoading, createMember, deleteMember } = useMembers('user-1'); // TODO: 実際のuserIdに置き換え
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.userId || '';
+  const { members, isLoading, createMember, deleteMember } = useMembers(userId);
   const [showForm, setShowForm] = useState(false);
 
   const handleSubmit = async (data: MemberFormData) => {
     await createMember({
-      userId: 'user-1', // TODO: 実際のuserIdに置き換え
+      userId,
       memberType: data.memberType,
       name: data.name,
       petType: data.petType,

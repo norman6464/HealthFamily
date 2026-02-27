@@ -20,10 +20,9 @@ describe('CharacterSelector', () => {
   it('各キャラクターのアイコンが表示される', () => {
     render(<CharacterSelector />);
 
-    expect(screen.getByText('🐕')).toBeInTheDocument();
-    expect(screen.getByText('🐈️')).toBeInTheDocument();
-    expect(screen.getByText('🐇')).toBeInTheDocument();
-    expect(screen.getByText('🦜')).toBeInTheDocument();
+    // lucide-reactアイコンが4つ表示されていることを確認
+    const buttons = screen.getAllByRole('button');
+    expect(buttons).toHaveLength(4);
   });
 
   it('キャラクターをクリックして選択できる', () => {

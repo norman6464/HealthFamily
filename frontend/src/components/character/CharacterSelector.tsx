@@ -1,6 +1,7 @@
 import React from 'react';
 import { CharacterType, CHARACTER_CONFIGS } from '../../domain/entities/Character';
 import { useCharacterStore } from '../../stores/characterStore';
+import { CharacterIcon } from '../shared/CharacterIcon';
 
 const characterTypes: CharacterType[] = ['dog', 'cat', 'rabbit', 'bird'];
 
@@ -23,7 +24,7 @@ export const CharacterSelector: React.FC = () => {
                 : 'border-gray-200 bg-white hover:border-blue-300'
             }`}
           >
-            <span className="text-4xl mb-2">{config.icon}</span>
+            <CharacterIcon type={type} size={40} className="mb-2 text-gray-700" />
             <span className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
               {config.name}
             </span>

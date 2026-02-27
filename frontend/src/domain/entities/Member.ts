@@ -59,21 +59,13 @@ export class MemberEntity {
   }
 
   /**
-   * 表示用のアイコン絵文字を取得
+   * アイコン種別を取得（コンポーネント側でMemberIconに渡す用）
    */
-  getIcon(): string {
-    if (this.isPet()) {
-      const iconMap: Record<PetType, string> = {
-        dog: '🐕',
-        cat: '🐈',
-        rabbit: '🐇',
-        bird: '🦜',
-        other: '🐾',
-      };
-      return iconMap[this.member.petType || 'other'];
-    }
-
-    return '👤';
+  getIconType(): { memberType: MemberType; petType?: PetType } {
+    return {
+      memberType: this.member.memberType,
+      petType: this.member.petType,
+    };
   }
 
   get id(): string {
@@ -91,9 +83,10 @@ export class MemberEntity {
   /**
    * 表示用の情報を取得
    */
-  getDisplayInfo(): { icon: string; name: string; typeLabel: string } {
+  getDisplayInfo(): { memberType: MemberType; petType?: PetType; name: string; typeLabel: string } {
     return {
-      icon: this.getIcon(),
+      memberType: this.member.memberType,
+      petType: this.member.petType,
       name: this.member.name,
       typeLabel: this.isPet() ? 'ペット' : '家族',
     };

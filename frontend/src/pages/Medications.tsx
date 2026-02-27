@@ -3,16 +3,19 @@ import { useParams, Link } from 'react-router-dom';
 import { useMedications } from '../presentation/hooks/useMedications';
 import { MedicationList } from '../components/medications/MedicationList';
 import { MedicationForm, MedicationFormData } from '../components/medications/MedicationForm';
+import { useAuthStore } from '../stores/authStore';
 
 export default function Medications() {
-  const { memberId = 'member-1' } = useParams<{ memberId: string }>();
+  const { memberId = '' } = useParams<{ memberId: string }>();
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.userId || '';
   const { medications, isLoading, createMedication, deleteMedication } = useMedications(memberId);
   const [showForm, setShowForm] = useState(false);
 
   const handleSubmit = async (data: MedicationFormData) => {
     await createMedication({
       memberId,
-      userId: 'user-1', // TODO: 実際のuserIdに置き換え
+      userId,
       name: data.name,
       category: data.category,
       dosage: data.dosage,

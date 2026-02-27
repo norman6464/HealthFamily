@@ -1,7 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
+import { useAuthStore } from '../stores/authStore';
+
+// Amplify Authモック
+vi.mock('aws-amplify/auth', () => ({
+  getCurrentUser: vi.fn().mockRejectedValue(new Error('not authenticated')),
+  fetchAuthSession: vi.fn().mockRejectedValue(new Error('not authenticated')),
+  signIn: vi.fn(),
+  signUp: vi.fn(),
+  confirmSignUp: vi.fn(),
+  signOut: vi.fn(),
+}));
 
 // APIモック
 vi.mock('../data/api/scheduleApi', () => ({
@@ -28,7 +39,19 @@ vi.mock('../data/api/medicationApi', () => ({
   },
 }));
 
+function setAuthenticated() {
+  useAuthStore.setState({
+    user: { userId: 'test-user', email: 'test@example.com' },
+    isAuthenticated: true,
+    isLoading: false,
+  });
+}
+
 describe('App', () => {
+  beforeEach(() => {
+    setAuthenticated();
+  });
+
   it('/でDashboardが表示される', async () => {
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -61,9 +84,23 @@ describe('App', () => {
     });
   });
 
+  it('未認証時は/loginにリダイレクトされる', async () => {
+    useAuthStore.setState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('メールアドレス')).toBeInTheDocument();
+  });
+
   it('ErrorBoundaryで囲まれている', () => {
-    // App自体がErrorBoundaryで囲まれていることの確認
-    // 正常レンダリングが成功すればErrorBoundaryは機能している
     render(
       <MemoryRouter initialEntries={['/']}>
         <App />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pill } from 'lucide-react';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 
 interface MedicationListProps {
@@ -46,7 +47,7 @@ const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete }) 
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <span className="text-lg">💊</span>
+            <Pill size={20} className="text-primary-600" />
             <p className="font-semibold text-gray-800">{displayInfo.name}</p>
             {isLowStock && (
               <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">

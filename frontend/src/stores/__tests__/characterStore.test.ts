@@ -19,7 +19,6 @@ describe('characterStore', () => {
   it('キャラクター設定を取得できる', () => {
     const config = useCharacterStore.getState().getConfig();
     expect(config.type).toBe('cat');
-    expect(config.icon).toBe('🐈️');
     expect(config.name).toBe('ねこ');
   });
 

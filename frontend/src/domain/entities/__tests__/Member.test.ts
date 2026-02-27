@@ -69,55 +69,31 @@ describe('MemberEntity', () => {
     });
   });
 
-  describe('getIcon', () => {
-    it('人間メンバーの場合、👤を返す', () => {
+  describe('getIconType', () => {
+    it('人間メンバーの場合、memberType: humanを返す', () => {
       const entity = new MemberEntity(mockHumanMember);
-      expect(entity.getIcon()).toBe('👤');
+      expect(entity.getIconType()).toEqual({ memberType: 'human', petType: undefined });
     });
 
-    it('犬の場合、🐕を返す', () => {
+    it('犬の場合、memberType: pet, petType: dogを返す', () => {
       const entity = new MemberEntity(mockPetMember);
-      expect(entity.getIcon()).toBe('🐕');
+      expect(entity.getIconType()).toEqual({ memberType: 'pet', petType: 'dog' });
     });
 
-    it('猫の場合、🐈を返す', () => {
+    it('猫の場合、petType: catを返す', () => {
       const entity = new MemberEntity({
         ...mockPetMember,
         petType: 'cat',
       });
-      expect(entity.getIcon()).toBe('🐈');
+      expect(entity.getIconType().petType).toBe('cat');
     });
 
-    it('うさぎの場合、🐇を返す', () => {
-      const entity = new MemberEntity({
-        ...mockPetMember,
-        petType: 'rabbit',
-      });
-      expect(entity.getIcon()).toBe('🐇');
-    });
-
-    it('鳥の場合、🦜を返す', () => {
-      const entity = new MemberEntity({
-        ...mockPetMember,
-        petType: 'bird',
-      });
-      expect(entity.getIcon()).toBe('🦜');
-    });
-
-    it('その他のペットの場合、🐾を返す', () => {
-      const entity = new MemberEntity({
-        ...mockPetMember,
-        petType: 'other',
-      });
-      expect(entity.getIcon()).toBe('🐾');
-    });
-
-    it('ペットタイプ未設定の場合、🐾を返す', () => {
+    it('ペットタイプ未設定の場合、petType: undefinedを返す', () => {
       const entity = new MemberEntity({
         ...mockPetMember,
         petType: undefined,
       });
-      expect(entity.getIcon()).toBe('🐾');
+      expect(entity.getIconType().petType).toBeUndefined();
     });
   });
 
@@ -142,7 +118,7 @@ describe('MemberEntity', () => {
     it('人間メンバーの表示情報を取得できる', () => {
       const entity = new MemberEntity(mockHumanMember);
       const info = entity.getDisplayInfo();
-      expect(info.icon).toBe('👤');
+      expect(info.memberType).toBe('human');
       expect(info.name).toBe('パパ');
       expect(info.typeLabel).toBe('家族');
     });
@@ -150,7 +126,8 @@ describe('MemberEntity', () => {
     it('ペットメンバーの表示情報を取得できる', () => {
       const entity = new MemberEntity(mockPetMember);
       const info = entity.getDisplayInfo();
-      expect(info.icon).toBe('🐕');
+      expect(info.memberType).toBe('pet');
+      expect(info.petType).toBe('dog');
       expect(info.name).toBe('ポチ');
       expect(info.typeLabel).toBe('ペット');
     });

@@ -1,6 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
-import { requireAuth, getUserId } from '../auth';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
+
+// CognitoJwtVerifierのモック
+const mockVerify = vi.fn();
+vi.mock('aws-jwt-verify', () => ({
+  CognitoJwtVerifier: {
+    create: () => ({
+      verify: mockVerify,
+    }),
+  },
+}));
+
+import { requireAuth, getUserId } from '../auth';
 
 const createMockReq = (headers: Record<string, string> = {}): Request => {
   return { headers } as Request;
@@ -15,23 +26,32 @@ const createMockRes = () => {
 };
 
 describe('auth', () => {
+  beforeEach(() => {
+    mockVerify.mockReset();
+  });
+
   describe('requireAuth', () => {
-    it('x-user-idヘッダーがある場合、nextを呼ぶ', () => {
-      const req = createMockReq({ 'x-user-id': 'user-123' });
+    it('有効なBearerトークンがある場合、nextを呼ぶ', async () => {
+      mockVerify.mockResolvedValueOnce({
+        sub: 'user-123',
+        email: 'test@example.com',
+      });
+      const req = createMockReq({ authorization: 'Bearer valid-token' });
       const res = createMockRes();
       const next = vi.fn() as NextFunction;
 
-      requireAuth(req, res, next);
+      await requireAuth(req, res, next);
 
       expect(next).toHaveBeenCalled();
+      expect(mockVerify).toHaveBeenCalledWith('valid-token');
     });
 
-    it('x-user-idヘッダーがない場合、401を返す', () => {
+    it('Authorizationヘッダーがない場合、401を返す', async () => {
       const req = createMockReq({});
       const res = createMockRes();
       const next = vi.fn() as NextFunction;
 
-      requireAuth(req, res, next);
+      await requireAuth(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
@@ -41,32 +61,45 @@ describe('auth', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('x-user-idが空文字の場合、401を返す', () => {
-      const req = createMockReq({ 'x-user-id': '' });
+    it('Bearer接頭辞がない場合、401を返す', async () => {
+      const req = createMockReq({ authorization: 'token-only' });
       const res = createMockRes();
       const next = vi.fn() as NextFunction;
 
-      requireAuth(req, res, next);
+      await requireAuth(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('x-user-idが空白のみの場合、401を返す', () => {
-      const req = createMockReq({ 'x-user-id': '   ' });
+    it('無効なトークンの場合、401を返す', async () => {
+      mockVerify.mockRejectedValueOnce(new Error('Invalid token'));
+      const req = createMockReq({ authorization: 'Bearer invalid-token' });
       const res = createMockRes();
       const next = vi.fn() as NextFunction;
 
-      requireAuth(req, res, next);
+      await requireAuth(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        success: false,
+        error: '無効なトークンです',
+      });
       expect(next).not.toHaveBeenCalled();
     });
   });
 
   describe('getUserId', () => {
-    it('x-user-idヘッダーの値を返す', () => {
-      const req = createMockReq({ 'x-user-id': 'user-456' });
+    it('認証済みリクエストからユーザーIDを返す', async () => {
+      mockVerify.mockResolvedValueOnce({
+        sub: 'user-456',
+        email: 'test@example.com',
+      });
+      const req = createMockReq({ authorization: 'Bearer valid-token' });
+      const res = createMockRes();
+      const next = vi.fn() as NextFunction;
+
+      await requireAuth(req, res, next);
 
       expect(getUserId(req)).toBe('user-456');
     });

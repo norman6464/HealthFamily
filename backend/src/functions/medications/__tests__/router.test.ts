@@ -11,6 +11,12 @@ vi.mock('../../../shared/dynamodb.js', () => ({
   },
 }));
 
+vi.mock('../../../shared/auth.js', () => ({
+  getUserId: (req: { headers: Record<string, string> }) => req.headers['x-user-id'] || '',
+  getUserEmail: (req: { headers: Record<string, string> }) => req.headers['x-user-email'] || '',
+  requireAuth: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 const app = express();
 app.use(express.json());
 app.use('/medications', medicationsRouter);

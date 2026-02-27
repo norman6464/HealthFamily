@@ -1,4 +1,5 @@
 import React from 'react';
+import { Dog, User } from 'lucide-react';
 import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 
 interface TodayScheduleListProps {
@@ -105,9 +106,7 @@ const MemberIcon: React.FC<MemberIconProps> = ({ memberType }) => {
         data-testid="member-type-pet"
         aria-label="ペット"
       >
-        <span className="text-xl" role="img" aria-label="ペット">
-          🐕
-        </span>
+        <Dog size={22} className="text-amber-700" />
       </div>
     );
   }
@@ -118,9 +117,7 @@ const MemberIcon: React.FC<MemberIconProps> = ({ memberType }) => {
       data-testid="member-type-human"
       aria-label="人間"
     >
-      <span className="text-xl" role="img" aria-label="人間">
-        👤
-      </span>
+      <User size={22} className="text-blue-700" />
     </div>
   );
 };

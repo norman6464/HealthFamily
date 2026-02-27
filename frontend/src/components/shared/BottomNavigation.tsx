@@ -1,17 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Home, Users, Pill, Settings, type LucideIcon } from 'lucide-react';
 
 interface NavItem {
   path: string;
-  icon: string;
+  icon: LucideIcon;
   label: string;
 }
 
 const navItems: NavItem[] = [
-  { path: '/', icon: '🏠', label: 'ホーム' },
-  { path: '/members', icon: '👥', label: 'メンバー' },
-  { path: '/medications', icon: '💊', label: 'お薬' },
-  { path: '/settings', icon: '👤', label: '設定' },
+  { path: '/', icon: Home, label: 'ホーム' },
+  { path: '/members', icon: Users, label: 'メンバー' },
+  { path: '/medications', icon: Pill, label: 'お薬' },
+  { path: '/settings', icon: Settings, label: '設定' },
 ];
 
 interface BottomNavigationProps {
@@ -33,7 +34,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ activePath }
                 isActive ? 'text-primary-600' : 'text-gray-400'
               }`}
             >
-              <span className="text-lg" role="img" aria-hidden="true">{icon}</span>
+              {React.createElement(icon, { size: 20, className: 'mb-0.5' })}
               {label}
             </Link>
           );

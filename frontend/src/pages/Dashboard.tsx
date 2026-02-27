@@ -1,10 +1,14 @@
 import { TodayScheduleList } from '../components/dashboard/TodayScheduleList';
 import { BottomNavigation } from '../components/shared/BottomNavigation';
+import { CharacterIcon } from '../components/shared/CharacterIcon';
 import { useTodaySchedules } from '../presentation/hooks/useTodaySchedules';
 import { useCharacterStore } from '../stores/characterStore';
+import { useAuthStore } from '../stores/authStore';
 
 export default function Dashboard() {
-  const { schedules, isLoading, markAsCompleted } = useTodaySchedules('user-1'); // TODO: 実際のuserIdに置き換え
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.userId || '';
+  const { schedules, isLoading, markAsCompleted } = useTodaySchedules(userId);
   const { getConfig, getMessage } = useCharacterStore();
   const character = getConfig();
 
@@ -20,7 +24,9 @@ export default function Dashboard() {
         </header>
 
         <div className="bg-white rounded-2xl shadow-sm p-4 mb-4 text-center" role="status" aria-live="polite">
-          <div className="text-4xl mb-2" role="img" aria-label={`${character.name}キャラクター`}>{character.icon}</div>
+          <div className="flex justify-center mb-2" role="img" aria-label={`${character.name}キャラクター`}>
+            <CharacterIcon type={character.type} size={48} className="text-primary-600" />
+          </div>
           <p className="text-lg font-medium text-gray-700">
             {getMessage('medicationReminder')}
           </p>

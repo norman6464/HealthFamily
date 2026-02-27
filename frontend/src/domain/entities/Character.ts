@@ -12,7 +12,6 @@ export type CharacterMood =
 export interface CharacterConfig {
   type: CharacterType;
   name: string;
-  icon: string;
   sounds: {
     normal: string;
     medicationReminder: string;
@@ -36,7 +35,6 @@ export const CHARACTER_CONFIGS: Record<CharacterType, CharacterConfig> = {
   dog: {
     type: 'dog',
     name: 'いぬ',
-    icon: '🐕',
     sounds: {
       normal: '/sounds/dog/bark.mp3',
       medicationReminder: '/sounds/dog/reminder.mp3',
@@ -58,7 +56,6 @@ export const CHARACTER_CONFIGS: Record<CharacterType, CharacterConfig> = {
   cat: {
     type: 'cat',
     name: 'ねこ',
-    icon: '🐈️',
     sounds: {
       normal: '/sounds/cat/meow.mp3',
       medicationReminder: '/sounds/cat/reminder.mp3',
@@ -80,7 +77,6 @@ export const CHARACTER_CONFIGS: Record<CharacterType, CharacterConfig> = {
   rabbit: {
     type: 'rabbit',
     name: 'うさぎ',
-    icon: '🐇',
     sounds: {
       normal: '/sounds/rabbit/squeak.mp3',
       medicationReminder: '/sounds/rabbit/reminder.mp3',
@@ -102,7 +98,6 @@ export const CHARACTER_CONFIGS: Record<CharacterType, CharacterConfig> = {
   bird: {
     type: 'bird',
     name: 'インコ',
-    icon: '🦜',
     sounds: {
       normal: '/sounds/bird/chirp.mp3',
       medicationReminder: '/sounds/bird/reminder.mp3',

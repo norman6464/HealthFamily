@@ -1,5 +1,6 @@
 import React from 'react';
 import { Member, MemberEntity } from '../../domain/entities/Member';
+import { MemberIcon } from '../shared/MemberIcon';
 
 interface MemberListProps {
   members: Member[];
@@ -50,7 +51,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete }) => {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <span className="text-2xl">{displayInfo.icon}</span>
+          <MemberIcon memberType={displayInfo.memberType} petType={displayInfo.petType} size={28} className="text-gray-600" />
           <div>
             <p className="font-semibold text-gray-800">{displayInfo.name}</p>
             <div className="flex items-center space-x-2 text-sm text-gray-500">

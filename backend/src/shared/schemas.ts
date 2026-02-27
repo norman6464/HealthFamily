@@ -1,5 +1,16 @@
 import { z } from 'zod';
 
+// ===== Users =====
+export const createUserProfileSchema = z.object({
+  displayName: z.string().min(1, '表示名は必須です').max(100),
+});
+
+export const updateUserProfileSchema = z.object({
+  displayName: z.string().min(1).max(100).optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Members =====
 export const createMemberSchema = z.object({
   name: z.string({ required_error: '名前は必須です' }).min(1, '名前は必須です').max(100),

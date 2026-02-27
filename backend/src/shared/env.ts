@@ -10,6 +10,10 @@ const envSchema = z.object({
   AWS_REGION: z.string().default('ap-northeast-1'),
   DYNAMODB_ENDPOINT: z.string().optional(),
 
+  // Cognito設定
+  USER_POOL_ID: z.string().default(''),
+  USER_POOL_CLIENT_ID: z.string().default(''),
+
   // テーブル名（デフォルト値あり）
   USERS_TABLE: z.string().default('HealthFamily-Users'),
   MEMBERS_TABLE: z.string().default('HealthFamily-Members'),

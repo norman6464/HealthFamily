@@ -85,7 +85,7 @@ locals {
     }
     check_missed = {
       description = "飲み忘れチェック（5分毎実行）"
-      handler     = "dist/functions/notifications/checkMissedMedication.handler"
+      handler     = "dist/functions/notifications/checkMissed.handler"
     }
     low_stock_alert = {
       description = "在庫不足アラート（毎日9時JST実行）"

@@ -13,9 +13,7 @@ import { scheduleApi } from '../api/scheduleApi';
 
 export class ScheduleRepositoryImpl implements ScheduleRepository {
   async getTodaySchedules(query: TodayScheduleQuery): Promise<TodayScheduleItem[]> {
-    // APIからデータを取得（現在はモック）
-    const schedules = await scheduleApi.getTodaySchedules(query.userId, query.date);
-    return schedules;
+    return await scheduleApi.getTodaySchedules(query.userId, query.date);
   }
 
   async createSchedule(schedule: Omit<Schedule, 'id' | 'createdAt'>): Promise<Schedule> {

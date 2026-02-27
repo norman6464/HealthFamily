@@ -1,116 +1,88 @@
-/**
- * スケジュールAPI クライアント
- * 実際のAPIエンドポイントとの通信を担当（現在はモック）
- */
-
 import { Schedule } from '../../domain/entities/Schedule';
 import { TodayScheduleItem } from '../../domain/repositories/ScheduleRepository';
-
-// モックデータ（後でAPI連携に置き換え）
-const mockSchedules: TodayScheduleItem[] = [
-  {
-    schedule: {
-      id: '1',
-      medicationId: 'med-1',
-      userId: 'user-1',
-      memberId: 'member-1',
-      scheduledTime: '08:00',
-      daysOfWeek: ['mon', 'tue', 'wed', 'thu', 'fri'],
-      isEnabled: true,
-      reminderMinutesBefore: 10,
-      createdAt: new Date('2024-01-01T00:00:00Z'),
-    },
-    medicationName: '血圧の薬',
-    memberName: 'パパ',
-    memberType: 'human',
-    isCompleted: true,
-  },
-  {
-    schedule: {
-      id: '2',
-      medicationId: 'med-2',
-      userId: 'user-1',
-      memberId: 'member-2',
-      scheduledTime: '12:00',
-      daysOfWeek: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
-      isEnabled: true,
-      reminderMinutesBefore: 30,
-      createdAt: new Date('2024-01-01T00:00:00Z'),
-    },
-    medicationName: '胃薬',
-    memberName: 'ママ',
-    memberType: 'human',
-    isCompleted: false,
-  },
-  {
-    schedule: {
-      id: '3',
-      medicationId: 'med-3',
-      userId: 'user-1',
-      memberId: 'member-3',
-      scheduledTime: '18:00',
-      daysOfWeek: ['mon', 'wed', 'fri'],
-      isEnabled: true,
-      reminderMinutesBefore: 15,
-      createdAt: new Date('2024-01-01T00:00:00Z'),
-    },
-    medicationName: 'フィラリア薬',
-    memberName: 'ポチ',
-    memberType: 'pet',
-    isCompleted: false,
-  },
-];
+import { apiClient } from './apiClient';
+import { BackendSchedule, BackendMember, BackendMedication, BackendRecord } from './types';
+import { toSchedule } from './mappers';
 
 export const scheduleApi = {
-  /**
-   * 今日のスケジュールを取得
-   */
   async getTodaySchedules(_userId: string, _date: Date): Promise<TodayScheduleItem[]> {
-    // 実際のAPI呼び出しをシミュレート
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const [schedules, members, records] = await Promise.all([
+      apiClient.get<BackendSchedule[]>('/schedules'),
+      apiClient.get<BackendMember[]>('/members'),
+      apiClient.get<BackendRecord[]>('/records'),
+    ]);
 
-    // TODO: 実際のAPIエンドポイントに置き換え
-    // const response = await fetch(`/api/schedules/today?userId=${userId}&date=${date.toISOString()}`);
-    // return await response.json();
+    const memberMap = new Map(members.map((m) => [m.memberId, m]));
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayRecordScheduleIds = new Set(
+      records
+        .filter((r) => r.takenAt.slice(0, 10) === todayStr)
+        .map((r) => r.scheduleId)
+        .filter(Boolean)
+    );
 
-    return mockSchedules;
+    const medicationIds = [...new Set(schedules.map((s) => s.medicationId))];
+    const medications = await Promise.all(
+      medicationIds.map((id) =>
+        apiClient.get<BackendMedication>(`/medications/${id}`).catch(() => null)
+      )
+    );
+    const medMap = new Map(
+      medications.filter(Boolean).map((m) => [m!.medicationId, m!])
+    );
+
+    return schedules
+      .filter((s) => s.isEnabled !== false)
+      .map((s) => {
+        const member = memberMap.get(s.memberId);
+        const med = medMap.get(s.medicationId);
+        return {
+          schedule: toSchedule(s),
+          medicationName: med?.name || '',
+          memberName: member?.name || '',
+          memberType: (member?.memberType as 'human' | 'pet') || 'human',
+          isCompleted: todayRecordScheduleIds.has(s.scheduleId),
+        };
+      });
   },
 
-  /**
-   * スケジュールを作成
-   */
   async createSchedule(
-    _schedule: Omit<Schedule, 'id' | 'createdAt'>
+    schedule: Omit<Schedule, 'id' | 'createdAt'>
   ): Promise<Schedule> {
-    // TODO: 実際のAPIエンドポイントに置き換え
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    throw new Error('Not implemented');
+    const data = await apiClient.post<BackendSchedule>('/schedules', {
+      medicationId: schedule.medicationId,
+      memberId: schedule.memberId,
+      scheduledTime: schedule.scheduledTime,
+      daysOfWeek: [...schedule.daysOfWeek],
+      isEnabled: schedule.isEnabled,
+      reminderMinutesBefore: schedule.reminderMinutesBefore,
+    });
+    return toSchedule(data);
   },
 
-  /**
-   * スケジュールを更新
-   */
-  async updateSchedule(_id: string, _schedule: Partial<Schedule>): Promise<Schedule> {
-    // TODO: 実際のAPIエンドポイントに置き換え
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    throw new Error('Not implemented');
+  async updateSchedule(id: string, schedule: Partial<Schedule>): Promise<Schedule> {
+    const body: Record<string, unknown> = {};
+    if (schedule.scheduledTime !== undefined) body.scheduledTime = schedule.scheduledTime;
+    if (schedule.daysOfWeek !== undefined) body.daysOfWeek = [...schedule.daysOfWeek];
+    if (schedule.isEnabled !== undefined) body.isEnabled = schedule.isEnabled;
+    if (schedule.reminderMinutesBefore !== undefined) body.reminderMinutesBefore = schedule.reminderMinutesBefore;
+
+    const data = await apiClient.put<BackendSchedule>(`/schedules/${id}`, body);
+    return toSchedule(data);
   },
 
-  /**
-   * スケジュールを削除
-   */
-  async deleteSchedule(_id: string): Promise<void> {
-    // TODO: 実際のAPIエンドポイントに置き換え
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    throw new Error('Not implemented');
+  async deleteSchedule(id: string): Promise<void> {
+    await apiClient.del(`/schedules/${id}`);
   },
 
-  /**
-   * スケジュールを服薬完了にする
-   */
-  async markAsCompleted(_scheduleId: string, _completedAt: Date): Promise<void> {
-    // TODO: 実際のAPIエンドポイントに置き換え
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    throw new Error('Not implemented');
+  async markAsCompleted(scheduleId: string, _completedAt: Date): Promise<void> {
+    const scheduleData = await apiClient.get<BackendSchedule>(`/schedules/${scheduleId}`).catch(() => null);
+    if (!scheduleData) return;
+
+    await apiClient.post('/records', {
+      memberId: scheduleData.memberId,
+      medicationId: scheduleData.medicationId,
+      scheduleId,
+    });
   },
 };
