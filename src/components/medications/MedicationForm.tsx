@@ -1,0 +1,167 @@
+import React, { useState } from 'react';
+import { MedicationCategory } from '../../domain/entities/Medication';
+
+export interface MedicationFormData {
+  name: string;
+  category: MedicationCategory;
+  dosage: string;
+  frequency: string;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  instructions?: string;
+}
+
+interface MedicationFormProps {
+  onSubmit: (data: MedicationFormData) => void;
+}
+
+export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState<MedicationCategory>('regular');
+  const [dosage, setDosage] = useState('');
+  const [frequency, setFrequency] = useState('');
+  const [stockQuantity, setStockQuantity] = useState('');
+  const [lowStockThreshold, setLowStockThreshold] = useState('');
+  const [instructions, setInstructions] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!name.trim()) return;
+
+    const data: MedicationFormData = {
+      name: name.trim(),
+      category,
+      dosage: dosage.trim(),
+      frequency: frequency.trim(),
+      ...(stockQuantity ? { stockQuantity: parseInt(stockQuantity, 10) } : {}),
+      ...(lowStockThreshold ? { lowStockThreshold: parseInt(lowStockThreshold, 10) } : {}),
+      ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
+    };
+
+    onSubmit(data);
+
+    setName('');
+    setCategory('regular');
+    setDosage('');
+    setFrequency('');
+    setStockQuantity('');
+    setLowStockThreshold('');
+    setInstructions('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="med-name" className="block text-sm font-medium text-gray-700 mb-1">
+          薬の名前
+        </label>
+        <input
+          id="med-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          placeholder="薬の名前を入力"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="med-category" className="block text-sm font-medium text-gray-700 mb-1">
+          カテゴリ
+        </label>
+        <select
+          id="med-category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value as MedicationCategory)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="regular">常用薬</option>
+          <option value="supplement">サプリメント</option>
+          <option value="prn">頓服薬</option>
+          <option value="flea_tick">ノミ・ダニ薬</option>
+          <option value="heartworm">フィラリア薬</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="med-dosage" className="block text-sm font-medium text-gray-700 mb-1">
+            用量
+          </label>
+          <input
+            id="med-dosage"
+            type="text"
+            value={dosage}
+            onChange={(e) => setDosage(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="例: 1錠"
+          />
+        </div>
+        <div>
+          <label htmlFor="med-frequency" className="block text-sm font-medium text-gray-700 mb-1">
+            頻度
+          </label>
+          <input
+            id="med-frequency"
+            type="text"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="例: 1日1回"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="med-stock" className="block text-sm font-medium text-gray-700 mb-1">
+            在庫数
+          </label>
+          <input
+            id="med-stock"
+            type="number"
+            min="0"
+            value={stockQuantity}
+            onChange={(e) => setStockQuantity(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="med-threshold" className="block text-sm font-medium text-gray-700 mb-1">
+            在庫警告
+          </label>
+          <input
+            id="med-threshold"
+            type="number"
+            min="0"
+            value={lowStockThreshold}
+            onChange={(e) => setLowStockThreshold(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="med-instructions" className="block text-sm font-medium text-gray-700 mb-1">
+          服用方法
+        </label>
+        <textarea
+          id="med-instructions"
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          rows={2}
+          placeholder="例: 食後に水と一緒に服用"
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        追加する
+      </button>
+    </form>
+  );
+};
