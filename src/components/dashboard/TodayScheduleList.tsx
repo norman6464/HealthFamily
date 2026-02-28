@@ -4,10 +4,9 @@ import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules'
 interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
   isLoading: boolean;
-  onMarkCompleted?: (scheduleId: string) => void;
 }
 
-export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, onMarkCompleted }) => {
+export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -30,7 +29,6 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
         <ScheduleCard
           key={schedule.scheduleId}
           schedule={schedule}
-          onMarkCompleted={onMarkCompleted}
         />
       ))}
     </div>
@@ -39,10 +37,9 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
 
 interface ScheduleCardProps {
   schedule: TodayScheduleViewModel;
-  onMarkCompleted?: (scheduleId: string) => void;
 }
 
-const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }) => {
+const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
   return (
     <div
       className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow"
@@ -72,19 +69,7 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }
         </div>
 
         <div className="flex items-center space-x-2">
-          {schedule.status === 'completed' ? (
-            <StatusBadge status="completed" />
-          ) : onMarkCompleted ? (
-            <button
-              onClick={() => onMarkCompleted(schedule.scheduleId)}
-              className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-green-600 transition-colors"
-              aria-label="飲んだ"
-            >
-              飲んだ
-            </button>
-          ) : (
-            <StatusBadge status={schedule.status} />
-          )}
+          <StatusBadge status={schedule.status} />
         </div>
       </div>
     </div>

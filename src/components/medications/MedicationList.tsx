@@ -1,14 +1,15 @@
-import React from 'react';
-import { Pill } from 'lucide-react';
+import React, { useState } from 'react';
+import { Pill, Check } from 'lucide-react';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 
 interface MedicationListProps {
   medications: MedicationViewModel[];
   isLoading: boolean;
   onDelete: (medicationId: string) => void;
+  onMarkTaken?: (medicationId: string) => Promise<void>;
 }
 
-export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete }) => {
+export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -28,7 +29,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
   return (
     <div className="space-y-3">
       {medications.map((vm) => (
-        <MedicationCard key={vm.medication.id} viewModel={vm} onDelete={onDelete} />
+        <MedicationCard key={vm.medication.id} viewModel={vm} onDelete={onDelete} onMarkTaken={onMarkTaken} />
       ))}
     </div>
   );
@@ -37,10 +38,24 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
 interface MedicationCardProps {
   viewModel: MedicationViewModel;
   onDelete: (medicationId: string) => void;
+  onMarkTaken?: (medicationId: string) => Promise<void>;
 }
 
-const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete }) => {
+const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete, onMarkTaken }) => {
   const { medication, isLowStock, displayInfo } = viewModel;
+  const [isTaken, setIsTaken] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleMarkTaken = async () => {
+    if (!onMarkTaken || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onMarkTaken(medication.id);
+      setIsTaken(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
@@ -63,13 +78,32 @@ const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete }) 
             )}
           </div>
         </div>
-        <button
-          onClick={() => onDelete(medication.id)}
-          className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
-          aria-label="削除"
-        >
-          削除
-        </button>
+        <div className="flex items-center space-x-2">
+          {onMarkTaken && (
+            isTaken ? (
+              <span className="flex items-center space-x-1 text-green-600 text-sm font-medium px-3 py-1">
+                <Check size={16} />
+                <span>記録済み</span>
+              </span>
+            ) : (
+              <button
+                onClick={handleMarkTaken}
+                disabled={isSubmitting}
+                className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-green-600 disabled:opacity-50 transition-colors"
+                aria-label="飲んだ"
+              >
+                {isSubmitting ? '記録中...' : '飲んだ'}
+              </button>
+            )
+          )}
+          <button
+            onClick={() => onDelete(medication.id)}
+            className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
+            aria-label="削除"
+          >
+            削除
+          </button>
+        </div>
       </div>
     </div>
   );

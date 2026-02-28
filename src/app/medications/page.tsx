@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useMedications } from '@/presentation/hooks/useMedications';
@@ -7,6 +8,7 @@ import { MedicationList } from '@/components/medications/MedicationList';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MemberIcon } from '@/components/shared/MemberIcon';
 import { MemberEntity, Member } from '@/domain/entities/Member';
+import { recordApi } from '@/data/api/recordApi';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 
@@ -14,6 +16,13 @@ function MemberMedications({ member }: { member: Member }) {
   const { medications, isLoading, deleteMedication } = useMedications(member.id);
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
+
+  const handleMarkTaken = useCallback(async (medicationId: string) => {
+    await recordApi.createRecord({
+      memberId: member.id,
+      medicationId,
+    });
+  }, [member.id]);
 
   return (
     <section className="mb-6">
@@ -39,6 +48,7 @@ function MemberMedications({ member }: { member: Member }) {
         medications={medications}
         isLoading={isLoading}
         onDelete={deleteMedication}
+        onMarkTaken={handleMarkTaken}
       />
     </section>
   );
