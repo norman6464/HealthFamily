@@ -56,7 +56,7 @@ export default function SignUp() {
 
           <div>
             <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-1">
-              表示名
+              ユーザー名
             </label>
             <input
               id="displayName"

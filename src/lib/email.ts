@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = 'HealthFamily <onboarding@resend.dev>';
+const FROM_EMAIL = 'HealthFamily <noreply@takushinblog.com>';
 
 export interface SendEmailOptions {
   to: string;
