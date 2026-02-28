@@ -14,11 +14,12 @@ export const scheduleApi = {
 
     const memberMap = new Map(members.map((m) => [m.id, m]));
     const todayStr = new Date().toISOString().slice(0, 10);
+    const todayRecords = records.filter((r) => r.takenAt.slice(0, 10) === todayStr);
     const todayRecordScheduleIds = new Set(
-      records
-        .filter((r) => r.takenAt.slice(0, 10) === todayStr)
-        .map((r) => r.scheduleId)
-        .filter(Boolean)
+      todayRecords.map((r) => r.scheduleId).filter(Boolean)
+    );
+    const todayRecordMedicationIds = new Set(
+      todayRecords.map((r) => r.medicationId).filter(Boolean)
     );
 
     const medicationIds = [...new Set(schedules.map((s) => s.medicationId))];
@@ -41,7 +42,7 @@ export const scheduleApi = {
           medicationName: med?.name || '',
           memberName: member?.name || '',
           memberType: (member?.memberType as 'human' | 'pet') || 'human',
-          isCompleted: todayRecordScheduleIds.has(s.id),
+          isCompleted: todayRecordScheduleIds.has(s.id) || todayRecordMedicationIds.has(s.medicationId),
         };
       });
   },
