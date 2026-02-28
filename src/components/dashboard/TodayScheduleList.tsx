@@ -43,8 +43,6 @@ interface ScheduleCardProps {
 }
 
 const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }) => {
-  const showCompleteButton = schedule.status !== 'completed';
-
   return (
     <div
       className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow"
@@ -74,7 +72,9 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }
         </div>
 
         <div className="flex items-center space-x-2">
-          {showCompleteButton && onMarkCompleted && (
+          {schedule.status === 'completed' ? (
+            <StatusBadge status="completed" />
+          ) : onMarkCompleted ? (
             <button
               onClick={() => onMarkCompleted(schedule.scheduleId)}
               className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-green-600 transition-colors"
@@ -82,9 +82,9 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }
             >
               飲んだ
             </button>
+          ) : (
+            <StatusBadge status={schedule.status} />
           )}
-          {schedule.status === 'completed' && <StatusBadge status="completed" />}
-          {schedule.status === 'overdue' && <StatusBadge status="overdue" />}
         </div>
       </div>
     </div>
