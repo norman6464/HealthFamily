@@ -1,5 +1,5 @@
 export interface BackendMember {
-  memberId: string;
+  id: string;
   userId: string;
   name: string;
   memberType?: string;
@@ -11,7 +11,7 @@ export interface BackendMember {
 }
 
 export interface BackendMedication {
-  medicationId: string;
+  id: string;
   memberId: string;
   userId: string;
   name: string;
@@ -27,7 +27,7 @@ export interface BackendMedication {
 }
 
 export interface BackendSchedule {
-  scheduleId: string;
+  id: string;
   medicationId: string;
   userId: string;
   memberId: string;
@@ -39,7 +39,7 @@ export interface BackendSchedule {
 }
 
 export interface BackendRecord {
-  recordId: string;
+  id: string;
   userId: string;
   memberId: string;
   medicationId: string;

@@ -12,7 +12,7 @@ export const scheduleApi = {
       apiClient.get<BackendRecord[]>('/records'),
     ]);
 
-    const memberMap = new Map(members.map((m) => [m.memberId, m]));
+    const memberMap = new Map(members.map((m) => [m.id, m]));
     const todayStr = new Date().toISOString().slice(0, 10);
     const todayRecordScheduleIds = new Set(
       records
@@ -28,7 +28,7 @@ export const scheduleApi = {
       )
     );
     const medMap = new Map(
-      medications.filter(Boolean).map((m) => [m!.medicationId, m!])
+      medications.filter(Boolean).map((m) => [m!.id, m!])
     );
 
     return schedules
@@ -41,7 +41,7 @@ export const scheduleApi = {
           medicationName: med?.name || '',
           memberName: member?.name || '',
           memberType: (member?.memberType as 'human' | 'pet') || 'human',
-          isCompleted: todayRecordScheduleIds.has(s.scheduleId),
+          isCompleted: todayRecordScheduleIds.has(s.id),
         };
       });
   },
