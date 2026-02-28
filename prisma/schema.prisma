@@ -18,6 +18,8 @@ model User {
   emailVerified     Boolean   @default(false)
   verificationCode  String?
   verificationExpiry DateTime?
+  resetCode         String?
+  resetCodeExpiry   DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
