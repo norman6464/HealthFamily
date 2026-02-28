@@ -9,3 +9,4 @@ dist/
 coverage/
 .claude/
 CLAUDE.md
+.vercel
