@@ -5,7 +5,7 @@ import { BackendMember, BackendMedication, BackendSchedule } from './types';
 
 export function toMember(b: BackendMember): Member {
   return {
-    id: b.memberId,
+    id: b.id,
     userId: b.userId,
     memberType: (b.memberType as MemberType) || 'human',
     name: b.name,
@@ -19,7 +19,7 @@ export function toMember(b: BackendMember): Member {
 
 export function toMedication(b: BackendMedication): Medication {
   return {
-    id: b.medicationId,
+    id: b.id,
     memberId: b.memberId,
     userId: b.userId,
     name: b.name,
@@ -37,7 +37,7 @@ export function toMedication(b: BackendMedication): Medication {
 
 export function toSchedule(b: BackendSchedule): Schedule {
   return {
-    id: b.scheduleId,
+    id: b.id,
     medicationId: b.medicationId,
     userId: b.userId,
     memberId: b.memberId,
