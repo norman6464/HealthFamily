@@ -12,7 +12,7 @@ export interface CreateMedicationInput {
   dosage?: string;
   frequency?: string;
   stockQuantity?: number;
-  lowStockThreshold?: number;
+  stockAlertDate?: string;
   instructions?: string;
 }
 
@@ -21,7 +21,7 @@ export interface UpdateMedicationInput {
   dosage?: string;
   frequency?: string;
   stockQuantity?: number;
-  lowStockThreshold?: number;
+  stockAlertDate?: string;
   instructions?: string;
   isActive?: boolean;
 }

@@ -74,7 +74,10 @@ const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete, on
             <p>{displayInfo.categoryLabel}</p>
             {displayInfo.dosageInfo && <p>{displayInfo.dosageInfo}</p>}
             {medication.stockQuantity !== undefined && (
-              <p>在庫: {medication.stockQuantity}個</p>
+              <p>在庫: {medication.stockQuantity}日分</p>
+            )}
+            {medication.stockAlertDate && (
+              <p>警告日: {new Date(medication.stockAlertDate).toLocaleDateString('ja-JP')}</p>
             )}
           </div>
         </div>

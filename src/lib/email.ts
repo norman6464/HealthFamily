@@ -155,24 +155,27 @@ export const emailTemplates = {
     memberName,
     medicationName,
     currentStock,
-    threshold,
+    alertDate,
+    daysUntilAlert,
   }: {
     memberName: string;
     medicationName: string;
     currentStock: number;
-    threshold: number;
+    alertDate: string;
+    daysUntilAlert: number;
   }) {
     return {
-      subject: `${medicationName}の残数が少なくなっています`,
+      subject: `${medicationName}の在庫が${alertDate}までに不足します`,
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-          <h2 style="color: #d97706; margin-bottom: 16px;">お薬の残数アラート</h2>
+          <h2 style="color: #d97706; margin-bottom: 16px;">お薬の在庫アラート</h2>
           <div style="background: #fffbeb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
             <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${memberName}</strong>さん</p>
             <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">お薬: <strong>${medicationName}</strong></p>
-            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">残数: <strong style="color: #dc2626;">${currentStock}</strong> / 閾値: ${threshold}</p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">現在の在庫: <strong style="color: #dc2626;">${currentStock}日分</strong></p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">警告日: <strong>${alertDate}</strong>(あと${daysUntilAlert}日)</p>
           </div>
-          <p style="font-size: 14px; color: #374151;">早めにかかりつけ医に相談し、処方を受けてください。</p>
+          <p style="font-size: 14px; color: #374151;">在庫が警告日までに不足する見込みです。早めにかかりつけ医に相談し、処方を受けてください。</p>
           <p style="font-size: 13px; color: #6b7280;">HealthFamily - 今お薬飲んでよ通知アプリ</p>
         </div>
       `,

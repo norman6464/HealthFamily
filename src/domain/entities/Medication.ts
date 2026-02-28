@@ -19,7 +19,7 @@ export interface Medication {
   readonly dosage?: string;
   readonly frequency?: string;
   readonly stockQuantity?: number;
-  readonly lowStockThreshold?: number;
+  readonly stockAlertDate?: Date;
   readonly intervalHours?: number;
   readonly instructions?: string;
   readonly isActive: boolean;
@@ -39,12 +39,23 @@ export class MedicationEntity {
   isLowStock(): boolean {
     if (
       this.medication.stockQuantity === undefined ||
-      this.medication.lowStockThreshold === undefined
+      this.medication.stockAlertDate === undefined
     ) {
       return false;
     }
 
-    return this.medication.stockQuantity <= this.medication.lowStockThreshold;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const alertDate = new Date(this.medication.stockAlertDate);
+    alertDate.setHours(0, 0, 0, 0);
+
+    const daysUntilAlert = Math.ceil(
+      (alertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysUntilAlert <= 0) return false;
+
+    return this.medication.stockQuantity < daysUntilAlert;
   }
 
   /**

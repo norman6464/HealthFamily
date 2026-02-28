@@ -60,7 +60,7 @@ model Medication {
   dosageAmount      String?
   frequency         String?
   stockQuantity     Int?
-  lowStockThreshold Int?
+  stockAlertDate    DateTime?
   intervalHours     Int?
   instructions      String?
   isActive          Boolean  @default(true)

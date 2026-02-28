@@ -92,11 +92,20 @@ export async function POST(request: NextRequest) {
         if (!medication) {
           return errorResponse('Medication not found', 404);
         }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const alertDate = medication.stockAlertDate
+          ? new Date(medication.stockAlertDate).toLocaleDateString('ja-JP')
+          : '未設定';
+        const daysUntilAlert = medication.stockAlertDate
+          ? Math.ceil((new Date(medication.stockAlertDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          : 0;
         const template = emailTemplates.lowStockAlert({
           memberName: member.name,
           medicationName: medication.name,
           currentStock: medication.stockQuantity ?? 0,
-          threshold: medication.lowStockThreshold ?? 5,
+          alertDate,
+          daysUntilAlert,
         });
         await sendEmail({ to: user.email, ...template });
         break;

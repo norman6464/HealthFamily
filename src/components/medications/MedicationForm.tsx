@@ -7,7 +7,7 @@ export interface MedicationFormData {
   dosage: string;
   frequency: string;
   stockQuantity?: number;
-  lowStockThreshold?: number;
+  stockAlertDate?: string;
   instructions?: string;
 }
 
@@ -21,7 +21,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
   const [dosage, setDosage] = useState('');
   const [frequency, setFrequency] = useState('');
   const [stockQuantity, setStockQuantity] = useState('');
-  const [lowStockThreshold, setLowStockThreshold] = useState('');
+  const [stockAlertDate, setStockAlertDate] = useState('');
   const [instructions, setInstructions] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -35,7 +35,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
       dosage: dosage.trim(),
       frequency: frequency.trim(),
       ...(stockQuantity ? { stockQuantity: parseInt(stockQuantity, 10) } : {}),
-      ...(lowStockThreshold ? { lowStockThreshold: parseInt(lowStockThreshold, 10) } : {}),
+      ...(stockAlertDate ? { stockAlertDate } : {}),
       ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
     };
 
@@ -46,7 +46,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
     setDosage('');
     setFrequency('');
     setStockQuantity('');
-    setLowStockThreshold('');
+    setStockAlertDate('');
     setInstructions('');
   };
 
@@ -114,35 +114,32 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="med-stock" className="block text-sm font-medium text-gray-700 mb-1">
-            在庫数(何日分)
-          </label>
-          <input
-            id="med-stock"
-            type="number"
-            min="0"
-            value={stockQuantity}
-            onChange={(e) => setStockQuantity(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            placeholder="例: 30"
-          />
-        </div>
-        <div>
-          <label htmlFor="med-threshold" className="block text-sm font-medium text-gray-700 mb-1">
-            在庫警告(残量お知らせ)
-          </label>
-          <input
-            id="med-threshold"
-            type="number"
-            min="0"
-            value={lowStockThreshold}
-            onChange={(e) => setLowStockThreshold(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            placeholder="例: 7"
-          />
-        </div>
+      <div>
+        <label htmlFor="med-stock" className="block text-sm font-medium text-gray-700 mb-1">
+          在庫数(何日分)
+        </label>
+        <input
+          id="med-stock"
+          type="number"
+          min="0"
+          value={stockQuantity}
+          onChange={(e) => setStockQuantity(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          placeholder="例: 30"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="med-alert-date" className="block text-sm font-medium text-gray-700 mb-1">
+          在庫警告日(この日までに在庫が不足する場合に通知)
+        </label>
+        <input
+          id="med-alert-date"
+          type="date"
+          value={stockAlertDate}
+          onChange={(e) => setStockAlertDate(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+        />
       </div>
 
       <div>
