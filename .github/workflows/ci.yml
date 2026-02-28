@@ -6,9 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+  DIRECT_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
+
 jobs:
   ci:
-    name: Lint, Type Check & Build
+    name: Lint, Type Check, Test & Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +21,8 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
       - name: TypeScript check
         run: npx tsc --noEmit
       - name: Lint
