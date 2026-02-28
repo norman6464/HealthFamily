@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  displayName   String?
+  characterType String   @default("cat")
+  characterName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  members      Member[]
+  schedules    Schedule[]
+  records      MedicationRecord[]
+  hospitals    Hospital[]
+  appointments Appointment[]
+}
+
+model Member {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberType String    @default("human")
+  name       String
+  petType    String?
+  photoUrl   String?
+  birthDate  DateTime?
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  medications  Medication[]
+  records      MedicationRecord[]
+  appointments Appointment[]
+
+  @@index([userId])
+}
+
+model Medication {
+  id                String   @id @default(cuid())
+  memberId          String
+  member            Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  userId            String
+  name              String
+  category          String   @default("regular")
+  dosageAmount      String?
+  frequency         String?
+  stockQuantity     Int?
+  lowStockThreshold Int?
+  intervalHours     Int?
+  instructions      String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  schedules Schedule[]
+  records   MedicationRecord[]
+
+  @@index([memberId])
+  @@index([userId])
+}
+
+model Schedule {
+  id                    String   @id @default(cuid())
+  medicationId          String
+  medication            Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberId              String
+  scheduledTime         String
+  daysOfWeek            String[]
+  isEnabled             Boolean  @default(true)
+  reminderMinutesBefore Int      @default(5)
+  createdAt             DateTime @default(now())
+
+  @@index([userId])
+  @@index([medicationId])
+}
+
+model MedicationRecord {
+  id           String     @id @default(cuid())
+  memberId     String
+  member       Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  medicationId String
+  medication   Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheduleId   String?
+  takenAt      DateTime   @default(now())
+  notes        String?
+  dosageAmount String?
+
+  @@index([userId])
+  @@index([memberId])
+}
+
+model Hospital {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  hospitalType String?
+  address      String?
+  phoneNumber  String?
+  department   String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  appointments Appointment[]
+
+  @@index([userId])
+}
+
+model Appointment {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberId           String
+  member             Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  hospitalId         String?
+  hospital           Hospital? @relation(fields: [hospitalId], references: [id])
+  appointmentType    String?
+  appointmentDate    DateTime
+  description        String?
+  testResults        String?
+  cost               Float?
+  reminderEnabled    Boolean   @default(true)
+  reminderDaysBefore Int       @default(1)
+  createdAt          DateTime  @default(now())
+
+  @@index([userId])
+  @@index([memberId])
+}
