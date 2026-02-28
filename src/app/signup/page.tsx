@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -32,17 +31,7 @@ export default function SignUp() {
         return;
       }
 
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setErrorMessage('登録は完了しましたが、ログインに失敗しました。ログイン画面からお試しください。');
-      } else {
-        router.push('/');
-      }
+      router.push(`/verify?email=${encodeURIComponent(email)}&p=${encodeURIComponent(password)}`);
     } catch {
       setErrorMessage('登録に失敗しました');
     } finally {
