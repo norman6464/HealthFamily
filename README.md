@@ -66,7 +66,7 @@ src/
 ### 前提条件
 
 - Node.js 20以上
-- PostgreSQL
+- Docker / Docker Compose
 
 ### インストール
 
@@ -74,11 +74,13 @@ src/
 # 依存関係インストール
 npm install
 
+# PostgreSQL起動（Docker）
+docker compose up -d
+
 # 環境変数設定
 cp .env.local.example .env.local
-# .env.local を編集してデータベースURLとシークレットを設定
 
-# データベース作成・マイグレーション
+# データベースマイグレーション
 npx prisma migrate dev
 
 # 開発サーバー起動
@@ -88,10 +90,12 @@ npm run dev
 ### 開発コマンド
 
 ```bash
-npm run dev       # 開発サーバー起動
-npm run build     # 本番ビルド
-npm run lint      # リント実行
-npx vitest run    # テスト実行
+npm run dev              # 開発サーバー起動
+npm run build            # 本番ビルド
+npm run lint             # リント実行
+npx vitest run           # テスト実行
+docker compose up -d     # DB起動
+docker compose down      # DB停止
 ```
 
 ---
