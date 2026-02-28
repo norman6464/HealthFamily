@@ -6,6 +6,7 @@ export type MedicationCategory =
   | 'regular'
   | 'supplement'
   | 'prn'
+  | 'inhaler'
   | 'flea_tick'
   | 'heartworm';
 
@@ -92,6 +93,7 @@ export class MedicationEntity {
     regular: '常用薬',
     supplement: 'サプリメント',
     prn: '頓服薬',
+    inhaler: '吸入薬',
     flea_tick: 'ノミ・ダニ薬',
     heartworm: 'フィラリア薬',
   };

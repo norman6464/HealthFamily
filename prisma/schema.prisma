@@ -9,14 +9,17 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  password      String
-  displayName   String?
-  characterType String   @default("cat")
-  characterName String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String
+  displayName       String?
+  characterType     String    @default("cat")
+  characterName     String?
+  emailVerified     Boolean   @default(false)
+  verificationCode  String?
+  verificationExpiry DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   members      Member[]
   schedules    Schedule[]
