@@ -54,6 +54,24 @@ export const emailTemplates = {
     };
   },
 
+  passwordReset({ code }: { code: string }) {
+    return {
+      subject: 'HealthFamily - パスワードの再設定',
+      html: `
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #16a34a; margin-bottom: 16px;">パスワードの再設定</h2>
+          <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">以下のリセットコードを入力して、新しいパスワードを設定してください。</p>
+          <div style="background: #f0fdf4; border-radius: 8px; padding: 24px; margin-bottom: 16px; text-align: center;">
+            <p style="margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #16a34a;">${code}</p>
+          </div>
+          <p style="font-size: 13px; color: #6b7280;">このコードは10分間有効です。</p>
+          <p style="font-size: 13px; color: #6b7280;">心当たりがない場合は、このメールを無視してください。</p>
+          <p style="font-size: 13px; color: #6b7280;">HealthFamily - 今お薬飲んでよ通知アプリ</p>
+        </div>
+      `,
+    };
+  },
+
   medicationReminder({
     memberName,
     medicationName,

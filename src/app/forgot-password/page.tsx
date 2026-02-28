@@ -1,15 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function Login() {
+export default function ForgotPassword() {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,19 +17,22 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
 
-      if (result?.error) {
-        setErrorMessage('メールアドレスまたはパスワードが正しくありません');
-      } else {
-        router.push('/');
+      const data = await res.json();
+
+      if (!data.success) {
+        setErrorMessage(data.error || '送信に失敗しました');
+        return;
       }
+
+      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch {
-      setErrorMessage('ログインに失敗しました');
+      setErrorMessage('送信に失敗しました');
     } finally {
       setIsSubmitting(false);
     }
@@ -43,10 +44,14 @@ export default function Login() {
         <div className="text-center">
           <Image src="/icon.png" alt="HealthFamily" width={80} height={80} className="mx-auto mb-2" />
           <h1 className="text-3xl font-bold text-primary-600">HealthFamily</h1>
-          <p className="mt-2 text-gray-500">ログイン</p>
+          <p className="mt-2 text-gray-500">パスワードの再設定</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
+          <p className="text-sm text-gray-600">
+            登録済みのメールアドレスを入力してください。リセットコードをお送りします。
+          </p>
+
           {errorMessage && (
             <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm" role="alert">
               {errorMessage}
@@ -68,38 +73,17 @@ export default function Login() {
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              パスワード
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-
           <button
             type="submit"
             disabled={isSubmitting}
             className="w-full bg-primary-600 text-white py-2 rounded-md font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
           >
-            {isSubmitting ? 'ログイン中...' : 'ログイン'}
+            {isSubmitting ? '送信中...' : 'リセットコードを送信'}
           </button>
 
-          <p className="text-center text-sm">
-            <Link href="/forgot-password" className="text-primary-600 hover:underline">
-              パスワードを忘れた方
-            </Link>
-          </p>
-
           <p className="text-center text-sm text-gray-500">
-            アカウントをお持ちでない方は{' '}
-            <Link href="/signup" className="text-primary-600 hover:underline">
-              新規登録
+            <Link href="/login" className="text-primary-600 hover:underline">
+              ログイン画面に戻る
             </Link>
           </p>
         </form>
