@@ -7,6 +7,8 @@
 ## 目次
 
 - [概要](#概要)
+- [技術スタック](#技術スタック)
+- [セットアップ](#セットアップ)
 - [ターゲットユーザー](#ターゲットユーザー)
 - [主要機能一覧](#主要機能一覧)
 - [キャラクターシステム](#キャラクターシステム)
@@ -20,6 +22,77 @@
 **「今お薬飲んでよ通知アプリ」** は、自分だけでなく家族やペットの服薬を一括管理できるヘルスケアアプリケーションです。
 
 設定したアテンドキャラクター（犬・猫・うさぎ・インコ）が服薬時間を可愛くお知らせし、飲み忘れ防止をサポートします。
+
+---
+
+## 技術スタック
+
+| カテゴリ | 技術 |
+|---------|------|
+| フレームワーク | Next.js 15 (App Router) |
+| 言語 | TypeScript |
+| データベース | PostgreSQL |
+| ORM | Prisma |
+| 認証 | NextAuth.js v5 (Auth.js) - Credentials Provider |
+| スタイリング | Tailwind CSS |
+| アイコン | lucide-react |
+| 状態管理 | Zustand（キャラクター選択） |
+| バリデーション | Zod |
+| テスト | Vitest + React Testing Library |
+| デプロイ | Vercel |
+| CI | GitHub Actions |
+
+### アーキテクチャ
+
+クリーンアーキテクチャを採用し、以下のレイヤーに分離しています。
+
+```
+src/
+├── domain/          # エンティティ、リポジトリインターフェース、ユースケース
+├── data/            # APIクライアント、リポジトリ実装
+├── presentation/    # カスタムフック（ViewModel）
+├── components/      # UIコンポーネント
+├── app/             # Next.js App Router（ページ、APIルート）
+├── lib/             # Prisma、NextAuth設定、Zodスキーマ
+├── stores/          # Zustandストア
+├── hooks/           # 共通フック
+└── infrastructure/  # DIコンテナ
+```
+
+---
+
+## セットアップ
+
+### 前提条件
+
+- Node.js 20以上
+- PostgreSQL
+
+### インストール
+
+```bash
+# 依存関係インストール
+npm install
+
+# 環境変数設定
+cp .env.local.example .env.local
+# .env.local を編集してデータベースURLとシークレットを設定
+
+# データベース作成・マイグレーション
+npx prisma migrate dev
+
+# 開発サーバー起動
+npm run dev
+```
+
+### 開発コマンド
+
+```bash
+npm run dev       # 開発サーバー起動
+npm run build     # 本番ビルド
+npm run lint      # リント実行
+npx vitest run    # テスト実行
+```
 
 ---
 
