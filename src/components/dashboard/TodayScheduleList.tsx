@@ -1,5 +1,4 @@
 import React from 'react';
-import { Dog, User } from 'lucide-react';
 import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 
 interface TodayScheduleListProps {
@@ -64,16 +63,13 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }
             </span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <MemberIcon memberType={schedule.memberType} />
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900">
-                {schedule.memberName}
-              </span>
-              <span className="text-lg font-semibold text-gray-800">
-                {schedule.medicationName}
-              </span>
-            </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-900">
+              {schedule.memberName}
+            </span>
+            <span className="text-lg font-semibold text-gray-800">
+              {schedule.medicationName}
+            </span>
           </div>
         </div>
 
@@ -87,37 +83,10 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }
               飲んだ
             </button>
           )}
-          <StatusBadge status={schedule.status} />
+          {schedule.status === 'completed' && <StatusBadge status="completed" />}
+          {schedule.status === 'overdue' && <StatusBadge status="overdue" />}
         </div>
       </div>
-    </div>
-  );
-};
-
-interface MemberIconProps {
-  memberType: 'human' | 'pet';
-}
-
-const MemberIcon: React.FC<MemberIconProps> = ({ memberType }) => {
-  if (memberType === 'pet') {
-    return (
-      <div
-        className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center"
-        data-testid="member-type-pet"
-        aria-label="ペット"
-      >
-        <Dog size={22} className="text-amber-700" />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
-      data-testid="member-type-human"
-      aria-label="人間"
-    >
-      <User size={22} className="text-blue-700" />
     </div>
   );
 };
