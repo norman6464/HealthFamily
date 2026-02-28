@@ -27,7 +27,7 @@ export function toMedication(b: BackendMedication): Medication {
     dosage: b.dosageAmount,
     frequency: b.frequency,
     stockQuantity: b.stockQuantity,
-    lowStockThreshold: b.lowStockThreshold,
+    stockAlertDate: b.stockAlertDate ? new Date(b.stockAlertDate) : undefined,
     instructions: b.instructions,
     isActive: b.isActive ?? true,
     createdAt: new Date(b.createdAt),

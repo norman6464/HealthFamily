@@ -31,7 +31,7 @@ export default function Medications() {
       dosage: data.dosage,
       frequency: data.frequency,
       stockQuantity: data.stockQuantity,
-      lowStockThreshold: data.lowStockThreshold,
+      stockAlertDate: data.stockAlertDate,
       instructions: data.instructions,
     });
     setShowMedForm(false);

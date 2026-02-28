@@ -15,16 +15,20 @@ const createMedication = (overrides: Partial<Medication> = {}): Medication => ({
 
 describe('MedicationEntity', () => {
   describe('isLowStock', () => {
-    it('在庫数が閾値以下の場合 true を返す', () => {
+    it('在庫数が警告日までの日数より少ない場合 true を返す', () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 10);
       const entity = new MedicationEntity(
-        createMedication({ stockQuantity: 3, lowStockThreshold: 5 })
+        createMedication({ stockQuantity: 5, stockAlertDate: futureDate })
       );
       expect(entity.isLowStock()).toBe(true);
     });
 
-    it('在庫数が閾値より多い場合 false を返す', () => {
+    it('在庫数が警告日までの日数以上の場合 false を返す', () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 5);
       const entity = new MedicationEntity(
-        createMedication({ stockQuantity: 10, lowStockThreshold: 5 })
+        createMedication({ stockQuantity: 10, stockAlertDate: futureDate })
       );
       expect(entity.isLowStock()).toBe(false);
     });
@@ -34,11 +38,20 @@ describe('MedicationEntity', () => {
       expect(entity.isLowStock()).toBe(false);
     });
 
-    it('在庫数と閾値が等しい場合 true を返す', () => {
+    it('警告日が過去の場合 false を返す', () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 5);
       const entity = new MedicationEntity(
-        createMedication({ stockQuantity: 5, lowStockThreshold: 5 })
+        createMedication({ stockQuantity: 3, stockAlertDate: pastDate })
       );
-      expect(entity.isLowStock()).toBe(true);
+      expect(entity.isLowStock()).toBe(false);
+    });
+
+    it('警告日が未設定の場合 false を返す', () => {
+      const entity = new MedicationEntity(
+        createMedication({ stockQuantity: 3 })
+      );
+      expect(entity.isLowStock()).toBe(false);
     });
   });
 

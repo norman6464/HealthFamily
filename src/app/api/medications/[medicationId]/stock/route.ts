@@ -24,23 +24,33 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
       data: { stockQuantity: parsed.data.stockQuantity },
     });
 
-    // 在庫が閾値以下になったらメール送信
+    // 在庫が指定日までに不足する場合メール送信
     if (
-      updated.lowStockThreshold !== null &&
-      updated.stockQuantity !== null &&
-      updated.stockQuantity <= updated.lowStockThreshold
+      updated.stockAlertDate !== null &&
+      updated.stockQuantity !== null
     ) {
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (user) {
-        const template = emailTemplates.lowStockAlert({
-          memberName: medication.member.name,
-          medicationName: medication.name,
-          currentStock: updated.stockQuantity,
-          threshold: updated.lowStockThreshold,
-        });
-        sendEmail({ to: user.email, ...template }).catch((err) => {
-          console.error('Low stock email failed:', err);
-        });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const alertDate = new Date(updated.stockAlertDate);
+      alertDate.setHours(0, 0, 0, 0);
+      const daysUntilAlert = Math.ceil(
+        (alertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysUntilAlert > 0 && updated.stockQuantity < daysUntilAlert) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (user) {
+          const template = emailTemplates.lowStockAlert({
+            memberName: medication.member.name,
+            medicationName: medication.name,
+            currentStock: updated.stockQuantity,
+            alertDate: alertDate.toLocaleDateString('ja-JP'),
+            daysUntilAlert,
+          });
+          sendEmail({ to: user.email, ...template }).catch((err) => {
+            console.error('Low stock email failed:', err);
+          });
+        }
       }
     }
 

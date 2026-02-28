@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         dosageAmount: parsed.data.dosageAmount,
         frequency: parsed.data.frequency,
         stockQuantity: parsed.data.stockQuantity,
-        lowStockThreshold: parsed.data.lowStockThreshold,
+        stockAlertDate: parsed.data.stockAlertDate ? new Date(parsed.data.stockAlertDate) : undefined,
         instructions: parsed.data.instructions,
         isActive: true,
       },

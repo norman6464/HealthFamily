@@ -27,7 +27,7 @@ export const medicationApi = {
       dosageAmount: input.dosage,
       frequency: input.frequency,
       stockQuantity: input.stockQuantity,
-      lowStockThreshold: input.lowStockThreshold,
+      stockAlertDate: input.stockAlertDate,
       instructions: input.instructions,
     });
     return toMedication(data);
@@ -39,7 +39,7 @@ export const medicationApi = {
     if (input.name !== undefined) body.name = input.name;
     if (input.dosage !== undefined) body.dosageAmount = input.dosage;
     if (input.frequency !== undefined) body.frequency = input.frequency;
-    if (input.lowStockThreshold !== undefined) body.lowStockThreshold = input.lowStockThreshold;
+    if (input.stockAlertDate !== undefined) body.stockAlertDate = input.stockAlertDate;
     if (input.instructions !== undefined) body.instructions = input.instructions;
     if (input.isActive !== undefined) body.isActive = input.isActive;
 

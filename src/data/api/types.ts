@@ -19,7 +19,7 @@ export interface BackendMedication {
   dosageAmount?: string;
   frequency?: string;
   stockQuantity?: number;
-  lowStockThreshold?: number;
+  stockAlertDate?: string;
   instructions?: string;
   isActive?: boolean;
   createdAt: string;

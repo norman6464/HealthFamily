@@ -28,7 +28,7 @@ export const createMedicationSchema = z.object({
   dosageAmount: z.string().max(100).optional(),
   frequency: z.string().max(100).optional(),
   stockQuantity: z.number().int().min(0).optional(),
-  lowStockThreshold: z.number().int().min(0).optional(),
+  stockAlertDate: z.string().optional(),
   instructions: z.string().max(1000).optional(),
 });
 
