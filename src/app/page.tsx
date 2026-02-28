@@ -9,7 +9,7 @@ import { CharacterIcon } from '@/components/shared/CharacterIcon';
 
 export default function Dashboard() {
   const { userId } = useAuth();
-  const { schedules, isLoading, markAsCompleted } = useTodaySchedules(userId);
+  const { schedules, isLoading } = useTodaySchedules(userId);
   const { getConfig, getMessage } = useCharacterStore();
   const characterConfig = getConfig();
 
@@ -34,7 +34,6 @@ export default function Dashboard() {
         <TodayScheduleList
           schedules={schedules}
           isLoading={isLoading}
-          onMarkCompleted={markAsCompleted}
         />
       </main>
 
