@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function SignUp() {
   const router = useRouter();
@@ -43,6 +44,7 @@ export default function SignUp() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          <Image src="/icon.png" alt="HealthFamily" width={80} height={80} className="mx-auto mb-2" />
           <h1 className="text-3xl font-bold text-primary-600">HealthFamily</h1>
           <p className="mt-2 text-gray-500">新規登録</p>
         </div>
