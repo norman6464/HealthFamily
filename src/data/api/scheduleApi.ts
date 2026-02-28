@@ -33,13 +33,13 @@ export const scheduleApi = {
     );
 
     return schedules
-      .filter((s) => s.isEnabled !== false)
+      .filter((s) => s.isEnabled !== false && medMap.has(s.medicationId))
       .map((s) => {
         const member = memberMap.get(s.memberId);
-        const med = medMap.get(s.medicationId);
+        const med = medMap.get(s.medicationId)!;
         return {
           schedule: toSchedule(s),
-          medicationName: med?.name || '',
+          medicationName: med.name,
           memberName: member?.name || '',
           memberType: (member?.memberType as 'human' | 'pet') || 'human',
           isCompleted: todayRecordScheduleIds.has(s.id) || todayRecordMedicationIds.has(s.medicationId),
