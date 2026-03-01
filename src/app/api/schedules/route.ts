@@ -4,7 +4,7 @@ import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
-  const schedules = await prisma.schedule.findMany({ where: { userId } });
+  const schedules = await prisma.schedule.findMany({ where: { userId }, take: 200 });
   return success(schedules);
 });
 

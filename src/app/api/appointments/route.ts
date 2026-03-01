@@ -7,6 +7,7 @@ export const GET = withAuth(async (userId) => {
   const appointments = await prisma.appointment.findMany({
     where: { userId },
     orderBy: { appointmentDate: 'asc' },
+    take: 200,
     include: {
       member: { select: { name: true } },
       hospital: { select: { name: true } },
