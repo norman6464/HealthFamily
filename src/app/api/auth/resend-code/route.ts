@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
+import { checkRateLimit } from '@/lib/security';
 
 const resendSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -17,6 +18,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = parsed.data;
+
+    const rateLimit = checkRateLimit(`resend:${email}`, { maxAttempts: 3, windowMs: 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {

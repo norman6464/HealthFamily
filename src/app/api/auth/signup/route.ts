@@ -4,9 +4,16 @@ import { prisma } from '@/lib/prisma';
 import { signUpSchema } from '@/lib/schemas';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { created, errorResponse } from '@/lib/auth-helpers';
+import { checkRateLimit } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+    const rateLimit = checkRateLimit(`signup:${ip}`, { maxAttempts: 10, windowMs: 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    }
+
     const body = await request.json();
     const parsed = signUpSchema.safeParse(body);
     if (!parsed.success) {

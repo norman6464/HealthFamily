@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { escapeHtml } from './security';
 
 let resend: Resend;
 
@@ -38,6 +39,7 @@ export function generateVerificationCode(): string {
 
 export const emailTemplates = {
   verificationCode({ code }: { code: string }) {
+    const e = escapeHtml(code);
     return {
       subject: 'HealthFamily - メールアドレスの確認',
       html: `
@@ -45,7 +47,7 @@ export const emailTemplates = {
           <h2 style="color: #16a34a; margin-bottom: 16px;">メールアドレスの確認</h2>
           <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">HealthFamilyへのご登録ありがとうございます。以下の確認コードを入力してください。</p>
           <div style="background: #f0fdf4; border-radius: 8px; padding: 24px; margin-bottom: 16px; text-align: center;">
-            <p style="margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #16a34a;">${code}</p>
+            <p style="margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #16a34a;">${e}</p>
           </div>
           <p style="font-size: 13px; color: #6b7280;">このコードは10分間有効です。</p>
           <p style="font-size: 13px; color: #6b7280;">HealthFamily - 今お薬飲んでよ通知アプリ</p>
@@ -55,6 +57,7 @@ export const emailTemplates = {
   },
 
   passwordReset({ code }: { code: string }) {
+    const e = escapeHtml(code);
     return {
       subject: 'HealthFamily - パスワードの再設定',
       html: `
@@ -62,7 +65,7 @@ export const emailTemplates = {
           <h2 style="color: #16a34a; margin-bottom: 16px;">パスワードの再設定</h2>
           <p style="font-size: 14px; color: #374151; margin-bottom: 16px;">以下のリセットコードを入力して、新しいパスワードを設定してください。</p>
           <div style="background: #f0fdf4; border-radius: 8px; padding: 24px; margin-bottom: 16px; text-align: center;">
-            <p style="margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #16a34a;">${code}</p>
+            <p style="margin: 0; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #16a34a;">${e}</p>
           </div>
           <p style="font-size: 13px; color: #6b7280;">このコードは10分間有効です。</p>
           <p style="font-size: 13px; color: #6b7280;">心当たりがない場合は、このメールを無視してください。</p>
@@ -81,15 +84,18 @@ export const emailTemplates = {
     medicationName: string;
     scheduledTime: string;
   }) {
+    const m = escapeHtml(memberName);
+    const med = escapeHtml(medicationName);
+    const t = escapeHtml(scheduledTime);
     return {
-      subject: `${memberName}さんのお薬の時間です`,
+      subject: `${m}さんのお薬の時間です`,
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
           <h2 style="color: #16a34a; margin-bottom: 16px;">お薬の時間です</h2>
           <div style="background: #f0fdf4; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${memberName}</strong>さん</p>
-            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">お薬: <strong>${medicationName}</strong></p>
-            <p style="margin: 0; font-size: 14px; color: #374151;">予定時刻: <strong>${scheduledTime}</strong></p>
+            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${m}</strong>さん</p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">お薬: <strong>${med}</strong></p>
+            <p style="margin: 0; font-size: 14px; color: #374151;">予定時刻: <strong>${t}</strong></p>
           </div>
           <p style="font-size: 13px; color: #6b7280;">HealthFamily - 今お薬飲んでよ通知アプリ</p>
         </div>
@@ -106,15 +112,18 @@ export const emailTemplates = {
     medicationName: string;
     scheduledTime: string;
   }) {
+    const m = escapeHtml(memberName);
+    const med = escapeHtml(medicationName);
+    const t = escapeHtml(scheduledTime);
     return {
-      subject: `${memberName}さんのお薬が飲み忘れています`,
+      subject: `${m}さんのお薬が飲み忘れています`,
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
           <h2 style="color: #dc2626; margin-bottom: 16px;">お薬の飲み忘れ</h2>
           <div style="background: #fef2f2; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${memberName}</strong>さん</p>
-            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">お薬: <strong>${medicationName}</strong></p>
-            <p style="margin: 0; font-size: 14px; color: #374151;">予定時刻: <strong>${scheduledTime}</strong></p>
+            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${m}</strong>さん</p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">お薬: <strong>${med}</strong></p>
+            <p style="margin: 0; font-size: 14px; color: #374151;">予定時刻: <strong>${t}</strong></p>
           </div>
           <p style="font-size: 14px; color: #374151;">まだお薬を服用していないようです。忘れずに服用してください。</p>
           <p style="font-size: 13px; color: #6b7280;">HealthFamily - 今お薬飲んでよ通知アプリ</p>
@@ -134,16 +143,20 @@ export const emailTemplates = {
     appointmentDate: string;
     description?: string;
   }) {
+    const m = escapeHtml(memberName);
+    const h = escapeHtml(hospitalName);
+    const d = escapeHtml(appointmentDate);
+    const desc = description ? escapeHtml(description) : '';
     return {
-      subject: `${memberName}さんの通院予定があります`,
+      subject: `${m}さんの通院予定があります`,
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
           <h2 style="color: #2563eb; margin-bottom: 16px;">通院リマインダー</h2>
           <div style="background: #eff6ff; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${memberName}</strong>さん</p>
-            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">病院: <strong>${hospitalName}</strong></p>
-            <p style="margin: 0; font-size: 14px; color: #374151;">日時: <strong>${appointmentDate}</strong></p>
-            ${description ? `<p style="margin: 8px 0 0 0; font-size: 14px; color: #374151;">内容: ${description}</p>` : ''}
+            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${m}</strong>さん</p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">病院: <strong>${h}</strong></p>
+            <p style="margin: 0; font-size: 14px; color: #374151;">日時: <strong>${d}</strong></p>
+            ${desc ? `<p style="margin: 8px 0 0 0; font-size: 14px; color: #374151;">内容: ${desc}</p>` : ''}
           </div>
           <p style="font-size: 13px; color: #6b7280;">HealthFamily - 今お薬飲んでよ通知アプリ</p>
         </div>
@@ -164,16 +177,19 @@ export const emailTemplates = {
     alertDate: string;
     daysUntilAlert: number;
   }) {
+    const m = escapeHtml(memberName);
+    const med = escapeHtml(medicationName);
+    const ad = escapeHtml(alertDate);
     return {
-      subject: `${medicationName}の在庫が${alertDate}までに不足します`,
+      subject: `${med}の在庫が${ad}までに不足します`,
       html: `
         <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
           <h2 style="color: #d97706; margin-bottom: 16px;">お薬の在庫アラート</h2>
           <div style="background: #fffbeb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${memberName}</strong>さん</p>
-            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">お薬: <strong>${medicationName}</strong></p>
+            <p style="margin: 0 0 8px 0; font-size: 16px;"><strong>${m}</strong>さん</p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">お薬: <strong>${med}</strong></p>
             <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">現在の在庫: <strong style="color: #dc2626;">${currentStock}日分</strong></p>
-            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">警告日: <strong>${alertDate}</strong>(あと${daysUntilAlert}日)</p>
+            <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">警告日: <strong>${ad}</strong>(あと${daysUntilAlert}日)</p>
           </div>
           <p style="font-size: 14px; color: #374151;">在庫が警告日までに不足する見込みです。早めにかかりつけ医に相談し、処方を受けてください。</p>
           <p style="font-size: 13px; color: #6b7280;">HealthFamily - 今お薬飲んでよ通知アプリ</p>
