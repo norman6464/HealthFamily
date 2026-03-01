@@ -20,6 +20,15 @@ export const createMemberSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+export const updateMemberSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  petType: z.string().max(50).optional(),
+  birthDate: z.string().optional().nullable(),
+  notes: z.string().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Medications =====
 export const createMedicationSchema = z.object({
   name: z.string({ required_error: '薬の名前は必須です' }).min(1, '薬の名前は必須です').max(200),

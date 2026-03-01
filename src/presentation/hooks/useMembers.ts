@@ -5,8 +5,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Member } from '../../domain/entities/Member';
-import { GetMembers, CreateMember, DeleteMember } from '../../domain/usecases/ManageMembers';
-import { CreateMemberInput } from '../../domain/repositories/MemberRepository';
+import { GetMembers, CreateMember, UpdateMember, DeleteMember } from '../../domain/usecases/ManageMembers';
+import { CreateMemberInput, UpdateMemberInput } from '../../domain/repositories/MemberRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 
 export interface UseMembersResult {
@@ -14,6 +14,7 @@ export interface UseMembersResult {
   isLoading: boolean;
   error: Error | null;
   createMember: (input: CreateMemberInput) => Promise<void>;
+  updateMember: (memberId: string, input: UpdateMemberInput) => Promise<void>;
   deleteMember: (memberId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -24,6 +25,7 @@ export const useMembers = (userId: string): UseMembersResult => {
     return {
       getMembers: new GetMembers(memberRepository),
       createMember: new CreateMember(memberRepository),
+      updateMember: new UpdateMember(memberRepository),
       deleteMember: new DeleteMember(memberRepository),
     };
   }, []);
@@ -54,6 +56,11 @@ export const useMembers = (userId: string): UseMembersResult => {
     await fetchMembers();
   };
 
+  const handleUpdateMember = async (memberId: string, input: UpdateMemberInput) => {
+    await useCases.updateMember.execute(memberId, input);
+    await fetchMembers();
+  };
+
   const handleDeleteMember = async (memberId: string) => {
     await useCases.deleteMember.execute(memberId);
     await fetchMembers();
@@ -64,6 +71,7 @@ export const useMembers = (userId: string): UseMembersResult => {
     isLoading,
     error,
     createMember: handleCreateMember,
+    updateMember: handleUpdateMember,
     deleteMember: handleDeleteMember,
     refetch: fetchMembers,
   };
