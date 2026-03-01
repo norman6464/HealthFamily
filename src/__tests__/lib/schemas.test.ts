@@ -354,3 +354,50 @@ describe('文字列フィールドの長さ制約', () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe('テキストフィールドのtrim処理', () => {
+  it('メンバー名の前後空白が除去される', () => {
+    const result = createMemberSchema.safeParse({ name: '  太郎  ' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.name).toBe('太郎');
+  });
+
+  it('薬名の前後空白が除去される', () => {
+    const result = createMedicationSchema.safeParse({ name: '  頭痛薬  ' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.name).toBe('頭痛薬');
+  });
+
+  it('病院名の前後空白が除去される', () => {
+    const result = createHospitalSchema.safeParse({ name: '  東京病院  ' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.name).toBe('東京病院');
+  });
+
+  it('空白のみの名前は拒否される', () => {
+    expect(createMemberSchema.safeParse({ name: '   ' }).success).toBe(false);
+    expect(createMedicationSchema.safeParse({ name: '   ' }).success).toBe(false);
+    expect(createHospitalSchema.safeParse({ name: '   ' }).success).toBe(false);
+  });
+});
+
+describe('IDフィールドの長さ制約', () => {
+  it('長すぎるIDを拒否する', () => {
+    const longId = 'a'.repeat(51);
+    const result = createScheduleSchema.safeParse({
+      medicationId: longId,
+      memberId: 'member-1',
+      scheduledTime: '08:00',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('適切な長さのIDを受け入れる', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-12345',
+      memberId: 'member-12345',
+      scheduledTime: '08:00',
+    });
+    expect(result.success).toBe(true);
+  });
+});
