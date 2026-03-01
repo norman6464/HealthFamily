@@ -41,7 +41,7 @@ export const createMedicationSchema = z.object({
   category: z.string().max(100).optional(),
   dosageAmount: z.string().max(100).optional(),
   frequency: z.string().max(100).optional(),
-  stockQuantity: z.number().int().min(0).optional(),
+  stockQuantity: z.number().int().min(0).max(99999).optional(),
   stockAlertDate: dateString.optional(),
   instructions: z.string().max(1000).optional(),
 });
@@ -51,7 +51,7 @@ export const updateMedicationSchema = z.object({
   category: z.string().max(100).optional(),
   dosageAmount: z.string().max(100).optional().nullable(),
   frequency: z.string().max(100).optional().nullable(),
-  stockQuantity: z.number().int().min(0).optional().nullable(),
+  stockQuantity: z.number().int().min(0).max(99999).optional().nullable(),
   stockAlertDate: dateString.optional().nullable(),
   instructions: z.string().max(1000).optional().nullable(),
   isActive: z.boolean().optional(),
@@ -60,7 +60,7 @@ export const updateMedicationSchema = z.object({
 });
 
 export const updateStockSchema = z.object({
-  stockQuantity: z.number().int().min(0, '在庫数は0以上の数値を指定してください'),
+  stockQuantity: z.number().int().min(0, '在庫数は0以上の数値を指定してください').max(99999),
 });
 
 // ===== Schedules =====
@@ -72,14 +72,14 @@ export const createScheduleSchema = z.object({
   scheduledTime: z.string().min(1, '予定時刻は必須です'),
   daysOfWeek: z.array(dayOfWeekEnum).optional(),
   isEnabled: z.boolean().optional(),
-  reminderMinutesBefore: z.number().int().min(0).optional(),
+  reminderMinutesBefore: z.number().int().min(0).max(1440).optional(),
 });
 
 export const updateScheduleSchema = z.object({
   scheduledTime: z.string().optional(),
   daysOfWeek: z.array(dayOfWeekEnum).optional(),
   isEnabled: z.boolean().optional(),
-  reminderMinutesBefore: z.number().int().min(0).optional(),
+  reminderMinutesBefore: z.number().int().min(0).max(1440).optional(),
 });
 
 // ===== Records =====
@@ -120,7 +120,7 @@ export const createAppointmentSchema = z.object({
   type: z.string().max(100).optional(),
   notes: z.string().max(1000).optional(),
   reminderEnabled: z.boolean().optional(),
-  reminderDaysBefore: z.number().int().min(0).optional(),
+  reminderDaysBefore: z.number().int().min(0).max(365).optional(),
 });
 
 export const updateAppointmentSchema = z.object({
@@ -129,7 +129,7 @@ export const updateAppointmentSchema = z.object({
   type: z.string().max(100).optional(),
   notes: z.string().max(1000).optional(),
   reminderEnabled: z.boolean().optional(),
-  reminderDaysBefore: z.number().int().min(0).optional(),
+  reminderDaysBefore: z.number().int().min(0).max(365).optional(),
 }).refine((data) => Object.keys(data).length > 0, {
   message: '更新するフィールドがありません',
 });
