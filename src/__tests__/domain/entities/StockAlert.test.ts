@@ -29,6 +29,16 @@ describe('StockAlertEntity', () => {
       const entity = new StockAlertEntity(createAlert({ daysUntilAlert: 4 }));
       expect(entity.isUrgent()).toBe(false);
     });
+
+    it('daysUntilAlert=0の場合trueを返す（境界値）', () => {
+      const entity = new StockAlertEntity(createAlert({ daysUntilAlert: 0 }));
+      expect(entity.isUrgent()).toBe(true);
+    });
+
+    it('daysUntilAlert=1の場合trueを返す', () => {
+      const entity = new StockAlertEntity(createAlert({ daysUntilAlert: 1 }));
+      expect(entity.isUrgent()).toBe(true);
+    });
   });
 
   describe('getDaysLabel', () => {
@@ -40,6 +50,16 @@ describe('StockAlertEntity', () => {
     it('期限内の場合「あとN日」を返す', () => {
       const entity = new StockAlertEntity(createAlert({ daysUntilAlert: 7 }));
       expect(entity.getDaysLabel()).toBe('あと7日');
+    });
+
+    it('daysUntilAlert=0の場合「あと0日」を返す', () => {
+      const entity = new StockAlertEntity(createAlert({ daysUntilAlert: 0 }));
+      expect(entity.getDaysLabel()).toBe('あと0日');
+    });
+
+    it('daysUntilAlert=1の場合「あと1日」を返す', () => {
+      const entity = new StockAlertEntity(createAlert({ daysUntilAlert: 1 }));
+      expect(entity.getDaysLabel()).toBe('あと1日');
     });
   });
 
