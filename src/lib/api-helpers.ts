@@ -75,3 +75,17 @@ export function validateParamId(id: string): Response | null {
   }
   return null;
 }
+
+/**
+ * リクエストボディのサイズを検証する
+ * 制限を超える場合は413レスポンスを返す
+ */
+const MAX_BODY_SIZE = 100 * 1024; // 100KB
+
+export function validateBodySize(request: Request): Response | null {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength && parseInt(contentLength, 10) > MAX_BODY_SIZE) {
+    return errorResponse('リクエストボディが大きすぎます', 413);
+  }
+  return null;
+}
