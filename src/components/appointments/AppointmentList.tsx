@@ -4,14 +4,27 @@ import React from 'react';
 import { Calendar, Pencil, Trash2, User, MapPin } from 'lucide-react';
 import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
 
+export type AppointmentFilter = 'upcoming' | 'past';
+
 interface AppointmentListProps {
   appointments: Appointment[];
   isLoading: boolean;
+  filter?: AppointmentFilter;
   onEdit: (appointment: Appointment) => void;
   onDelete: (appointmentId: string) => void;
 }
 
-export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, isLoading, onEdit, onDelete }) => {
+export function getAppointmentCounts(appointments: Appointment[]): { upcoming: number; past: number } {
+  let upcoming = 0;
+  let past = 0;
+  for (const a of appointments) {
+    if (new AppointmentEntity(a).isPast()) past++;
+    else upcoming++;
+  }
+  return { upcoming, past };
+}
+
+export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, isLoading, filter, onEdit, onDelete }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -30,6 +43,30 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
 
   const upcoming = appointments.filter((a) => !new AppointmentEntity(a).isPast());
   const past = appointments.filter((a) => new AppointmentEntity(a).isPast());
+
+  if (filter === 'upcoming') {
+    return (
+      <div className="space-y-2">
+        {upcoming.length > 0 ? upcoming.map((apt) => (
+          <AppointmentCard key={apt.id} appointment={apt} onEdit={onEdit} onDelete={onDelete} />
+        )) : (
+          <p className="text-sm text-gray-500 text-center py-8">今後の予定はありません</p>
+        )}
+      </div>
+    );
+  }
+
+  if (filter === 'past') {
+    return (
+      <div className="space-y-2">
+        {past.length > 0 ? past.map((apt) => (
+          <AppointmentCard key={apt.id} appointment={apt} onEdit={onEdit} onDelete={onDelete} />
+        )) : (
+          <p className="text-sm text-gray-500 text-center py-8">過去の予定はありません</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

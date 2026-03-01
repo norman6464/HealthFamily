@@ -1,4 +1,5 @@
 import { Member } from '../../domain/entities/Member';
+import { MemberSummary } from '../../domain/entities/MemberSummary';
 import { CreateMemberInput, UpdateMemberInput } from '../../domain/repositories/MemberRepository';
 import { apiClient } from './apiClient';
 import { BackendMember } from './types';
@@ -42,5 +43,9 @@ export const memberApi = {
 
   async deleteMember(memberId: string): Promise<void> {
     await apiClient.del(`/members/${memberId}`);
+  },
+
+  async getMemberSummaries(): Promise<MemberSummary[]> {
+    return apiClient.get<MemberSummary[]>('/members/summary');
   },
 };

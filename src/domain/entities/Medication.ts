@@ -109,6 +109,17 @@ export class MedicationEntity {
     heartworm: 'フィラリア薬',
   };
 
+  static getCategoryLabel(category: MedicationCategory): string {
+    return MedicationEntity.categoryLabels[category] ?? category;
+  }
+
+  static getAllCategories(): Array<{ id: MedicationCategory; label: string }> {
+    return Object.entries(MedicationEntity.categoryLabels).map(([id, label]) => ({
+      id: id as MedicationCategory,
+      label,
+    }));
+  }
+
   getDisplayInfo(): { name: string; categoryLabel: string; dosageInfo: string } {
     const dosageParts = [this.medication.dosage, this.medication.frequency].filter(Boolean);
     return {

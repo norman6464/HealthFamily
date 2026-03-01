@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useAppointments } from '@/presentation/hooks/useAppointments';
 import { useHospitals } from '@/presentation/hooks/useHospitals';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
-import { AppointmentList } from '@/components/appointments/AppointmentList';
+import { AppointmentList, AppointmentFilter, getAppointmentCounts } from '@/components/appointments/AppointmentList';
 import { AppointmentForm, AppointmentFormData } from '@/components/appointments/AppointmentForm';
+import { TabSwitch } from '@/components/shared/TabSwitch';
 import { Appointment } from '@/domain/entities/Appointment';
 import Link from 'next/link';
 import { Plus, X, MapPin } from 'lucide-react';
@@ -19,6 +20,13 @@ export default function AppointmentsPage() {
   const { hospitals } = useHospitals();
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [activeTab, setActiveTab] = useState<AppointmentFilter>('upcoming');
+
+  const counts = useMemo(() => getAppointmentCounts(appointments), [appointments]);
+  const tabs = useMemo(() => [
+    { id: 'upcoming', label: '今後の予定', count: counts.upcoming },
+    { id: 'past', label: '過去の予定', count: counts.past },
+  ], [counts]);
 
   const handleCreate = async (data: AppointmentFormData) => {
     await createAppointment(data);
@@ -104,9 +112,12 @@ export default function AppointmentsPage() {
           </div>
         )}
 
+        <TabSwitch tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as AppointmentFilter)} />
+
         <AppointmentList
           appointments={appointments}
           isLoading={isLoading}
+          filter={activeTab}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

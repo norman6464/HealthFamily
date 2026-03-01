@@ -4,6 +4,7 @@
  */
 
 import { Member } from '../entities/Member';
+import { MemberSummary } from '../entities/MemberSummary';
 import {
   MemberRepository,
   CreateMemberInput,
@@ -65,5 +66,13 @@ export class DeleteMember {
     }
 
     return this.memberRepository.deleteMember(memberId);
+  }
+}
+
+export class GetMemberSummaries {
+  constructor(private readonly memberRepository: MemberRepository) {}
+
+  async execute(): Promise<MemberSummary[]> {
+    return this.memberRepository.getMemberSummaries();
   }
 }

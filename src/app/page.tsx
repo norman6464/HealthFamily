@@ -5,13 +5,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTodaySchedules } from '@/presentation/hooks/useTodaySchedules';
 import { useAppointments } from '@/presentation/hooks/useAppointments';
 import { useAdherenceStats } from '@/presentation/hooks/useAdherenceStats';
+import { useAdherenceTrends } from '@/presentation/hooks/useAdherenceTrends';
 import { useStockAlerts } from '@/presentation/hooks/useStockAlerts';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useCharacterStore } from '@/stores/characterStore';
 import { TodayScheduleList } from '@/components/dashboard/TodayScheduleList';
 import { UpcomingAppointments } from '@/components/dashboard/UpcomingAppointments';
 import { AdherenceStatsCard } from '@/components/dashboard/AdherenceStatsCard';
+import { AdherenceTrendCard } from '@/components/dashboard/AdherenceTrendCard';
 import { StockAlertList } from '@/components/dashboard/StockAlertList';
+import { WeeklySummaryCard } from '@/components/dashboard/WeeklySummaryCard';
 import { MemberFilter } from '@/components/shared/MemberFilter';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { CharacterIcon } from '@/components/shared/CharacterIcon';
@@ -21,6 +24,7 @@ export default function Dashboard() {
   const { schedules, isLoading, markAsCompleted } = useTodaySchedules(userId);
   const { appointments, isLoading: appointmentsLoading } = useAppointments();
   const { stats, isLoading: statsLoading } = useAdherenceStats();
+  const { trend, isLoading: trendLoading } = useAdherenceTrends();
   const { alerts, isLoading: alertsLoading } = useStockAlerts();
   const { members } = useMembers(userId);
   const { getConfig, getMessage } = useCharacterStore();
@@ -56,12 +60,16 @@ export default function Dashboard() {
 
         <AdherenceStatsCard stats={stats} isLoading={statsLoading} />
 
+        <AdherenceTrendCard trend={trend} isLoading={trendLoading} />
+
         <StockAlertList alerts={alerts} isLoading={alertsLoading} />
 
         <UpcomingAppointments
           appointments={appointments}
           isLoading={appointmentsLoading}
         />
+
+        <WeeklySummaryCard schedules={schedules} isLoading={isLoading} />
 
         <h2 className="text-lg font-semibold text-gray-800 mb-3">今日の予定</h2>
         <div className="mb-4">
