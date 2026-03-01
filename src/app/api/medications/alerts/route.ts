@@ -13,6 +13,7 @@ export const GET = withAuth(async (userId) => {
     },
     include: { member: { select: { id: true, name: true } } },
     orderBy: { stockAlertDate: 'asc' },
+    take: 500,
   });
 
   const alerts = medications

@@ -313,3 +313,44 @@ describe('数値フィールドの上限制約', () => {
     }).success).toBe(true);
   });
 });
+
+describe('文字列フィールドの長さ制約', () => {
+  it('パスワードが128文字を超える場合を拒否する', () => {
+    const longPassword = 'Aa1' + 'x'.repeat(126);
+    const result = signUpSchema.safeParse({
+      email: 'test@example.com',
+      password: longPassword,
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('パスワードが128文字以内の場合を受け入れる', () => {
+    const validPassword = 'Aa1' + 'x'.repeat(125);
+    const result = signUpSchema.safeParse({
+      email: 'test@example.com',
+      password: validPassword,
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('メールアドレスが254文字を超える場合を拒否する', () => {
+    const longEmail = 'a'.repeat(246) + '@test.com';
+    const result = signUpSchema.safeParse({
+      email: longEmail,
+      password: 'Test1234',
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('メールアドレスが254文字以内の場合を受け入れる', () => {
+    const result = signUpSchema.safeParse({
+      email: 'normal@example.com',
+      password: 'Test1234',
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(true);
+  });
+});
