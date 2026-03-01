@@ -28,6 +28,14 @@ describe('GetHospitals', () => {
     expect(result[0]).toBe(mockHospital);
     expect(repo.getHospitals).toHaveBeenCalled();
   });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getHospitals as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB接続エラー'));
+    const useCase = new GetHospitals(repo);
+
+    await expect(useCase.execute()).rejects.toThrow('DB接続エラー');
+  });
 });
 
 describe('CreateHospital', () => {

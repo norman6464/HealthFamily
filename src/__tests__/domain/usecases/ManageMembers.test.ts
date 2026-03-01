@@ -39,6 +39,14 @@ describe('GetMembers', () => {
 
     expect(result).toHaveLength(0);
   });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getMembers as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB接続エラー'));
+    const useCase = new GetMembers(repo);
+
+    await expect(useCase.execute('user-1')).rejects.toThrow('DB接続エラー');
+  });
 });
 
 describe('CreateMember', () => {
@@ -71,6 +79,16 @@ describe('CreateMember', () => {
     await expect(
       useCase.execute({ userId: 'user-1', memberType: 'human', name: '   ' })
     ).rejects.toThrow('メンバー名は必須です');
+  });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.createMember as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('作成失敗'));
+    const useCase = new CreateMember(repo);
+
+    await expect(
+      useCase.execute({ userId: 'user-1', memberType: 'human', name: 'テスト' })
+    ).rejects.toThrow('作成失敗');
   });
 });
 

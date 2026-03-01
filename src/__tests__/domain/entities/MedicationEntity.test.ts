@@ -114,5 +114,56 @@ describe('MedicationEntity', () => {
       const entity = new MedicationEntity(createMedication({ dosage: '1錠' }));
       expect(entity.getDisplayInfo().dosageInfo).toBe('1錠');
     });
+
+    it('頻度のみの場合はそのまま返す', () => {
+      const entity = new MedicationEntity(createMedication({ frequency: '1日3回' }));
+      expect(entity.getDisplayInfo().dosageInfo).toBe('1日3回');
+    });
+
+    it('用量・頻度どちらもない場合は空文字を返す', () => {
+      const entity = new MedicationEntity(createMedication());
+      expect(entity.getDisplayInfo().dosageInfo).toBe('');
+    });
+
+    it('全カテゴリのラベルが正しい', () => {
+      const cases: [Medication['category'], string][] = [
+        ['regular', '常用薬'],
+        ['supplement', 'サプリメント'],
+        ['prn', '頓服薬'],
+        ['inhaler', '吸入薬'],
+        ['flea_tick', 'ノミ・ダニ薬'],
+        ['heartworm', 'フィラリア薬'],
+      ];
+      for (const [category, label] of cases) {
+        const entity = new MedicationEntity(createMedication({ category }));
+        expect(entity.getDisplayInfo().categoryLabel).toBe(label);
+      }
+    });
+
+    it('名前が正しく返される', () => {
+      const entity = new MedicationEntity(createMedication({ name: 'ロキソニン' }));
+      expect(entity.getDisplayInfo().name).toBe('ロキソニン');
+    });
+  });
+
+  describe('isLowStock (境界値)', () => {
+    it('在庫数が警告日までの日数と等しい場合 false を返す', () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 5);
+      const entity = new MedicationEntity(
+        createMedication({ stockQuantity: 5, stockAlertDate: futureDate })
+      );
+      expect(entity.isLowStock()).toBe(false);
+    });
+  });
+
+  describe('id / name / data', () => {
+    it('プロパティにアクセスできる', () => {
+      const med = createMedication({ id: 'med-xyz', name: 'アスピリン' });
+      const entity = new MedicationEntity(med);
+      expect(entity.id).toBe('med-xyz');
+      expect(entity.name).toBe('アスピリン');
+      expect(entity.data).toBe(med);
+    });
   });
 });

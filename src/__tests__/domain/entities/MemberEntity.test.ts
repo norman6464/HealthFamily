@@ -58,6 +58,35 @@ describe('MemberEntity', () => {
     });
   });
 
+  describe('getAge (境界値)', () => {
+    it('今日が誕生日の場合、正しい年齢を返す', () => {
+      const birthDate = new Date();
+      birthDate.setFullYear(birthDate.getFullYear() - 3);
+      const entity = new MemberEntity(createMember({ birthDate }));
+      expect(entity.getAge()).toBe(3);
+    });
+
+    it('誕生日が来月の場合、1歳少ない年齢を返す', () => {
+      const birthDate = new Date();
+      birthDate.setFullYear(birthDate.getFullYear() - 10);
+      birthDate.setMonth(birthDate.getMonth() + 1);
+      const entity = new MemberEntity(createMember({ birthDate }));
+      expect(entity.getAge()).toBe(9);
+    });
+  });
+
+  describe('getIconType', () => {
+    it('人間メンバーのアイコン種別を返す', () => {
+      const entity = new MemberEntity(createMember({ memberType: 'human' }));
+      expect(entity.getIconType()).toEqual({ memberType: 'human', petType: undefined });
+    });
+
+    it('ペットメンバーのアイコン種別を返す', () => {
+      const entity = new MemberEntity(createMember({ memberType: 'pet', petType: 'cat' }));
+      expect(entity.getIconType()).toEqual({ memberType: 'pet', petType: 'cat' });
+    });
+  });
+
   describe('id / name / data', () => {
     it('プロパティにアクセスできる', () => {
       const member = createMember({ id: 'abc', name: '花子' });

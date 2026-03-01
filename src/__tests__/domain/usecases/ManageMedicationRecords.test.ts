@@ -51,6 +51,23 @@ describe('GetMedicationHistory', () => {
     expect(result[1].date).toBe('2025-06-14');
     expect(result[1].records).toHaveLength(1);
   });
+
+  it('空の履歴を正しく処理する', async () => {
+    const repo = createMockRepository();
+    (repo.getHistory as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    const useCase = new GetMedicationHistory(repo);
+    const result = await useCase.execute();
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getHistory as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB接続エラー'));
+    const useCase = new GetMedicationHistory(repo);
+
+    await expect(useCase.execute()).rejects.toThrow('DB接続エラー');
+  });
 });
 
 describe('CreateMedicationRecord', () => {
