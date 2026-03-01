@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Calendar, User, MapPin } from 'lucide-react';
 import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
 
-interface UpcomingAppointmentsProps {
+export interface UpcomingAppointmentsProps {
   appointments: Appointment[];
   isLoading: boolean;
 }

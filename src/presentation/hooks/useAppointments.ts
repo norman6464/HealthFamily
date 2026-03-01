@@ -3,7 +3,7 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Appointment } from '../../domain/entities/Appointment';
 import { GetAppointments, CreateAppointment, UpdateAppointment, DeleteAppointment } from '../../domain/usecases/ManageAppointments';
 import { CreateAppointmentInput, UpdateAppointmentInput } from '../../domain/repositories/AppointmentRepository';
@@ -40,20 +40,20 @@ export const useAppointments = (): UseAppointmentsResult => {
     [] as Appointment[],
   );
 
-  const handleCreateAppointment = async (input: CreateAppointmentInput) => {
+  const handleCreateAppointment = useCallback(async (input: CreateAppointmentInput) => {
     await useCases.createAppointment.execute(input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleUpdateAppointment = async (appointmentId: string, input: UpdateAppointmentInput) => {
+  const handleUpdateAppointment = useCallback(async (appointmentId: string, input: UpdateAppointmentInput) => {
     await useCases.updateAppointment.execute(appointmentId, input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleDeleteAppointment = async (appointmentId: string) => {
+  const handleDeleteAppointment = useCallback(async (appointmentId: string) => {
     await useCases.deleteAppointment.execute(appointmentId);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
   return {
     appointments,
