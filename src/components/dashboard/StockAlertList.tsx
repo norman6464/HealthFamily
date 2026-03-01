@@ -18,29 +18,38 @@ export const StockAlertList: React.FC<StockAlertListProps> = ({ alerts, isLoadin
       </div>
       <div className="space-y-2">
         {alerts.map((alert) => (
-          <div
-            key={alert.medicationId}
-            className={`bg-white rounded-lg shadow-sm p-3 border ${
-              alert.isOverdue ? 'border-red-300 bg-red-50' : 'border-yellow-300 bg-yellow-50'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-800">{alert.medicationName}</p>
-                <p className="text-xs text-gray-500">{alert.memberName}</p>
-              </div>
-              <div className="text-right">
-                {alert.stockQuantity !== null && (
-                  <p className="text-sm font-medium text-gray-700">残り{alert.stockQuantity}日分</p>
-                )}
-                <p className={`text-xs font-medium ${alert.isOverdue ? 'text-red-600' : 'text-yellow-600'}`}>
-                  {alert.isOverdue ? '期限超過' : `あと${alert.daysUntilAlert}日`}
-                </p>
-              </div>
-            </div>
-          </div>
+          <StockAlertItem key={alert.medicationId} alert={alert} />
         ))}
       </div>
     </div>
   );
 };
+
+export interface StockAlertItemProps {
+  alert: StockAlert;
+}
+
+const StockAlertItem: React.FC<StockAlertItemProps> = React.memo(({ alert }) => (
+  <div
+    className={`bg-white rounded-lg shadow-sm p-3 border ${
+      alert.isOverdue ? 'border-red-300 bg-red-50' : 'border-yellow-300 bg-yellow-50'
+    }`}
+  >
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-800">{alert.medicationName}</p>
+        <p className="text-xs text-gray-500">{alert.memberName}</p>
+      </div>
+      <div className="text-right">
+        {alert.stockQuantity !== null && (
+          <p className="text-sm font-medium text-gray-700">残り{alert.stockQuantity}日分</p>
+        )}
+        <p className={`text-xs font-medium ${alert.isOverdue ? 'text-red-600' : 'text-yellow-600'}`}>
+          {alert.isOverdue ? '期限超過' : `あと${alert.daysUntilAlert}日`}
+        </p>
+      </div>
+    </div>
+  </div>
+));
+
+StockAlertItem.displayName = 'StockAlertItem';

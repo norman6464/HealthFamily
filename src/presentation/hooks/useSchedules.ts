@@ -67,15 +67,15 @@ export const useSchedules = (): UseSchedulesResult => {
     }
   }, [useCases, refetch]);
 
-  const handleUpdateSchedule = async (scheduleId: string, input: Partial<Schedule>) => {
+  const handleUpdateSchedule = useCallback(async (scheduleId: string, input: Partial<Schedule>) => {
     await useCases.updateSchedule.execute(scheduleId, input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleDeleteSchedule = async (scheduleId: string) => {
+  const handleDeleteSchedule = useCallback(async (scheduleId: string) => {
     await useCases.deleteSchedule.execute(scheduleId);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
   return {
     schedules,

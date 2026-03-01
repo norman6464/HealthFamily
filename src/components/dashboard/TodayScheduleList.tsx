@@ -43,7 +43,7 @@ interface ScheduleCardProps {
   onMarkCompleted?: (scheduleId: string) => void;
 }
 
-const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }) => {
+const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMarkCompleted }) => {
   return (
     <div
       className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow"
@@ -87,13 +87,15 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }
       </div>
     </div>
   );
-};
+});
+
+ScheduleCard.displayName = 'ScheduleCard';
 
 interface StatusBadgeProps {
   status: 'pending' | 'completed' | 'overdue';
 }
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({ status }) => {
   const styles = {
     pending: {
       bg: 'bg-yellow-100',
@@ -123,4 +125,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
       {style.label}
     </span>
   );
-};
+});
+
+StatusBadge.displayName = 'StatusBadge';
