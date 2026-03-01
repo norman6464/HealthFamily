@@ -37,14 +37,14 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
   );
 };
 
-interface MedicationCardProps {
+export interface MedicationCardProps {
   viewModel: MedicationViewModel;
   onDelete: (medicationId: string) => void;
   onMarkTaken?: (medicationId: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
 }
 
-const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete, onMarkTaken, onEdit }) => {
+const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, onDelete, onMarkTaken, onEdit }) => {
   const { medication, isLowStock, displayInfo } = viewModel;
   const [isTaken, setIsTaken] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,4 +122,6 @@ const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete, on
       </div>
     </div>
   );
-};
+});
+
+MedicationCard.displayName = 'MedicationCard';

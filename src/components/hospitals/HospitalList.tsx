@@ -38,13 +38,13 @@ export const HospitalList: React.FC<HospitalListProps> = ({ hospitals, isLoading
   );
 };
 
-interface HospitalCardProps {
+export interface HospitalCardProps {
   hospital: Hospital;
   onUpdate: (hospitalId: string, input: UpdateHospitalInput) => Promise<void>;
   onDelete: (hospitalId: string) => void;
 }
 
-const HospitalCard: React.FC<HospitalCardProps> = ({ hospital, onUpdate, onDelete }) => {
+const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(hospital.name);
   const [editAddress, setEditAddress] = useState(hospital.address || '');
@@ -174,4 +174,6 @@ const HospitalCard: React.FC<HospitalCardProps> = ({ hospital, onUpdate, onDelet
       </div>
     </div>
   );
-};
+});
+
+HospitalCard.displayName = 'HospitalCard';

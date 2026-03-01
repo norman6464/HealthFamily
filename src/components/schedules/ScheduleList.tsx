@@ -71,13 +71,13 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, isLoading
   );
 };
 
-interface ScheduleCardProps {
+export interface ScheduleCardProps {
   item: ScheduleWithDetails;
   onUpdate: (scheduleId: string, input: Partial<Schedule>) => Promise<void>;
   onDelete: (scheduleId: string) => void;
 }
 
-const ScheduleCard: React.FC<ScheduleCardProps> = ({ item, onUpdate, onDelete }) => {
+const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, onDelete }) => {
   const { schedule, medicationName, memberName } = item;
   const [isEditing, setIsEditing] = useState(false);
   const [editTime, setEditTime] = useState(schedule.scheduledTime);
@@ -215,4 +215,6 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ item, onUpdate, onDelete })
       </div>
     </div>
   );
-};
+});
+
+ScheduleCard.displayName = 'ScheduleCard';
