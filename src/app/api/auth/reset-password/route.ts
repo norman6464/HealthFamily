@@ -1,27 +1,30 @@
 import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
+const resetPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email('有効なメールアドレスを入力してください'),
+  code: z.string().length(6, 'リセットコードは6桁で入力してください'),
+  newPassword: z.string()
+    .min(8, 'パスワードは8文字以上で入力してください')
+    .regex(/[a-zA-Z]/, 'パスワードには英字を含めてください')
+    .regex(/[0-9]/, 'パスワードには数字を含めてください'),
+});
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const email = (body.email ?? '').trim().toLowerCase();
-    const code = body.code;
-    const newPassword = body.newPassword;
+    const parsed = resetPasswordSchema.safeParse(body);
+    if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-    if (!email || !code || !newPassword) {
-      return errorResponse('必須項目を入力してください');
-    }
+    const { email, code, newPassword } = parsed.data;
 
     const rateLimit = checkRateLimit(`reset:${email}`, { maxAttempts: 5, windowMs: 60 * 1000 });
     if (!rateLimit.allowed) {
       return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-    }
-
-    if (newPassword.length < 8) {
-      return errorResponse('パスワードは8文字以上で入力してください');
     }
 
     const user = await prisma.user.findUnique({ where: { email } });

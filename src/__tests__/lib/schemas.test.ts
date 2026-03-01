@@ -267,4 +267,49 @@ describe('updateStockSchema', () => {
   it('負の在庫数を拒否する', () => {
     expect(updateStockSchema.safeParse({ stockQuantity: -1 }).success).toBe(false);
   });
+
+  it('上限を超える在庫数を拒否する', () => {
+    expect(updateStockSchema.safeParse({ stockQuantity: 100000 }).success).toBe(false);
+  });
+});
+
+describe('数値フィールドの上限制約', () => {
+  it('在庫数の上限を超える値を拒否する', () => {
+    const result = createMedicationSchema.safeParse({ name: '薬', stockQuantity: 100000 });
+    expect(result.success).toBe(false);
+  });
+
+  it('リマインダー分数の上限を超える値を拒否する', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'member-1',
+      scheduledTime: '08:00',
+      reminderMinutesBefore: 1441,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('リマインダー日数の上限を超える値を拒否する', () => {
+    const result = createAppointmentSchema.safeParse({
+      memberId: 'member-1',
+      appointmentDate: '2024-06-01',
+      reminderDaysBefore: 366,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('上限内の値を受け入れる', () => {
+    expect(createMedicationSchema.safeParse({ name: '薬', stockQuantity: 99999 }).success).toBe(true);
+    expect(createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'member-1',
+      scheduledTime: '08:00',
+      reminderMinutesBefore: 1440,
+    }).success).toBe(true);
+    expect(createAppointmentSchema.safeParse({
+      memberId: 'member-1',
+      appointmentDate: '2024-06-01',
+      reminderDaysBefore: 365,
+    }).success).toBe(true);
+  });
 });
