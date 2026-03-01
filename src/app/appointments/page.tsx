@@ -1,54 +1,29 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
+import { useAppointments } from '@/presentation/hooks/useAppointments';
+import { useHospitals } from '@/presentation/hooks/useHospitals';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { AppointmentList } from '@/components/appointments/AppointmentList';
 import { AppointmentForm, AppointmentFormData } from '@/components/appointments/AppointmentForm';
-import { Appointment, Hospital } from '@/domain/entities/Appointment';
-import { appointmentApi } from '@/data/api/appointmentApi';
-import { hospitalApi } from '@/data/api/hospitalApi';
 import { Plus, X } from 'lucide-react';
 
 export default function AppointmentsPage() {
   const { userId } = useAuth();
   const { members, isLoading: membersLoading } = useMembers(userId);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [hospitals, setHospitals] = useState<Hospital[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { appointments, isLoading, createAppointment, deleteAppointment } = useAppointments();
+  const { hospitals } = useHospitals();
   const [showForm, setShowForm] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const [apts, hosps] = await Promise.all([
-        appointmentApi.getAppointments(),
-        hospitalApi.getHospitals(),
-      ]);
-      setAppointments(apts);
-      setHospitals(hosps);
-    } catch {
-      setAppointments([]);
-      setHospitals([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const handleCreate = async (data: AppointmentFormData) => {
-    await appointmentApi.createAppointment(data);
+    await createAppointment(data);
     setShowForm(false);
-    await fetchData();
   };
 
   const handleDelete = async (appointmentId: string) => {
-    await appointmentApi.deleteAppointment(appointmentId);
-    await fetchData();
+    await deleteAppointment(appointmentId);
   };
 
   return (

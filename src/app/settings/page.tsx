@@ -1,50 +1,31 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProfile } from '@/presentation/hooks/useUserProfile';
 import { CharacterSelector } from '@/components/character/CharacterSelector';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
-import { apiClient } from '@/data/api/apiClient';
 import { signOut } from 'next-auth/react';
 import { LogOut, Pencil, Check, X } from 'lucide-react';
 
-interface UserProfile {
-  id: string;
-  email: string;
-  displayName: string | null;
-  characterType: string;
-  characterName: string | null;
-}
-
 export default function Settings() {
   const { email } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { profile, updateProfile } = useUserProfile();
   const [isEditingName, setIsEditingName] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      const data = await apiClient.get<UserProfile>('/users/me');
-      setProfile(data);
-      setDisplayName(data.displayName || '');
-    } catch {
-      // ignore
-    }
-  }, []);
-
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (profile) {
+      setDisplayName(profile.displayName || '');
+    }
+  }, [profile]);
 
   const handleSaveName = async () => {
     if (!displayName.trim()) return;
     setIsSaving(true);
     try {
-      const updated = await apiClient.put<UserProfile>('/users/me', {
-        displayName: displayName.trim(),
-      });
-      setProfile(updated);
+      await updateProfile({ displayName: displayName.trim() });
       setIsEditingName(false);
     } finally {
       setIsSaving(false);

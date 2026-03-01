@@ -1,0 +1,19 @@
+/**
+ * 病院リポジトリインターフェース
+ */
+
+import { Hospital } from '../entities/Appointment';
+
+export interface CreateHospitalInput {
+  name: string;
+  type?: string;
+  address?: string;
+  phone?: string;
+  notes?: string;
+}
+
+export interface HospitalRepository {
+  getHospitals(): Promise<Hospital[]>;
+  createHospital(input: CreateHospitalInput): Promise<Hospital>;
+  deleteHospital(hospitalId: string): Promise<void>;
+}

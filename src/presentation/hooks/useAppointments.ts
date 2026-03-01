@@ -1,0 +1,70 @@
+/**
+ * 通院予約管理カスタムフック（ViewModel）
+ * Presentation層とDomain層を繋ぐ
+ */
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Appointment } from '../../domain/entities/Appointment';
+import { GetAppointments, CreateAppointment, DeleteAppointment } from '../../domain/usecases/ManageAppointments';
+import { CreateAppointmentInput } from '../../domain/repositories/AppointmentRepository';
+import { getDIContainer } from '../../infrastructure/DIContainer';
+
+export interface UseAppointmentsResult {
+  appointments: Appointment[];
+  isLoading: boolean;
+  error: Error | null;
+  createAppointment: (input: CreateAppointmentInput) => Promise<void>;
+  deleteAppointment: (appointmentId: string) => Promise<void>;
+  refetch: () => Promise<void>;
+}
+
+export const useAppointments = (): UseAppointmentsResult => {
+  const useCases = useMemo(() => {
+    const { appointmentRepository } = getDIContainer();
+    return {
+      getAppointments: new GetAppointments(appointmentRepository),
+      createAppointment: new CreateAppointment(appointmentRepository),
+      deleteAppointment: new DeleteAppointment(appointmentRepository),
+    };
+  }, []);
+
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchAppointments = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const viewModels = await useCases.getAppointments.execute();
+      setAppointments(viewModels.map((vm) => vm.appointment));
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Unknown error'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [useCases]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  const handleCreateAppointment = async (input: CreateAppointmentInput) => {
+    await useCases.createAppointment.execute(input);
+    await fetchAppointments();
+  };
+
+  const handleDeleteAppointment = async (appointmentId: string) => {
+    await useCases.deleteAppointment.execute(appointmentId);
+    await fetchAppointments();
+  };
+
+  return {
+    appointments,
+    isLoading,
+    error,
+    createAppointment: handleCreateAppointment,
+    deleteAppointment: handleDeleteAppointment,
+    refetch: fetchAppointments,
+  };
+};

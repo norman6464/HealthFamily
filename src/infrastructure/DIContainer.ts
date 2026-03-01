@@ -6,14 +6,26 @@
 import { MemberRepository } from '../domain/repositories/MemberRepository';
 import { MedicationRepository } from '../domain/repositories/MedicationRepository';
 import { ScheduleRepository } from '../domain/repositories/ScheduleRepository';
+import { AppointmentRepository } from '../domain/repositories/AppointmentRepository';
+import { HospitalRepository } from '../domain/repositories/HospitalRepository';
+import { MedicationRecordRepository } from '../domain/repositories/MedicationRecordRepository';
+import { UserProfileRepository } from '../domain/repositories/UserProfileRepository';
 import { MemberRepositoryImpl } from '../data/repositories/MemberRepositoryImpl';
 import { MedicationRepositoryImpl } from '../data/repositories/MedicationRepositoryImpl';
 import { ScheduleRepositoryImpl } from '../data/repositories/ScheduleRepositoryImpl';
+import { AppointmentRepositoryImpl } from '../data/repositories/AppointmentRepositoryImpl';
+import { HospitalRepositoryImpl } from '../data/repositories/HospitalRepositoryImpl';
+import { MedicationRecordRepositoryImpl } from '../data/repositories/MedicationRecordRepositoryImpl';
+import { UserProfileRepositoryImpl } from '../data/repositories/UserProfileRepositoryImpl';
 
 export interface DIContainer {
   memberRepository: MemberRepository;
   medicationRepository: MedicationRepository;
   scheduleRepository: ScheduleRepository;
+  appointmentRepository: AppointmentRepository;
+  hospitalRepository: HospitalRepository;
+  medicationRecordRepository: MedicationRecordRepository;
+  userProfileRepository: UserProfileRepository;
 }
 
 // シングルトンコンテナ（テスト時にモックに差し替え可能）
@@ -25,6 +37,10 @@ export const getDIContainer = (): DIContainer => {
       memberRepository: new MemberRepositoryImpl(),
       medicationRepository: new MedicationRepositoryImpl(),
       scheduleRepository: new ScheduleRepositoryImpl(),
+      appointmentRepository: new AppointmentRepositoryImpl(),
+      hospitalRepository: new HospitalRepositoryImpl(),
+      medicationRecordRepository: new MedicationRecordRepositoryImpl(),
+      userProfileRepository: new UserProfileRepositoryImpl(),
     };
   }
   return container;
