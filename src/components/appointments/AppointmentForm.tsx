@@ -1,0 +1,151 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Member, MemberEntity } from '../../domain/entities/Member';
+import { Hospital } from '../../domain/entities/Appointment';
+import { AppointmentEntity } from '../../domain/entities/Appointment';
+import { MemberIcon } from '../shared/MemberIcon';
+
+export interface AppointmentFormData {
+  memberId: string;
+  hospitalId?: string;
+  appointmentDate: string;
+  type?: string;
+  notes?: string;
+}
+
+interface AppointmentFormProps {
+  members: Member[];
+  hospitals: Hospital[];
+  onSubmit: (data: AppointmentFormData) => void;
+}
+
+export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospitals, onSubmit }) => {
+  const [memberId, setMemberId] = useState(members[0]?.id || '');
+  const [hospitalId, setHospitalId] = useState('');
+  const [appointmentDate, setAppointmentDate] = useState('');
+  const [type, setType] = useState('');
+  const [notes, setNotes] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!memberId || !appointmentDate) return;
+
+    onSubmit({
+      memberId,
+      hospitalId: hospitalId || undefined,
+      appointmentDate,
+      type: type || undefined,
+      notes: notes.trim() || undefined,
+    });
+
+    setAppointmentDate('');
+    setType('');
+    setNotes('');
+  };
+
+  const typeOptions = Object.entries(AppointmentEntity.typeLabels);
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="apt-member" className="block text-sm font-medium text-gray-700 mb-1">
+          メンバー
+        </label>
+        <div className="space-y-1">
+          {members.map((m) => {
+            const entity = new MemberEntity(m);
+            const info = entity.getDisplayInfo();
+            const isSelected = memberId === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMemberId(m.id)}
+                className={`w-full flex items-center space-x-2 px-3 py-2 rounded-lg border text-left transition-colors ${
+                  isSelected
+                    ? 'border-primary-500 bg-primary-50'
+                    : 'border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                <MemberIcon memberType={info.memberType} petType={info.petType} size={16} className="text-gray-600" />
+                <span className="text-sm">{info.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="apt-date" className="block text-sm font-medium text-gray-700 mb-1">
+          予約日
+        </label>
+        <input
+          id="apt-date"
+          type="date"
+          value={appointmentDate}
+          onChange={(e) => setAppointmentDate(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          required
+        />
+      </div>
+
+      {hospitals.length > 0 && (
+        <div>
+          <label htmlFor="apt-hospital" className="block text-sm font-medium text-gray-700 mb-1">
+            病院（任意）
+          </label>
+          <select
+            id="apt-hospital"
+            value={hospitalId}
+            onChange={(e) => setHospitalId(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">選択しない</option>
+            {hospitals.map((h) => (
+              <option key={h.id} value={h.id}>{h.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="apt-type" className="block text-sm font-medium text-gray-700 mb-1">
+          種別（任意）
+        </label>
+        <select
+          id="apt-type"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="">選択しない</option>
+          {typeOptions.map(([key, label]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="apt-notes" className="block text-sm font-medium text-gray-700 mb-1">
+          メモ（任意）
+        </label>
+        <textarea
+          id="apt-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          rows={2}
+          placeholder="メモを入力"
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+      >
+        追加する
+      </button>
+    </form>
+  );
+};

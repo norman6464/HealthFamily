@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Home, Users, Pill, ClipboardList, Settings, type LucideIcon } from 'lucide-react';
+import { Home, Users, Pill, Calendar, Settings, type LucideIcon } from 'lucide-react';
 
 interface NavItem {
   path: string;
@@ -10,9 +10,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/', icon: Home, label: 'ホーム' },
-  { path: '/members', icon: Users, label: 'メンバー' },
   { path: '/medications', icon: Pill, label: 'お薬' },
-  { path: '/history', icon: ClipboardList, label: '履歴' },
+  { path: '/appointments', icon: Calendar, label: '通院' },
+  { path: '/members', icon: Users, label: 'メンバー' },
   { path: '/settings', icon: Settings, label: '設定' },
 ];
 

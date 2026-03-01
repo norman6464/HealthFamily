@@ -10,8 +10,19 @@ export async function GET() {
     const appointments = await prisma.appointment.findMany({
       where: { userId },
       orderBy: { appointmentDate: 'asc' },
+      include: {
+        member: { select: { name: true } },
+        hospital: { select: { name: true } },
+      },
     });
-    return success(appointments);
+    const result = appointments.map((a) => ({
+      ...a,
+      memberName: a.member.name,
+      hospitalName: a.hospital?.name,
+      member: undefined,
+      hospital: undefined,
+    }));
+    return success(result);
   } catch {
     return errorResponse('一覧取得に失敗しました', 500);
   }

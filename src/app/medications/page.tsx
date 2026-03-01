@@ -10,7 +10,7 @@ import { MemberIcon } from '@/components/shared/MemberIcon';
 import { MemberEntity, Member } from '@/domain/entities/Member';
 import { recordApi } from '@/data/api/recordApi';
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { Plus, ClipboardList } from 'lucide-react';
 
 function MemberMedications({ member }: { member: Member }) {
   const { medications, isLoading, deleteMedication } = useMedications(member.id);
@@ -61,8 +61,15 @@ export default function Medications() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 py-3">
+        <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="text-xl font-bold text-primary-600">お薬</h1>
+          <Link
+            href="/history"
+            className="flex items-center space-x-1 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+          >
+            <ClipboardList size={16} />
+            <span>履歴</span>
+          </Link>
         </div>
       </header>
 
