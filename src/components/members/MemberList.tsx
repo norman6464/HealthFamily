@@ -40,14 +40,14 @@ export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDe
   );
 };
 
-interface MemberCardProps {
+export interface MemberCardProps {
   member: Member;
   onDelete: (memberId: string) => void;
   onEdit?: (member: Member) => void;
   summary?: MemberSummary;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete, onEdit, summary }) => {
+const MemberCard: React.FC<MemberCardProps> = React.memo(({ member, onDelete, onEdit, summary }) => {
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const age = entity.getAge();
@@ -101,4 +101,6 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete, onEdit, summa
       )}
     </div>
   );
-};
+});
+
+MemberCard.displayName = 'MemberCard';
