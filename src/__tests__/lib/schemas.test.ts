@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   signUpSchema,
   createMemberSchema,
+  updateMemberSchema,
   createMedicationSchema,
   createScheduleSchema,
   createRecordSchema,
@@ -67,6 +68,23 @@ describe('createMemberSchema', () => {
       birthDate: '2020-01-01',
       notes: 'テストメモ',
     });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('updateMemberSchema', () => {
+  it('名前のみの更新を受け入れる', () => {
+    const result = updateMemberSchema.safeParse({ name: '更新名' });
+    expect(result.success).toBe(true);
+  });
+
+  it('空のオブジェクトを拒否する', () => {
+    const result = updateMemberSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  it('nullのnotesを受け入れる', () => {
+    const result = updateMemberSchema.safeParse({ notes: null });
     expect(result.success).toBe(true);
   });
 });

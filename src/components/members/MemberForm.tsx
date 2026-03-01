@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MemberType, PetType } from '../../domain/entities/Member';
+import { MemberType, PetType, Member } from '../../domain/entities/Member';
 
 export interface MemberFormData {
   name: string;
@@ -11,14 +11,19 @@ export interface MemberFormData {
 
 interface MemberFormProps {
   onSubmit: (data: MemberFormData) => void;
+  initialData?: Member;
+  onCancel?: () => void;
 }
 
-export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit }) => {
-  const [name, setName] = useState('');
-  const [memberType, setMemberType] = useState<MemberType>('human');
-  const [petType, setPetType] = useState<PetType>('dog');
-  const [birthDate, setBirthDate] = useState('');
-  const [notes, setNotes] = useState('');
+export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit, initialData, onCancel }) => {
+  const isEditing = !!initialData;
+  const [name, setName] = useState(initialData?.name || '');
+  const [memberType, setMemberType] = useState<MemberType>(initialData?.memberType || 'human');
+  const [petType, setPetType] = useState<PetType>(initialData?.petType || 'dog');
+  const [birthDate, setBirthDate] = useState(
+    initialData?.birthDate ? new Date(initialData.birthDate).toISOString().split('T')[0] : ''
+  );
+  const [notes, setNotes] = useState(initialData?.notes || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +40,13 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit }) => {
 
     onSubmit(data);
 
-    // フォームリセット
-    setName('');
-    setMemberType('human');
-    setPetType('dog');
-    setBirthDate('');
-    setNotes('');
+    if (!isEditing) {
+      setName('');
+      setMemberType('human');
+      setPetType('dog');
+      setBirthDate('');
+      setNotes('');
+    }
   };
 
   return (
@@ -59,20 +65,22 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit }) => {
         />
       </div>
 
-      <div>
-        <label htmlFor="member-type" className="block text-sm font-medium text-gray-700 mb-1">
-          タイプ
-        </label>
-        <select
-          id="member-type"
-          value={memberType}
-          onChange={(e) => setMemberType(e.target.value as MemberType)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="human">家族</option>
-          <option value="pet">ペット</option>
-        </select>
-      </div>
+      {!isEditing && (
+        <div>
+          <label htmlFor="member-type" className="block text-sm font-medium text-gray-700 mb-1">
+            タイプ
+          </label>
+          <select
+            id="member-type"
+            value={memberType}
+            onChange={(e) => setMemberType(e.target.value as MemberType)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="human">家族</option>
+            <option value="pet">ペット</option>
+          </select>
+        </div>
+      )}
 
       {memberType === 'pet' && (
         <div>
@@ -121,12 +129,23 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit }) => {
         />
       </div>
 
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
-        追加する
-      </button>
+      <div className="flex space-x-2">
+        <button
+          type="submit"
+          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          {isEditing ? '更新する' : '追加する'}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            キャンセル
+          </button>
+        )}
+      </div>
     </form>
   );
 };

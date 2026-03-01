@@ -2,15 +2,16 @@ import React from 'react';
 import Link from 'next/link';
 import { Member, MemberEntity } from '../../domain/entities/Member';
 import { MemberIcon } from '../shared/MemberIcon';
-import { Pill } from 'lucide-react';
+import { Pill, Pencil } from 'lucide-react';
 
 interface MemberListProps {
   members: Member[];
   isLoading: boolean;
   onDelete: (memberId: string) => void;
+  onEdit?: (member: Member) => void;
 }
 
-export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDelete }) => {
+export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDelete, onEdit }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -30,7 +31,7 @@ export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDe
   return (
     <div className="space-y-3">
       {members.map((member) => (
-        <MemberCard key={member.id} member={member} onDelete={onDelete} />
+        <MemberCard key={member.id} member={member} onDelete={onDelete} onEdit={onEdit} />
       ))}
     </div>
   );
@@ -39,9 +40,10 @@ export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDe
 interface MemberCardProps {
   member: Member;
   onDelete: (memberId: string) => void;
+  onEdit?: (member: Member) => void;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete }) => {
+const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete, onEdit }) => {
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const age = entity.getAge();
@@ -71,6 +73,15 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete }) => {
             <Pill size={14} />
             <span>薬管理</span>
           </Link>
+          {onEdit && (
+            <button
+              onClick={() => onEdit(member)}
+              className="text-gray-500 hover:text-gray-700 text-sm px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
+              aria-label="編集"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
           <button
             onClick={() => onDelete(member.id)}
             className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
