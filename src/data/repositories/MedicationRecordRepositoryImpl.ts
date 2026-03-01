@@ -8,6 +8,7 @@ import {
 } from '../../domain/repositories/MedicationRecordRepository';
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { AdherenceStats } from '../../domain/entities/AdherenceStats';
+import { AdherenceTrend } from '../../domain/entities/AdherenceTrend';
 import { recordApi } from '../api/recordApi';
 
 export class MedicationRecordRepositoryImpl implements MedicationRecordRepository {
@@ -25,5 +26,9 @@ export class MedicationRecordRepositoryImpl implements MedicationRecordRepositor
 
   async getAdherenceStats(): Promise<AdherenceStats> {
     return recordApi.getStats();
+  }
+
+  async getAdherenceTrends(): Promise<AdherenceTrend> {
+    return recordApi.getTrends();
   }
 }

@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
+import { useMemberSummaries } from '@/presentation/hooks/useMemberSummaries';
 import { MemberList } from '@/components/members/MemberList';
 import { MemberForm, MemberFormData } from '@/components/members/MemberForm';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
@@ -12,6 +13,7 @@ import { Plus, X } from 'lucide-react';
 export default function Members() {
   const { userId } = useAuth();
   const { members, isLoading, createMember, updateMember, deleteMember } = useMembers(userId);
+  const { summaries } = useMemberSummaries();
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
 
@@ -88,6 +90,7 @@ export default function Members() {
           isLoading={isLoading}
           onDelete={deleteMember}
           onEdit={handleEdit}
+          summaries={summaries}
         />
       </main>
 

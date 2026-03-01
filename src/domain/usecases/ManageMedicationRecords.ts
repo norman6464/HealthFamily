@@ -4,6 +4,7 @@
 
 import { MedicationRecordEntity, DailyRecordGroup } from '../entities/MedicationRecord';
 import { AdherenceStats } from '../entities/AdherenceStats';
+import { AdherenceTrend } from '../entities/AdherenceTrend';
 import {
   MedicationRecordRepository,
   CreateRecordInput,
@@ -48,5 +49,13 @@ export class GetAdherenceStats {
 
   async execute(): Promise<AdherenceStats> {
     return this.recordRepository.getAdherenceStats();
+  }
+}
+
+export class GetAdherenceTrends {
+  constructor(private readonly recordRepository: MedicationRecordRepository) {}
+
+  async execute(): Promise<AdherenceTrend> {
+    return this.recordRepository.getAdherenceTrends();
   }
 }

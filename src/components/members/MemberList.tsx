@@ -1,7 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { Member, MemberEntity } from '../../domain/entities/Member';
+import { MemberSummary } from '../../domain/entities/MemberSummary';
 import { MemberIcon } from '../shared/MemberIcon';
+import { MemberSummaryCard } from './MemberSummaryCard';
 import { Pill, Pencil } from 'lucide-react';
 
 interface MemberListProps {
@@ -9,9 +11,10 @@ interface MemberListProps {
   isLoading: boolean;
   onDelete: (memberId: string) => void;
   onEdit?: (member: Member) => void;
+  summaries?: MemberSummary[];
 }
 
-export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDelete, onEdit }) => {
+export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDelete, onEdit, summaries }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -31,7 +34,7 @@ export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDe
   return (
     <div className="space-y-3">
       {members.map((member) => (
-        <MemberCard key={member.id} member={member} onDelete={onDelete} onEdit={onEdit} />
+        <MemberCard key={member.id} member={member} onDelete={onDelete} onEdit={onEdit} summary={summaries?.find((s) => s.memberId === member.id)} />
       ))}
     </div>
   );
@@ -41,9 +44,10 @@ interface MemberCardProps {
   member: Member;
   onDelete: (memberId: string) => void;
   onEdit?: (member: Member) => void;
+  summary?: MemberSummary;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete, onEdit }) => {
+const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete, onEdit, summary }) => {
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const age = entity.getAge();
@@ -91,6 +95,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, onDelete, onEdit }) => 
           </button>
         </div>
       </div>
+      {summary && <MemberSummaryCard summary={summary} />}
       {member.notes && (
         <p className="mt-2 text-sm text-gray-500">{member.notes}</p>
       )}

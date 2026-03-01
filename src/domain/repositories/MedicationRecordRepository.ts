@@ -4,6 +4,7 @@
 
 import { MedicationRecord } from '../entities/MedicationRecord';
 import { AdherenceStats } from '../entities/AdherenceStats';
+import { AdherenceTrend } from '../entities/AdherenceTrend';
 
 export interface CreateRecordInput {
   memberId: string;
@@ -18,4 +19,5 @@ export interface MedicationRecordRepository {
   createRecord(input: CreateRecordInput): Promise<void>;
   deleteRecord(recordId: string): Promise<void>;
   getAdherenceStats(): Promise<AdherenceStats>;
+  getAdherenceTrends(): Promise<AdherenceTrend>;
 }

@@ -9,6 +9,7 @@ import {
   UpdateMemberInput,
 } from '../../domain/repositories/MemberRepository';
 import { Member } from '../../domain/entities/Member';
+import { MemberSummary } from '../../domain/entities/MemberSummary';
 import { memberApi } from '../api/memberApi';
 
 export class MemberRepositoryImpl implements MemberRepository {
@@ -30,5 +31,9 @@ export class MemberRepositoryImpl implements MemberRepository {
 
   async deleteMember(memberId: string): Promise<void> {
     return memberApi.deleteMember(memberId);
+  }
+
+  async getMemberSummaries(): Promise<MemberSummary[]> {
+    return memberApi.getMemberSummaries();
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useMedications } from '@/presentation/hooks/useMedications';
@@ -9,16 +9,22 @@ import { MedicationForm, MedicationFormData } from '@/components/medications/Med
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MemberIcon } from '@/components/shared/MemberIcon';
 import { MemberEntity, Member } from '@/domain/entities/Member';
-import { Medication } from '@/domain/entities/Medication';
+import { Medication, MedicationCategory } from '@/domain/entities/Medication';
+import { CategoryFilter } from '@/components/shared/CategoryFilter';
 import { recordApi } from '@/data/api/recordApi';
 import Link from 'next/link';
 import { Plus, ClipboardList } from 'lucide-react';
 
-function MemberMedications({ member }: { member: Member }) {
+function MemberMedications({ member, categoryFilter }: { member: Member; categoryFilter: MedicationCategory | null }) {
   const { medications, isLoading, updateMedication, deleteMedication } = useMedications(member.id);
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
+
+  const filteredMedications = useMemo(
+    () => categoryFilter ? medications.filter((m) => m.medication.category === categoryFilter) : medications,
+    [medications, categoryFilter],
+  );
 
   const handleMarkTaken = useCallback(async (medicationId: string) => {
     await recordApi.createRecord({
@@ -77,7 +83,7 @@ function MemberMedications({ member }: { member: Member }) {
       )}
 
       <MedicationList
-        medications={medications}
+        medications={filteredMedications}
         isLoading={isLoading}
         onDelete={deleteMedication}
         onMarkTaken={handleMarkTaken}
@@ -90,6 +96,7 @@ function MemberMedications({ member }: { member: Member }) {
 export default function Medications() {
   const { userId } = useAuth();
   const { members, isLoading } = useMembers(userId);
+  const [selectedCategory, setSelectedCategory] = useState<MedicationCategory | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -107,6 +114,12 @@ export default function Medications() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-4">
+        {!isLoading && members.length > 0 && (
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            onSelect={setSelectedCategory}
+          />
+        )}
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
             <p className="text-gray-500">読み込み中...</p>
@@ -123,7 +136,7 @@ export default function Medications() {
           </div>
         ) : (
           members.map((member) => (
-            <MemberMedications key={member.id} member={member} />
+            <MemberMedications key={member.id} member={member} categoryFilter={selectedCategory} />
           ))
         )}
       </main>
