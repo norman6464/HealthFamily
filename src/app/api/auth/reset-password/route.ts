@@ -6,10 +6,11 @@ import { success, errorResponse } from '@/lib/auth-helpers';
 import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
 const resetPasswordSchema = z.object({
-  email: z.string().trim().toLowerCase().email('有効なメールアドレスを入力してください'),
+  email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email('有効なメールアドレスを入力してください'),
   code: z.string().length(6, 'リセットコードは6桁で入力してください'),
   newPassword: z.string()
     .min(8, 'パスワードは8文字以上で入力してください')
+    .max(128, 'パスワードは128文字以内で入力してください')
     .regex(/[a-zA-Z]/, 'パスワードには英字を含めてください')
     .regex(/[0-9]/, 'パスワードには数字を含めてください'),
 });
