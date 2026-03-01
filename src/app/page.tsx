@@ -8,16 +8,16 @@ import { useAdherenceStats } from '@/presentation/hooks/useAdherenceStats';
 import { useAdherenceTrends } from '@/presentation/hooks/useAdherenceTrends';
 import { useStockAlerts } from '@/presentation/hooks/useStockAlerts';
 import { useMembers } from '@/presentation/hooks/useMembers';
-import { useCharacterStore } from '@/stores/characterStore';
+import { useUserProfile } from '@/presentation/hooks/useUserProfile';
 import { TodayScheduleList } from '@/components/dashboard/TodayScheduleList';
 import { UpcomingAppointments } from '@/components/dashboard/UpcomingAppointments';
 import { AdherenceStatsCard } from '@/components/dashboard/AdherenceStatsCard';
 import { AdherenceTrendCard } from '@/components/dashboard/AdherenceTrendCard';
 import { StockAlertList } from '@/components/dashboard/StockAlertList';
 import { WeeklySummaryCard } from '@/components/dashboard/WeeklySummaryCard';
+import { GreetingCard } from '@/components/dashboard/GreetingCard';
 import { MemberFilter } from '@/components/shared/MemberFilter';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
-import { CharacterIcon } from '@/components/shared/CharacterIcon';
 
 export default function Dashboard() {
   const { userId } = useAuth();
@@ -27,8 +27,7 @@ export default function Dashboard() {
   const { trend, isLoading: trendLoading } = useAdherenceTrends();
   const { alerts, isLoading: alertsLoading } = useStockAlerts();
   const { members } = useMembers(userId);
-  const { getConfig, getMessage } = useCharacterStore();
-  const characterConfig = getConfig();
+  const { profile } = useUserProfile();
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   const filteredSchedules = useMemo(
@@ -50,13 +49,7 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-4">
-        <div className="bg-primary-50 rounded-lg p-4 mb-6 flex items-center space-x-3">
-          <CharacterIcon type={characterConfig.type} size={40} />
-          <div>
-            <p className="text-sm font-medium text-primary-800">{characterConfig.name}</p>
-            <p className="text-sm text-primary-700">{getMessage('medicationReminder')}</p>
-          </div>
-        </div>
+        <GreetingCard displayName={profile?.displayName || ''} />
 
         <AdherenceStatsCard stats={stats} isLoading={statsLoading} />
 
