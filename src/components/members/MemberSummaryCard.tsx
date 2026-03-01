@@ -6,7 +6,7 @@ interface MemberSummaryCardProps {
   summary: MemberSummary;
 }
 
-export const MemberSummaryCard: React.FC<MemberSummaryCardProps> = ({ summary }) => {
+export const MemberSummaryCard: React.FC<MemberSummaryCardProps> = React.memo(({ summary }) => {
   const entity = new MemberSummaryEntity(summary);
   const appointmentLabel = entity.getAppointmentLabel();
 
@@ -24,4 +24,6 @@ export const MemberSummaryCard: React.FC<MemberSummaryCardProps> = ({ summary })
       )}
     </div>
   );
-};
+});
+
+MemberSummaryCard.displayName = 'MemberSummaryCard';

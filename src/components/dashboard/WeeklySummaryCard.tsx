@@ -7,7 +7,7 @@ interface WeeklySummaryCardProps {
   isLoading: boolean;
 }
 
-export const WeeklySummaryCard: React.FC<WeeklySummaryCardProps> = ({ schedules, isLoading }) => {
+export const WeeklySummaryCard: React.FC<WeeklySummaryCardProps> = React.memo(({ schedules, isLoading }) => {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
@@ -61,4 +61,6 @@ export const WeeklySummaryCard: React.FC<WeeklySummaryCardProps> = ({ schedules,
       </div>
     </div>
   );
-};
+});
+
+WeeklySummaryCard.displayName = 'WeeklySummaryCard';

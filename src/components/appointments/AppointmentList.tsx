@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Calendar, Pencil, Trash2, User, MapPin } from 'lucide-react';
 import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
 
@@ -25,6 +25,16 @@ export function getAppointmentCounts(appointments: Appointment[]): { upcoming: n
 }
 
 export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, isLoading, filter, onEdit, onDelete }) => {
+  const { upcoming, past } = useMemo(() => {
+    const up: Appointment[] = [];
+    const pa: Appointment[] = [];
+    for (const a of appointments) {
+      if (new AppointmentEntity(a).isPast()) pa.push(a);
+      else up.push(a);
+    }
+    return { upcoming: up, past: pa };
+  }, [appointments]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -40,9 +50,6 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
       </div>
     );
   }
-
-  const upcoming = appointments.filter((a) => !new AppointmentEntity(a).isPast());
-  const past = appointments.filter((a) => new AppointmentEntity(a).isPast());
 
   if (filter === 'upcoming') {
     return (
@@ -95,13 +102,13 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
   );
 };
 
-interface AppointmentCardProps {
+export interface AppointmentCardProps {
   appointment: Appointment;
   onEdit: (appointment: Appointment) => void;
   onDelete: (appointmentId: string) => void;
 }
 
-const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onEdit, onDelete }) => {
+const AppointmentCard: React.FC<AppointmentCardProps> = React.memo(({ appointment, onEdit, onDelete }) => {
   const entity = new AppointmentEntity(appointment);
   const daysUntil = entity.daysUntil();
   const typeLabel = entity.getTypeLabel();
@@ -166,4 +173,6 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onEdit, 
       </div>
     </div>
   );
-};
+});
+
+AppointmentCard.displayName = 'AppointmentCard';

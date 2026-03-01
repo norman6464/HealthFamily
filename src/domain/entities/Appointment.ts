@@ -2,8 +2,6 @@
  * 通院予約エンティティ
  */
 
-export { type Hospital } from './Hospital';
-
 import { DAY_LABELS_JP } from '../../lib/constants';
 
 export interface Appointment {
