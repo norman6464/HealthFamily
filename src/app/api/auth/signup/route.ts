@@ -25,7 +25,8 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       if (existing.emailVerified) {
-        return errorResponse('このメールアドレスは既に登録されています');
+        // ユーザー列挙攻撃を防止するため、既存ユーザーにも同じレスポンスを返す
+        return created({ email, requiresVerification: true });
       }
       // 未認証ユーザーが再登録 → コードを再生成
       const code = generateVerificationCode();

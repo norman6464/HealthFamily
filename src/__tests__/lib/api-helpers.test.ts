@@ -9,7 +9,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { auth } from '@/lib/auth';
-import { withAuth, withOwnershipCheck, verifyResourceOwnership, validateParamId } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, verifyResourceOwnership, validateParamId, validateBodySize } from '@/lib/api-helpers';
 
 const mockAuth = vi.mocked(auth);
 
@@ -188,5 +188,30 @@ describe('withOwnershipCheck - IDバリデーション', () => {
     expect(finder).not.toHaveBeenCalled();
     expect(handler).not.toHaveBeenCalled();
     expect(result.status).toBe(400);
+  });
+});
+
+describe('validateBodySize', () => {
+  it('Content-Lengthが制限内の場合nullを返す', () => {
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'content-length': '1024' },
+    });
+    expect(validateBodySize(request)).toBeNull();
+  });
+
+  it('Content-Lengthが制限を超える場合413を返す', () => {
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      headers: { 'content-length': String(200 * 1024) },
+    });
+    const result = validateBodySize(request);
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe(413);
+  });
+
+  it('Content-Lengthがない場合nullを返す', () => {
+    const request = new Request('http://localhost', { method: 'POST' });
+    expect(validateBodySize(request)).toBeNull();
   });
 });
