@@ -7,14 +7,14 @@ import {
   UserProfile,
   UpdateUserProfileInput,
 } from '../../domain/repositories/UserProfileRepository';
-import { apiClient } from '../api/apiClient';
+import { userProfileApi } from '../api/userProfileApi';
 
 export class UserProfileRepositoryImpl implements UserProfileRepository {
   async getProfile(): Promise<UserProfile> {
-    return apiClient.get<UserProfile>('/users/me');
+    return userProfileApi.getProfile();
   }
 
   async updateProfile(input: UpdateUserProfileInput): Promise<UserProfile> {
-    return apiClient.put<UserProfile>('/users/me', input);
+    return userProfileApi.updateProfile(input);
   }
 }

@@ -3,10 +3,11 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { UserProfile, UpdateUserProfileInput } from '../../domain/repositories/UserProfileRepository';
 import { GetUserProfile, UpdateUserProfile } from '../../domain/usecases/ManageUserProfile';
 import { getDIContainer } from '../../infrastructure/DIContainer';
+import { useFetcher } from './useFetcher';
 
 export interface UseUserProfileResult {
   profile: UserProfile | null;
@@ -25,30 +26,15 @@ export const useUserProfile = (): UseUserProfileResult => {
     };
   }, []);
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchProfile = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await useCases.getProfile.execute();
-      setProfile(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [useCases]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  const { data: profile, isLoading, error, refetch } = useFetcher(
+    () => useCases.getProfile.execute(),
+    [useCases],
+    null as UserProfile | null,
+  );
 
   const handleUpdateProfile = async (input: UpdateUserProfileInput): Promise<UserProfile> => {
     const updated = await useCases.updateProfile.execute(input);
-    setProfile(updated);
+    await refetch();
     return updated;
   };
 
@@ -57,6 +43,6 @@ export const useUserProfile = (): UseUserProfileResult => {
     isLoading,
     error,
     updateProfile: handleUpdateProfile,
-    refetch: fetchProfile,
+    refetch,
   };
 };

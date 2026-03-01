@@ -1,12 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { createMedicationSchema } from '@/lib/schemas';
-import { getAuthUserId, created, errorResponse, unauthorized } from '@/lib/auth-helpers';
+import { created, errorResponse } from '@/lib/auth-helpers';
+import { withAuth } from '@/lib/api-helpers';
 
 export async function POST(request: Request) {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
-
+  return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = createMedicationSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
@@ -27,8 +25,5 @@ export async function POST(request: Request) {
       },
     });
     return created(medication);
-  } catch (error) {
-    console.error('Medication creation error:', error);
-    return errorResponse('登録に失敗しました', 500);
-  }
+  })();
 }

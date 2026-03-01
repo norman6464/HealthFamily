@@ -1,23 +1,8 @@
 import { Hospital } from '../../domain/entities/Appointment';
+import { CreateHospitalInput, UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
 import { apiClient } from './apiClient';
 import { toHospital } from './mappers';
 import { BackendHospital } from './types';
-
-export interface CreateHospitalInput {
-  name: string;
-  type?: string;
-  address?: string;
-  phone?: string;
-  notes?: string;
-}
-
-export interface UpdateHospitalInput {
-  name?: string;
-  type?: string;
-  address?: string;
-  phone?: string;
-  notes?: string;
-}
 
 export const hospitalApi = {
   async getHospitals(): Promise<Hospital[]> {

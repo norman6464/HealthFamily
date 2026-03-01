@@ -3,10 +3,11 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { GetMedications, CreateMedication, UpdateMedication, DeleteMedication, MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { CreateMedicationInput, UpdateMedicationInput } from '../../domain/repositories/MedicationRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
+import { useFetcher } from './useFetcher';
 
 export interface UseMedicationsResult {
   medications: MedicationViewModel[];
@@ -29,40 +30,25 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     };
   }, []);
 
-  const [medications, setMedications] = useState<MedicationViewModel[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchMedications = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await useCases.getMedications.execute(memberId);
-      setMedications(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [memberId, useCases]);
-
-  useEffect(() => {
-    fetchMedications();
-  }, [fetchMedications]);
+  const { data: medications, isLoading, error, refetch } = useFetcher(
+    () => useCases.getMedications.execute(memberId),
+    [memberId, useCases],
+    [] as MedicationViewModel[],
+  );
 
   const handleCreateMedication = async (input: CreateMedicationInput) => {
     await useCases.createMedication.execute(input);
-    await fetchMedications();
+    await refetch();
   };
 
   const handleUpdateMedication = async (medicationId: string, input: UpdateMedicationInput) => {
     await useCases.updateMedication.execute(medicationId, input);
-    await fetchMedications();
+    await refetch();
   };
 
   const handleDeleteMedication = async (medicationId: string) => {
     await useCases.deleteMedication.execute(medicationId);
-    await fetchMedications();
+    await refetch();
   };
 
   return {
@@ -72,6 +58,6 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     createMedication: handleCreateMedication,
     updateMedication: handleUpdateMedication,
     deleteMedication: handleDeleteMedication,
-    refetch: fetchMedications,
+    refetch,
   };
 };

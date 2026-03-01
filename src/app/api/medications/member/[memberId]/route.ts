@@ -1,15 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import { getAuthUserId, success, errorResponse, unauthorized } from '@/lib/auth-helpers';
+import { success } from '@/lib/auth-helpers';
+import { withAuth } from '@/lib/api-helpers';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
-
+  return withAuth(async (userId) => {
     const { memberId } = await params;
     const medications = await prisma.medication.findMany({ where: { memberId, userId } });
     return success(medications);
-  } catch {
-    return errorResponse('一覧取得に失敗しました', 500);
-  }
+  })();
 }

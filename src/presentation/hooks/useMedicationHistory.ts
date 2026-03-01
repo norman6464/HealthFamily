@@ -3,10 +3,11 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { DailyRecordGroup } from '../../domain/entities/MedicationRecord';
 import { GetMedicationHistory, DeleteMedicationRecord } from '../../domain/usecases/ManageMedicationRecords';
 import { getDIContainer } from '../../infrastructure/DIContainer';
+import { useFetcher } from './useFetcher';
 
 export interface UseMedicationHistoryResult {
   groups: DailyRecordGroup[];
@@ -25,30 +26,15 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     };
   }, []);
 
-  const [groups, setGroups] = useState<DailyRecordGroup[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchHistory = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await useCases.getHistory.execute();
-      setGroups(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [useCases]);
-
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+  const { data: groups, isLoading, error, refetch } = useFetcher(
+    () => useCases.getHistory.execute(),
+    [useCases],
+    [] as DailyRecordGroup[],
+  );
 
   const handleDeleteRecord = async (recordId: string) => {
     await useCases.deleteRecord.execute(recordId);
-    await fetchHistory();
+    await refetch();
   };
 
   return {
@@ -56,6 +42,6 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     isLoading,
     error,
     deleteRecord: handleDeleteRecord,
-    refetch: fetchHistory,
+    refetch,
   };
 };

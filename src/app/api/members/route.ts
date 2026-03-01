@@ -1,24 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import { createMemberSchema } from '@/lib/schemas';
-import { getAuthUserId, success, created, errorResponse, unauthorized } from '@/lib/auth-helpers';
+import { success, created, errorResponse } from '@/lib/auth-helpers';
+import { withAuth } from '@/lib/api-helpers';
 
-export async function GET() {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
-
-    const members = await prisma.member.findMany({ where: { userId } });
-    return success(members);
-  } catch {
-    return errorResponse('一覧取得に失敗しました', 500);
-  }
-}
+export const GET = withAuth(async (userId) => {
+  const members = await prisma.member.findMany({ where: { userId } });
+  return success(members);
+});
 
 export async function POST(request: Request) {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
-
+  return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = createMemberSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
@@ -34,7 +25,5 @@ export async function POST(request: Request) {
       },
     });
     return created(member);
-  } catch {
-    return errorResponse('登録に失敗しました', 500);
-  }
+  })();
 }

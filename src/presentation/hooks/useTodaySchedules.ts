@@ -3,9 +3,10 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { GetTodaySchedules, TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 import { getDIContainer } from '../../infrastructure/DIContainer';
+import { useFetcher } from './useFetcher';
 
 export interface UseTodaySchedulesResult {
   schedules: TodayScheduleViewModel[];
@@ -24,46 +25,28 @@ export const useTodaySchedules = (userId: string): UseTodaySchedulesResult => {
     };
   }, []);
 
-  const [schedules, setSchedules] = useState<TodayScheduleViewModel[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [markError, setMarkError] = useState<Error | null>(null);
 
-  const fetchSchedules = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const result = await getTodaySchedulesUseCase.execute({
-        userId,
-        date: new Date(),
-      });
-
-      setSchedules(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, getTodaySchedulesUseCase]);
-
-  useEffect(() => {
-    fetchSchedules();
-  }, [fetchSchedules]);
+  const { data: schedules, isLoading, error: fetchError, refetch } = useFetcher(
+    () => getTodaySchedulesUseCase.execute({ userId, date: new Date() }),
+    [userId, getTodaySchedulesUseCase],
+    [] as TodayScheduleViewModel[],
+  );
 
   const markAsCompleted = useCallback(async (scheduleId: string) => {
     try {
       await scheduleRepository.markAsCompleted(scheduleId, new Date());
-      await fetchSchedules();
+      await refetch();
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
+      setMarkError(err instanceof Error ? err : new Error('Unknown error'));
     }
-  }, [scheduleRepository, fetchSchedules]);
+  }, [scheduleRepository, refetch]);
 
   return {
     schedules,
     isLoading,
-    error,
-    refetch: fetchSchedules,
+    error: fetchError || markError,
+    refetch,
     markAsCompleted,
   };
 };

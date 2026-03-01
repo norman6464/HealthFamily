@@ -1,62 +1,58 @@
 import { prisma } from '@/lib/prisma';
 import { updateStockSchema } from '@/lib/schemas';
 import { sendEmail, emailTemplates } from '@/lib/email';
-import { getAuthUserId, success, errorResponse, notFound, unauthorized } from '@/lib/auth-helpers';
+import { success, errorResponse } from '@/lib/auth-helpers';
+import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
+
+const findMedicationWithMember = (id: string) =>
+  prisma.medication.findUnique({ where: { id }, include: { member: true } });
 
 export async function PUT(request: Request, { params }: { params: Promise<{ medicationId: string }> }) {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
-
+  return withAuth(async (userId) => {
     const { medicationId } = await params;
-    const medication = await prisma.medication.findUnique({
-      where: { id: medicationId },
-      include: { member: true },
-    });
-    if (!medication || medication.userId !== userId) return notFound('お薬');
+    return withOwnershipCheck({
+      userId,
+      resourceId: medicationId,
+      finder: findMedicationWithMember,
+      resourceName: 'お薬',
+      handler: async (medication) => {
+        const body = await request.json();
+        const parsed = updateStockSchema.safeParse(body);
+        if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-    const body = await request.json();
-    const parsed = updateStockSchema.safeParse(body);
-    if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
+        const updated = await prisma.medication.update({
+          where: { id: medicationId },
+          data: { stockQuantity: parsed.data.stockQuantity },
+        });
 
-    const updated = await prisma.medication.update({
-      where: { id: medicationId },
-      data: { stockQuantity: parsed.data.stockQuantity },
-    });
+        if (updated.stockAlertDate !== null && updated.stockQuantity !== null) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const alertDate = new Date(updated.stockAlertDate);
+          alertDate.setHours(0, 0, 0, 0);
+          const daysUntilAlert = Math.ceil(
+            (alertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          );
 
-    // 在庫が指定日までに不足する場合メール送信
-    if (
-      updated.stockAlertDate !== null &&
-      updated.stockQuantity !== null
-    ) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const alertDate = new Date(updated.stockAlertDate);
-      alertDate.setHours(0, 0, 0, 0);
-      const daysUntilAlert = Math.ceil(
-        (alertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      if (daysUntilAlert > 0 && updated.stockQuantity < daysUntilAlert) {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (user) {
-          const template = emailTemplates.lowStockAlert({
-            memberName: medication.member.name,
-            medicationName: medication.name,
-            currentStock: updated.stockQuantity,
-            alertDate: alertDate.toLocaleDateString('ja-JP'),
-            daysUntilAlert,
-          });
-          sendEmail({ to: user.email, ...template }).catch((err) => {
-            console.error('Low stock email failed:', err);
-          });
+          if (daysUntilAlert > 0 && updated.stockQuantity < daysUntilAlert) {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user) {
+              const template = emailTemplates.lowStockAlert({
+                memberName: medication.member.name,
+                medicationName: medication.name,
+                currentStock: updated.stockQuantity,
+                alertDate: alertDate.toLocaleDateString('ja-JP'),
+                daysUntilAlert,
+              });
+              sendEmail({ to: user.email, ...template }).catch((err) => {
+                console.error('Low stock email failed:', err);
+              });
+            }
+          }
         }
-      }
-    }
 
-    return success(updated);
-  } catch (error) {
-    console.error('Stock update error:', error);
-    return errorResponse('更新に失敗しました', 500);
-  }
+        return success(updated);
+      },
+    });
+  })();
 }
