@@ -1,4 +1,4 @@
-import { Hospital } from '../../domain/entities/Appointment';
+import { Hospital } from '../../domain/entities/Hospital';
 import { CreateHospitalInput, UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
 import { apiClient } from './apiClient';
 import { toHospital } from './mappers';

@@ -7,7 +7,7 @@ import {
   CreateHospitalInput,
   UpdateHospitalInput,
 } from '../../domain/repositories/HospitalRepository';
-import { Hospital } from '../../domain/entities/Appointment';
+import { Hospital } from '../../domain/entities/Hospital';
 import { hospitalApi } from '../api/hospitalApi';
 
 export class HospitalRepositoryImpl implements HospitalRepository {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GetSchedules, UpdateSchedule, DeleteSchedule } from '@/domain/usecases/ManageSchedules';
+import { GetSchedules, CreateSchedule, UpdateSchedule, DeleteSchedule } from '@/domain/usecases/ManageSchedules';
 import { ScheduleRepository, ScheduleWithDetails } from '@/domain/repositories/ScheduleRepository';
 import { Schedule } from '@/domain/entities/Schedule';
 
@@ -49,6 +49,77 @@ describe('GetSchedules', () => {
     const useCase = new GetSchedules(repo);
 
     await expect(useCase.execute()).rejects.toThrow('DB接続エラー');
+  });
+});
+
+describe('CreateSchedule', () => {
+  it('スケジュールを作成する', async () => {
+    const repo = createMockRepository();
+    const useCase = new CreateSchedule(repo);
+    const input = {
+      medicationId: 'med-1',
+      userId: 'user-1',
+      memberId: 'member-1',
+      scheduledTime: '08:00',
+      daysOfWeek: ['mon', 'wed', 'fri'] as const,
+      isEnabled: true,
+      reminderMinutesBefore: 10,
+    };
+    const result = await useCase.execute(input);
+
+    expect(result).toBe(mockSchedule);
+    expect(repo.createSchedule).toHaveBeenCalledWith(input);
+  });
+
+  it('薬IDが空の場合エラーを投げる', async () => {
+    const repo = createMockRepository();
+    const useCase = new CreateSchedule(repo);
+
+    await expect(
+      useCase.execute({
+        medicationId: '',
+        userId: 'user-1',
+        memberId: 'member-1',
+        scheduledTime: '08:00',
+        daysOfWeek: ['mon'],
+        isEnabled: true,
+        reminderMinutesBefore: 10,
+      })
+    ).rejects.toThrow('薬IDは必須です');
+  });
+
+  it('メンバーIDが空の場合エラーを投げる', async () => {
+    const repo = createMockRepository();
+    const useCase = new CreateSchedule(repo);
+
+    await expect(
+      useCase.execute({
+        medicationId: 'med-1',
+        userId: 'user-1',
+        memberId: '',
+        scheduledTime: '08:00',
+        daysOfWeek: ['mon'],
+        isEnabled: true,
+        reminderMinutesBefore: 10,
+      })
+    ).rejects.toThrow('メンバーIDは必須です');
+  });
+
+  it('スケジュール時刻が空の場合エラーを投げる', async () => {
+    const repo = createMockRepository();
+    const useCase = new CreateSchedule(repo);
+
+    await expect(
+      useCase.execute({
+        medicationId: 'med-1',
+        userId: 'user-1',
+        memberId: 'member-1',
+        scheduledTime: '',
+        daysOfWeek: ['mon'],
+        isEnabled: true,
+        reminderMinutesBefore: 10,
+      })
+    ).rejects.toThrow('スケジュール時刻は必須です');
   });
 });
 

@@ -2,7 +2,7 @@
  * 病院リポジトリインターフェース
  */
 
-import { Hospital } from '../entities/Appointment';
+import { Hospital } from '../entities/Hospital';
 
 export interface CreateHospitalInput {
   name: string;
