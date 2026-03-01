@@ -16,7 +16,7 @@ describe('signUpSchema', () => {
   it('有効なデータを受け入れる', () => {
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
-      password: '12345678',
+      password: 'Test1234',
       displayName: 'テストユーザー',
     });
     expect(result.success).toBe(true);
@@ -25,7 +25,7 @@ describe('signUpSchema', () => {
   it('無効なメールアドレスを拒否する', () => {
     const result = signUpSchema.safeParse({
       email: 'invalid-email',
-      password: '12345678',
+      password: 'Test1234',
       displayName: 'テスト',
     });
     expect(result.success).toBe(false);
@@ -34,7 +34,25 @@ describe('signUpSchema', () => {
   it('短すぎるパスワードを拒否する', () => {
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
-      password: '1234567',
+      password: 'Ab1',
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('英字のみのパスワードを拒否する', () => {
+    const result = signUpSchema.safeParse({
+      email: 'test@example.com',
+      password: 'abcdefgh',
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('数字のみのパスワードを拒否する', () => {
+    const result = signUpSchema.safeParse({
+      email: 'test@example.com',
+      password: '12345678',
       displayName: 'テスト',
     });
     expect(result.success).toBe(false);
@@ -43,7 +61,7 @@ describe('signUpSchema', () => {
   it('空の表示名を拒否する', () => {
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
-      password: '12345678',
+      password: 'Test1234',
       displayName: '',
     });
     expect(result.success).toBe(false);
@@ -52,7 +70,7 @@ describe('signUpSchema', () => {
   it('メールアドレスを小文字に正規化する', () => {
     const result = signUpSchema.safeParse({
       email: 'Test@Example.COM',
-      password: '12345678',
+      password: 'Test1234',
       displayName: 'テスト',
     });
     expect(result.success).toBe(true);
@@ -64,7 +82,7 @@ describe('signUpSchema', () => {
   it('メールアドレスの前後の空白を除去する', () => {
     const result = signUpSchema.safeParse({
       email: '  test@example.com  ',
-      password: '12345678',
+      password: 'Test1234',
       displayName: 'テスト',
     });
     expect(result.success).toBe(true);
@@ -76,7 +94,7 @@ describe('signUpSchema', () => {
   it('表示名の前後の空白を除去する', () => {
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
-      password: '12345678',
+      password: 'Test1234',
       displayName: '  テスト  ',
     });
     expect(result.success).toBe(true);
@@ -183,6 +201,26 @@ describe('createScheduleSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('無効な曜日を拒否する', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'member-1',
+      scheduledTime: '08:00',
+      daysOfWeek: ['INVALID'],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('有効な曜日を受け入れる', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'member-1',
+      scheduledTime: '08:00',
+      daysOfWeek: ['mon', 'wed', 'fri'],
+    });
+    expect(result.success).toBe(true);
+  });
 });
 
 describe('createRecordSchema', () => {
@@ -209,6 +247,14 @@ describe('createAppointmentSchema', () => {
       appointmentDate: '2024-06-01',
     });
     expect(result.success).toBe(true);
+  });
+
+  it('無効な日付形式を拒否する', () => {
+    const result = createAppointmentSchema.safeParse({
+      memberId: 'member-1',
+      appointmentDate: 'not-a-date',
+    });
+    expect(result.success).toBe(false);
   });
 });
 

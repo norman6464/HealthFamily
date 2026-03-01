@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Resend } from 'resend';
 import { escapeHtml } from './security';
 
@@ -34,7 +35,9 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions) {
 }
 
 export function generateVerificationCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const bytes = crypto.randomBytes(4);
+  const num = bytes.readUInt32BE(0);
+  return (100000 + (num % 900000)).toString();
 }
 
 export const emailTemplates = {

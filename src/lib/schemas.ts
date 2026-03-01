@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const dateString = z.string().refine(
+  (val) => !isNaN(Date.parse(val)),
+  { message: '有効な日付形式で入力してください' },
+);
+
 // ===== Users =====
 export const createUserProfileSchema = z.object({
   displayName: z.string().min(1, '表示名は必須です').max(100),
@@ -16,14 +21,14 @@ export const createMemberSchema = z.object({
   name: z.string({ required_error: '名前は必須です' }).min(1, '名前は必須です').max(100),
   memberType: z.enum(['human', 'pet']).optional(),
   petType: z.string().max(50).optional(),
-  birthDate: z.string().optional(),
+  birthDate: dateString.optional(),
   notes: z.string().max(500).optional(),
 });
 
 export const updateMemberSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   petType: z.string().max(50).optional(),
-  birthDate: z.string().optional().nullable(),
+  birthDate: dateString.optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
 }).refine((data) => Object.keys(data).length > 0, {
   message: '更新するフィールドがありません',
@@ -37,7 +42,7 @@ export const createMedicationSchema = z.object({
   dosageAmount: z.string().max(100).optional(),
   frequency: z.string().max(100).optional(),
   stockQuantity: z.number().int().min(0).optional(),
-  stockAlertDate: z.string().optional(),
+  stockAlertDate: dateString.optional(),
   instructions: z.string().max(1000).optional(),
 });
 
@@ -47,7 +52,7 @@ export const updateMedicationSchema = z.object({
   dosageAmount: z.string().max(100).optional().nullable(),
   frequency: z.string().max(100).optional().nullable(),
   stockQuantity: z.number().int().min(0).optional().nullable(),
-  stockAlertDate: z.string().optional().nullable(),
+  stockAlertDate: dateString.optional().nullable(),
   instructions: z.string().max(1000).optional().nullable(),
   isActive: z.boolean().optional(),
 }).refine((data) => Object.keys(data).length > 0, {
@@ -59,18 +64,20 @@ export const updateStockSchema = z.object({
 });
 
 // ===== Schedules =====
+const dayOfWeekEnum = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
+
 export const createScheduleSchema = z.object({
   medicationId: z.string().min(1, '薬IDは必須です'),
   memberId: z.string().min(1, 'メンバーIDは必須です'),
   scheduledTime: z.string().min(1, '予定時刻は必須です'),
-  daysOfWeek: z.array(z.string()).optional(),
+  daysOfWeek: z.array(dayOfWeekEnum).optional(),
   isEnabled: z.boolean().optional(),
   reminderMinutesBefore: z.number().int().min(0).optional(),
 });
 
 export const updateScheduleSchema = z.object({
   scheduledTime: z.string().optional(),
-  daysOfWeek: z.array(z.string()).optional(),
+  daysOfWeek: z.array(dayOfWeekEnum).optional(),
   isEnabled: z.boolean().optional(),
   reminderMinutesBefore: z.number().int().min(0).optional(),
 });
@@ -108,7 +115,7 @@ export const updateHospitalSchema = z.object({
 export const createAppointmentSchema = z.object({
   memberId: z.string().min(1, 'メンバーIDは必須です'),
   hospitalId: z.string().optional(),
-  appointmentDate: z.string().min(1, '予約日は必須です'),
+  appointmentDate: dateString,
   appointmentTime: z.string().optional(),
   type: z.string().max(100).optional(),
   notes: z.string().max(1000).optional(),
@@ -130,6 +137,9 @@ export const updateAppointmentSchema = z.object({
 // ===== Auth =====
 export const signUpSchema = z.object({
   email: z.string().trim().toLowerCase().email('有効なメールアドレスを入力してください'),
-  password: z.string().min(8, 'パスワードは8文字以上で入力してください'),
+  password: z.string()
+    .min(8, 'パスワードは8文字以上で入力してください')
+    .regex(/[a-zA-Z]/, 'パスワードには英字を含めてください')
+    .regex(/[0-9]/, 'パスワードには数字を含めてください'),
   displayName: z.string().trim().min(1, '表示名は必須です').max(100),
 });

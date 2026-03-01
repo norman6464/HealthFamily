@@ -4,7 +4,7 @@ import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
-  const members = await prisma.member.findMany({ where: { userId } });
+  const members = await prisma.member.findMany({ where: { userId }, take: 100 });
   return success(members);
 });
 
