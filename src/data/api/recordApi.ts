@@ -1,4 +1,5 @@
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
+import { AdherenceStats } from '../../domain/entities/AdherenceStats';
 import { apiClient } from './apiClient';
 import { toMedicationRecord } from './mappers';
 import { BackendRecord } from './types';
@@ -31,5 +32,9 @@ export const recordApi = {
 
   async deleteRecord(recordId: string): Promise<void> {
     await apiClient.del(`/records/${recordId}`);
+  },
+
+  async getStats(): Promise<AdherenceStats> {
+    return apiClient.get<AdherenceStats>('/records/stats');
   },
 };

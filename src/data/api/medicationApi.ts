@@ -50,4 +50,34 @@ export const medicationApi = {
   async deleteMedication(medicationId: string): Promise<void> {
     await apiClient.del(`/medications/${medicationId}`);
   },
+
+  async searchMedications(query: string): Promise<MedicationSearchResult[]> {
+    return apiClient.get<MedicationSearchResult[]>(`/medications/search?q=${encodeURIComponent(query)}`);
+  },
+
+  async getStockAlerts(): Promise<StockAlert[]> {
+    return apiClient.get<StockAlert[]>('/medications/alerts');
+  },
 };
+
+export interface StockAlert {
+  medicationId: string;
+  medicationName: string;
+  memberId: string;
+  memberName: string;
+  stockQuantity: number | null;
+  stockAlertDate: string;
+  daysUntilAlert: number;
+  isOverdue: boolean;
+}
+
+export interface MedicationSearchResult {
+  id: string;
+  name: string;
+  category: string;
+  memberId: string;
+  memberName: string;
+  dosageAmount?: string;
+  frequency?: string;
+  stockQuantity?: number;
+}

@@ -107,6 +107,38 @@ describe('ScheduleEntity', () => {
     });
   });
 
+  describe('hasOverlap', () => {
+    it('同じ薬・同じ時刻・曜日重複がある場合trueを返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00', daysOfWeek: ['mon', 'wed'] }));
+      const other = createSchedule({ scheduledTime: '08:00', daysOfWeek: ['wed', 'fri'] });
+      expect(entity.hasOverlap(other)).toBe(true);
+    });
+
+    it('同じ薬・同じ時刻でも曜日が重複しない場合falseを返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00', daysOfWeek: ['mon', 'wed'] }));
+      const other = createSchedule({ scheduledTime: '08:00', daysOfWeek: ['thu', 'fri'] });
+      expect(entity.hasOverlap(other)).toBe(false);
+    });
+
+    it('時刻が異なる場合falseを返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00', daysOfWeek: ['mon'] }));
+      const other = createSchedule({ scheduledTime: '09:00', daysOfWeek: ['mon'] });
+      expect(entity.hasOverlap(other)).toBe(false);
+    });
+
+    it('薬が異なる場合falseを返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ medicationId: 'med-1', scheduledTime: '08:00' }));
+      const other = createSchedule({ medicationId: 'med-2', scheduledTime: '08:00' });
+      expect(entity.hasOverlap(other)).toBe(false);
+    });
+
+    it('曜日が空（毎日）の場合は常に重複する', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00', daysOfWeek: [] }));
+      const other = createSchedule({ scheduledTime: '08:00', daysOfWeek: ['mon'] });
+      expect(entity.hasOverlap(other)).toBe(true);
+    });
+  });
+
   describe('id / data', () => {
     it('プロパティにアクセスできる', () => {
       const schedule = createSchedule({ id: 'sched-abc' });

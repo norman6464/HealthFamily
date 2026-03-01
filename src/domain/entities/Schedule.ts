@@ -76,6 +76,21 @@ export class ScheduleEntity {
     return reminderTime;
   }
 
+  /**
+   * 他のスケジュールと時刻・曜日が重複しているかチェック
+   */
+  hasOverlap(other: Schedule): boolean {
+    if (this.schedule.medicationId !== other.medicationId) return false;
+    if (this.schedule.scheduledTime !== other.scheduledTime) return false;
+
+    // 曜日が空（毎日）の場合は常に重複
+    if (this.schedule.daysOfWeek.length === 0 || other.daysOfWeek.length === 0) {
+      return true;
+    }
+
+    return this.schedule.daysOfWeek.some((day) => other.daysOfWeek.includes(day));
+  }
+
   get id(): string {
     return this.schedule.id;
   }
