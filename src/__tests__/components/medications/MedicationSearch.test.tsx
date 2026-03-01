@@ -1,19 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MedicationSearch } from '@/components/medications/MedicationSearch';
-import { medicationApi } from '@/data/api/medicationApi';
+import { useMedicationSearch } from '@/presentation/hooks/useMedicationSearch';
 
-vi.mock('@/data/api/medicationApi', () => ({
-  medicationApi: {
-    searchMedications: vi.fn(),
-  },
-}));
+vi.mock('@/presentation/hooks/useMedicationSearch');
 
-const mockSearch = vi.mocked(medicationApi.searchMedications);
+const mockSearch = vi.fn();
+const mockUseMedicationSearch = vi.mocked(useMedicationSearch);
 
 describe('MedicationSearch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseMedicationSearch.mockReturnValue({
+      results: [],
+      isSearching: false,
+      hasSearched: false,
+      search: mockSearch,
+    });
   });
 
   it('検索入力欄と検索ボタンを表示する', () => {
@@ -27,59 +30,57 @@ describe('MedicationSearch', () => {
     expect(screen.getByText('検索')).toBeDisabled();
   });
 
-  it('検索結果を表示する', async () => {
-    mockSearch.mockResolvedValue([
-      { id: '1', name: 'アスピリン', category: 'regular', memberId: 'm1', memberName: '太郎' },
-    ]);
+  it('検索結果を表示する', () => {
+    mockUseMedicationSearch.mockReturnValue({
+      results: [{ id: '1', name: 'アスピリン', category: 'regular', memberId: 'm1', memberName: '太郎' }],
+      isSearching: false,
+      hasSearched: true,
+      search: mockSearch,
+    });
 
     render(<MedicationSearch />);
-    fireEvent.change(screen.getByPlaceholderText('お薬名で検索...'), { target: { value: 'アスピリン' } });
-    fireEvent.click(screen.getByText('検索'));
-
-    await waitFor(() => {
-      expect(screen.getByText('アスピリン')).toBeInTheDocument();
-      expect(screen.getByText('(太郎)')).toBeInTheDocument();
-    });
+    expect(screen.getByText('アスピリン')).toBeInTheDocument();
+    expect(screen.getByText('(太郎)')).toBeInTheDocument();
   });
 
-  it('結果がない場合はメッセージを表示する', async () => {
-    mockSearch.mockResolvedValue([]);
+  it('結果がない場合はメッセージを表示する', () => {
+    mockUseMedicationSearch.mockReturnValue({
+      results: [],
+      isSearching: false,
+      hasSearched: true,
+      search: mockSearch,
+    });
 
     render(<MedicationSearch />);
-    fireEvent.change(screen.getByPlaceholderText('お薬名で検索...'), { target: { value: 'なし' } });
-    fireEvent.click(screen.getByText('検索'));
-
-    await waitFor(() => {
-      expect(screen.getByText('該当するお薬が見つかりません')).toBeInTheDocument();
-    });
+    expect(screen.getByText('該当するお薬が見つかりません')).toBeInTheDocument();
   });
 
-  it('Enterキーで検索できる', async () => {
-    mockSearch.mockResolvedValue([]);
+  it('検索ボタンをクリックするとsearchが呼ばれる', () => {
+    render(<MedicationSearch />);
+    fireEvent.change(screen.getByPlaceholderText('お薬名で検索...'), { target: { value: 'テスト' } });
+    fireEvent.click(screen.getByText('検索'));
+    expect(mockSearch).toHaveBeenCalledWith('テスト');
+  });
 
+  it('Enterキーで検索できる', () => {
     render(<MedicationSearch />);
     const input = screen.getByPlaceholderText('お薬名で検索...');
     fireEvent.change(input, { target: { value: 'テスト' } });
     fireEvent.keyDown(input, { key: 'Enter' });
-
-    await waitFor(() => {
-      expect(mockSearch).toHaveBeenCalledWith('テスト');
-    });
+    expect(mockSearch).toHaveBeenCalledWith('テスト');
   });
 
-  it('結果をクリックするとonSelectResultが呼ばれる', async () => {
+  it('結果をクリックするとonSelectResultが呼ばれる', () => {
     const result = { id: '1', name: 'アスピリン', category: 'regular', memberId: 'm1', memberName: '太郎' };
-    mockSearch.mockResolvedValue([result]);
+    mockUseMedicationSearch.mockReturnValue({
+      results: [result],
+      isSearching: false,
+      hasSearched: true,
+      search: mockSearch,
+    });
     const onSelect = vi.fn();
 
     render(<MedicationSearch onSelectResult={onSelect} />);
-    fireEvent.change(screen.getByPlaceholderText('お薬名で検索...'), { target: { value: 'アスピリン' } });
-    fireEvent.click(screen.getByText('検索'));
-
-    await waitFor(() => {
-      expect(screen.getByText('アスピリン')).toBeInTheDocument();
-    });
-
     fireEvent.click(screen.getByText('アスピリン'));
     expect(onSelect).toHaveBeenCalledWith(result);
   });

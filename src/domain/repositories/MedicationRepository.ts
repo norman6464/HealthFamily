@@ -3,6 +3,8 @@
  */
 
 import { Medication, MedicationCategory } from '../entities/Medication';
+import { MedicationSearchResult } from '../entities/MedicationSearchResult';
+import { StockAlert } from '../entities/StockAlert';
 
 export interface CreateMedicationInput {
   memberId: string;
@@ -32,4 +34,6 @@ export interface MedicationRepository {
   createMedication(input: CreateMedicationInput): Promise<Medication>;
   updateMedication(medicationId: string, input: UpdateMedicationInput): Promise<Medication>;
   deleteMedication(medicationId: string): Promise<void>;
+  searchMedications(query: string): Promise<MedicationSearchResult[]>;
+  getStockAlerts(): Promise<StockAlert[]>;
 }

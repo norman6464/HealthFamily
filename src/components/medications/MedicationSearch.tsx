@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Search, Pill } from 'lucide-react';
-import { MedicationSearchResult, medicationApi } from '../../data/api/medicationApi';
+import { MedicationSearchResult } from '../../domain/entities/MedicationSearchResult';
+import { useMedicationSearch } from '../../presentation/hooks/useMedicationSearch';
 
 interface MedicationSearchProps {
   onSelectResult?: (result: MedicationSearchResult) => void;
@@ -8,26 +9,13 @@ interface MedicationSearchProps {
 
 export const MedicationSearch: React.FC<MedicationSearchProps> = ({ onSelectResult }) => {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<MedicationSearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
+  const { results, isSearching, hasSearched, search } = useMedicationSearch();
 
-  const handleSearch = useCallback(async () => {
-    const trimmed = query.trim();
-    if (!trimmed) return;
-
-    setIsSearching(true);
-    try {
-      const data = await medicationApi.searchMedications(trimmed);
-      setResults(data);
-      setHasSearched(true);
-    } catch {
-      setResults([]);
-      setHasSearched(true);
-    } finally {
-      setIsSearching(false);
+  const handleSearch = () => {
+    if (query.trim()) {
+      search(query);
     }
-  }, [query]);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

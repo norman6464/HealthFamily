@@ -2,8 +2,10 @@
  * 服薬アドヒアランス統計取得フック
  */
 
+import { useMemo } from 'react';
 import { AdherenceStats } from '../../domain/entities/AdherenceStats';
-import { recordApi } from '../../data/api/recordApi';
+import { GetAdherenceStats } from '../../domain/usecases/ManageMedicationRecords';
+import { getDIContainer } from '../../infrastructure/DIContainer';
 import { useFetcher } from './useFetcher';
 
 export interface UseAdherenceStatsResult {
@@ -19,9 +21,14 @@ const defaultStats: AdherenceStats = {
 };
 
 export const useAdherenceStats = (): UseAdherenceStatsResult => {
+  const useCase = useMemo(() => {
+    const { medicationRecordRepository } = getDIContainer();
+    return new GetAdherenceStats(medicationRecordRepository);
+  }, []);
+
   const { data, isLoading, error, refetch } = useFetcher(
-    () => recordApi.getStats(),
-    [],
+    () => useCase.execute(),
+    [useCase],
     defaultStats,
   );
 

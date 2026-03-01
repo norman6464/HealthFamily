@@ -3,6 +3,8 @@
  */
 
 import { Medication, MedicationEntity } from '../entities/Medication';
+import { MedicationSearchResult } from '../entities/MedicationSearchResult';
+import { StockAlert } from '../entities/StockAlert';
 import {
   MedicationRepository,
   CreateMedicationInput,
@@ -63,5 +65,25 @@ export class DeleteMedication {
       throw new Error('薬が見つかりません');
     }
     return this.medicationRepository.deleteMedication(medicationId);
+  }
+}
+
+export class SearchMedications {
+  constructor(private readonly medicationRepository: MedicationRepository) {}
+
+  async execute(query: string): Promise<MedicationSearchResult[]> {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      return [];
+    }
+    return this.medicationRepository.searchMedications(trimmed);
+  }
+}
+
+export class GetStockAlerts {
+  constructor(private readonly medicationRepository: MedicationRepository) {}
+
+  async execute(): Promise<StockAlert[]> {
+    return this.medicationRepository.getStockAlerts();
   }
 }

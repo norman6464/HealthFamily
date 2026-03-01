@@ -17,14 +17,6 @@ export const recordApi = {
     return apiClient.post<BackendRecord>('/records', input);
   },
 
-  async getRecords(): Promise<BackendRecord[]> {
-    return apiClient.get<BackendRecord[]>('/records');
-  },
-
-  async getRecordsByMember(memberId: string): Promise<BackendRecord[]> {
-    return apiClient.get<BackendRecord[]>(`/records/member/${memberId}`);
-  },
-
   async getHistory(): Promise<MedicationRecord[]> {
     const data = await apiClient.get<BackendRecord[]>('/records');
     return data.map(toMedicationRecord);
