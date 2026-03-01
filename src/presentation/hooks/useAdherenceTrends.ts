@@ -12,7 +12,7 @@ export interface UseAdherenceTrendsResult {
   trend: AdherenceTrend | null;
   isLoading: boolean;
   error: Error | null;
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 const defaultTrend: AdherenceTrend | null = null;
