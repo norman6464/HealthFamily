@@ -21,7 +21,7 @@ const levelBgColors = {
   poor: 'bg-red-100',
 } as const;
 
-export const AdherenceStatsCard: React.FC<AdherenceStatsCardProps> = ({ stats, isLoading }) => {
+export const AdherenceStatsCard: React.FC<AdherenceStatsCardProps> = React.memo(({ stats, isLoading }) => {
   if (isLoading || !stats) return null;
 
   const weeklyLevel = AdherenceStatsEntity.getRateLevel(stats.overall.weeklyRate);
@@ -77,4 +77,6 @@ export const AdherenceStatsCard: React.FC<AdherenceStatsCardProps> = ({ stats, i
       </div>
     </div>
   );
-};
+});
+
+AdherenceStatsCard.displayName = 'AdherenceStatsCard';
