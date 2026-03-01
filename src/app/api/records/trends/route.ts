@@ -17,10 +17,12 @@ export const GET = withAuth(async (userId) => {
     prisma.medicationRecord.findMany({
       where: { userId, takenAt: { gte: fourteenDaysAgo } },
       select: { takenAt: true },
+      take: 5000,
     }),
     prisma.schedule.findMany({
       where: { userId, isEnabled: true },
       select: { daysOfWeek: true },
+      take: 1000,
     }),
   ]);
 

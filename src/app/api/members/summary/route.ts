@@ -7,15 +7,18 @@ export const GET = withAuth(async (userId) => {
     prisma.member.findMany({
       where: { userId },
       select: { id: true, name: true, memberType: true },
+      take: 100,
     }),
     prisma.medication.findMany({
       where: { userId, isActive: true },
       select: { memberId: true },
+      take: 500,
     }),
     prisma.appointment.findMany({
       where: { userId, appointmentDate: { gte: new Date() } },
       select: { memberId: true, appointmentDate: true },
       orderBy: { appointmentDate: 'asc' },
+      take: 500,
     }),
   ]);
 

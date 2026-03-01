@@ -3,7 +3,10 @@
  * 認証チェック・所有権チェックの共通パターンを抽出
  */
 
+import { z } from 'zod';
 import { getAuthUserId, unauthorized, errorResponse, notFound } from './auth-helpers';
+
+const paramIdSchema = z.string().min(1).max(50);
 
 type AuthHandler = (userId: string) => Promise<Response>;
 
@@ -34,6 +37,8 @@ export async function withOwnershipCheck<T extends { userId: string }>({
   resourceName,
   handler,
 }: WithOwnershipCheckOptions<T>): Promise<Response> {
+  const idError = validateParamId(resourceId);
+  if (idError) return idError;
   const resource = await finder(resourceId);
   if (!resource || resource.userId !== userId) return notFound(resourceName);
   return handler(resource);
@@ -55,6 +60,18 @@ export async function verifyResourceOwnership(
     if (!resource || resource.userId !== userId) {
       return notFound(check.resourceName);
     }
+  }
+  return null;
+}
+
+/**
+ * 動的ルートパラメータのIDをバリデーションする
+ * 不正なIDの場合はエラーレスポンスを返す
+ */
+export function validateParamId(id: string): Response | null {
+  const result = paramIdSchema.safeParse(id);
+  if (!result.success) {
+    return errorResponse('無効なIDです', 400);
   }
   return null;
 }

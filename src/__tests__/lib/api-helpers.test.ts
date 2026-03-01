@@ -9,7 +9,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { auth } from '@/lib/auth';
-import { withAuth, withOwnershipCheck, verifyResourceOwnership } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, verifyResourceOwnership, validateParamId } from '@/lib/api-helpers';
 
 const mockAuth = vi.mocked(auth);
 
@@ -147,5 +147,46 @@ describe('verifyResourceOwnership', () => {
     expect(result!.status).toBe(404);
     const body = await result!.json();
     expect(body.error).toContain('薬');
+  });
+});
+
+describe('validateParamId', () => {
+  it('有効なIDの場合nullを返す', () => {
+    expect(validateParamId('valid-id-123')).toBeNull();
+  });
+
+  it('空文字の場合エラーレスポンスを返す', () => {
+    const result = validateParamId('');
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe(400);
+  });
+
+  it('50文字を超えるIDの場合エラーレスポンスを返す', () => {
+    const result = validateParamId('a'.repeat(51));
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe(400);
+  });
+
+  it('50文字ちょうどのIDは許可する', () => {
+    expect(validateParamId('a'.repeat(50))).toBeNull();
+  });
+});
+
+describe('withOwnershipCheck - IDバリデーション', () => {
+  it('不正なIDの場合400を返しfinderを呼ばない', async () => {
+    const finder = vi.fn();
+    const handler = vi.fn();
+
+    const result = await withOwnershipCheck({
+      userId: 'user-1',
+      resourceId: 'a'.repeat(51),
+      finder,
+      resourceName: 'リソース',
+      handler,
+    });
+
+    expect(finder).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+    expect(result.status).toBe(400);
   });
 });
