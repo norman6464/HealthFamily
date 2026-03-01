@@ -1,30 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MedicationHistoryList } from '@/components/history/MedicationHistoryList';
-import { MedicationRecord, MedicationRecordEntity, DailyRecordGroup } from '@/domain/entities/MedicationRecord';
-import { recordApi } from '@/data/api/recordApi';
+import { useMedicationHistory } from '@/presentation/hooks/useMedicationHistory';
 
 export default function HistoryPage() {
-  const [groups, setGroups] = useState<DailyRecordGroup[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchHistory = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const records: MedicationRecord[] = await recordApi.getHistory();
-      setGroups(MedicationRecordEntity.groupByDate(records));
-    } catch {
-      setGroups([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+  const { groups, isLoading } = useMedicationHistory();
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
