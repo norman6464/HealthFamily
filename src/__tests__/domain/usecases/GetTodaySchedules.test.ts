@@ -27,6 +27,7 @@ const createScheduleItem = (overrides: Partial<TodayScheduleItem> = {}): TodaySc
 
 const createMockRepository = (items: TodayScheduleItem[] = []): ScheduleRepository => ({
   getTodaySchedules: vi.fn().mockResolvedValue(items),
+  getSchedules: vi.fn().mockResolvedValue([]),
   createSchedule: vi.fn(),
   updateSchedule: vi.fn(),
   deleteSchedule: vi.fn(),

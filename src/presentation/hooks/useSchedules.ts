@@ -3,11 +3,12 @@
  * 全スケジュールの取得・更新・削除
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Schedule } from '../../domain/entities/Schedule';
 import { ScheduleWithDetails } from '../../domain/repositories/ScheduleRepository';
 import { GetSchedules, UpdateSchedule, DeleteSchedule } from '../../domain/usecases/ManageSchedules';
 import { getDIContainer } from '../../infrastructure/DIContainer';
+import { useFetcher } from './useFetcher';
 
 export interface UseSchedulesResult {
   schedules: ScheduleWithDetails[];
@@ -28,35 +29,20 @@ export const useSchedules = (): UseSchedulesResult => {
     };
   }, []);
 
-  const [schedules, setSchedules] = useState<ScheduleWithDetails[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchSchedules = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await useCases.getSchedules.execute();
-      setSchedules(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [useCases]);
-
-  useEffect(() => {
-    fetchSchedules();
-  }, [fetchSchedules]);
+  const { data: schedules, isLoading, error, refetch } = useFetcher(
+    () => useCases.getSchedules.execute(),
+    [useCases],
+    [] as ScheduleWithDetails[],
+  );
 
   const handleUpdateSchedule = async (scheduleId: string, input: Partial<Schedule>) => {
     await useCases.updateSchedule.execute(scheduleId, input);
-    await fetchSchedules();
+    await refetch();
   };
 
   const handleDeleteSchedule = async (scheduleId: string) => {
     await useCases.deleteSchedule.execute(scheduleId);
-    await fetchSchedules();
+    await refetch();
   };
 
   return {
@@ -65,6 +51,6 @@ export const useSchedules = (): UseSchedulesResult => {
     error,
     updateSchedule: handleUpdateSchedule,
     deleteSchedule: handleDeleteSchedule,
-    refetch: fetchSchedules,
+    refetch,
   };
 };

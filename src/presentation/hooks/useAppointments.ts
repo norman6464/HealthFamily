@@ -3,11 +3,12 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Appointment } from '../../domain/entities/Appointment';
 import { GetAppointments, CreateAppointment, UpdateAppointment, DeleteAppointment } from '../../domain/usecases/ManageAppointments';
 import { CreateAppointmentInput, UpdateAppointmentInput } from '../../domain/repositories/AppointmentRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
+import { useFetcher } from './useFetcher';
 
 export interface UseAppointmentsResult {
   appointments: Appointment[];
@@ -30,40 +31,28 @@ export const useAppointments = (): UseAppointmentsResult => {
     };
   }, []);
 
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchAppointments = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const { data: appointments, isLoading, error, refetch } = useFetcher(
+    async () => {
       const viewModels = await useCases.getAppointments.execute();
-      setAppointments(viewModels.map((vm) => vm.appointment));
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [useCases]);
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
+      return viewModels.map((vm) => vm.appointment);
+    },
+    [useCases],
+    [] as Appointment[],
+  );
 
   const handleCreateAppointment = async (input: CreateAppointmentInput) => {
     await useCases.createAppointment.execute(input);
-    await fetchAppointments();
+    await refetch();
   };
 
   const handleUpdateAppointment = async (appointmentId: string, input: UpdateAppointmentInput) => {
     await useCases.updateAppointment.execute(appointmentId, input);
-    await fetchAppointments();
+    await refetch();
   };
 
   const handleDeleteAppointment = async (appointmentId: string) => {
     await useCases.deleteAppointment.execute(appointmentId);
-    await fetchAppointments();
+    await refetch();
   };
 
   return {
@@ -73,6 +62,6 @@ export const useAppointments = (): UseAppointmentsResult => {
     createAppointment: handleCreateAppointment,
     updateAppointment: handleUpdateAppointment,
     deleteAppointment: handleDeleteAppointment,
-    refetch: fetchAppointments,
+    refetch,
   };
 };

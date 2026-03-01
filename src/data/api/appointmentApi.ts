@@ -1,25 +1,8 @@
 import { Appointment } from '../../domain/entities/Appointment';
+import { CreateAppointmentInput, UpdateAppointmentInput } from '../../domain/repositories/AppointmentRepository';
 import { apiClient } from './apiClient';
 import { toAppointment } from './mappers';
 import { BackendAppointment } from './types';
-
-export interface CreateAppointmentInput {
-  memberId: string;
-  hospitalId?: string;
-  appointmentDate: string;
-  type?: string;
-  notes?: string;
-  reminderEnabled?: boolean;
-  reminderDaysBefore?: number;
-}
-
-export interface UpdateAppointmentInput {
-  appointmentDate?: string;
-  type?: string;
-  notes?: string;
-  reminderEnabled?: boolean;
-  reminderDaysBefore?: number;
-}
 
 export const appointmentApi = {
   async getAppointments(): Promise<Appointment[]> {

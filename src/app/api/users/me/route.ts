@@ -1,32 +1,23 @@
 import { prisma } from '@/lib/prisma';
 import { updateUserProfileSchema } from '@/lib/schemas';
-import { getAuthUserId, success, errorResponse, notFound, unauthorized } from '@/lib/auth-helpers';
+import { success, errorResponse, notFound } from '@/lib/auth-helpers';
+import { withAuth } from '@/lib/api-helpers';
 
-export async function GET() {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
+export const GET = withAuth(async (userId) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return notFound('ユーザー');
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return notFound('ユーザー');
-
-    return success({
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName,
-      characterType: user.characterType,
-      characterName: user.characterName,
-    });
-  } catch {
-    return errorResponse('取得に失敗しました', 500);
-  }
-}
+  return success({
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName,
+    characterType: user.characterType,
+    characterName: user.characterName,
+  });
+});
 
 export async function PUT(request: Request) {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
-
+  return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = updateUserProfileSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
@@ -43,7 +34,5 @@ export async function PUT(request: Request) {
       characterType: updated.characterType,
       characterName: updated.characterName,
     });
-  } catch {
-    return errorResponse('更新に失敗しました', 500);
-  }
+  })();
 }

@@ -1,11 +1,9 @@
 import { prisma } from '@/lib/prisma';
-import { getAuthUserId, success, errorResponse, unauthorized } from '@/lib/auth-helpers';
+import { success } from '@/lib/auth-helpers';
+import { withAuth } from '@/lib/api-helpers';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) return unauthorized();
-
+  return withAuth(async (userId) => {
     const { memberId } = await params;
     const records = await prisma.medicationRecord.findMany({
       where: { memberId, userId },
@@ -13,7 +11,5 @@ export async function GET(_request: Request, { params }: { params: Promise<{ mem
       take: 50,
     });
     return success(records);
-  } catch {
-    return errorResponse('一覧取得に失敗しました', 500);
-  }
+  })();
 }

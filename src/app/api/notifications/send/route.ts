@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
-import { getAuthUserId, success, errorResponse, unauthorized } from '@/lib/auth-helpers';
+import { success, errorResponse } from '@/lib/auth-helpers';
+import { withAuth } from '@/lib/api-helpers';
 
 const sendNotificationSchema = z.object({
   type: z.enum(['medication_reminder', 'missed_medication', 'appointment_reminder', 'low_stock']),
@@ -12,28 +13,25 @@ const sendNotificationSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const userId = await getAuthUserId();
-  if (!userId) return unauthorized();
+  return withAuth(async (userId) => {
+    const body = await request.json();
+    const parsed = sendNotificationSchema.safeParse(body);
+    if (!parsed.success) {
+      return errorResponse('Invalid request body');
+    }
 
-  const body = await request.json();
-  const parsed = sendNotificationSchema.safeParse(body);
-  if (!parsed.success) {
-    return errorResponse('Invalid request body');
-  }
+    const { type, memberId, medicationId, appointmentId } = parsed.data;
 
-  const { type, memberId, medicationId, appointmentId } = parsed.data;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return errorResponse('認証エラー', 401);
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return unauthorized();
+    const member = await prisma.member.findFirst({
+      where: { id: memberId, userId },
+    });
+    if (!member) {
+      return errorResponse('Member not found', 404);
+    }
 
-  const member = await prisma.member.findFirst({
-    where: { id: memberId, userId },
-  });
-  if (!member) {
-    return errorResponse('Member not found', 404);
-  }
-
-  try {
     switch (type) {
       case 'medication_reminder':
       case 'missed_medication': {
@@ -113,8 +111,5 @@ export async function POST(request: NextRequest) {
     }
 
     return success({ message: 'Notification sent' });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to send notification';
-    return errorResponse(message, 500);
-  }
+  })();
 }

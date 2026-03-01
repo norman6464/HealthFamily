@@ -3,11 +3,12 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Member } from '../../domain/entities/Member';
 import { GetMembers, CreateMember, UpdateMember, DeleteMember } from '../../domain/usecases/ManageMembers';
 import { CreateMemberInput, UpdateMemberInput } from '../../domain/repositories/MemberRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
+import { useFetcher } from './useFetcher';
 
 export interface UseMembersResult {
   members: Member[];
@@ -30,40 +31,25 @@ export const useMembers = (userId: string): UseMembersResult => {
     };
   }, []);
 
-  const [members, setMembers] = useState<Member[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchMembers = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await useCases.getMembers.execute(userId);
-      setMembers(result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId, useCases]);
-
-  useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
+  const { data: members, isLoading, error, refetch } = useFetcher(
+    () => useCases.getMembers.execute(userId),
+    [userId, useCases],
+    [] as Member[],
+  );
 
   const handleCreateMember = async (input: CreateMemberInput) => {
     await useCases.createMember.execute(input);
-    await fetchMembers();
+    await refetch();
   };
 
   const handleUpdateMember = async (memberId: string, input: UpdateMemberInput) => {
     await useCases.updateMember.execute(memberId, input);
-    await fetchMembers();
+    await refetch();
   };
 
   const handleDeleteMember = async (memberId: string) => {
     await useCases.deleteMember.execute(memberId);
-    await fetchMembers();
+    await refetch();
   };
 
   return {
@@ -73,6 +59,6 @@ export const useMembers = (userId: string): UseMembersResult => {
     createMember: handleCreateMember,
     updateMember: handleUpdateMember,
     deleteMember: handleDeleteMember,
-    refetch: fetchMembers,
+    refetch,
   };
 };
