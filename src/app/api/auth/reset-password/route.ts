@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
+import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,11 @@ export async function POST(request: NextRequest) {
       return errorResponse('必須項目を入力してください');
     }
 
+    const rateLimit = checkRateLimit(`reset:${email}`, { maxAttempts: 5, windowMs: 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    }
+
     if (newPassword.length < 8) {
       return errorResponse('パスワードは8文字以上で入力してください');
     }
@@ -24,7 +30,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('リセットコードが無効です');
     }
 
-    if (user.resetCode !== code) {
+    if (!timingSafeEqual(user.resetCode, code)) {
       return errorResponse('リセットコードが正しくありません');
     }
 

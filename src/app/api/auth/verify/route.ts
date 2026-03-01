@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
+import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
 const verifySchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -19,6 +20,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, code } = parsed.data;
+
+    const rateLimit = checkRateLimit(`verify:${email}`, { maxAttempts: 10, windowMs: 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -43,7 +49,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('試行回数の上限に達しました。確認コードを再送信してください。');
     }
 
-    if (user.verificationCode !== code) {
+    if (!timingSafeEqual(user.verificationCode, code)) {
       // 試行回数をインクリメント
       await prisma.user.update({
         where: { email },

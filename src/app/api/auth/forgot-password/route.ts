@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
+import { checkRateLimit } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,6 +11,12 @@ export async function POST(request: NextRequest) {
 
     if (!email) {
       return errorResponse('メールアドレスを入力してください');
+    }
+
+    const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+    const rateLimit = checkRateLimit(`forgot:${ip}`, { maxAttempts: 5, windowMs: 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
