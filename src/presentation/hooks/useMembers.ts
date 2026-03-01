@@ -3,7 +3,7 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Member } from '../../domain/entities/Member';
 import { GetMembers, CreateMember, UpdateMember, DeleteMember } from '../../domain/usecases/ManageMembers';
 import { CreateMemberInput, UpdateMemberInput } from '../../domain/repositories/MemberRepository';
@@ -37,20 +37,20 @@ export const useMembers = (userId: string): UseMembersResult => {
     [] as Member[],
   );
 
-  const handleCreateMember = async (input: CreateMemberInput) => {
+  const handleCreateMember = useCallback(async (input: CreateMemberInput) => {
     await useCases.createMember.execute(input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleUpdateMember = async (memberId: string, input: UpdateMemberInput) => {
+  const handleUpdateMember = useCallback(async (memberId: string, input: UpdateMemberInput) => {
     await useCases.updateMember.execute(memberId, input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleDeleteMember = async (memberId: string) => {
+  const handleDeleteMember = useCallback(async (memberId: string) => {
     await useCases.deleteMember.execute(memberId);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
   return {
     members,

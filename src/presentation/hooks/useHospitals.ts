@@ -3,7 +3,7 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Hospital } from '../../domain/entities/Hospital';
 import { GetHospitals, CreateHospital, UpdateHospital, DeleteHospital } from '../../domain/usecases/ManageHospitals';
 import { CreateHospitalInput, UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
@@ -37,20 +37,20 @@ export const useHospitals = (): UseHospitalsResult => {
     [] as Hospital[],
   );
 
-  const handleCreateHospital = async (input: CreateHospitalInput) => {
+  const handleCreateHospital = useCallback(async (input: CreateHospitalInput) => {
     await useCases.createHospital.execute(input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleUpdateHospital = async (hospitalId: string, input: UpdateHospitalInput) => {
+  const handleUpdateHospital = useCallback(async (hospitalId: string, input: UpdateHospitalInput) => {
     await useCases.updateHospital.execute(hospitalId, input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleDeleteHospital = async (hospitalId: string) => {
+  const handleDeleteHospital = useCallback(async (hospitalId: string) => {
     await useCases.deleteHospital.execute(hospitalId);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
   return {
     hospitals,

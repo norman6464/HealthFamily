@@ -3,7 +3,7 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { GetMedications, CreateMedication, UpdateMedication, DeleteMedication, MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { CreateMedicationInput, UpdateMedicationInput } from '../../domain/repositories/MedicationRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
@@ -36,20 +36,20 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     [] as MedicationViewModel[],
   );
 
-  const handleCreateMedication = async (input: CreateMedicationInput) => {
+  const handleCreateMedication = useCallback(async (input: CreateMedicationInput) => {
     await useCases.createMedication.execute(input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleUpdateMedication = async (medicationId: string, input: UpdateMedicationInput) => {
+  const handleUpdateMedication = useCallback(async (medicationId: string, input: UpdateMedicationInput) => {
     await useCases.updateMedication.execute(medicationId, input);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
-  const handleDeleteMedication = async (medicationId: string) => {
+  const handleDeleteMedication = useCallback(async (medicationId: string) => {
     await useCases.deleteMedication.execute(medicationId);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
   return {
     medications,
