@@ -41,6 +41,19 @@ export const createMedicationSchema = z.object({
   instructions: z.string().max(1000).optional(),
 });
 
+export const updateMedicationSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  category: z.string().max(100).optional(),
+  dosageAmount: z.string().max(100).optional().nullable(),
+  frequency: z.string().max(100).optional().nullable(),
+  stockQuantity: z.number().int().min(0).optional().nullable(),
+  stockAlertDate: z.string().optional().nullable(),
+  instructions: z.string().max(1000).optional().nullable(),
+  isActive: z.boolean().optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 export const updateStockSchema = z.object({
   stockQuantity: z.number().int().min(0, '在庫数は0以上の数値を指定してください'),
 });

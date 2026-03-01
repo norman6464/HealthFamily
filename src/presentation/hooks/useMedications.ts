@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { GetMedications, CreateMedication, DeleteMedication, MedicationViewModel } from '../../domain/usecases/ManageMedications';
-import { CreateMedicationInput } from '../../domain/repositories/MedicationRepository';
+import { GetMedications, CreateMedication, UpdateMedication, DeleteMedication, MedicationViewModel } from '../../domain/usecases/ManageMedications';
+import { CreateMedicationInput, UpdateMedicationInput } from '../../domain/repositories/MedicationRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 
 export interface UseMedicationsResult {
@@ -13,6 +13,7 @@ export interface UseMedicationsResult {
   isLoading: boolean;
   error: Error | null;
   createMedication: (input: CreateMedicationInput) => Promise<void>;
+  updateMedication: (medicationId: string, input: UpdateMedicationInput) => Promise<void>;
   deleteMedication: (medicationId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -23,6 +24,7 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     return {
       getMedications: new GetMedications(medicationRepository),
       createMedication: new CreateMedication(medicationRepository),
+      updateMedication: new UpdateMedication(medicationRepository),
       deleteMedication: new DeleteMedication(medicationRepository),
     };
   }, []);
@@ -53,6 +55,11 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     await fetchMedications();
   };
 
+  const handleUpdateMedication = async (medicationId: string, input: UpdateMedicationInput) => {
+    await useCases.updateMedication.execute(medicationId, input);
+    await fetchMedications();
+  };
+
   const handleDeleteMedication = async (medicationId: string) => {
     await useCases.deleteMedication.execute(medicationId);
     await fetchMedications();
@@ -63,6 +70,7 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     isLoading,
     error,
     createMedication: handleCreateMedication,
+    updateMedication: handleUpdateMedication,
     deleteMedication: handleDeleteMedication,
     refetch: fetchMedications,
   };

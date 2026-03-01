@@ -4,6 +4,7 @@ import {
   createMemberSchema,
   updateMemberSchema,
   createMedicationSchema,
+  updateMedicationSchema,
   createScheduleSchema,
   createRecordSchema,
   createHospitalSchema,
@@ -102,6 +103,28 @@ describe('createMedicationSchema', () => {
 
   it('負の在庫数を拒否する', () => {
     const result = createMedicationSchema.safeParse({ name: 'テスト薬', stockQuantity: -1 });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('updateMedicationSchema', () => {
+  it('名前のみの更新を受け入れる', () => {
+    const result = updateMedicationSchema.safeParse({ name: '更新薬名' });
+    expect(result.success).toBe(true);
+  });
+
+  it('空のオブジェクトを拒否する', () => {
+    const result = updateMedicationSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  it('nullの在庫数を受け入れる', () => {
+    const result = updateMedicationSchema.safeParse({ stockQuantity: null });
+    expect(result.success).toBe(true);
+  });
+
+  it('負の在庫数を拒否する', () => {
+    const result = updateMedicationSchema.safeParse({ stockQuantity: -1 });
     expect(result.success).toBe(false);
   });
 });

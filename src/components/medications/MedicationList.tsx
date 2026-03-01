@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pill, Check } from 'lucide-react';
+import { Pill, Check, Pencil } from 'lucide-react';
+import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 
 interface MedicationListProps {
@@ -7,9 +8,10 @@ interface MedicationListProps {
   isLoading: boolean;
   onDelete: (medicationId: string) => void;
   onMarkTaken?: (medicationId: string) => Promise<void>;
+  onEdit?: (medication: Medication) => void;
 }
 
-export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken }) => {
+export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onEdit }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -29,7 +31,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
   return (
     <div className="space-y-3">
       {medications.map((vm) => (
-        <MedicationCard key={vm.medication.id} viewModel={vm} onDelete={onDelete} onMarkTaken={onMarkTaken} />
+        <MedicationCard key={vm.medication.id} viewModel={vm} onDelete={onDelete} onMarkTaken={onMarkTaken} onEdit={onEdit} />
       ))}
     </div>
   );
@@ -39,9 +41,10 @@ interface MedicationCardProps {
   viewModel: MedicationViewModel;
   onDelete: (medicationId: string) => void;
   onMarkTaken?: (medicationId: string) => Promise<void>;
+  onEdit?: (medication: Medication) => void;
 }
 
-const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete, onMarkTaken }) => {
+const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete, onMarkTaken, onEdit }) => {
   const { medication, isLowStock, displayInfo } = viewModel;
   const [isTaken, setIsTaken] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,6 +85,15 @@ const MedicationCard: React.FC<MedicationCardProps> = ({ viewModel, onDelete, on
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(medication)}
+              className="text-gray-500 hover:text-gray-700 text-sm px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
+              aria-label="編集"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
           {onMarkTaken && (
             isTaken ? (
               <span className="flex items-center space-x-1 text-green-600 text-sm font-medium px-3 py-1">
