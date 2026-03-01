@@ -59,6 +59,32 @@ describe('ScheduleEntity', () => {
     });
   });
 
+  describe('getStatus (境界値)', () => {
+    it('予定時刻ちょうどの場合 pending を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T08:00:00');
+      expect(entity.getStatus(now, false)).toBe('pending');
+    });
+
+    it('完了済みなら時刻に関係なく completed を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '14:00' }));
+      const now = new Date('2024-06-01T09:00:00');
+      expect(entity.getStatus(now, true)).toBe('completed');
+    });
+  });
+
+  describe('isActiveOnDay (全曜日)', () => {
+    it('全曜日が有効な場合、全ての日で true を返す', () => {
+      const entity = new ScheduleEntity(
+        createSchedule({ daysOfWeek: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] })
+      );
+      // 2024-06-02(日) ~ 2024-06-08(土)
+      for (let i = 2; i <= 8; i++) {
+        expect(entity.isActiveOnDay(new Date(`2024-06-0${i}`))).toBe(true);
+      }
+    });
+  });
+
   describe('getReminderTime', () => {
     it('リマインダー時刻を正しく計算する', () => {
       const entity = new ScheduleEntity(
@@ -68,6 +94,16 @@ describe('ScheduleEntity', () => {
       const reminderTime = entity.getReminderTime(date);
       expect(reminderTime.getHours()).toBe(7);
       expect(reminderTime.getMinutes()).toBe(50);
+    });
+
+    it('リマインダー0分前の場合、予定時刻と同じを返す', () => {
+      const entity = new ScheduleEntity(
+        createSchedule({ scheduledTime: '12:30', reminderMinutesBefore: 0 })
+      );
+      const date = new Date('2024-06-01T00:00:00');
+      const reminderTime = entity.getReminderTime(date);
+      expect(reminderTime.getHours()).toBe(12);
+      expect(reminderTime.getMinutes()).toBe(30);
     });
   });
 

@@ -42,6 +42,14 @@ describe('GetSchedules', () => {
     expect(result[0].memberName).toBe('テスト太郎');
     expect(repo.getSchedules).toHaveBeenCalled();
   });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getSchedules as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB接続エラー'));
+    const useCase = new GetSchedules(repo);
+
+    await expect(useCase.execute()).rejects.toThrow('DB接続エラー');
+  });
 });
 
 describe('UpdateSchedule', () => {

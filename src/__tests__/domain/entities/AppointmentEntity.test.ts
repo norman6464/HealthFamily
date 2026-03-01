@@ -114,5 +114,30 @@ describe('AppointmentEntity', () => {
       const entity = new AppointmentEntity(createAppointment());
       expect(entity.getTypeLabel()).toBe('');
     });
+
+    it('全種別のラベルが正しい', () => {
+      const cases: [string, string][] = [
+        ['treatment', '治療'],
+        ['vaccination', '予防接種'],
+        ['surgery', '手術'],
+        ['consultation', '相談'],
+        ['other', 'その他'],
+      ];
+      for (const [type, label] of cases) {
+        const entity = new AppointmentEntity(
+          createAppointment({ appointmentType: type })
+        );
+        expect(entity.getTypeLabel()).toBe(label);
+      }
+    });
+  });
+
+  describe('id / data', () => {
+    it('プロパティにアクセスできる', () => {
+      const appointment = createAppointment({ id: 'apt-xyz' });
+      const entity = new AppointmentEntity(appointment);
+      expect(entity.id).toBe('apt-xyz');
+      expect(entity.data).toBe(appointment);
+    });
   });
 });

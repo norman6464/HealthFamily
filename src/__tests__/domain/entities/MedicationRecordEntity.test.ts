@@ -80,5 +80,19 @@ describe('MedicationRecordEntity', () => {
       const result = MedicationRecordEntity.formatTime(new Date('2024-06-15T14:05:00'));
       expect(result).toBe('14:05');
     });
+
+    it('深夜0時を 00:00 で返す', () => {
+      const result = MedicationRecordEntity.formatTime(new Date('2024-06-15T00:00:00'));
+      expect(result).toBe('00:00');
+    });
+  });
+
+  describe('groupByDate (エッジケース)', () => {
+    it('1件のみの場合もグループ化できる', () => {
+      const records = [createRecord({ id: 'r1' })];
+      const groups = MedicationRecordEntity.groupByDate(records);
+      expect(groups).toHaveLength(1);
+      expect(groups[0].records).toHaveLength(1);
+    });
   });
 });

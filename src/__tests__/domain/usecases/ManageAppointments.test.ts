@@ -32,6 +32,23 @@ describe('GetAppointments', () => {
     expect(result[0].entity).toBeDefined();
     expect(repo.getAppointments).toHaveBeenCalled();
   });
+
+  it('空の配列を返す場合もエラーにならない', async () => {
+    const repo = createMockRepository();
+    (repo.getAppointments as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    const useCase = new GetAppointments(repo);
+    const result = await useCase.execute();
+
+    expect(result).toHaveLength(0);
+  });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getAppointments as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB接続エラー'));
+    const useCase = new GetAppointments(repo);
+
+    await expect(useCase.execute()).rejects.toThrow('DB接続エラー');
+  });
 });
 
 describe('CreateAppointment', () => {
@@ -110,5 +127,13 @@ describe('DeleteAppointment', () => {
     await useCase.execute('apt-1');
 
     expect(repo.deleteAppointment).toHaveBeenCalledWith('apt-1');
+  });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.deleteAppointment as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('削除失敗'));
+    const useCase = new DeleteAppointment(repo);
+
+    await expect(useCase.execute('apt-1')).rejects.toThrow('削除失敗');
   });
 });

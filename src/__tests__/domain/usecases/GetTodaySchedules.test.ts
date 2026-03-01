@@ -160,4 +160,28 @@ describe('GetTodaySchedules', () => {
 
     expect(result).toHaveLength(0);
   });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository([]);
+    (repo.getTodaySchedules as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB接続エラー'));
+    const useCase = new GetTodaySchedules(repo);
+
+    await expect(
+      useCase.execute({ userId: 'user-1', date: new Date() })
+    ).rejects.toThrow('DB接続エラー');
+  });
+
+  it('ペットメンバーのスケジュールも正しくViewModelに変換する', async () => {
+    const items = [
+      createScheduleItem({ memberType: 'pet' }),
+    ];
+    const repo = createMockRepository(items);
+    const useCase = new GetTodaySchedules(repo);
+
+    const monday = new Date('2025-06-02T10:00:00');
+    const result = await useCase.execute({ userId: 'user-1', date: monday });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].memberType).toBe('pet');
+  });
 });

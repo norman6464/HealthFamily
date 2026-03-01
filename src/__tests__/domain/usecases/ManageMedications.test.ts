@@ -61,6 +61,14 @@ describe('GetMedications', () => {
 
     expect(result).toHaveLength(0);
   });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getMedicationsByMember as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB接続エラー'));
+    const useCase = new GetMedications(repo);
+
+    await expect(useCase.execute('mem-1')).rejects.toThrow('DB接続エラー');
+  });
 });
 
 describe('CreateMedication', () => {

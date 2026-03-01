@@ -24,6 +24,14 @@ describe('GetUserProfile', () => {
     expect(result).toBe(mockProfile);
     expect(repo.getProfile).toHaveBeenCalled();
   });
+
+  it('リポジトリがエラーを投げた場合そのまま伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getProfile as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('認証エラー'));
+    const useCase = new GetUserProfile(repo);
+
+    await expect(useCase.execute()).rejects.toThrow('認証エラー');
+  });
 });
 
 describe('UpdateUserProfile', () => {
