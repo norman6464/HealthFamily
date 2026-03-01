@@ -4,9 +4,11 @@ import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 
 const verifySchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
   code: z.string().length(6),
 });
+
+const MAX_ATTEMPTS = 5;
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +37,18 @@ export async function POST(request: NextRequest) {
       return errorResponse('確認コードの有効期限が切れています。再送信してください。');
     }
 
+    // 試行回数の確認
+    const attempts = user.verificationAttempts ?? 0;
+    if (attempts >= MAX_ATTEMPTS) {
+      return errorResponse('試行回数の上限に達しました。確認コードを再送信してください。');
+    }
+
     if (user.verificationCode !== code) {
+      // 試行回数をインクリメント
+      await prisma.user.update({
+        where: { email },
+        data: { verificationAttempts: attempts + 1 },
+      });
       return errorResponse('確認コードが正しくありません');
     }
 
@@ -45,6 +58,7 @@ export async function POST(request: NextRequest) {
         emailVerified: true,
         verificationCode: null,
         verificationExpiry: null,
+        verificationAttempts: 0,
       },
     });
 

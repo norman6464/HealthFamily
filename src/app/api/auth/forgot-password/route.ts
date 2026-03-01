@@ -5,7 +5,8 @@ import { success, errorResponse } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
+    const email = (body.email ?? '').trim().toLowerCase();
 
     if (!email) {
       return errorResponse('メールアドレスを入力してください');

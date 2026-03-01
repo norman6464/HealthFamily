@@ -16,10 +16,11 @@ model User {
   characterType     String    @default("cat")
   characterName     String?
   emailVerified     Boolean   @default(false)
-  verificationCode  String?
-  verificationExpiry DateTime?
-  resetCode         String?
-  resetCodeExpiry   DateTime?
+  verificationCode     String?
+  verificationExpiry   DateTime?
+  verificationAttempts Int       @default(0)
+  resetCode            String?
+  resetCodeExpiry      DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
