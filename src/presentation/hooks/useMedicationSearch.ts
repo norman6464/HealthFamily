@@ -11,6 +11,7 @@ export interface UseMedicationSearchResult {
   results: MedicationSearchResult[];
   isSearching: boolean;
   hasSearched: boolean;
+  error: Error | null;
   search: (query: string) => Promise<void>;
 }
 
@@ -23,20 +24,23 @@ export const useMedicationSearch = (): UseMedicationSearchResult => {
   const [results, setResults] = useState<MedicationSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const search = useCallback(async (query: string) => {
     setIsSearching(true);
+    setError(null);
     try {
       const data = await useCase.execute(query);
       setResults(data);
       setHasSearched(true);
-    } catch {
+    } catch (err) {
       setResults([]);
       setHasSearched(true);
+      setError(err instanceof Error ? err : new Error('検索に失敗しました'));
     } finally {
       setIsSearching(false);
     }
   }, [useCase]);
 
-  return { results, isSearching, hasSearched, search };
+  return { results, isSearching, hasSearched, error, search };
 };

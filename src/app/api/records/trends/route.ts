@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
-
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+import { DAY_LABELS_JP } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const now = new Date();
@@ -29,7 +28,7 @@ export const GET = withAuth(async (userId) => {
   const expectedByDay = new Array(7).fill(0);
   for (const schedule of schedules) {
     for (const day of schedule.daysOfWeek) {
-      const dayIndex = DAY_LABELS.indexOf(day);
+      const dayIndex = (DAY_LABELS_JP as readonly string[]).indexOf(day);
       if (dayIndex >= 0) expectedByDay[dayIndex] += 1;
     }
   }
@@ -47,7 +46,7 @@ export const GET = withAuth(async (userId) => {
     }
   }
 
-  const dayOfWeekStats = DAY_LABELS.map((label, i) => ({
+  const dayOfWeekStats = DAY_LABELS_JP.map((label, i) => ({
     day: i,
     dayLabel: label,
     count: currentByDay[i],

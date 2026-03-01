@@ -4,6 +4,8 @@
 
 export { type Hospital } from './Hospital';
 
+import { DAY_LABELS_JP } from '../../lib/constants';
+
 export interface Appointment {
   readonly id: string;
   readonly userId: string;
@@ -63,8 +65,7 @@ export class AppointmentEntity {
    */
   getFormattedDate(): string {
     const d = new Date(this.appointment.appointmentDate);
-    const days = ['日', '月', '火', '水', '木', '金', '土'];
-    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日(${days[d.getDay()]})`;
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日(${DAY_LABELS_JP[d.getDay()]})`;
   }
 
   /**

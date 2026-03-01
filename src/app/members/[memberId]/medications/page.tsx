@@ -3,7 +3,6 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useMedications } from '@/presentation/hooks/useMedications';
-import { useScheduleManagement } from '@/presentation/hooks/useScheduleManagement';
 import { useSchedules } from '@/presentation/hooks/useSchedules';
 import { MedicationList } from '@/components/medications/MedicationList';
 import { MedicationForm, MedicationFormData } from '@/components/medications/MedicationForm';
@@ -20,8 +19,7 @@ export default function Medications() {
   const memberId = params.memberId as string;
   const { userId } = useAuth();
   const { medications, isLoading, createMedication, deleteMedication } = useMedications(memberId);
-  const { createSchedule } = useScheduleManagement();
-  const { schedules, isLoading: schedulesLoading, updateSchedule, deleteSchedule, refetch: refetchSchedules } = useSchedules();
+  const { schedules, isLoading: schedulesLoading, createSchedule, updateSchedule, deleteSchedule } = useSchedules();
   const [showMedForm, setShowMedForm] = useState(false);
   const [scheduleTarget, setScheduleTarget] = useState<MedicationViewModel | null>(null);
 
@@ -56,7 +54,6 @@ export default function Medications() {
       reminderMinutesBefore: data.reminderMinutesBefore,
     });
     setScheduleTarget(null);
-    await refetchSchedules();
   };
 
   const handleDeleteSchedule = async (scheduleId: string) => {

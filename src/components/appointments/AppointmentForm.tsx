@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Member, MemberEntity } from '../../domain/entities/Member';
+import { Member } from '../../domain/entities/Member';
 import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
 import { Hospital } from '../../domain/entities/Hospital';
 import { MemberIcon } from '../shared/MemberIcon';
@@ -69,8 +69,6 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
         </label>
         <div className="space-y-1">
           {members.map((m) => {
-            const entity = new MemberEntity(m);
-            const info = entity.getDisplayInfo();
             const isSelected = memberId === m.id;
             return (
               <button
@@ -84,8 +82,8 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
                     : 'border-gray-200 hover:bg-gray-50'
                 } ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
-                <MemberIcon memberType={info.memberType} petType={info.petType} size={16} className="text-gray-600" />
-                <span className="text-sm">{info.name}</span>
+                <MemberIcon memberType={m.memberType} petType={m.petType} size={16} className="text-gray-600" />
+                <span className="text-sm">{m.name}</span>
               </button>
             );
           })}
