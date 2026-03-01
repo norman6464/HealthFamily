@@ -3,7 +3,7 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { UserProfile, UpdateUserProfileInput } from '../../domain/repositories/UserProfileRepository';
 import { GetUserProfile, UpdateUserProfile } from '../../domain/usecases/ManageUserProfile';
 import { getDIContainer } from '../../infrastructure/DIContainer';
@@ -32,11 +32,11 @@ export const useUserProfile = (): UseUserProfileResult => {
     null as UserProfile | null,
   );
 
-  const handleUpdateProfile = async (input: UpdateUserProfileInput): Promise<UserProfile> => {
+  const handleUpdateProfile = useCallback(async (input: UpdateUserProfileInput): Promise<UserProfile> => {
     const updated = await useCases.updateProfile.execute(input);
     await refetch();
     return updated;
-  };
+  }, [useCases, refetch]);
 
   return {
     profile,

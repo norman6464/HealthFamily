@@ -3,7 +3,7 @@
  * Presentation層とDomain層を繋ぐ
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { DailyRecordGroup } from '../../domain/entities/MedicationRecord';
 import { GetMedicationHistory, DeleteMedicationRecord } from '../../domain/usecases/ManageMedicationRecords';
 import { getDIContainer } from '../../infrastructure/DIContainer';
@@ -32,10 +32,10 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     [] as DailyRecordGroup[],
   );
 
-  const handleDeleteRecord = async (recordId: string) => {
+  const handleDeleteRecord = useCallback(async (recordId: string) => {
     await useCases.deleteRecord.execute(recordId);
     await refetch();
-  };
+  }, [useCases, refetch]);
 
   return {
     groups,
