@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { StockAlert } from '../../data/api/medicationApi';
+import { StockAlert } from '../../domain/entities/StockAlert';
 
 interface StockAlertListProps {
   alerts: StockAlert[];

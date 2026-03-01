@@ -2,7 +2,10 @@
  * 在庫アラート取得フック
  */
 
-import { StockAlert, medicationApi } from '../../data/api/medicationApi';
+import { useMemo } from 'react';
+import { StockAlert } from '../../domain/entities/StockAlert';
+import { GetStockAlerts } from '../../domain/usecases/ManageMedications';
+import { getDIContainer } from '../../infrastructure/DIContainer';
 import { useFetcher } from './useFetcher';
 
 export interface UseStockAlertsResult {
@@ -13,9 +16,14 @@ export interface UseStockAlertsResult {
 }
 
 export const useStockAlerts = (): UseStockAlertsResult => {
+  const useCase = useMemo(() => {
+    const { medicationRepository } = getDIContainer();
+    return new GetStockAlerts(medicationRepository);
+  }, []);
+
   const { data, isLoading, error, refetch } = useFetcher(
-    () => medicationApi.getStockAlerts(),
-    [],
+    () => useCase.execute(),
+    [useCase],
     [] as StockAlert[],
   );
 

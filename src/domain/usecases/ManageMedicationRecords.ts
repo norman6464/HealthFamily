@@ -3,6 +3,7 @@
  */
 
 import { MedicationRecordEntity, DailyRecordGroup } from '../entities/MedicationRecord';
+import { AdherenceStats } from '../entities/AdherenceStats';
 import {
   MedicationRecordRepository,
   CreateRecordInput,
@@ -39,5 +40,13 @@ export class DeleteMedicationRecord {
       throw new Error('記録IDは必須です');
     }
     return this.recordRepository.deleteRecord(recordId);
+  }
+}
+
+export class GetAdherenceStats {
+  constructor(private readonly recordRepository: MedicationRecordRepository) {}
+
+  async execute(): Promise<AdherenceStats> {
+    return this.recordRepository.getAdherenceStats();
   }
 }

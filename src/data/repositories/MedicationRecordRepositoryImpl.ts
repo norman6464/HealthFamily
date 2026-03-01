@@ -7,6 +7,7 @@ import {
   CreateRecordInput,
 } from '../../domain/repositories/MedicationRecordRepository';
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
+import { AdherenceStats } from '../../domain/entities/AdherenceStats';
 import { recordApi } from '../api/recordApi';
 
 export class MedicationRecordRepositoryImpl implements MedicationRecordRepository {
@@ -20,5 +21,9 @@ export class MedicationRecordRepositoryImpl implements MedicationRecordRepositor
 
   async deleteRecord(recordId: string): Promise<void> {
     await recordApi.deleteRecord(recordId);
+  }
+
+  async getAdherenceStats(): Promise<AdherenceStats> {
+    return recordApi.getStats();
   }
 }

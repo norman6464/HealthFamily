@@ -8,6 +8,8 @@ import {
   UpdateMedicationInput,
 } from '../../domain/repositories/MedicationRepository';
 import { Medication } from '../../domain/entities/Medication';
+import { MedicationSearchResult } from '../../domain/entities/MedicationSearchResult';
+import { StockAlert } from '../../domain/entities/StockAlert';
 import { medicationApi } from '../api/medicationApi';
 
 export class MedicationRepositoryImpl implements MedicationRepository {
@@ -29,5 +31,13 @@ export class MedicationRepositoryImpl implements MedicationRepository {
 
   async deleteMedication(medicationId: string): Promise<void> {
     return medicationApi.deleteMedication(medicationId);
+  }
+
+  async searchMedications(query: string): Promise<MedicationSearchResult[]> {
+    return medicationApi.searchMedications(query);
+  }
+
+  async getStockAlerts(): Promise<StockAlert[]> {
+    return medicationApi.getStockAlerts();
   }
 }

@@ -1,4 +1,6 @@
 import { Medication } from '../../domain/entities/Medication';
+import { MedicationSearchResult } from '../../domain/entities/MedicationSearchResult';
+import { StockAlert } from '../../domain/entities/StockAlert';
 import { CreateMedicationInput, UpdateMedicationInput } from '../../domain/repositories/MedicationRepository';
 import { apiClient } from './apiClient';
 import { BackendMedication } from './types';
@@ -59,25 +61,3 @@ export const medicationApi = {
     return apiClient.get<StockAlert[]>('/medications/alerts');
   },
 };
-
-export interface StockAlert {
-  medicationId: string;
-  medicationName: string;
-  memberId: string;
-  memberName: string;
-  stockQuantity: number | null;
-  stockAlertDate: string;
-  daysUntilAlert: number;
-  isOverdue: boolean;
-}
-
-export interface MedicationSearchResult {
-  id: string;
-  name: string;
-  category: string;
-  memberId: string;
-  memberName: string;
-  dosageAmount?: string;
-  frequency?: string;
-  stockQuantity?: number;
-}

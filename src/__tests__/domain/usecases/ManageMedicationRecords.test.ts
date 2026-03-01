@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GetMedicationHistory, CreateMedicationRecord, DeleteMedicationRecord } from '@/domain/usecases/ManageMedicationRecords';
+import { GetMedicationHistory, CreateMedicationRecord, DeleteMedicationRecord, GetAdherenceStats } from '@/domain/usecases/ManageMedicationRecords';
 import { MedicationRecordRepository } from '@/domain/repositories/MedicationRecordRepository';
 import { MedicationRecord } from '@/domain/entities/MedicationRecord';
 
@@ -33,10 +33,16 @@ const mockRecords: MedicationRecord[] = [
   },
 ];
 
+const mockStats = {
+  overall: { weeklyRate: 85, monthlyRate: 72, weeklyCount: 12, monthlyCount: 45 },
+  members: [],
+};
+
 const createMockRepository = (): MedicationRecordRepository => ({
   getHistory: vi.fn().mockResolvedValue(mockRecords),
   createRecord: vi.fn().mockResolvedValue(undefined),
   deleteRecord: vi.fn().mockResolvedValue(undefined),
+  getAdherenceStats: vi.fn().mockResolvedValue(mockStats),
 });
 
 describe('GetMedicationHistory', () => {
@@ -115,5 +121,24 @@ describe('DeleteMedicationRecord', () => {
     const useCase = new DeleteMedicationRecord(repo);
 
     await expect(useCase.execute('')).rejects.toThrow('記録IDは必須です');
+  });
+});
+
+describe('GetAdherenceStats', () => {
+  it('アドヒアランス統計を取得する', async () => {
+    const repo = createMockRepository();
+    const useCase = new GetAdherenceStats(repo);
+    const result = await useCase.execute();
+
+    expect(result).toEqual(mockStats);
+    expect(repo.getAdherenceStats).toHaveBeenCalled();
+  });
+
+  it('リポジトリエラーが伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getAdherenceStats as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('APIエラー'));
+    const useCase = new GetAdherenceStats(repo);
+
+    await expect(useCase.execute()).rejects.toThrow('APIエラー');
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GetMedications, CreateMedication, UpdateMedication, DeleteMedication } from '@/domain/usecases/ManageMedications';
+import { GetMedications, CreateMedication, UpdateMedication, DeleteMedication, SearchMedications, GetStockAlerts } from '@/domain/usecases/ManageMedications';
 import { MedicationRepository } from '@/domain/repositories/MedicationRepository';
 import { Medication } from '@/domain/entities/Medication';
 
@@ -23,6 +23,8 @@ const createMockRepository = (): MedicationRepository => ({
   createMedication: vi.fn().mockResolvedValue(mockMedication),
   updateMedication: vi.fn().mockResolvedValue({ ...mockMedication, name: '更新薬' }),
   deleteMedication: vi.fn().mockResolvedValue(undefined),
+  searchMedications: vi.fn().mockResolvedValue([]),
+  getStockAlerts: vi.fn().mockResolvedValue([]),
 });
 
 describe('GetMedications', () => {
@@ -155,5 +157,59 @@ describe('DeleteMedication', () => {
     await expect(
       useCase.execute('nonexistent')
     ).rejects.toThrow('薬が見つかりません');
+  });
+});
+
+describe('SearchMedications', () => {
+  it('検索クエリでリポジトリを呼び出す', async () => {
+    const repo = createMockRepository();
+    const results = [{ id: '1', name: 'アスピリン', category: 'regular', memberId: 'm1', memberName: '太郎' }];
+    (repo.searchMedications as ReturnType<typeof vi.fn>).mockResolvedValue(results);
+
+    const useCase = new SearchMedications(repo);
+    const result = await useCase.execute('アスピリン');
+
+    expect(result).toEqual(results);
+    expect(repo.searchMedications).toHaveBeenCalledWith('アスピリン');
+  });
+
+  it('空のクエリでは空配列を返す', async () => {
+    const repo = createMockRepository();
+    const useCase = new SearchMedications(repo);
+    const result = await useCase.execute('');
+
+    expect(result).toEqual([]);
+    expect(repo.searchMedications).not.toHaveBeenCalled();
+  });
+
+  it('空白のみのクエリでは空配列を返す', async () => {
+    const repo = createMockRepository();
+    const useCase = new SearchMedications(repo);
+    const result = await useCase.execute('   ');
+
+    expect(result).toEqual([]);
+    expect(repo.searchMedications).not.toHaveBeenCalled();
+  });
+});
+
+describe('GetStockAlerts', () => {
+  it('在庫アラートを取得する', async () => {
+    const repo = createMockRepository();
+    const alerts = [{ medicationId: 'm1', medicationName: 'テスト薬', memberId: 'mem1', memberName: '太郎', stockQuantity: 5, stockAlertDate: '2026-03-05', daysUntilAlert: 5, isOverdue: false }];
+    (repo.getStockAlerts as ReturnType<typeof vi.fn>).mockResolvedValue(alerts);
+
+    const useCase = new GetStockAlerts(repo);
+    const result = await useCase.execute();
+
+    expect(result).toEqual(alerts);
+    expect(repo.getStockAlerts).toHaveBeenCalled();
+  });
+
+  it('リポジトリエラーが伝搬する', async () => {
+    const repo = createMockRepository();
+    (repo.getStockAlerts as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('接続エラー'));
+
+    const useCase = new GetStockAlerts(repo);
+    await expect(useCase.execute()).rejects.toThrow('接続エラー');
   });
 });
