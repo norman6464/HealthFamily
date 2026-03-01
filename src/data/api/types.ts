@@ -38,6 +38,32 @@ export interface BackendSchedule {
   createdAt: string;
 }
 
+export interface BackendHospital {
+  id: string;
+  userId: string;
+  name: string;
+  hospitalType?: string;
+  address?: string;
+  phoneNumber?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface BackendAppointment {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  hospitalId?: string;
+  hospitalName?: string;
+  appointmentType?: string;
+  appointmentDate: string;
+  description?: string;
+  reminderEnabled?: boolean;
+  reminderDaysBefore?: number;
+  createdAt: string;
+}
+
 export interface BackendRecord {
   id: string;
   userId: string;

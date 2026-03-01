@@ -1,8 +1,9 @@
+import { Appointment, Hospital } from '../../domain/entities/Appointment';
 import { Member, MemberType } from '../../domain/entities/Member';
 import { Medication, MedicationCategory } from '../../domain/entities/Medication';
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
-import { BackendMember, BackendMedication, BackendRecord, BackendSchedule } from './types';
+import { BackendAppointment, BackendHospital, BackendMember, BackendMedication, BackendRecord, BackendSchedule } from './types';
 
 export function toMember(b: BackendMember): Member {
   return {
@@ -48,6 +49,36 @@ export function toMedicationRecord(b: BackendRecord): MedicationRecord {
     takenAt: new Date(b.takenAt),
     notes: b.notes,
     dosageAmount: b.dosageAmount,
+  };
+}
+
+export function toHospital(b: BackendHospital): Hospital {
+  return {
+    id: b.id,
+    userId: b.userId,
+    name: b.name,
+    hospitalType: b.hospitalType,
+    address: b.address,
+    phoneNumber: b.phoneNumber,
+    notes: b.notes,
+    createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toAppointment(b: BackendAppointment): Appointment {
+  return {
+    id: b.id,
+    userId: b.userId,
+    memberId: b.memberId,
+    memberName: b.memberName,
+    hospitalId: b.hospitalId,
+    hospitalName: b.hospitalName,
+    appointmentType: b.appointmentType,
+    appointmentDate: new Date(b.appointmentDate),
+    description: b.description,
+    reminderEnabled: b.reminderEnabled ?? true,
+    reminderDaysBefore: b.reminderDaysBefore ?? 1,
+    createdAt: new Date(b.createdAt),
   };
 }
 
