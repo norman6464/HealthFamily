@@ -2,14 +2,17 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { useTodaySchedules } from '@/presentation/hooks/useTodaySchedules';
+import { useAppointments } from '@/presentation/hooks/useAppointments';
 import { useCharacterStore } from '@/stores/characterStore';
 import { TodayScheduleList } from '@/components/dashboard/TodayScheduleList';
+import { UpcomingAppointments } from '@/components/dashboard/UpcomingAppointments';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { CharacterIcon } from '@/components/shared/CharacterIcon';
 
 export default function Dashboard() {
   const { userId } = useAuth();
-  const { schedules, isLoading } = useTodaySchedules(userId);
+  const { schedules, isLoading, markAsCompleted } = useTodaySchedules(userId);
+  const { appointments, isLoading: appointmentsLoading } = useAppointments();
   const { getConfig, getMessage } = useCharacterStore();
   const characterConfig = getConfig();
 
@@ -30,10 +33,16 @@ export default function Dashboard() {
           </div>
         </div>
 
+        <UpcomingAppointments
+          appointments={appointments}
+          isLoading={appointmentsLoading}
+        />
+
         <h2 className="text-lg font-semibold text-gray-800 mb-4">今日の予定</h2>
         <TodayScheduleList
           schedules={schedules}
           isLoading={isLoading}
+          onMarkCompleted={markAsCompleted}
         />
       </main>
 

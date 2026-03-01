@@ -17,4 +17,8 @@ export class MedicationRecordRepositoryImpl implements MedicationRecordRepositor
   async createRecord(input: CreateRecordInput): Promise<void> {
     await recordApi.createRecord(input);
   }
+
+  async deleteRecord(recordId: string): Promise<void> {
+    await recordApi.deleteRecord(recordId);
+  }
 }

@@ -6,6 +6,7 @@ import { Appointment, AppointmentEntity } from '../entities/Appointment';
 import {
   AppointmentRepository,
   CreateAppointmentInput,
+  UpdateAppointmentInput,
 } from '../repositories/AppointmentRepository';
 
 export interface AppointmentViewModel {
@@ -36,6 +37,20 @@ export class CreateAppointment {
       throw new Error('予約日は必須です');
     }
     return this.appointmentRepository.createAppointment(input);
+  }
+}
+
+export class UpdateAppointment {
+  constructor(private readonly appointmentRepository: AppointmentRepository) {}
+
+  async execute(appointmentId: string, input: UpdateAppointmentInput): Promise<Appointment> {
+    if (!appointmentId) {
+      throw new Error('予約IDは必須です');
+    }
+    if (Object.keys(input).length === 0) {
+      throw new Error('更新するフィールドがありません');
+    }
+    return this.appointmentRepository.updateAppointment(appointmentId, input);
   }
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GetAppointments, CreateAppointment, DeleteAppointment } from '@/domain/usecases/ManageAppointments';
+import { GetAppointments, CreateAppointment, UpdateAppointment, DeleteAppointment } from '@/domain/usecases/ManageAppointments';
 import { AppointmentRepository } from '@/domain/repositories/AppointmentRepository';
 import { Appointment } from '@/domain/entities/Appointment';
 
@@ -17,6 +17,7 @@ const mockAppointment: Appointment = {
 const createMockRepository = (): AppointmentRepository => ({
   getAppointments: vi.fn().mockResolvedValue([mockAppointment]),
   createAppointment: vi.fn().mockResolvedValue(mockAppointment),
+  updateAppointment: vi.fn().mockResolvedValue(mockAppointment),
   deleteAppointment: vi.fn().mockResolvedValue(undefined),
 });
 
@@ -62,6 +63,43 @@ describe('CreateAppointment', () => {
     await expect(
       useCase.execute({ memberId: 'member-1', appointmentDate: '' })
     ).rejects.toThrow('予約日は必須です');
+  });
+});
+
+describe('UpdateAppointment', () => {
+  it('有効な入力で予約を更新する', async () => {
+    const repo = createMockRepository();
+    const useCase = new UpdateAppointment(repo);
+    const result = await useCase.execute('apt-1', {
+      appointmentDate: '2025-07-01',
+      type: 'checkup',
+      notes: '更新メモ',
+    });
+
+    expect(result).toBe(mockAppointment);
+    expect(repo.updateAppointment).toHaveBeenCalledWith('apt-1', {
+      appointmentDate: '2025-07-01',
+      type: 'checkup',
+      notes: '更新メモ',
+    });
+  });
+
+  it('予約IDが空の場合エラーを投げる', async () => {
+    const repo = createMockRepository();
+    const useCase = new UpdateAppointment(repo);
+
+    await expect(
+      useCase.execute('', { appointmentDate: '2025-07-01' })
+    ).rejects.toThrow('予約IDは必須です');
+  });
+
+  it('更新フィールドが空の場合エラーを投げる', async () => {
+    const repo = createMockRepository();
+    const useCase = new UpdateAppointment(repo);
+
+    await expect(
+      useCase.execute('apt-1', {})
+    ).rejects.toThrow('更新するフィールドがありません');
   });
 });
 

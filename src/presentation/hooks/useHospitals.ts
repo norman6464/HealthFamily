@@ -5,8 +5,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Hospital } from '../../domain/entities/Appointment';
-import { GetHospitals, CreateHospital, DeleteHospital } from '../../domain/usecases/ManageHospitals';
-import { CreateHospitalInput } from '../../domain/repositories/HospitalRepository';
+import { GetHospitals, CreateHospital, UpdateHospital, DeleteHospital } from '../../domain/usecases/ManageHospitals';
+import { CreateHospitalInput, UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 
 export interface UseHospitalsResult {
@@ -14,6 +14,7 @@ export interface UseHospitalsResult {
   isLoading: boolean;
   error: Error | null;
   createHospital: (input: CreateHospitalInput) => Promise<void>;
+  updateHospital: (hospitalId: string, input: UpdateHospitalInput) => Promise<void>;
   deleteHospital: (hospitalId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -24,6 +25,7 @@ export const useHospitals = (): UseHospitalsResult => {
     return {
       getHospitals: new GetHospitals(hospitalRepository),
       createHospital: new CreateHospital(hospitalRepository),
+      updateHospital: new UpdateHospital(hospitalRepository),
       deleteHospital: new DeleteHospital(hospitalRepository),
     };
   }, []);
@@ -54,6 +56,11 @@ export const useHospitals = (): UseHospitalsResult => {
     await fetchHospitals();
   };
 
+  const handleUpdateHospital = async (hospitalId: string, input: UpdateHospitalInput) => {
+    await useCases.updateHospital.execute(hospitalId, input);
+    await fetchHospitals();
+  };
+
   const handleDeleteHospital = async (hospitalId: string) => {
     await useCases.deleteHospital.execute(hospitalId);
     await fetchHospitals();
@@ -64,6 +71,7 @@ export const useHospitals = (): UseHospitalsResult => {
     isLoading,
     error,
     createHospital: handleCreateHospital,
+    updateHospital: handleUpdateHospital,
     deleteHospital: handleDeleteHospital,
     refetch: fetchHospitals,
   };

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { GetMedicationHistory, CreateMedicationRecord } from '@/domain/usecases/ManageMedicationRecords';
+import { GetMedicationHistory, CreateMedicationRecord, DeleteMedicationRecord } from '@/domain/usecases/ManageMedicationRecords';
 import { MedicationRecordRepository } from '@/domain/repositories/MedicationRecordRepository';
 import { MedicationRecord } from '@/domain/entities/MedicationRecord';
 
@@ -36,6 +36,7 @@ const mockRecords: MedicationRecord[] = [
 const createMockRepository = (): MedicationRecordRepository => ({
   getHistory: vi.fn().mockResolvedValue(mockRecords),
   createRecord: vi.fn().mockResolvedValue(undefined),
+  deleteRecord: vi.fn().mockResolvedValue(undefined),
 });
 
 describe('GetMedicationHistory', () => {
@@ -80,5 +81,22 @@ describe('CreateMedicationRecord', () => {
     await expect(
       useCase.execute({ memberId: 'member-1', medicationId: '' })
     ).rejects.toThrow('薬IDは必須です');
+  });
+});
+
+describe('DeleteMedicationRecord', () => {
+  it('服薬記録を削除する', async () => {
+    const repo = createMockRepository();
+    const useCase = new DeleteMedicationRecord(repo);
+    await useCase.execute('rec-1');
+
+    expect(repo.deleteRecord).toHaveBeenCalledWith('rec-1');
+  });
+
+  it('記録IDが空の場合エラーを投げる', async () => {
+    const repo = createMockRepository();
+    const useCase = new DeleteMedicationRecord(repo);
+
+    await expect(useCase.execute('')).rejects.toThrow('記録IDは必須です');
   });
 });

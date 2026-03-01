@@ -28,4 +28,8 @@ export const recordApi = {
     const data = await apiClient.get<BackendRecord[]>('/records');
     return data.map(toMedicationRecord);
   },
+
+  async deleteRecord(recordId: string): Promise<void> {
+    await apiClient.del(`/records/${recordId}`);
+  },
 };

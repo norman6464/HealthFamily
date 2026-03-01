@@ -5,7 +5,7 @@ import { MedicationHistoryList } from '@/components/history/MedicationHistoryLis
 import { useMedicationHistory } from '@/presentation/hooks/useMedicationHistory';
 
 export default function HistoryPage() {
-  const { groups, isLoading } = useMedicationHistory();
+  const { groups, isLoading, deleteRecord } = useMedicationHistory();
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -16,7 +16,7 @@ export default function HistoryPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-4">
-        <MedicationHistoryList groups={groups} isLoading={isLoading} />
+        <MedicationHistoryList groups={groups} isLoading={isLoading} onDelete={deleteRecord} />
       </main>
 
       <BottomNavigation activePath="/history" />

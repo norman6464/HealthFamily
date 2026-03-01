@@ -13,6 +13,14 @@ export interface CreateAppointmentInput {
   reminderDaysBefore?: number;
 }
 
+export interface UpdateAppointmentInput {
+  appointmentDate?: string;
+  type?: string;
+  notes?: string;
+  reminderEnabled?: boolean;
+  reminderDaysBefore?: number;
+}
+
 export const appointmentApi = {
   async getAppointments(): Promise<Appointment[]> {
     const data = await apiClient.get<BackendAppointment[]>('/appointments');
@@ -21,6 +29,11 @@ export const appointmentApi = {
 
   async createAppointment(input: CreateAppointmentInput): Promise<Appointment> {
     const data = await apiClient.post<BackendAppointment>('/appointments', input);
+    return toAppointment(data);
+  },
+
+  async updateAppointment(appointmentId: string, input: UpdateAppointmentInput): Promise<Appointment> {
+    const data = await apiClient.put<BackendAppointment>(`/appointments/${appointmentId}`, input);
     return toAppointment(data);
   },
 

@@ -5,13 +5,14 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { DailyRecordGroup } from '../../domain/entities/MedicationRecord';
-import { GetMedicationHistory } from '../../domain/usecases/ManageMedicationRecords';
+import { GetMedicationHistory, DeleteMedicationRecord } from '../../domain/usecases/ManageMedicationRecords';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 
 export interface UseMedicationHistoryResult {
   groups: DailyRecordGroup[];
   isLoading: boolean;
   error: Error | null;
+  deleteRecord: (recordId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -20,6 +21,7 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     const { medicationRecordRepository } = getDIContainer();
     return {
       getHistory: new GetMedicationHistory(medicationRecordRepository),
+      deleteRecord: new DeleteMedicationRecord(medicationRecordRepository),
     };
   }, []);
 
@@ -44,10 +46,16 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     fetchHistory();
   }, [fetchHistory]);
 
+  const handleDeleteRecord = async (recordId: string) => {
+    await useCases.deleteRecord.execute(recordId);
+    await fetchHistory();
+  };
+
   return {
     groups,
     isLoading,
     error,
+    deleteRecord: handleDeleteRecord,
     refetch: fetchHistory,
   };
 };

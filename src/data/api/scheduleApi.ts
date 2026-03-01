@@ -4,7 +4,43 @@ import { apiClient } from './apiClient';
 import { BackendSchedule, BackendMember, BackendMedication, BackendRecord } from './types';
 import { toSchedule } from './mappers';
 
+export interface ScheduleWithDetails {
+  schedule: Schedule;
+  medicationName: string;
+  memberName: string;
+}
+
 export const scheduleApi = {
+  async getSchedules(): Promise<ScheduleWithDetails[]> {
+    const [schedules, members] = await Promise.all([
+      apiClient.get<BackendSchedule[]>('/schedules'),
+      apiClient.get<BackendMember[]>('/members'),
+    ]);
+
+    const memberMap = new Map(members.map((m) => [m.id, m]));
+    const medicationIds = [...new Set(schedules.map((s) => s.medicationId))];
+    const medications = await Promise.all(
+      medicationIds.map((id) =>
+        apiClient.get<BackendMedication>(`/medications/${id}`).catch(() => null)
+      )
+    );
+    const medMap = new Map(
+      medications.filter(Boolean).map((m) => [m!.id, m!])
+    );
+
+    return schedules
+      .filter((s) => medMap.has(s.medicationId))
+      .map((s) => {
+        const member = memberMap.get(s.memberId);
+        const med = medMap.get(s.medicationId)!;
+        return {
+          schedule: toSchedule(s),
+          medicationName: med.name,
+          memberName: member?.name || '',
+        };
+      });
+  },
+
   async getTodaySchedules(_userId: string, _date: Date): Promise<TodayScheduleItem[]> {
     const [schedules, members, records] = await Promise.all([
       apiClient.get<BackendSchedule[]>('/schedules'),
