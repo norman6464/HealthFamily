@@ -13,6 +13,23 @@ export class GetSchedules {
   }
 }
 
+export class CreateSchedule {
+  constructor(private readonly scheduleRepository: ScheduleRepository) {}
+
+  async execute(input: Omit<Schedule, 'id' | 'createdAt'>): Promise<Schedule> {
+    if (!input.medicationId) {
+      throw new Error('薬IDは必須です');
+    }
+    if (!input.memberId) {
+      throw new Error('メンバーIDは必須です');
+    }
+    if (!input.scheduledTime) {
+      throw new Error('スケジュール時刻は必須です');
+    }
+    return this.scheduleRepository.createSchedule(input);
+  }
+}
+
 export class UpdateSchedule {
   constructor(private readonly scheduleRepository: ScheduleRepository) {}
 

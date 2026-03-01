@@ -2,6 +2,8 @@
  * 通院予約エンティティ
  */
 
+export { type Hospital } from './Hospital';
+
 export interface Appointment {
   readonly id: string;
   readonly userId: string;
@@ -14,17 +16,6 @@ export interface Appointment {
   readonly description?: string;
   readonly reminderEnabled: boolean;
   readonly reminderDaysBefore: number;
-  readonly createdAt: Date;
-}
-
-export interface Hospital {
-  readonly id: string;
-  readonly userId: string;
-  readonly name: string;
-  readonly hospitalType?: string;
-  readonly address?: string;
-  readonly phoneNumber?: string;
-  readonly notes?: string;
   readonly createdAt: Date;
 }
 

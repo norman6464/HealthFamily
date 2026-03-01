@@ -11,12 +11,13 @@ import { MemberIcon } from '@/components/shared/MemberIcon';
 import { MemberEntity, Member } from '@/domain/entities/Member';
 import { Medication, MedicationCategory } from '@/domain/entities/Medication';
 import { CategoryFilter } from '@/components/shared/CategoryFilter';
-import { recordApi } from '@/data/api/recordApi';
+import { useMedicationRecordActions } from '@/presentation/hooks/useMedicationRecordActions';
 import Link from 'next/link';
 import { Plus, ClipboardList } from 'lucide-react';
 
 function MemberMedications({ member, categoryFilter }: { member: Member; categoryFilter: MedicationCategory | null }) {
   const { medications, isLoading, updateMedication, deleteMedication } = useMedications(member.id);
+  const { markAsTaken } = useMedicationRecordActions();
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
@@ -27,11 +28,8 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
   );
 
   const handleMarkTaken = useCallback(async (medicationId: string) => {
-    await recordApi.createRecord({
-      memberId: member.id,
-      medicationId,
-    });
-  }, [member.id]);
+    await markAsTaken(member.id, medicationId);
+  }, [member.id, markAsTaken]);
 
   const handleEdit = (medication: Medication) => {
     setEditingMed(medication);

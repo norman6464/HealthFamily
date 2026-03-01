@@ -2,7 +2,7 @@
  * 病院管理ユースケース
  */
 
-import { Hospital } from '../entities/Appointment';
+import { Hospital } from '../entities/Hospital';
 import {
   HospitalRepository,
   CreateHospitalInput,

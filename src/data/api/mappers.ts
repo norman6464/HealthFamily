@@ -1,17 +1,23 @@
-import { Appointment, Hospital } from '../../domain/entities/Appointment';
-import { Member, MemberType } from '../../domain/entities/Member';
+import { Appointment } from '../../domain/entities/Appointment';
+import { Hospital } from '../../domain/entities/Hospital';
+import { Member, MemberType, PetType } from '../../domain/entities/Member';
 import { Medication, MedicationCategory } from '../../domain/entities/Medication';
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { BackendAppointment, BackendHospital, BackendMember, BackendMedication, BackendRecord, BackendSchedule } from './types';
 
+const VALID_MEMBER_TYPES: readonly string[] = ['human', 'pet'];
+const VALID_MEDICATION_CATEGORIES: readonly string[] = ['regular', 'supplement', 'prn', 'inhaler', 'flea_tick', 'heartworm'];
+const VALID_DAYS_OF_WEEK: readonly string[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const VALID_PET_TYPES: readonly string[] = ['dog', 'cat', 'rabbit', 'bird', 'other'];
+
 export function toMember(b: BackendMember): Member {
   return {
     id: b.id,
     userId: b.userId,
-    memberType: (b.memberType as MemberType) || 'human',
+    memberType: b.memberType && VALID_MEMBER_TYPES.includes(b.memberType) ? (b.memberType as MemberType) : 'human',
     name: b.name,
-    petType: b.petType as Member['petType'],
+    petType: b.petType && VALID_PET_TYPES.includes(b.petType) ? (b.petType as PetType) : undefined,
     birthDate: b.birthDate ? new Date(b.birthDate) : undefined,
     notes: b.notes,
     createdAt: new Date(b.createdAt),
@@ -25,7 +31,7 @@ export function toMedication(b: BackendMedication): Medication {
     memberId: b.memberId,
     userId: b.userId,
     name: b.name,
-    category: (b.category as MedicationCategory) || 'regular',
+    category: b.category && VALID_MEDICATION_CATEGORIES.includes(b.category) ? (b.category as MedicationCategory) : 'regular',
     dosage: b.dosageAmount,
     frequency: b.frequency,
     stockQuantity: b.stockQuantity,
@@ -89,7 +95,7 @@ export function toSchedule(b: BackendSchedule): Schedule {
     userId: b.userId,
     memberId: b.memberId,
     scheduledTime: b.scheduledTime,
-    daysOfWeek: (b.daysOfWeek as DayOfWeek[]) || [],
+    daysOfWeek: (b.daysOfWeek?.filter((d: string) => VALID_DAYS_OF_WEEK.includes(d)) as DayOfWeek[]) ?? [],
     isEnabled: b.isEnabled ?? true,
     reminderMinutesBefore: b.reminderMinutesBefore ?? 10,
     createdAt: new Date(b.createdAt),

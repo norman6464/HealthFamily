@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GetHospitals, CreateHospital, UpdateHospital, DeleteHospital } from '@/domain/usecases/ManageHospitals';
 import { HospitalRepository } from '@/domain/repositories/HospitalRepository';
-import { Hospital } from '@/domain/entities/Appointment';
+import { Hospital } from '@/domain/entities/Hospital';
 
 const mockHospital: Hospital = {
   id: 'hosp-1',

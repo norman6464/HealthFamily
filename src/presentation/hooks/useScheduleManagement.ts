@@ -4,7 +4,8 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
+import { DayOfWeek } from '../../domain/entities/Schedule';
+import { CreateSchedule } from '../../domain/usecases/ManageSchedules';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 
 export interface CreateScheduleInput {
@@ -23,7 +24,10 @@ export interface UseScheduleManagementResult {
 }
 
 export const useScheduleManagement = (): UseScheduleManagementResult => {
-  const scheduleRepository = useMemo(() => getDIContainer().scheduleRepository, []);
+  const useCase = useMemo(() => {
+    const { scheduleRepository } = getDIContainer();
+    return new CreateSchedule(scheduleRepository);
+  }, []);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -32,7 +36,7 @@ export const useScheduleManagement = (): UseScheduleManagementResult => {
       setIsCreating(true);
       setError(null);
 
-      const scheduleData: Omit<Schedule, 'id' | 'createdAt'> = {
+      await useCase.execute({
         medicationId: input.medicationId,
         userId: input.userId,
         memberId: input.memberId,
@@ -40,15 +44,13 @@ export const useScheduleManagement = (): UseScheduleManagementResult => {
         daysOfWeek: input.daysOfWeek,
         isEnabled: true,
         reminderMinutesBefore: input.reminderMinutesBefore,
-      };
-
-      await scheduleRepository.createSchedule(scheduleData);
+      });
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'));
     } finally {
       setIsCreating(false);
     }
-  }, [scheduleRepository]);
+  }, [useCase]);
 
   return {
     isCreating,

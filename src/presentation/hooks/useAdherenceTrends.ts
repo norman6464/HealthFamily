@@ -12,6 +12,7 @@ export interface UseAdherenceTrendsResult {
   trend: AdherenceTrend | null;
   isLoading: boolean;
   error: Error | null;
+  refetch: () => void;
 }
 
 const defaultTrend: AdherenceTrend | null = null;
@@ -22,11 +23,11 @@ export const useAdherenceTrends = (): UseAdherenceTrendsResult => {
     return new GetAdherenceTrends(medicationRecordRepository);
   }, []);
 
-  const { data, isLoading, error } = useFetcher(
+  const { data, isLoading, error, refetch } = useFetcher(
     () => useCase.execute(),
     [useCase],
     defaultTrend,
   );
 
-  return { trend: data, isLoading, error };
+  return { trend: data, isLoading, error, refetch };
 };

@@ -4,7 +4,7 @@
  */
 
 import { useMemo } from 'react';
-import { Hospital } from '../../domain/entities/Appointment';
+import { Hospital } from '../../domain/entities/Hospital';
 import { GetHospitals, CreateHospital, UpdateHospital, DeleteHospital } from '../../domain/usecases/ManageHospitals';
 import { CreateHospitalInput, UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';

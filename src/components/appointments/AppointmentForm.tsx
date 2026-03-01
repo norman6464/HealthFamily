@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { Member, MemberEntity } from '../../domain/entities/Member';
-import { Appointment, Hospital } from '../../domain/entities/Appointment';
-import { AppointmentEntity } from '../../domain/entities/Appointment';
+import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
+import { Hospital } from '../../domain/entities/Hospital';
 import { MemberIcon } from '../shared/MemberIcon';
 
 export interface AppointmentFormData {

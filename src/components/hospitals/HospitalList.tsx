@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { MapPin, Pencil, Trash2, Phone, Check, X } from 'lucide-react';
-import { Hospital } from '../../domain/entities/Appointment';
+import { Hospital } from '../../domain/entities/Hospital';
 import { UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
 
 interface HospitalListProps {
