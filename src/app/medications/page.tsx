@@ -1,21 +1,24 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useMedications } from '@/presentation/hooks/useMedications';
 import { MedicationList } from '@/components/medications/MedicationList';
+import { MedicationForm, MedicationFormData } from '@/components/medications/MedicationForm';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MemberIcon } from '@/components/shared/MemberIcon';
 import { MemberEntity, Member } from '@/domain/entities/Member';
+import { Medication } from '@/domain/entities/Medication';
 import { recordApi } from '@/data/api/recordApi';
 import Link from 'next/link';
 import { Plus, ClipboardList } from 'lucide-react';
 
 function MemberMedications({ member }: { member: Member }) {
-  const { medications, isLoading, deleteMedication } = useMedications(member.id);
+  const { medications, isLoading, updateMedication, deleteMedication } = useMedications(member.id);
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
+  const [editingMed, setEditingMed] = useState<Medication | null>(null);
 
   const handleMarkTaken = useCallback(async (medicationId: string) => {
     await recordApi.createRecord({
@@ -23,6 +26,23 @@ function MemberMedications({ member }: { member: Member }) {
       medicationId,
     });
   }, [member.id]);
+
+  const handleEdit = (medication: Medication) => {
+    setEditingMed(medication);
+  };
+
+  const handleUpdate = async (data: MedicationFormData) => {
+    if (!editingMed) return;
+    await updateMedication(editingMed.id, {
+      name: data.name,
+      dosage: data.dosage || undefined,
+      frequency: data.frequency || undefined,
+      stockQuantity: data.stockQuantity,
+      stockAlertDate: data.stockAlertDate,
+      instructions: data.instructions,
+    });
+    setEditingMed(null);
+  };
 
   return (
     <section className="mb-6">
@@ -44,11 +64,24 @@ function MemberMedications({ member }: { member: Member }) {
           <span>追加</span>
         </Link>
       </div>
+
+      {editingMed && (
+        <div className="mb-3 bg-white rounded-lg shadow-md p-4 border border-primary-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">薬の編集</h3>
+          <MedicationForm
+            onSubmit={handleUpdate}
+            initialData={editingMed}
+            onCancel={() => setEditingMed(null)}
+          />
+        </div>
+      )}
+
       <MedicationList
         medications={medications}
         isLoading={isLoading}
         onDelete={deleteMedication}
         onMarkTaken={handleMarkTaken}
+        onEdit={handleEdit}
       />
     </section>
   );

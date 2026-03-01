@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MedicationCategory } from '../../domain/entities/Medication';
+import { Medication, MedicationCategory } from '../../domain/entities/Medication';
 
 export interface MedicationFormData {
   name: string;
@@ -13,16 +13,23 @@ export interface MedicationFormData {
 
 interface MedicationFormProps {
   onSubmit: (data: MedicationFormData) => void;
+  initialData?: Medication;
+  onCancel?: () => void;
 }
 
-export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<MedicationCategory>('regular');
-  const [dosage, setDosage] = useState('');
-  const [frequency, setFrequency] = useState('');
-  const [stockQuantity, setStockQuantity] = useState('');
-  const [stockAlertDate, setStockAlertDate] = useState('');
-  const [instructions, setInstructions] = useState('');
+export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initialData, onCancel }) => {
+  const isEditing = !!initialData;
+  const [name, setName] = useState(initialData?.name || '');
+  const [category, setCategory] = useState<MedicationCategory>(initialData?.category || 'regular');
+  const [dosage, setDosage] = useState(initialData?.dosage || '');
+  const [frequency, setFrequency] = useState(initialData?.frequency || '');
+  const [stockQuantity, setStockQuantity] = useState(
+    initialData?.stockQuantity !== undefined ? String(initialData.stockQuantity) : ''
+  );
+  const [stockAlertDate, setStockAlertDate] = useState(
+    initialData?.stockAlertDate ? new Date(initialData.stockAlertDate).toISOString().split('T')[0] : ''
+  );
+  const [instructions, setInstructions] = useState(initialData?.instructions || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,13 +48,15 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
 
     onSubmit(data);
 
-    setName('');
-    setCategory('regular');
-    setDosage('');
-    setFrequency('');
-    setStockQuantity('');
-    setStockAlertDate('');
-    setInstructions('');
+    if (!isEditing) {
+      setName('');
+      setCategory('regular');
+      setDosage('');
+      setFrequency('');
+      setStockQuantity('');
+      setStockAlertDate('');
+      setInstructions('');
+    }
   };
 
   return (
@@ -156,12 +165,23 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit }) => {
         />
       </div>
 
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
-        追加する
-      </button>
+      <div className="flex space-x-2">
+        <button
+          type="submit"
+          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          {isEditing ? '更新する' : '追加する'}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            キャンセル
+          </button>
+        )}
+      </div>
     </form>
   );
 };

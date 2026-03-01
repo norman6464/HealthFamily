@@ -6,6 +6,7 @@ import { Medication, MedicationEntity } from '../entities/Medication';
 import {
   MedicationRepository,
   CreateMedicationInput,
+  UpdateMedicationInput,
 } from '../repositories/MedicationRepository';
 
 export interface MedicationViewModel {
@@ -38,6 +39,18 @@ export class CreateMedication {
       throw new Error('薬の名前は必須です');
     }
     return this.medicationRepository.createMedication(input);
+  }
+}
+
+export class UpdateMedication {
+  constructor(private readonly medicationRepository: MedicationRepository) {}
+
+  async execute(medicationId: string, input: UpdateMedicationInput): Promise<Medication> {
+    const existing = await this.medicationRepository.getMedicationById(medicationId);
+    if (!existing) {
+      throw new Error('薬が見つかりません');
+    }
+    return this.medicationRepository.updateMedication(medicationId, input);
   }
 }
 
