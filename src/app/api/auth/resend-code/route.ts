@@ -5,7 +5,7 @@ import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email
 import { success, errorResponse } from '@/lib/auth-helpers';
 
 const resendSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().email(),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     await prisma.user.update({
       where: { email },
-      data: { verificationCode: code, verificationExpiry: expiry },
+      data: { verificationCode: code, verificationExpiry: expiry, verificationAttempts: 0 },
     });
 
     const template = emailTemplates.verificationCode({ code });

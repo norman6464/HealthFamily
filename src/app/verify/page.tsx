@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -9,7 +8,6 @@ function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email') ?? '';
-  const passwordParam = searchParams.get('p') ?? '';
 
   const [email] = useState(emailParam);
   const [code, setCode] = useState('');
@@ -44,22 +42,8 @@ function VerifyContent() {
         return;
       }
 
-      if (passwordParam) {
-        const result = await signIn('credentials', {
-          email,
-          password: passwordParam,
-          redirect: false,
-        });
-
-        if (result?.error) {
-          setSuccessMessage('メール認証が完了しました。ログイン画面からログインしてください。');
-        } else {
-          router.push('/');
-        }
-      } else {
-        setSuccessMessage('メール認証が完了しました。');
-        setTimeout(() => router.push('/login'), 2000);
-      }
+      setSuccessMessage('メール認証が完了しました。ログイン画面に移動します。');
+      setTimeout(() => router.push('/login'), 2000);
     } catch {
       setErrorMessage('認証に失敗しました');
     } finally {

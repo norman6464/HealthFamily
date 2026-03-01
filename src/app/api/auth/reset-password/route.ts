@@ -5,7 +5,10 @@ import { success, errorResponse } from '@/lib/auth-helpers';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, code, newPassword } = await request.json();
+    const body = await request.json();
+    const email = (body.email ?? '').trim().toLowerCase();
+    const code = body.code;
+    const newPassword = body.newPassword;
 
     if (!email || !code || !newPassword) {
       return errorResponse('必須項目を入力してください');

@@ -32,7 +32,7 @@ export default function SignUp() {
         return;
       }
 
-      router.push(`/verify?email=${encodeURIComponent(email)}&p=${encodeURIComponent(password)}`);
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch {
       setErrorMessage('登録に失敗しました');
     } finally {

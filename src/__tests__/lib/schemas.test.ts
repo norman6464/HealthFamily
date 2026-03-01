@@ -48,6 +48,42 @@ describe('signUpSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('メールアドレスを小文字に正規化する', () => {
+    const result = signUpSchema.safeParse({
+      email: 'Test@Example.COM',
+      password: '12345678',
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.email).toBe('test@example.com');
+    }
+  });
+
+  it('メールアドレスの前後の空白を除去する', () => {
+    const result = signUpSchema.safeParse({
+      email: '  test@example.com  ',
+      password: '12345678',
+      displayName: 'テスト',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.email).toBe('test@example.com');
+    }
+  });
+
+  it('表示名の前後の空白を除去する', () => {
+    const result = signUpSchema.safeParse({
+      email: 'test@example.com',
+      password: '12345678',
+      displayName: '  テスト  ',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.displayName).toBe('テスト');
+    }
+  });
 });
 
 describe('createMemberSchema', () => {
