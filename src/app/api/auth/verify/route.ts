@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return errorResponse('ユーザーが見つかりません', 404);
+      return errorResponse('確認コードが正しくありません');
     }
 
     if (user.emailVerified) {

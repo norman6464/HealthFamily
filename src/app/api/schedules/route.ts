@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createScheduleSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
   const schedules = await prisma.schedule.findMany({ where: { userId } });
@@ -13,6 +13,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = createScheduleSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
+
+    const ownershipError = await verifyResourceOwnership(userId, [
+      { finder: () => prisma.member.findUnique({ where: { id: parsed.data.memberId } }), resourceName: 'メンバー' },
+      { finder: () => prisma.medication.findUnique({ where: { id: parsed.data.medicationId } }), resourceName: '薬' },
+    ]);
+    if (ownershipError) return ownershipError;
 
     // 重複チェック: 同じ薬・同じ時刻・曜日が重複するスケジュール
     const daysOfWeek = parsed.data.daysOfWeek ?? [];

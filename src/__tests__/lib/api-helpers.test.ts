@@ -9,7 +9,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { auth } from '@/lib/auth';
-import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, verifyResourceOwnership } from '@/lib/api-helpers';
 
 const mockAuth = vi.mocked(auth);
 
@@ -116,5 +116,36 @@ describe('withOwnershipCheck', () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(result.status).toBe(404);
+  });
+});
+
+describe('verifyResourceOwnership', () => {
+  it('全てのリソースが所有者に属している場合nullを返す', async () => {
+    const result = await verifyResourceOwnership('user-1', [
+      { finder: vi.fn().mockResolvedValue({ userId: 'user-1' }), resourceName: 'メンバー' },
+      { finder: vi.fn().mockResolvedValue({ userId: 'user-1' }), resourceName: '薬' },
+    ]);
+    expect(result).toBeNull();
+  });
+
+  it('リソースが見つからない場合404レスポンスを返す', async () => {
+    const result = await verifyResourceOwnership('user-1', [
+      { finder: vi.fn().mockResolvedValue(null), resourceName: 'メンバー' },
+    ]);
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe(404);
+    const body = await result!.json();
+    expect(body.error).toContain('メンバー');
+  });
+
+  it('リソースの所有者が異なる場合404レスポンスを返す', async () => {
+    const result = await verifyResourceOwnership('user-1', [
+      { finder: vi.fn().mockResolvedValue({ userId: 'user-1' }), resourceName: 'メンバー' },
+      { finder: vi.fn().mockResolvedValue({ userId: 'user-2' }), resourceName: '薬' },
+    ]);
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe(404);
+    const body = await result!.json();
+    expect(body.error).toContain('薬');
   });
 });
