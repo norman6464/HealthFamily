@@ -9,6 +9,9 @@ export async function GET(request: NextRequest) {
     if (!q) {
       return errorResponse('検索キーワードを入力してください');
     }
+    if (q.length > 100) {
+      return errorResponse('検索キーワードは100文字以内で入力してください');
+    }
 
     const medications = await prisma.medication.findMany({
       where: {

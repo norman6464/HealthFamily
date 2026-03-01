@@ -5,12 +5,12 @@ import crypto from 'crypto';
  * タイミング攻撃を防ぐために固定時間で比較する
  */
 export function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    // 長さが異なる場合もタイミングを一定にするためダミー比較を行う
-    crypto.timingSafeEqual(Buffer.from(a), Buffer.from(a));
-    return false;
-  }
-  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  const maxLen = Math.max(a.length, b.length);
+  const paddedA = a.padEnd(maxLen, '\0');
+  const paddedB = b.padEnd(maxLen, '\0');
+  const result = crypto.timingSafeEqual(Buffer.from(paddedA), Buffer.from(paddedB));
+  if (a.length !== b.length) return false;
+  return result;
 }
 
 /**

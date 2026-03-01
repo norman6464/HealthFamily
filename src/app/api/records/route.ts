@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createRecordSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
   const records = await prisma.medicationRecord.findMany({
@@ -28,6 +28,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = createRecordSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
+
+    const ownershipError = await verifyResourceOwnership(userId, [
+      { finder: () => prisma.member.findUnique({ where: { id: parsed.data.memberId } }), resourceName: 'メンバー' },
+      { finder: () => prisma.medication.findUnique({ where: { id: parsed.data.medicationId } }), resourceName: '薬' },
+    ]);
+    if (ownershipError) return ownershipError;
 
     const record = await prisma.medicationRecord.create({
       data: {

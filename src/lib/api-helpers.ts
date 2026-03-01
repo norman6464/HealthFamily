@@ -38,3 +38,23 @@ export async function withOwnershipCheck<T extends { userId: string }>({
   if (!resource || resource.userId !== userId) return notFound(resourceName);
   return handler(resource);
 }
+
+/**
+ * リソースの所有権を検証する
+ * 指定されたリソースが指定ユーザーに属しているか確認する
+ */
+export async function verifyResourceOwnership(
+  userId: string,
+  checks: Array<{
+    finder: () => Promise<{ userId: string } | null>;
+    resourceName: string;
+  }>,
+): Promise<Response | null> {
+  for (const check of checks) {
+    const resource = await check.finder();
+    if (!resource || resource.userId !== userId) {
+      return notFound(check.resourceName);
+    }
+  }
+  return null;
+}

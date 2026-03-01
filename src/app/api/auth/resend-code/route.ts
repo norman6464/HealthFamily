@@ -25,24 +25,19 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return errorResponse('ユーザーが見つかりません', 404);
+
+    if (user && !user.emailVerified) {
+      const code = generateVerificationCode();
+      const expiry = new Date(Date.now() + 10 * 60 * 1000);
+
+      await prisma.user.update({
+        where: { email },
+        data: { verificationCode: code, verificationExpiry: expiry, verificationAttempts: 0 },
+      });
+
+      const template = emailTemplates.verificationCode({ code });
+      await sendEmail({ to: email, ...template });
     }
-
-    if (user.emailVerified) {
-      return success({ message: '既に認証済みです' });
-    }
-
-    const code = generateVerificationCode();
-    const expiry = new Date(Date.now() + 10 * 60 * 1000);
-
-    await prisma.user.update({
-      where: { email },
-      data: { verificationCode: code, verificationExpiry: expiry, verificationAttempts: 0 },
-    });
-
-    const template = emailTemplates.verificationCode({ code });
-    await sendEmail({ to: email, ...template });
 
     return success({ message: '確認コードを再送信しました' });
   } catch (error) {

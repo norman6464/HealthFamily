@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createMedicationSchema } from '@/lib/schemas';
 import { created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership } from '@/lib/api-helpers';
 
 export async function POST(request: Request) {
   return withAuth(async (userId) => {
@@ -9,6 +9,11 @@ export async function POST(request: Request) {
     const parsed = createMedicationSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
     if (!parsed.data.memberId) return errorResponse('メンバーIDは必須です');
+
+    const ownershipError = await verifyResourceOwnership(userId, [
+      { finder: () => prisma.member.findUnique({ where: { id: parsed.data.memberId! } }), resourceName: 'メンバー' },
+    ]);
+    if (ownershipError) return ownershipError;
 
     const medication = await prisma.medication.create({
       data: {
