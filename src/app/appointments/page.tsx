@@ -10,6 +10,7 @@ import { AppointmentList, AppointmentFilter, getAppointmentCounts } from '@/comp
 import { AppointmentForm, AppointmentFormData } from '@/components/appointments/AppointmentForm';
 import { TabSwitch } from '@/components/shared/TabSwitch';
 import { Appointment } from '@/domain/entities/Appointment';
+import { MiniCalendar } from '@/components/appointments/MiniCalendar';
 import Link from 'next/link';
 import { Plus, X, MapPin } from 'lucide-react';
 
@@ -22,6 +23,7 @@ export default function AppointmentsPage() {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<AppointmentFilter>('upcoming');
 
+  const appointmentDates = useMemo(() => appointments.map((a) => new Date(a.appointmentDate)), [appointments]);
   const counts = useMemo(() => getAppointmentCounts(appointments), [appointments]);
   const tabs = useMemo(() => [
     { id: 'upcoming', label: '今後の予定', count: counts.upcoming },
@@ -111,6 +113,8 @@ export default function AppointmentsPage() {
             />
           </div>
         )}
+
+        <MiniCalendar appointmentDates={appointmentDates} />
 
         <TabSwitch tabs={tabs} activeTab={activeTab} onTabChange={(id) => setActiveTab(id as AppointmentFilter)} />
 
