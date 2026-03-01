@@ -42,7 +42,9 @@ export interface BackendRecord {
   id: string;
   userId: string;
   memberId: string;
+  memberName?: string;
   medicationId: string;
+  medicationName?: string;
   scheduleId?: string;
   takenAt: string;
   notes?: string;

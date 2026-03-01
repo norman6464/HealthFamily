@@ -1,7 +1,8 @@
 import { Member, MemberType } from '../../domain/entities/Member';
 import { Medication, MedicationCategory } from '../../domain/entities/Medication';
+import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
-import { BackendMember, BackendMedication, BackendSchedule } from './types';
+import { BackendMember, BackendMedication, BackendRecord, BackendSchedule } from './types';
 
 export function toMember(b: BackendMember): Member {
   return {
@@ -32,6 +33,21 @@ export function toMedication(b: BackendMedication): Medication {
     isActive: b.isActive ?? true,
     createdAt: new Date(b.createdAt),
     updatedAt: new Date(b.updatedAt),
+  };
+}
+
+export function toMedicationRecord(b: BackendRecord): MedicationRecord {
+  return {
+    id: b.id,
+    memberId: b.memberId,
+    memberName: b.memberName || '',
+    medicationId: b.medicationId,
+    medicationName: b.medicationName || '',
+    userId: b.userId,
+    scheduleId: b.scheduleId,
+    takenAt: new Date(b.takenAt),
+    notes: b.notes,
+    dosageAmount: b.dosageAmount,
   };
 }
 

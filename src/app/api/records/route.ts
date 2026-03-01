@@ -10,9 +10,20 @@ export async function GET() {
     const records = await prisma.medicationRecord.findMany({
       where: { userId },
       orderBy: { takenAt: 'desc' },
-      take: 50,
+      take: 100,
+      include: {
+        member: { select: { name: true } },
+        medication: { select: { name: true } },
+      },
     });
-    return success(records);
+    const result = records.map((r) => ({
+      ...r,
+      memberName: r.member.name,
+      medicationName: r.medication.name,
+      member: undefined,
+      medication: undefined,
+    }));
+    return success(result);
   } catch {
     return errorResponse('一覧取得に失敗しました', 500);
   }
