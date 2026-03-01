@@ -11,6 +11,14 @@ export interface CreateHospitalInput {
   notes?: string;
 }
 
+export interface UpdateHospitalInput {
+  name?: string;
+  type?: string;
+  address?: string;
+  phone?: string;
+  notes?: string;
+}
+
 export const hospitalApi = {
   async getHospitals(): Promise<Hospital[]> {
     const data = await apiClient.get<BackendHospital[]>('/hospitals');
@@ -19,6 +27,11 @@ export const hospitalApi = {
 
   async createHospital(input: CreateHospitalInput): Promise<Hospital> {
     const data = await apiClient.post<BackendHospital>('/hospitals', input);
+    return toHospital(data);
+  },
+
+  async updateHospital(hospitalId: string, input: UpdateHospitalInput): Promise<Hospital> {
+    const data = await apiClient.put<BackendHospital>(`/hospitals/${hospitalId}`, input);
     return toHospital(data);
   },
 

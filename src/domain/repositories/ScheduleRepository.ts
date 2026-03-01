@@ -18,7 +18,18 @@ export interface TodayScheduleItem {
   isCompleted: boolean;
 }
 
+export interface ScheduleWithDetails {
+  schedule: Schedule;
+  medicationName: string;
+  memberName: string;
+}
+
 export interface ScheduleRepository {
+  /**
+   * 全スケジュール一覧を取得（薬名・メンバー名付き）
+   */
+  getSchedules(): Promise<ScheduleWithDetails[]>;
+
   /**
    * 今日のスケジュール一覧を取得
    */

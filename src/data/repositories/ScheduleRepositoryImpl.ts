@@ -5,6 +5,7 @@
 
 import {
   ScheduleRepository,
+  ScheduleWithDetails,
   TodayScheduleQuery,
   TodayScheduleItem,
 } from '../../domain/repositories/ScheduleRepository';
@@ -12,6 +13,10 @@ import { Schedule } from '../../domain/entities/Schedule';
 import { scheduleApi } from '../api/scheduleApi';
 
 export class ScheduleRepositoryImpl implements ScheduleRepository {
+  async getSchedules(): Promise<ScheduleWithDetails[]> {
+    return await scheduleApi.getSchedules();
+  }
+
   async getTodaySchedules(query: TodayScheduleQuery): Promise<TodayScheduleItem[]> {
     return await scheduleApi.getTodaySchedules(query.userId, query.date);
   }

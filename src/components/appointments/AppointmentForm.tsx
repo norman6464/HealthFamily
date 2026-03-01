@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Member, MemberEntity } from '../../domain/entities/Member';
-import { Hospital } from '../../domain/entities/Appointment';
+import { Appointment, Hospital } from '../../domain/entities/Appointment';
 import { AppointmentEntity } from '../../domain/entities/Appointment';
 import { MemberIcon } from '../shared/MemberIcon';
 
@@ -18,14 +18,27 @@ interface AppointmentFormProps {
   members: Member[];
   hospitals: Hospital[];
   onSubmit: (data: AppointmentFormData) => void;
+  initialData?: Appointment;
+  onCancel?: () => void;
 }
 
-export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospitals, onSubmit }) => {
-  const [memberId, setMemberId] = useState(members[0]?.id || '');
-  const [hospitalId, setHospitalId] = useState('');
-  const [appointmentDate, setAppointmentDate] = useState('');
-  const [type, setType] = useState('');
-  const [notes, setNotes] = useState('');
+const formatDateForInput = (date: Date): string => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospitals, onSubmit, initialData, onCancel }) => {
+  const isEditing = !!initialData;
+  const [memberId, setMemberId] = useState(initialData?.memberId || members[0]?.id || '');
+  const [hospitalId, setHospitalId] = useState(initialData?.hospitalId || '');
+  const [appointmentDate, setAppointmentDate] = useState(
+    initialData ? formatDateForInput(initialData.appointmentDate) : ''
+  );
+  const [type, setType] = useState(initialData?.appointmentType || '');
+  const [notes, setNotes] = useState(initialData?.description || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,9 +52,11 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
       notes: notes.trim() || undefined,
     });
 
-    setAppointmentDate('');
-    setType('');
-    setNotes('');
+    if (!isEditing) {
+      setAppointmentDate('');
+      setType('');
+      setNotes('');
+    }
   };
 
   const typeOptions = Object.entries(AppointmentEntity.typeLabels);
@@ -62,11 +77,12 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
                 key={m.id}
                 type="button"
                 onClick={() => setMemberId(m.id)}
+                disabled={isEditing}
                 className={`w-full flex items-center space-x-2 px-3 py-2 rounded-lg border text-left transition-colors ${
                   isSelected
                     ? 'border-primary-500 bg-primary-50'
                     : 'border-gray-200 hover:bg-gray-50'
-                }`}
+                } ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 <MemberIcon memberType={info.memberType} petType={info.petType} size={16} className="text-gray-600" />
                 <span className="text-sm">{info.name}</span>
@@ -99,7 +115,8 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
             id="apt-hospital"
             value={hospitalId}
             onChange={(e) => setHospitalId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            disabled={isEditing}
+            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <option value="">選択しない</option>
             {hospitals.map((h) => (
@@ -140,12 +157,23 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
         />
       </div>
 
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-      >
-        追加する
-      </button>
+      <div className={isEditing ? 'flex space-x-2' : ''}>
+        <button
+          type="submit"
+          className={`${isEditing ? 'flex-1' : 'w-full'} bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium`}
+        >
+          {isEditing ? '更新する' : '追加する'}
+        </button>
+        {isEditing && onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            キャンセル
+          </button>
+        )}
+      </div>
     </form>
   );
 };

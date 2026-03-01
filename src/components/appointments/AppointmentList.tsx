@@ -1,16 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Trash2, User, MapPin } from 'lucide-react';
+import { Calendar, Pencil, Trash2, User, MapPin } from 'lucide-react';
 import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
 
 interface AppointmentListProps {
   appointments: Appointment[];
   isLoading: boolean;
+  onEdit: (appointment: Appointment) => void;
   onDelete: (appointmentId: string) => void;
 }
 
-export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, isLoading, onDelete }) => {
+export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, isLoading, onEdit, onDelete }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -37,7 +38,7 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
           <h3 className="text-sm font-semibold text-gray-600 mb-2 px-1">今後の予定</h3>
           <div className="space-y-2">
             {upcoming.map((apt) => (
-              <AppointmentCard key={apt.id} appointment={apt} onDelete={onDelete} />
+              <AppointmentCard key={apt.id} appointment={apt} onEdit={onEdit} onDelete={onDelete} />
             ))}
           </div>
         </div>
@@ -48,7 +49,7 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
           <h3 className="text-sm font-semibold text-gray-400 mb-2 px-1">過去の予定</h3>
           <div className="space-y-2 opacity-60">
             {past.map((apt) => (
-              <AppointmentCard key={apt.id} appointment={apt} onDelete={onDelete} />
+              <AppointmentCard key={apt.id} appointment={apt} onEdit={onEdit} onDelete={onDelete} />
             ))}
           </div>
         </div>
@@ -59,10 +60,11 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
 
 interface AppointmentCardProps {
   appointment: Appointment;
+  onEdit: (appointment: Appointment) => void;
   onDelete: (appointmentId: string) => void;
 }
 
-const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onDelete }) => {
+const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onEdit, onDelete }) => {
   const entity = new AppointmentEntity(appointment);
   const daysUntil = entity.daysUntil();
   const typeLabel = entity.getTypeLabel();
@@ -108,13 +110,22 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onDelete
             )}
           </div>
         </div>
-        <button
-          onClick={() => onDelete(appointment.id)}
-          className="text-gray-400 hover:text-red-500 p-1 transition-colors flex-shrink-0"
-          aria-label="削除"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex items-center space-x-1 flex-shrink-0">
+          <button
+            onClick={() => onEdit(appointment)}
+            className="text-gray-400 hover:text-blue-500 p-1 transition-colors"
+            aria-label="編集"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => onDelete(appointment.id)}
+            className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+            aria-label="削除"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );

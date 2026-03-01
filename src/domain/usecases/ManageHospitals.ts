@@ -6,6 +6,7 @@ import { Hospital } from '../entities/Appointment';
 import {
   HospitalRepository,
   CreateHospitalInput,
+  UpdateHospitalInput,
 } from '../repositories/HospitalRepository';
 
 export class GetHospitals {
@@ -24,6 +25,20 @@ export class CreateHospital {
       throw new Error('病院名は必須です');
     }
     return this.hospitalRepository.createHospital(input);
+  }
+}
+
+export class UpdateHospital {
+  constructor(private readonly hospitalRepository: HospitalRepository) {}
+
+  async execute(hospitalId: string, input: UpdateHospitalInput): Promise<Hospital> {
+    if (!hospitalId) {
+      throw new Error('病院IDは必須です');
+    }
+    if (Object.keys(input).length === 0) {
+      throw new Error('更新するフィールドがありません');
+    }
+    return this.hospitalRepository.updateHospital(hospitalId, input);
   }
 }
 

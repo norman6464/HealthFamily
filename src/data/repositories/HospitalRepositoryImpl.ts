@@ -5,6 +5,7 @@
 import {
   HospitalRepository,
   CreateHospitalInput,
+  UpdateHospitalInput,
 } from '../../domain/repositories/HospitalRepository';
 import { Hospital } from '../../domain/entities/Appointment';
 import { hospitalApi } from '../api/hospitalApi';
@@ -16,6 +17,10 @@ export class HospitalRepositoryImpl implements HospitalRepository {
 
   async createHospital(input: CreateHospitalInput): Promise<Hospital> {
     return hospitalApi.createHospital(input);
+  }
+
+  async updateHospital(hospitalId: string, input: UpdateHospitalInput): Promise<Hospital> {
+    return hospitalApi.updateHospital(hospitalId, input);
   }
 
   async deleteHospital(hospitalId: string): Promise<void> {

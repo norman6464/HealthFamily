@@ -1,12 +1,14 @@
 import React from 'react';
+import { Check } from 'lucide-react';
 import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 
 interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
   isLoading: boolean;
+  onMarkCompleted?: (scheduleId: string) => void;
 }
 
-export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading }) => {
+export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, onMarkCompleted }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -29,6 +31,7 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
         <ScheduleCard
           key={schedule.scheduleId}
           schedule={schedule}
+          onMarkCompleted={onMarkCompleted}
         />
       ))}
     </div>
@@ -37,9 +40,10 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
 
 interface ScheduleCardProps {
   schedule: TodayScheduleViewModel;
+  onMarkCompleted?: (scheduleId: string) => void;
 }
 
-const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
+const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule, onMarkCompleted }) => {
   return (
     <div
       className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow"
@@ -69,6 +73,15 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({ schedule }) => {
         </div>
 
         <div className="flex items-center space-x-2">
+          {onMarkCompleted && schedule.status !== 'completed' && (
+            <button
+              onClick={() => onMarkCompleted(schedule.scheduleId)}
+              className="p-2 bg-green-50 text-green-600 rounded-full hover:bg-green-100 transition-colors"
+              aria-label="服薬完了"
+            >
+              <Check size={18} />
+            </button>
+          )}
           <StatusBadge status={schedule.status} />
         </div>
       </div>

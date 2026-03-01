@@ -30,3 +30,14 @@ export class CreateMedicationRecord {
     return this.recordRepository.createRecord(input);
   }
 }
+
+export class DeleteMedicationRecord {
+  constructor(private readonly recordRepository: MedicationRecordRepository) {}
+
+  async execute(recordId: string): Promise<void> {
+    if (!recordId) {
+      throw new Error('記録IDは必須です');
+    }
+    return this.recordRepository.deleteRecord(recordId);
+  }
+}

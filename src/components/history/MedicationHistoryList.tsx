@@ -1,15 +1,16 @@
 'use client';
 
 import React from 'react';
-import { Clock, Pill, User } from 'lucide-react';
+import { Clock, Pill, User, Trash2 } from 'lucide-react';
 import { DailyRecordGroup, MedicationRecordEntity } from '../../domain/entities/MedicationRecord';
 
 interface MedicationHistoryListProps {
   groups: DailyRecordGroup[];
   isLoading: boolean;
+  onDelete?: (recordId: string) => void;
 }
 
-export const MedicationHistoryList: React.FC<MedicationHistoryListProps> = ({ groups, isLoading }) => {
+export const MedicationHistoryList: React.FC<MedicationHistoryListProps> = ({ groups, isLoading, onDelete }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -57,9 +58,20 @@ export const MedicationHistoryList: React.FC<MedicationHistoryListProps> = ({ gr
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-1 text-sm text-gray-500 flex-shrink-0 ml-2">
-                    <Clock size={14} />
-                    <span>{MedicationRecordEntity.formatTime(record.takenAt)}</span>
+                  <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
+                    <div className="flex items-center space-x-1 text-sm text-gray-500">
+                      <Clock size={14} />
+                      <span>{MedicationRecordEntity.formatTime(record.takenAt)}</span>
+                    </div>
+                    {onDelete && (
+                      <button
+                        onClick={() => onDelete(record.id)}
+                        className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                        aria-label="削除"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
                 {record.notes && (

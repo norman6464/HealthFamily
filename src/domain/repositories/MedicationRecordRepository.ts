@@ -15,4 +15,5 @@ export interface CreateRecordInput {
 export interface MedicationRecordRepository {
   getHistory(): Promise<MedicationRecord[]>;
   createRecord(input: CreateRecordInput): Promise<void>;
+  deleteRecord(recordId: string): Promise<void>;
 }

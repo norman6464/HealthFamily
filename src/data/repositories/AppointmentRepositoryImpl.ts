@@ -5,6 +5,7 @@
 import {
   AppointmentRepository,
   CreateAppointmentInput,
+  UpdateAppointmentInput,
 } from '../../domain/repositories/AppointmentRepository';
 import { Appointment } from '../../domain/entities/Appointment';
 import { appointmentApi } from '../api/appointmentApi';
@@ -16,6 +17,10 @@ export class AppointmentRepositoryImpl implements AppointmentRepository {
 
   async createAppointment(input: CreateAppointmentInput): Promise<Appointment> {
     return appointmentApi.createAppointment(input);
+  }
+
+  async updateAppointment(appointmentId: string, input: UpdateAppointmentInput): Promise<Appointment> {
+    return appointmentApi.updateAppointment(appointmentId, input);
   }
 
   async deleteAppointment(appointmentId: string): Promise<void> {

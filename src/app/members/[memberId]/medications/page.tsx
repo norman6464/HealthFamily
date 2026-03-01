@@ -4,11 +4,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useMedications } from '@/presentation/hooks/useMedications';
 import { useScheduleManagement } from '@/presentation/hooks/useScheduleManagement';
+import { useSchedules } from '@/presentation/hooks/useSchedules';
 import { MedicationList } from '@/components/medications/MedicationList';
 import { MedicationForm, MedicationFormData } from '@/components/medications/MedicationForm';
 import { ScheduleForm, ScheduleFormData } from '@/components/schedules/ScheduleForm';
+import { ScheduleList } from '@/components/schedules/ScheduleList';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ArrowLeft, Plus, X, Clock } from 'lucide-react';
 import { MedicationViewModel } from '@/domain/usecases/ManageMedications';
 
@@ -19,8 +21,14 @@ export default function Medications() {
   const { userId } = useAuth();
   const { medications, isLoading, createMedication, deleteMedication } = useMedications(memberId);
   const { createSchedule } = useScheduleManagement();
+  const { schedules, isLoading: schedulesLoading, updateSchedule, deleteSchedule, refetch: refetchSchedules } = useSchedules();
   const [showMedForm, setShowMedForm] = useState(false);
   const [scheduleTarget, setScheduleTarget] = useState<MedicationViewModel | null>(null);
+
+  const memberSchedules = useMemo(
+    () => schedules.filter((s) => s.schedule.memberId === memberId),
+    [schedules, memberId]
+  );
 
   const handleCreateMedication = async (data: MedicationFormData) => {
     await createMedication({
@@ -48,6 +56,11 @@ export default function Medications() {
       reminderMinutesBefore: data.reminderMinutesBefore,
     });
     setScheduleTarget(null);
+    await refetchSchedules();
+  };
+
+  const handleDeleteSchedule = async (scheduleId: string) => {
+    await deleteSchedule(scheduleId);
   };
 
   return (
@@ -123,6 +136,18 @@ export default function Medications() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {memberSchedules.length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-sm font-medium text-gray-600 mb-3">スケジュール管理</h2>
+            <ScheduleList
+              schedules={memberSchedules}
+              isLoading={schedulesLoading}
+              onUpdate={updateSchedule}
+              onDelete={handleDeleteSchedule}
+            />
           </div>
         )}
       </main>

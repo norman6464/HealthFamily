@@ -5,8 +5,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Appointment } from '../../domain/entities/Appointment';
-import { GetAppointments, CreateAppointment, DeleteAppointment } from '../../domain/usecases/ManageAppointments';
-import { CreateAppointmentInput } from '../../domain/repositories/AppointmentRepository';
+import { GetAppointments, CreateAppointment, UpdateAppointment, DeleteAppointment } from '../../domain/usecases/ManageAppointments';
+import { CreateAppointmentInput, UpdateAppointmentInput } from '../../domain/repositories/AppointmentRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 
 export interface UseAppointmentsResult {
@@ -14,6 +14,7 @@ export interface UseAppointmentsResult {
   isLoading: boolean;
   error: Error | null;
   createAppointment: (input: CreateAppointmentInput) => Promise<void>;
+  updateAppointment: (appointmentId: string, input: UpdateAppointmentInput) => Promise<void>;
   deleteAppointment: (appointmentId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -24,6 +25,7 @@ export const useAppointments = (): UseAppointmentsResult => {
     return {
       getAppointments: new GetAppointments(appointmentRepository),
       createAppointment: new CreateAppointment(appointmentRepository),
+      updateAppointment: new UpdateAppointment(appointmentRepository),
       deleteAppointment: new DeleteAppointment(appointmentRepository),
     };
   }, []);
@@ -54,6 +56,11 @@ export const useAppointments = (): UseAppointmentsResult => {
     await fetchAppointments();
   };
 
+  const handleUpdateAppointment = async (appointmentId: string, input: UpdateAppointmentInput) => {
+    await useCases.updateAppointment.execute(appointmentId, input);
+    await fetchAppointments();
+  };
+
   const handleDeleteAppointment = async (appointmentId: string) => {
     await useCases.deleteAppointment.execute(appointmentId);
     await fetchAppointments();
@@ -64,6 +71,7 @@ export const useAppointments = (): UseAppointmentsResult => {
     isLoading,
     error,
     createAppointment: handleCreateAppointment,
+    updateAppointment: handleUpdateAppointment,
     deleteAppointment: handleDeleteAppointment,
     refetch: fetchAppointments,
   };
