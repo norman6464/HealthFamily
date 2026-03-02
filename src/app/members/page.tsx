@@ -88,7 +88,13 @@ export default function Members() {
         <MemberList
           members={members}
           isLoading={isLoading}
-          onDelete={deleteMember}
+          onDelete={(memberId) => {
+            const member = members.find((m) => m.id === memberId);
+            const name = member?.name || 'このメンバー';
+            if (window.confirm(`${name}を削除しますか？\n関連するお薬やスケジュールも全て削除されます。`)) {
+              deleteMember(memberId);
+            }
+          }}
           onEdit={handleEdit}
           summaries={summaries}
         />

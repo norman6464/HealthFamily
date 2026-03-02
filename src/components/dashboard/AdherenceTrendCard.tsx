@@ -25,7 +25,7 @@ export const AdherenceTrendCard: React.FC<AdherenceTrendCardProps> = ({ trend, i
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700">服薬トレンド（週間）</h3>
+        <h3 className="text-sm font-semibold text-gray-700">お薬の達成率（週間）</h3>
         <div className={`flex items-center space-x-1 ${trendColor}`}>
           <TrendIcon size={16} />
           <span className="text-sm font-medium">{entity.getRateChangeLabel()}</span>

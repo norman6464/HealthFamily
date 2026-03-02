@@ -75,6 +75,12 @@ export class AppointmentEntity {
     vaccination: '予防接種',
     surgery: '手術',
     consultation: '相談',
+    medication_pickup: 'お薬',
+    examination: '検査',
+    flea_tick: 'ノミ・ダニ薬',
+    heartworm: 'フィラリア',
+    therapeutic_diet: '療養食',
+    grooming: 'トリミング',
     other: 'その他',
   };
 
