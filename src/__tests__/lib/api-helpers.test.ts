@@ -11,7 +11,7 @@ vi.mock('@/lib/prisma', () => ({
 import { auth } from '@/lib/auth';
 import { withAuth, withOwnershipCheck, verifyResourceOwnership, validateParamId, validateBodySize } from '@/lib/api-helpers';
 
-const mockAuth = vi.mocked(auth);
+const mockAuth = vi.mocked(auth) as unknown as ReturnType<typeof vi.fn>;
 
 describe('withAuth', () => {
   beforeEach(() => {

@@ -43,6 +43,7 @@ const createMockRepository = (): MedicationRecordRepository => ({
   createRecord: vi.fn().mockResolvedValue(undefined),
   deleteRecord: vi.fn().mockResolvedValue(undefined),
   getAdherenceStats: vi.fn().mockResolvedValue(mockStats),
+  getAdherenceTrends: vi.fn().mockResolvedValue(null),
 });
 
 describe('GetMedicationHistory', () => {
