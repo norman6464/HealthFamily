@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useAppointments } from '@/presentation/hooks/useAppointments';
@@ -22,6 +22,8 @@ export default function AppointmentsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<AppointmentFilter>('upcoming');
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const editFormRef = useRef<HTMLDivElement>(null);
 
   const appointmentDates = useMemo(() => appointments.map((a) => new Date(a.appointmentDate)), [appointments]);
   const counts = useMemo(() => getAppointmentCounts(appointments), [appointments]);
@@ -38,16 +40,28 @@ export default function AppointmentsPage() {
   const handleEdit = (appointment: Appointment) => {
     setEditingAppointment(appointment);
     setShowForm(false);
+    setUpdateError(null);
   };
+
+  useEffect(() => {
+    if (editingAppointment && editFormRef.current) {
+      editFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [editingAppointment]);
 
   const handleUpdate = async (data: AppointmentFormData) => {
     if (!editingAppointment) return;
-    await updateAppointment(editingAppointment.id, {
-      appointmentDate: data.appointmentDate,
-      type: data.type,
-      notes: data.notes,
-    });
-    setEditingAppointment(null);
+    setUpdateError(null);
+    try {
+      await updateAppointment(editingAppointment.id, {
+        appointmentDate: data.appointmentDate,
+        type: data.type,
+        notes: data.notes,
+      });
+      setEditingAppointment(null);
+    } catch {
+      setUpdateError('更新に失敗しました。もう一度お試しください。');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -55,6 +69,7 @@ export default function AppointmentsPage() {
   };
 
   const handleDelete = async (appointmentId: string) => {
+    if (!window.confirm('この予約を削除しますか？')) return;
     await deleteAppointment(appointmentId);
   };
 
@@ -101,8 +116,11 @@ export default function AppointmentsPage() {
         )}
 
         {editingAppointment && !membersLoading && members.length > 0 && (
-          <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-blue-200">
+          <div ref={editFormRef} className="mb-6 bg-white rounded-lg shadow-md p-4 border border-blue-200">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">通院予約の編集</h2>
+            {updateError && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">{updateError}</p>
+            )}
             <AppointmentForm
               key={editingAppointment.id}
               members={members}

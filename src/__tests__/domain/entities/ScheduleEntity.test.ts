@@ -57,6 +57,16 @@ describe('ScheduleEntity', () => {
       const monday = new Date('2024-06-03');
       expect(entity.isActiveOnDay(monday)).toBe(false);
     });
+
+    it('曜日が空配列（毎日）の場合、全ての日で true を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ daysOfWeek: [] }));
+      const monday = new Date('2024-06-03');
+      const tuesday = new Date('2024-06-04');
+      const sunday = new Date('2024-06-02');
+      expect(entity.isActiveOnDay(monday)).toBe(true);
+      expect(entity.isActiveOnDay(tuesday)).toBe(true);
+      expect(entity.isActiveOnDay(sunday)).toBe(true);
+    });
   });
 
   describe('getStatus (境界値)', () => {

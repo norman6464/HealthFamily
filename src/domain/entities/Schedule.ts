@@ -51,6 +51,11 @@ export class ScheduleEntity {
       return false;
     }
 
+    // 曜日が未設定（空配列）の場合は毎日有効
+    if (this.schedule.daysOfWeek.length === 0) {
+      return true;
+    }
+
     const dayMap: Record<number, DayOfWeek> = {
       0: 'sun',
       1: 'mon',

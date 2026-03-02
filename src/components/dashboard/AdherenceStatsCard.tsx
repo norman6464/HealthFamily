@@ -31,7 +31,7 @@ export const AdherenceStatsCard: React.FC<AdherenceStatsCardProps> = React.memo(
     <div className="mb-6">
       <div className="flex items-center space-x-2 mb-3">
         <TrendingUp size={18} className="text-primary-600" />
-        <h2 className="text-lg font-semibold text-gray-800">服薬アドヒアランス</h2>
+        <h2 className="text-lg font-semibold text-gray-800">お薬の達成率</h2>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">

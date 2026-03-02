@@ -34,7 +34,7 @@ describe('AdherenceTrendCard', () => {
 
   it('タイトルを表示する', () => {
     render(<AdherenceTrendCard trend={createTrend()} isLoading={false} />);
-    expect(screen.getByText('服薬トレンド（週間）')).toBeInTheDocument();
+    expect(screen.getByText('お薬の達成率（週間）')).toBeInTheDocument();
   });
 
   it('変化率を表示する', () => {
