@@ -15,6 +15,7 @@ describe('MedicationSearch', () => {
       results: [],
       isSearching: false,
       hasSearched: false,
+      error: null,
       search: mockSearch,
     });
   });
@@ -35,6 +36,7 @@ describe('MedicationSearch', () => {
       results: [{ id: '1', name: 'アスピリン', category: 'regular', memberId: 'm1', memberName: '太郎' }],
       isSearching: false,
       hasSearched: true,
+      error: null,
       search: mockSearch,
     });
 
@@ -48,6 +50,7 @@ describe('MedicationSearch', () => {
       results: [],
       isSearching: false,
       hasSearched: true,
+      error: null,
       search: mockSearch,
     });
 
@@ -76,6 +79,7 @@ describe('MedicationSearch', () => {
       results: [result],
       isSearching: false,
       hasSearched: true,
+      error: null,
       search: mockSearch,
     });
     const onSelect = vi.fn();

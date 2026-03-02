@@ -7,9 +7,14 @@ const createSchedule = (overrides: Partial<TodayScheduleViewModel> = {}): TodayS
   scheduleId: 'schedule-1',
   medicationId: 'med-1',
   medicationName: 'アスピリン',
+  userId: 'user-1',
+  memberId: 'member-1',
   memberName: '太郎',
+  memberType: 'human',
   scheduledTime: '08:00',
   status: 'pending' as const,
+  isEnabled: true,
+  reminderMinutesBefore: 5,
   ...overrides,
 });
 

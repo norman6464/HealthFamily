@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AppointmentForm } from '@/components/appointments/AppointmentForm';
 import { Member } from '@/domain/entities/Member';
 import { Hospital } from '@/domain/entities/Hospital';
 
 const mockMembers: Member[] = [
-  { id: 'm1', userId: 'u1', memberType: 'human', name: '太郎', isActive: true, createdAt: new Date(), updatedAt: new Date() },
-  { id: 'm2', userId: 'u1', memberType: 'pet', petType: 'dog', name: 'ポチ', isActive: true, createdAt: new Date(), updatedAt: new Date() },
+  { id: 'm1', userId: 'u1', memberType: 'human', name: '太郎', createdAt: new Date(), updatedAt: new Date() },
+  { id: 'm2', userId: 'u1', memberType: 'pet', petType: 'dog', name: 'ポチ', createdAt: new Date(), updatedAt: new Date() },
 ];
 
 const mockHospitals: Hospital[] = [

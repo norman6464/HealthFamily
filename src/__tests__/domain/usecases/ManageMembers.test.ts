@@ -18,6 +18,7 @@ const createMockRepository = (): MemberRepository => ({
   createMember: vi.fn().mockResolvedValue(mockMember),
   updateMember: vi.fn().mockResolvedValue({ ...mockMember, name: '更新太郎' }),
   deleteMember: vi.fn().mockResolvedValue(undefined),
+  getMemberSummaries: vi.fn().mockResolvedValue([]),
 });
 
 describe('GetMembers', () => {

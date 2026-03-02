@@ -7,10 +7,14 @@ const createSchedule = (status: 'pending' | 'completed' | 'overdue'): TodaySched
   scheduleId: `s-${Math.random()}`,
   medicationId: 'med-1',
   medicationName: 'テスト薬',
+  userId: 'user-1',
   memberName: '太郎',
   memberId: 'member-1',
+  memberType: 'human',
   scheduledTime: '08:00',
   status,
+  isEnabled: true,
+  reminderMinutesBefore: 5,
 });
 
 describe('WeeklySummaryCard', () => {

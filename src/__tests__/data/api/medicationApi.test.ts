@@ -56,6 +56,7 @@ describe('medicationApi', () => {
     const result = await medicationApi.createMedication({
       name: '頭痛薬',
       memberId: 'member-1',
+      userId: 'user-1',
       category: 'regular',
       dosage: '1錠',
       frequency: '1日3回',
