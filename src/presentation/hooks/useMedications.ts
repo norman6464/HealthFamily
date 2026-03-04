@@ -34,6 +34,7 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     () => useCases.getMedications.execute(memberId),
     [memberId, useCases],
     [] as MedicationViewModel[],
+    `medications-${memberId}`,
   );
 
   const handleCreateMedication = useCallback(async (input: CreateMedicationInput) => {

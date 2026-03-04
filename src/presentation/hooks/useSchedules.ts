@@ -45,6 +45,7 @@ export const useSchedules = (): UseSchedulesResult => {
     () => useCases.getSchedules.execute(),
     [useCases],
     [] as ScheduleWithDetails[],
+    'schedules',
   );
 
   const [isCreating, setIsCreating] = useState(false);

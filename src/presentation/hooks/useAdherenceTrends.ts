@@ -27,6 +27,7 @@ export const useAdherenceTrends = (): UseAdherenceTrendsResult => {
     () => useCase.execute(),
     [useCase],
     defaultTrend,
+    'adherence-trends',
   );
 
   return { trend: data, isLoading, error, refetch };

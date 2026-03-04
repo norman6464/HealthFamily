@@ -24,6 +24,7 @@ export const useMemberSummaries = (): UseMemberSummariesResult => {
     () => useCase.execute(),
     [useCase],
     [] as MemberSummary[],
+    'member-summaries',
   );
 
   return { summaries: data, isLoading, error };

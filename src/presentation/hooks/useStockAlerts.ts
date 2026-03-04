@@ -25,6 +25,7 @@ export const useStockAlerts = (): UseStockAlertsResult => {
     () => useCase.execute(),
     [useCase],
     [] as StockAlert[],
+    'stock-alerts',
   );
 
   return { alerts: data, isLoading, error, refetch };

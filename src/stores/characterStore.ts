@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { CharacterType, CharacterConfig, CHARACTER_CONFIGS } from '../domain/entities/Character';
 
 type MessageKey = keyof CharacterConfig['messages'];
@@ -10,18 +11,26 @@ interface CharacterState {
   getMessage: (key: MessageKey) => string;
 }
 
-export const useCharacterStore = create<CharacterState>((set, get) => ({
-  selectedCharacter: 'cat',
+export const useCharacterStore = create<CharacterState>()(
+  persist(
+    (set, get) => ({
+      selectedCharacter: 'cat',
 
-  setCharacter: (character: CharacterType) => {
-    set({ selectedCharacter: character });
-  },
+      setCharacter: (character: CharacterType) => {
+        set({ selectedCharacter: character });
+      },
 
-  getConfig: () => {
-    return CHARACTER_CONFIGS[get().selectedCharacter];
-  },
+      getConfig: () => {
+        return CHARACTER_CONFIGS[get().selectedCharacter];
+      },
 
-  getMessage: (key: MessageKey) => {
-    return CHARACTER_CONFIGS[get().selectedCharacter].messages[key];
-  },
-}));
+      getMessage: (key: MessageKey) => {
+        return CHARACTER_CONFIGS[get().selectedCharacter].messages[key];
+      },
+    }),
+    {
+      name: 'character-storage',
+      partialize: (state) => ({ selectedCharacter: state.selectedCharacter }),
+    },
+  ),
+);

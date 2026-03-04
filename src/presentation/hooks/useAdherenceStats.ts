@@ -30,6 +30,7 @@ export const useAdherenceStats = (): UseAdherenceStatsResult => {
     () => useCase.execute(),
     [useCase],
     defaultStats,
+    'adherence-stats',
   );
 
   return {

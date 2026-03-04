@@ -35,6 +35,7 @@ export const useHospitals = (): UseHospitalsResult => {
     () => useCases.getHospitals.execute(),
     [useCases],
     [] as Hospital[],
+    'hospitals',
   );
 
   const handleCreateHospital = useCallback(async (input: CreateHospitalInput) => {

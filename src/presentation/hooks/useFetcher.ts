@@ -1,9 +1,10 @@
 /**
  * 汎用データ取得フック
  * 共通のfetch/loading/errorパターンを抽出
+ * cacheKeyを指定するとページ遷移時にキャッシュデータを即表示（stale-while-revalidate）
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface UseFetcherResult<T> {
   data: T;
@@ -12,25 +13,46 @@ export interface UseFetcherResult<T> {
   refetch: () => Promise<void>;
 }
 
+const dataCache = new Map<string, unknown>();
+
 export function useFetcher<T>(
   asyncFn: () => Promise<T>,
   deps: React.DependencyList,
   initialValue: T,
+  cacheKey?: string,
 ): UseFetcherResult<T> {
-  const [data, setData] = useState<T>(initialValue);
-  const [isLoading, setIsLoading] = useState(true);
+  const cached = cacheKey ? (dataCache.get(cacheKey) as T | undefined) : undefined;
+  const [data, setData] = useState<T>(cached ?? initialValue);
+  const [isLoading, setIsLoading] = useState(cached === undefined);
   const [error, setError] = useState<Error | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
-      setIsLoading(true);
+      if (!dataCache.has(cacheKey ?? '')) {
+        setIsLoading(true);
+      }
       setError(null);
       const result = await asyncFn();
-      setData(result);
+      if (mountedRef.current) {
+        setData(result);
+        if (cacheKey) {
+          dataCache.set(cacheKey, result);
+        }
+      }
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err : new Error('Unknown error'));
+      }
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);

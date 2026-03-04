@@ -31,6 +31,7 @@ export const useTodaySchedules = (userId: string): UseTodaySchedulesResult => {
     () => getTodaySchedulesUseCase.execute({ userId, date: new Date() }),
     [userId, getTodaySchedulesUseCase],
     [] as TodayScheduleViewModel[],
+    `today-schedules-${userId}`,
   );
 
   const markAsCompleted = useCallback(async (scheduleId: string) => {

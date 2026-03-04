@@ -38,6 +38,7 @@ export const useAppointments = (): UseAppointmentsResult => {
     },
     [useCases],
     [] as Appointment[],
+    'appointments',
   );
 
   const handleCreateAppointment = useCallback(async (input: CreateAppointmentInput) => {
