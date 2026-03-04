@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { scheduleApi } from '@/data/api/scheduleApi';
 import { apiClient } from '@/data/api/apiClient';
-import { BackendSchedule, BackendMember, BackendMedication } from '@/data/api/types';
+import { BackendSchedule } from '@/data/api/types';
 
 vi.mock('@/data/api/apiClient', () => ({
   apiClient: {
@@ -24,22 +24,20 @@ const mockSchedule: BackendSchedule = {
   createdAt: '2025-01-01T00:00:00.000Z',
 };
 
-const mockMember: BackendMember = {
-  id: 'member-1',
+const mockTodayResponse = {
+  id: 'sch-1',
+  medicationId: 'med-1',
+  medicationName: '頭痛薬',
   userId: 'user-1',
-  name: '太郎',
-  memberType: 'human',
-  createdAt: '2025-01-01T00:00:00.000Z',
-  updatedAt: '2025-01-01T00:00:00.000Z',
-};
-
-const mockMedication: BackendMedication = {
-  id: 'med-1',
   memberId: 'member-1',
-  userId: 'user-1',
-  name: '頭痛薬',
+  memberName: '太郎',
+  memberType: 'human',
+  scheduledTime: '08:00',
+  daysOfWeek: ['mon', 'wed', 'fri'],
+  isEnabled: true,
+  reminderMinutesBefore: 10,
+  isCompleted: false,
   createdAt: '2025-01-01T00:00:00.000Z',
-  updatedAt: '2025-01-01T00:00:00.000Z',
 };
 
 describe('scheduleApi', () => {
@@ -48,26 +46,26 @@ describe('scheduleApi', () => {
   });
 
   it('getSchedulesでスケジュール一覧を詳細付きで取得する', async () => {
-    vi.mocked(apiClient.get)
-      .mockResolvedValueOnce([mockSchedule])
-      .mockResolvedValueOnce([mockMember])
-      .mockResolvedValueOnce(mockMedication);
+    vi.mocked(apiClient.get).mockResolvedValueOnce([mockTodayResponse]);
 
     const result = await scheduleApi.getSchedules();
+    expect(apiClient.get).toHaveBeenCalledWith('/schedules/today');
     expect(result).toHaveLength(1);
     expect(result[0].medicationName).toBe('頭痛薬');
     expect(result[0].memberName).toBe('太郎');
     expect(result[0].schedule.scheduledTime).toBe('08:00');
   });
 
-  it('getSchedulesで薬が見つからないスケジュールを除外する', async () => {
-    vi.mocked(apiClient.get)
-      .mockResolvedValueOnce([mockSchedule])
-      .mockResolvedValueOnce([mockMember])
-      .mockRejectedValueOnce(new Error('Not found'));
+  it('getTodaySchedulesでサーバーサイドから今日のスケジュールを取得する', async () => {
+    vi.mocked(apiClient.get).mockResolvedValueOnce([mockTodayResponse]);
 
-    const result = await scheduleApi.getSchedules();
-    expect(result).toHaveLength(0);
+    const result = await scheduleApi.getTodaySchedules('user-1', new Date());
+    expect(apiClient.get).toHaveBeenCalledWith('/schedules/today');
+    expect(result).toHaveLength(1);
+    expect(result[0].medicationName).toBe('頭痛薬');
+    expect(result[0].memberName).toBe('太郎');
+    expect(result[0].memberType).toBe('human');
+    expect(result[0].isCompleted).toBe(false);
   });
 
   it('createScheduleでスケジュールを作成する', async () => {
