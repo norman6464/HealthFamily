@@ -26,12 +26,20 @@ export const GET = withAuth(async (userId) => {
     }),
   ]);
 
+  // 英語の曜日名からJavaScript Date.getDay()のインデックスへの変換
+  const dayToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+
   // 曜日別の期待数（スケジュールから）
   const expectedByDay = new Array(7).fill(0);
   for (const schedule of schedules) {
-    for (const day of schedule.daysOfWeek) {
-      const dayIndex = (DAY_LABELS_JP as readonly string[]).indexOf(day);
-      if (dayIndex >= 0) expectedByDay[dayIndex] += 1;
+    if (schedule.daysOfWeek.length === 0) {
+      // 空配列は毎日有効
+      for (let i = 0; i < 7; i++) expectedByDay[i] += 1;
+    } else {
+      for (const day of schedule.daysOfWeek) {
+        const dayIndex = dayToIndex[day];
+        if (dayIndex !== undefined) expectedByDay[dayIndex] += 1;
+      }
     }
   }
 
