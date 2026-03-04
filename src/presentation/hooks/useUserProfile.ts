@@ -30,6 +30,7 @@ export const useUserProfile = (): UseUserProfileResult => {
     () => useCases.getProfile.execute(),
     [useCases],
     null as UserProfile | null,
+    'user-profile',
   );
 
   const handleUpdateProfile = useCallback(async (input: UpdateUserProfileInput): Promise<UserProfile> => {

@@ -35,6 +35,7 @@ export const useMembers = (userId: string): UseMembersResult => {
     () => useCases.getMembers.execute(userId),
     [userId, useCases],
     [] as Member[],
+    `members-${userId}`,
   );
 
   const handleCreateMember = useCallback(async (input: CreateMemberInput) => {

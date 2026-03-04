@@ -30,6 +30,7 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     () => useCases.getHistory.execute(),
     [useCases],
     [] as DailyRecordGroup[],
+    'medication-history',
   );
 
   const handleDeleteRecord = useCallback(async (recordId: string) => {
