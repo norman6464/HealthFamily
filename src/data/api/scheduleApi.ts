@@ -1,7 +1,7 @@
-import { Schedule } from '../../domain/entities/Schedule';
+import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { TodayScheduleItem } from '../../domain/repositories/ScheduleRepository';
 import { apiClient } from './apiClient';
-import { BackendSchedule, BackendMember, BackendMedication, BackendRecord } from './types';
+import { BackendSchedule } from './types';
 import { toSchedule } from './mappers';
 
 export interface ScheduleWithDetails {
@@ -10,77 +10,63 @@ export interface ScheduleWithDetails {
   memberName: string;
 }
 
+interface TodayScheduleResponse {
+  id: string;
+  medicationId: string;
+  medicationName: string;
+  userId: string;
+  memberId: string;
+  memberName: string;
+  memberType: string;
+  scheduledTime: string;
+  daysOfWeek: string[];
+  isEnabled: boolean;
+  reminderMinutesBefore: number;
+  isCompleted: boolean;
+  createdAt: string;
+}
+
+const VALID_DAYS: readonly string[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
 export const scheduleApi = {
   async getSchedules(): Promise<ScheduleWithDetails[]> {
-    const [schedules, members] = await Promise.all([
-      apiClient.get<BackendSchedule[]>('/schedules'),
-      apiClient.get<BackendMember[]>('/members'),
-    ]);
-
-    const memberMap = new Map(members.map((m) => [m.id, m]));
-    const medicationIds = [...new Set(schedules.map((s) => s.medicationId))];
-    const medications = await Promise.all(
-      medicationIds.map((id) =>
-        apiClient.get<BackendMedication>(`/medications/${id}`).catch(() => null)
-      )
-    );
-    const medMap = new Map(
-      medications.filter(Boolean).map((m) => [m!.id, m!])
-    );
-
-    return schedules
-      .filter((s) => medMap.has(s.medicationId))
-      .map((s) => {
-        const member = memberMap.get(s.memberId);
-        const med = medMap.get(s.medicationId)!;
-        return {
-          schedule: toSchedule(s),
-          medicationName: med.name,
-          memberName: member?.name || '',
-        };
-      });
+    const items = await apiClient.get<TodayScheduleResponse[]>('/schedules/today');
+    return items.map((item) => ({
+      schedule: {
+        id: item.id,
+        medicationId: item.medicationId,
+        userId: item.userId,
+        memberId: item.memberId,
+        scheduledTime: item.scheduledTime,
+        daysOfWeek: (item.daysOfWeek?.filter((d) => VALID_DAYS.includes(d)) as DayOfWeek[]) ?? [],
+        isEnabled: item.isEnabled,
+        reminderMinutesBefore: item.reminderMinutesBefore ?? 10,
+        createdAt: new Date(item.createdAt),
+      },
+      medicationName: item.medicationName,
+      memberName: item.memberName,
+    }));
   },
 
   async getTodaySchedules(_userId: string, _date: Date): Promise<TodayScheduleItem[]> {
-    const [schedules, members, records] = await Promise.all([
-      apiClient.get<BackendSchedule[]>('/schedules'),
-      apiClient.get<BackendMember[]>('/members'),
-      apiClient.get<BackendRecord[]>('/records'),
-    ]);
-
-    const memberMap = new Map(members.map((m) => [m.id, m]));
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const todayRecords = records.filter((r) => r.takenAt.slice(0, 10) === todayStr);
-    const todayRecordScheduleIds = new Set(
-      todayRecords.map((r) => r.scheduleId).filter(Boolean)
-    );
-    const todayRecordMedicationIds = new Set(
-      todayRecords.map((r) => r.medicationId).filter(Boolean)
-    );
-
-    const medicationIds = [...new Set(schedules.map((s) => s.medicationId))];
-    const medications = await Promise.all(
-      medicationIds.map((id) =>
-        apiClient.get<BackendMedication>(`/medications/${id}`).catch(() => null)
-      )
-    );
-    const medMap = new Map(
-      medications.filter(Boolean).map((m) => [m!.id, m!])
-    );
-
-    return schedules
-      .filter((s) => s.isEnabled !== false && medMap.has(s.medicationId))
-      .map((s) => {
-        const member = memberMap.get(s.memberId);
-        const med = medMap.get(s.medicationId)!;
-        return {
-          schedule: toSchedule(s),
-          medicationName: med.name,
-          memberName: member?.name || '',
-          memberType: (member?.memberType as 'human' | 'pet') || 'human',
-          isCompleted: todayRecordScheduleIds.has(s.id) || todayRecordMedicationIds.has(s.medicationId),
-        };
-      });
+    const items = await apiClient.get<TodayScheduleResponse[]>('/schedules/today');
+    return items.map((item) => ({
+      schedule: {
+        id: item.id,
+        medicationId: item.medicationId,
+        userId: item.userId,
+        memberId: item.memberId,
+        scheduledTime: item.scheduledTime,
+        daysOfWeek: (item.daysOfWeek?.filter((d) => VALID_DAYS.includes(d)) as DayOfWeek[]) ?? [],
+        isEnabled: item.isEnabled,
+        reminderMinutesBefore: item.reminderMinutesBefore ?? 10,
+        createdAt: new Date(item.createdAt),
+      },
+      medicationName: item.medicationName,
+      memberName: item.memberName,
+      memberType: (item.memberType as 'human' | 'pet') || 'human',
+      isCompleted: item.isCompleted,
+    }));
   },
 
   async createSchedule(
