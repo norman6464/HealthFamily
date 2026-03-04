@@ -36,9 +36,12 @@ export const GET = withAuth(async (userId) => {
   ]);
 
   // 1週間のスケジュール数を計算（各スケジュールの有効曜日数）
-  const weeklyExpected = schedules.reduce((sum, s) => sum + Math.min(s.daysOfWeek.length, 7), 0);
+  // daysOfWeekが空配列の場合は毎日（7日）として計算
+  const getActiveDays = (daysOfWeek: string[]) => daysOfWeek.length === 0 ? 7 : daysOfWeek.length;
+
+  const weeklyExpected = schedules.reduce((sum, s) => sum + Math.min(getActiveDays(s.daysOfWeek), 7), 0);
   const monthlyExpected = schedules.reduce((sum, s) => {
-    const daysPerWeek = s.daysOfWeek.length;
+    const daysPerWeek = getActiveDays(s.daysOfWeek);
     return sum + Math.round(daysPerWeek * (30 / 7));
   }, 0);
 
@@ -48,9 +51,9 @@ export const GET = withAuth(async (userId) => {
     const memberWeekly = weeklyRecords.filter((r) => r.memberId === member.id);
     const memberMonthly = monthlyRecords.filter((r) => r.memberId === member.id);
 
-    const expected7 = memberSchedules.reduce((sum, s) => sum + Math.min(s.daysOfWeek.length, 7), 0);
+    const expected7 = memberSchedules.reduce((sum, s) => sum + Math.min(getActiveDays(s.daysOfWeek), 7), 0);
     const expected30 = memberSchedules.reduce((sum, s) => {
-      return sum + Math.round(s.daysOfWeek.length * (30 / 7));
+      return sum + Math.round(getActiveDays(s.daysOfWeek) * (30 / 7));
     }, 0);
 
     return {
