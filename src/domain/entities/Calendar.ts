@@ -2,6 +2,9 @@
  * カレンダーユーティリティ
  */
 
+import { DAY_LABELS_JP } from '../../lib/constants';
+import { DateRangeHelper } from './DateRange';
+
 export interface CalendarDay {
   date: Date;
   isCurrentMonth: boolean;
@@ -91,7 +94,7 @@ export class CalendarEntity {
    * 曜日ヘッダーを取得
    */
   static getWeekdayHeaders(): string[] {
-    return ['日', '月', '火', '水', '木', '金', '土'];
+    return [...DAY_LABELS_JP];
   }
 
   /**
@@ -135,9 +138,6 @@ export class CalendarEntity {
    * 日付をYYYY-MM-DD形式に変換
    */
   static formatDateKey(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return DateRangeHelper.toDateKey(date);
   }
 }

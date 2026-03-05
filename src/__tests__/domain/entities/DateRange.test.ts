@@ -55,4 +55,21 @@ describe('DateRangeHelper', () => {
       expect(result).toEqual([0, 0, 0, 0, 0, 0, 0]);
     });
   });
+
+  describe('toDateKey', () => {
+    it('日付をYYYY-MM-DD形式に変換する', () => {
+      const date = new Date('2026-03-05T15:30:00');
+      expect(DateRangeHelper.toDateKey(date)).toBe('2026-03-05');
+    });
+
+    it('月日が1桁の場合はゼロパディングする', () => {
+      const date = new Date('2026-01-09T00:00:00');
+      expect(DateRangeHelper.toDateKey(date)).toBe('2026-01-09');
+    });
+
+    it('年末年始の日付を正しく変換する', () => {
+      const date = new Date('2025-12-31T23:59:59');
+      expect(DateRangeHelper.toDateKey(date)).toBe('2025-12-31');
+    });
+  });
 });
