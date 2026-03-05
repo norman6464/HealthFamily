@@ -105,6 +105,37 @@ export class AppointmentEntity {
     }).length;
   }
 
+  /**
+   * リマインダーを送信すべきタイミングか判定
+   */
+  shouldRemind(): boolean {
+    if (!this.appointment.reminderEnabled) return false;
+    const days = this.daysUntil();
+    if (days < 0) return false;
+    return days <= this.appointment.reminderDaysBefore;
+  }
+
+  /**
+   * 残り日数に応じたリマインダー緊急度を返す
+   */
+  static getReminderUrgency(daysUntil: number): 'urgent' | 'soon' | 'normal' | 'none' {
+    if (daysUntil <= 1) return 'urgent';
+    if (daysUntil <= 3) return 'soon';
+    if (daysUntil <= 7) return 'normal';
+    return 'none';
+  }
+
+  /**
+   * 予約の状態ラベルを返す
+   */
+  getStatusLabel(): string {
+    if (this.isPast()) return '完了';
+    if (this.isToday()) return '本日';
+    const days = this.daysUntil();
+    if (days <= 3) return 'もうすぐ';
+    return '予定';
+  }
+
   get id(): string {
     return this.appointment.id;
   }
