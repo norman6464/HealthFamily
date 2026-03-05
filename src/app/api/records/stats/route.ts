@@ -2,16 +2,12 @@ import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
 import { AdherenceStatsEntity } from '@/domain/entities/AdherenceStats';
+import { DateRangeHelper } from '@/domain/entities/DateRange';
 
 export const GET = withAuth(async (userId) => {
   const now = new Date();
-  const sevenDaysAgo = new Date(now);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
-
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  thirtyDaysAgo.setHours(0, 0, 0, 0);
+  const sevenDaysAgo = DateRangeHelper.daysAgo(7, now);
+  const thirtyDaysAgo = DateRangeHelper.daysAgo(30, now);
 
   const [weeklyRecords, monthlyRecords, allRecordDates, schedules, members] = await Promise.all([
     prisma.medicationRecord.findMany({
