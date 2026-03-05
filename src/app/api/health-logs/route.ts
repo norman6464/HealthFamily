@@ -2,12 +2,13 @@ import { prisma } from '@/lib/prisma';
 import { createHealthLogSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const logs = await prisma.healthLog.findMany({
     where: { userId },
     orderBy: { recordedAt: 'desc' },
-    take: 100,
+    take: QUERY_LIMITS.DEFAULT,
     include: {
       member: { select: { name: true } },
     },

@@ -3,9 +3,10 @@ import { createScheduleSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
 import { ScheduleEntity, Schedule } from '@/domain/entities/Schedule';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
-  const schedules = await prisma.schedule.findMany({ where: { userId }, take: 200 });
+  const schedules = await prisma.schedule.findMany({ where: { userId }, take: QUERY_LIMITS.SCHEDULES });
   return success(schedules);
 });
 

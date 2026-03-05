@@ -2,12 +2,13 @@ import { prisma } from '@/lib/prisma';
 import { createAppointmentSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const appointments = await prisma.appointment.findMany({
     where: { userId },
     orderBy: { appointmentDate: 'asc' },
-    take: 200,
+    take: QUERY_LIMITS.APPOINTMENTS,
     include: {
       member: { select: { name: true } },
       hospital: { select: { name: true } },

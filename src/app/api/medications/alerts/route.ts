@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
 import { StockAlertEntity } from '@/domain/entities/StockAlert';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const now = new Date();
@@ -15,12 +16,12 @@ export const GET = withAuth(async (userId) => {
       },
       include: { member: { select: { id: true, name: true } } },
       orderBy: { stockAlertDate: 'asc' },
-      take: 500,
+      take: QUERY_LIMITS.SCHEDULES,
     }),
     prisma.schedule.findMany({
       where: { userId, isEnabled: true },
       select: { medicationId: true },
-      take: 5000,
+      take: QUERY_LIMITS.RECORDS,
     }),
   ]);
 

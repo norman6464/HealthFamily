@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma';
 import { createHospitalSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateBodySize } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
-  const hospitals = await prisma.hospital.findMany({ where: { userId }, take: 100 });
+  const hospitals = await prisma.hospital.findMany({ where: { userId }, take: QUERY_LIMITS.DEFAULT });
   return success(hospitals);
 });
 
