@@ -2,7 +2,6 @@
  * 通院予約エンティティ
  */
 
-import { DAY_LABELS_JP } from '../../lib/constants';
 import { DateRangeHelper } from './DateRange';
 
 export interface Appointment {
@@ -56,7 +55,7 @@ export class AppointmentEntity {
    */
   getFormattedDate(): string {
     const d = new Date(this.appointment.appointmentDate);
-    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日(${DAY_LABELS_JP[d.getDay()]})`;
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日(${DateRangeHelper.getDayOfWeekLabel(d)})`;
   }
 
   /**

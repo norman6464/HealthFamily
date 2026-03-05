@@ -2,7 +2,6 @@
  * 服薬記録エンティティ
  */
 
-import { DAY_LABELS_JP } from '../../lib/constants';
 import { DateRangeHelper } from './DateRange';
 import { ScheduleEntity } from './Schedule';
 
@@ -52,7 +51,7 @@ export class MedicationRecordEntity {
    */
   static formatDate(dateStr: string): string {
     const date = new Date(dateStr + 'T00:00:00');
-    return `${date.getMonth() + 1}月${date.getDate()}日(${DAY_LABELS_JP[date.getDay()]})`;
+    return `${date.getMonth() + 1}月${date.getDate()}日(${DateRangeHelper.getDayOfWeekLabel(date)})`;
   }
 
   /**

@@ -2,7 +2,6 @@
  * 体調記録エンティティ
  */
 
-import { DAY_LABELS_JP } from '../../lib/constants';
 import { DateRangeHelper } from './DateRange';
 import { MathHelper } from './MathHelper';
 
@@ -154,7 +153,7 @@ export class HealthLogEntity {
    */
   static formatDate(dateStr: string): string {
     const date = new Date(dateStr + 'T00:00:00');
-    return `${date.getMonth() + 1}月${date.getDate()}日(${DAY_LABELS_JP[date.getDay()]})`;
+    return `${date.getMonth() + 1}月${date.getDate()}日(${DateRangeHelper.getDayOfWeekLabel(date)})`;
   }
 
   /**
@@ -171,7 +170,7 @@ export class HealthLogEntity {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const dateKey = DateRangeHelper.toDateKey(d);
-      const dayLabel = DAY_LABELS_JP[d.getDay()];
+      const dayLabel = DateRangeHelper.getDayOfWeekLabel(d);
 
       const dayLogs = logs.filter((log) => DateRangeHelper.toDateKey(log.recordedAt) === dateKey);
 
