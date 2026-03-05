@@ -2,9 +2,10 @@ import { prisma } from '@/lib/prisma';
 import { createMemberSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateBodySize } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
-  const members = await prisma.member.findMany({ where: { userId }, take: 100 });
+  const members = await prisma.member.findMany({ where: { userId }, take: QUERY_LIMITS.MEMBERS });
   return success(members);
 });
 

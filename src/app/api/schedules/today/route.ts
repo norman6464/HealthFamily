@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const now = new Date();
@@ -15,17 +16,17 @@ export const GET = withAuth(async (userId) => {
       include: {
         medication: { select: { id: true, name: true } },
       },
-      take: 500,
+      take: QUERY_LIMITS.SCHEDULES,
     }),
     prisma.medicationRecord.findMany({
       where: { userId, takenAt: { gte: todayStart, lte: todayEnd } },
       select: { scheduleId: true, medicationId: true },
-      take: 5000,
+      take: QUERY_LIMITS.RECORDS,
     }),
     prisma.member.findMany({
       where: { userId },
       select: { id: true, name: true, memberType: true },
-      take: 100,
+      take: QUERY_LIMITS.MEMBERS,
     }),
   ]);
 

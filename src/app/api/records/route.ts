@@ -2,12 +2,13 @@ import { prisma } from '@/lib/prisma';
 import { createRecordSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const records = await prisma.medicationRecord.findMany({
     where: { userId },
     orderBy: { takenAt: 'desc' },
-    take: 100,
+    take: QUERY_LIMITS.DEFAULT,
     include: {
       member: { select: { name: true } },
       medication: { select: { name: true } },

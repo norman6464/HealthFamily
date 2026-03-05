@@ -3,7 +3,7 @@ import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
 import { AdherenceStatsEntity } from '@/domain/entities/AdherenceStats';
 import { DateRangeHelper } from '@/domain/entities/DateRange';
-import { DAY_LABELS_JP } from '@/lib/constants';
+import { DAY_LABELS_JP, QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const now = new Date();
@@ -14,12 +14,12 @@ export const GET = withAuth(async (userId) => {
     prisma.medicationRecord.findMany({
       where: { userId, takenAt: { gte: fourteenDaysAgo } },
       select: { takenAt: true },
-      take: 5000,
+      take: QUERY_LIMITS.RECORDS,
     }),
     prisma.schedule.findMany({
       where: { userId, isEnabled: true },
       select: { daysOfWeek: true },
-      take: 1000,
+      take: QUERY_LIMITS.SCHEDULES,
     }),
   ]);
 

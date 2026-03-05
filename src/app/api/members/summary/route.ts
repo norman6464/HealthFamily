@@ -1,24 +1,25 @@
 import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const [members, medications, appointments] = await Promise.all([
     prisma.member.findMany({
       where: { userId },
       select: { id: true, name: true, memberType: true },
-      take: 100,
+      take: QUERY_LIMITS.MEMBERS,
     }),
     prisma.medication.findMany({
       where: { userId, isActive: true },
       select: { memberId: true },
-      take: 500,
+      take: QUERY_LIMITS.SCHEDULES,
     }),
     prisma.appointment.findMany({
       where: { userId, appointmentDate: { gte: new Date() } },
       select: { memberId: true, appointmentDate: true },
       orderBy: { appointmentDate: 'asc' },
-      take: 500,
+      take: QUERY_LIMITS.APPOINTMENTS,
     }),
   ]);
 
