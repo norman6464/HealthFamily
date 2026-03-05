@@ -50,7 +50,7 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-4">
-        <GreetingCard displayName={profile?.displayName || ''} />
+        <GreetingCard displayName={profile?.displayName || ''} weeklyRate={stats?.overall.weeklyRate} />
 
         <StreakCard streak={stats?.streak ?? null} isLoading={statsLoading} />
 

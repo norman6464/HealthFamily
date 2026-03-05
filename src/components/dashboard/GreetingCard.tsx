@@ -1,22 +1,19 @@
 import React from 'react';
 import { useCharacterStore } from '../../stores/characterStore';
 import { CharacterIcon } from '../shared/CharacterIcon';
+import { GreetingMessageEntity } from '../../domain/entities/GreetingMessage';
 
 interface GreetingCardProps {
   displayName: string;
+  weeklyRate?: number | null;
 }
 
-function getTimeGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'おはよう';
-  if (hour >= 12 && hour < 18) return 'こんにちは';
-  return 'こんばんは';
-}
-
-export const GreetingCard: React.FC<GreetingCardProps> = ({ displayName }) => {
+export const GreetingCard: React.FC<GreetingCardProps> = ({ displayName, weeklyRate }) => {
   const { getConfig } = useCharacterStore();
   const config = getConfig();
-  const greeting = getTimeGreeting();
+  const now = new Date();
+  const greeting = GreetingMessageEntity.getTimeGreeting(now.getHours());
+  const summaryMessage = GreetingMessageEntity.getWeeklySummaryMessage(weeklyRate ?? null);
 
   return (
     <div className="bg-primary-50 rounded-lg p-4 mb-6 flex items-center space-x-3">
@@ -25,7 +22,8 @@ export const GreetingCard: React.FC<GreetingCardProps> = ({ displayName }) => {
         <p className="text-sm font-medium text-primary-800">
           {greeting}、{displayName}さん
         </p>
-        <p className="text-xs text-primary-600">{config.name}より</p>
+        <p className="text-xs text-primary-600 mt-0.5">{summaryMessage}</p>
+        <p className="text-xs text-primary-400 mt-0.5">{config.name}より</p>
       </div>
     </div>
   );
