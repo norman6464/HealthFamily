@@ -105,4 +105,34 @@ export class MemberEntity {
     };
     return petIcons[petType ?? ''] ?? 'PawPrint';
   }
+
+  /**
+   * メンバー名のバリデーション
+   */
+  static validateName(name: string): { valid: boolean; error?: string } {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) {
+      return { valid: false, error: '名前を入力してください' };
+    }
+    if (trimmed.length > 20) {
+      return { valid: false, error: '名前は20文字以内で入力してください' };
+    }
+    return { valid: true };
+  }
+
+  /**
+   * メンバー名のサニタイズ（トリム・連続空白正規化）
+   */
+  static sanitizeName(name: string): string {
+    return name.trim().replace(/\s+/g, ' ');
+  }
+
+  /**
+   * 名前の頭文字を取得（アバター表示用）
+   */
+  static getNameInitial(name: string): string {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return '?';
+    return trimmed[0].toUpperCase();
+  }
 }
