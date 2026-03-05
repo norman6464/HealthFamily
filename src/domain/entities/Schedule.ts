@@ -3,6 +3,8 @@
  * ビジネスロジックの中核となるドメインモデル
  */
 
+import { MathHelper } from './MathHelper';
+
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type ScheduleStatus = 'pending' | 'completed' | 'overdue';
 export type OverdueLevel = 'none' | 'warning' | 'danger';
@@ -198,8 +200,7 @@ export class ScheduleEntity {
    * 完了率を算出(0-100%)
    */
   static calculateCompletionRate(completed: number, total: number): number {
-    if (total <= 0) return 0;
-    return Math.round((completed / total) * 100);
+    return MathHelper.calculatePercentage(completed, total);
   }
 
   /**
@@ -223,8 +224,7 @@ export class ScheduleEntity {
    * 飲み忘れ率を算出(0-100%)
    */
   static getOverdueRate(overdueCount: number, total: number): number {
-    if (total <= 0) return 0;
-    return Math.round((overdueCount / total) * 100);
+    return MathHelper.calculatePercentage(overdueCount, total);
   }
 
   /**

@@ -33,25 +33,25 @@ describe('HealthLogEntity トレンドメッセージ・スタイル', () => {
     });
   });
 
-  describe('getConditionLevelLabel', () => {
+  describe('getConditionLabel', () => {
     it('レベル1は「とても悪い」を返す', () => {
-      expect(HealthLogEntity.getConditionLevelLabel(1)).toBe('とても悪い');
+      expect(HealthLogEntity.getConditionLabel(1)).toBe('とても悪い');
     });
 
     it('レベル2は「悪い」を返す', () => {
-      expect(HealthLogEntity.getConditionLevelLabel(2)).toBe('悪い');
+      expect(HealthLogEntity.getConditionLabel(2)).toBe('悪い');
     });
 
     it('レベル3は「普通」を返す', () => {
-      expect(HealthLogEntity.getConditionLevelLabel(3)).toBe('普通');
+      expect(HealthLogEntity.getConditionLabel(3)).toBe('普通');
     });
 
     it('レベル4は「良い」を返す', () => {
-      expect(HealthLogEntity.getConditionLevelLabel(4)).toBe('良い');
+      expect(HealthLogEntity.getConditionLabel(4)).toBe('良い');
     });
 
     it('レベル5は「とても良い」を返す', () => {
-      expect(HealthLogEntity.getConditionLevelLabel(5)).toBe('とても良い');
+      expect(HealthLogEntity.getConditionLabel(5)).toBe('とても良い');
     });
   });
 });
