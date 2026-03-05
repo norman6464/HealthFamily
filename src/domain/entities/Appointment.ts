@@ -3,6 +3,7 @@
  */
 
 import { DAY_LABELS_JP } from '../../lib/constants';
+import { DateRangeHelper } from './DateRange';
 
 export interface Appointment {
   readonly id: string;
@@ -29,10 +30,8 @@ export class AppointmentEntity {
    * 予約が今日かどうか
    */
   isToday(): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(this.appointment.appointmentDate);
-    date.setHours(0, 0, 0, 0);
+    const today = DateRangeHelper.toStartOfDay(new Date());
+    const date = DateRangeHelper.toStartOfDay(new Date(this.appointment.appointmentDate));
     return today.getTime() === date.getTime();
   }
 
@@ -40,10 +39,8 @@ export class AppointmentEntity {
    * 予約が過去かどうか
    */
   isPast(): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(this.appointment.appointmentDate);
-    date.setHours(0, 0, 0, 0);
+    const today = DateRangeHelper.toStartOfDay(new Date());
+    const date = DateRangeHelper.toStartOfDay(new Date(this.appointment.appointmentDate));
     return date.getTime() < today.getTime();
   }
 
@@ -51,11 +48,7 @@ export class AppointmentEntity {
    * 予約日までの残り日数
    */
   daysUntil(): number {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(this.appointment.appointmentDate);
-    date.setHours(0, 0, 0, 0);
-    return Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return DateRangeHelper.diffDays(new Date(), new Date(this.appointment.appointmentDate));
   }
 
   /**
@@ -105,11 +98,9 @@ export class AppointmentEntity {
    * 今日以降の予約件数を返す
    */
   static getUpcomingCount(appointments: Appointment[], today: Date): number {
-    const todayStart = new Date(today);
-    todayStart.setHours(0, 0, 0, 0);
+    const todayStart = DateRangeHelper.toStartOfDay(today);
     return appointments.filter((apt) => {
-      const aptDate = new Date(apt.appointmentDate);
-      aptDate.setHours(0, 0, 0, 0);
+      const aptDate = DateRangeHelper.toStartOfDay(new Date(apt.appointmentDate));
       return aptDate.getTime() >= todayStart.getTime();
     }).length;
   }

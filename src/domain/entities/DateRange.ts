@@ -18,12 +18,20 @@ export class DateRangeHelper {
   }
 
   /**
+   * 日付を0時0分0秒に正規化したコピーを返す
+   */
+  static toStartOfDay(date: Date): Date {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  /**
    * 指定日数前の日付を0時0分0秒で返す
    */
   static daysAgo(days: number, from: Date = new Date()): Date {
-    const date = new Date(from);
+    const date = DateRangeHelper.toStartOfDay(from);
     date.setDate(date.getDate() - days);
-    date.setHours(0, 0, 0, 0);
     return date;
   }
 
@@ -57,10 +65,8 @@ export class DateRangeHelper {
    * 2つの日付間の日数差を計算（to - from）
    */
   static diffDays(from: Date, to: Date): number {
-    const fromStart = new Date(from);
-    fromStart.setHours(0, 0, 0, 0);
-    const toStart = new Date(to);
-    toStart.setHours(0, 0, 0, 0);
+    const fromStart = DateRangeHelper.toStartOfDay(from);
+    const toStart = DateRangeHelper.toStartOfDay(to);
     return Math.round((toStart.getTime() - fromStart.getTime()) / (1000 * 60 * 60 * 24));
   }
 
