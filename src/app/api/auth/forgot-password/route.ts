@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
+import { forgotPasswordSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { validateBodySize } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
@@ -11,11 +12,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const email = (body.email ?? '').trim().toLowerCase();
+    const parsed = forgotPasswordSchema.safeParse(body);
+    if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-    if (!email) {
-      return errorResponse('メールアドレスを入力してください');
-    }
+    const email = parsed.data.email;
 
     const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
     const rateLimit = checkRateLimit(`forgot:${ip}`, { maxAttempts: 5, windowMs: 60 * 1000 });

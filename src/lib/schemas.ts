@@ -155,3 +155,7 @@ export const signUpSchema = z.object({
     .regex(/[0-9]/, 'パスワードには数字を含めてください'),
   displayName: z.string().trim().min(1, '表示名は必須です').max(100),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email('有効なメールアドレスを入力してください'),
+});
