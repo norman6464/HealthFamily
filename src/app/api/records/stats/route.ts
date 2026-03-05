@@ -35,7 +35,7 @@ export const GET = withAuth(async (userId) => {
     prisma.member.findMany({
       where: { userId },
       select: { id: true, name: true },
-      take: 100,
+      take: QUERY_LIMITS.MEMBERS,
     }),
   ]);
 

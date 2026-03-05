@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
+import { QUERY_LIMITS } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   return withAuth(async (userId) => {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
       },
       include: { member: { select: { id: true, name: true } } },
       orderBy: { name: 'asc' },
-      take: 20,
+      take: QUERY_LIMITS.DEFAULT,
     });
 
     const results = medications.map((med) => ({
