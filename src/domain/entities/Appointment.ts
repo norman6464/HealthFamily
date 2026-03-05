@@ -89,6 +89,31 @@ export class AppointmentEntity {
     return AppointmentEntity.typeLabels[this.appointment.appointmentType] || this.appointment.appointmentType;
   }
 
+  /**
+   * 予約を種別ごとにカウントする
+   */
+  static countByType(appointments: Appointment[]): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const apt of appointments) {
+      const type = apt.appointmentType || 'other';
+      counts[type] = (counts[type] || 0) + 1;
+    }
+    return counts;
+  }
+
+  /**
+   * 今日以降の予約件数を返す
+   */
+  static getUpcomingCount(appointments: Appointment[], today: Date): number {
+    const todayStart = new Date(today);
+    todayStart.setHours(0, 0, 0, 0);
+    return appointments.filter((apt) => {
+      const aptDate = new Date(apt.appointmentDate);
+      aptDate.setHours(0, 0, 0, 0);
+      return aptDate.getTime() >= todayStart.getTime();
+    }).length;
+  }
+
   get id(): string {
     return this.appointment.id;
   }
