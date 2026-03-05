@@ -33,6 +33,52 @@ describe('AdherenceStatsEntity', () => {
     });
   });
 
+  describe('getActiveDaysCount', () => {
+    it('空配列は7を返す（毎日）', () => {
+      expect(AdherenceStatsEntity.getActiveDaysCount([])).toBe(7);
+    });
+
+    it('指定された曜日数を返す', () => {
+      expect(AdherenceStatsEntity.getActiveDaysCount(['mon', 'wed', 'fri'])).toBe(3);
+    });
+  });
+
+  describe('calculateWeeklyExpected', () => {
+    it('週間期待数を正しく算出する', () => {
+      const schedules = [
+        { daysOfWeek: ['mon', 'wed', 'fri'] },
+        { daysOfWeek: [] },
+      ];
+      expect(AdherenceStatsEntity.calculateWeeklyExpected(schedules)).toBe(10);
+    });
+
+    it('空配列の場合0を返す', () => {
+      expect(AdherenceStatsEntity.calculateWeeklyExpected([])).toBe(0);
+    });
+  });
+
+  describe('calculateMonthlyExpected', () => {
+    it('月間期待数を正しく算出する', () => {
+      const schedules = [{ daysOfWeek: [] }]; // 毎日 = 7日/週
+      const expected = Math.round(7 * (30 / 7));
+      expect(AdherenceStatsEntity.calculateMonthlyExpected(schedules)).toBe(expected);
+    });
+  });
+
+  describe('calculateRate', () => {
+    it('遵守率を正しく算出する', () => {
+      expect(AdherenceStatsEntity.calculateRate(7, 10)).toBe(70);
+    });
+
+    it('100%を超えない', () => {
+      expect(AdherenceStatsEntity.calculateRate(15, 10)).toBe(100);
+    });
+
+    it('期待値0の場合は0を返す', () => {
+      expect(AdherenceStatsEntity.calculateRate(5, 0)).toBe(0);
+    });
+  });
+
   describe('data', () => {
     it('統計データにアクセスできる', () => {
       const stats = {

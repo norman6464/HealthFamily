@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { createScheduleSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership } from '@/lib/api-helpers';
+import { ScheduleEntity, Schedule } from '@/domain/entities/Schedule';
 
 export const GET = withAuth(async (userId) => {
   const schedules = await prisma.schedule.findMany({ where: { userId }, take: 200 });
@@ -20,8 +21,9 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    // 重複チェック: 同じ薬・同じ時刻・曜日が重複するスケジュール
     const daysOfWeek = parsed.data.daysOfWeek ?? [];
+
+    // ドメインエンティティによる重複チェック
     const existing = await prisma.schedule.findFirst({
       where: {
         userId,
@@ -31,13 +33,23 @@ export async function POST(request: Request) {
       },
     });
 
-    if (existing && daysOfWeek.length > 0) {
-      const overlapping = daysOfWeek.some((day) => existing.daysOfWeek.includes(day));
-      if (overlapping) {
+    if (existing) {
+      const newScheduleData: Schedule = {
+        id: '',
+        medicationId: parsed.data.medicationId,
+        userId,
+        memberId: parsed.data.memberId,
+        scheduledTime: parsed.data.scheduledTime,
+        daysOfWeek: daysOfWeek as Schedule['daysOfWeek'],
+        isEnabled: true,
+        reminderMinutesBefore: parsed.data.reminderMinutesBefore ?? 5,
+        createdAt: new Date(),
+      };
+      const entity = new ScheduleEntity(newScheduleData);
+      const existingSchedule: Schedule = { ...existing, daysOfWeek: existing.daysOfWeek as Schedule['daysOfWeek'] };
+      if (entity.hasOverlap(existingSchedule)) {
         return errorResponse('同じ薬の同じ時刻に既にスケジュールが存在します');
       }
-    } else if (existing && daysOfWeek.length === 0) {
-      return errorResponse('同じ薬の同じ時刻に既にスケジュールが存在します');
     }
 
     const schedule = await prisma.schedule.create({
