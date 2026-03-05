@@ -76,11 +76,7 @@ export class CalendarEntity {
    * 同じ日かどうかを判定
    */
   static isSameDay(a: Date, b: Date): boolean {
-    return (
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
-    );
+    return DateRangeHelper.toDateKey(a) === DateRangeHelper.toDateKey(b);
   }
 
   /**
