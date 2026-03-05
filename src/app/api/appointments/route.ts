@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createAppointmentSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
   const appointments = await prisma.appointment.findMany({
@@ -13,13 +13,9 @@ export const GET = withAuth(async (userId) => {
       hospital: { select: { name: true } },
     },
   });
-  const result = appointments.map((a) => ({
-    ...a,
-    memberName: a.member.name,
-    hospitalName: a.hospital?.name,
-    member: undefined,
-    hospital: undefined,
-  }));
+  const result = appointments.map((a) =>
+    flattenRelations(a, { member: 'memberName', hospital: 'hospitalName' }),
+  );
   return success(result);
 });
 

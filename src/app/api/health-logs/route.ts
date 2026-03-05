@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createHealthLogSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
   const logs = await prisma.healthLog.findMany({
@@ -12,11 +12,9 @@ export const GET = withAuth(async (userId) => {
       member: { select: { name: true } },
     },
   });
-  const result = logs.map((log) => ({
-    ...log,
-    memberName: log.member.name,
-    member: undefined,
-  }));
+  const result = logs.map((log) =>
+    flattenRelations(log, { member: 'memberName' }),
+  );
   return success(result);
 });
 
