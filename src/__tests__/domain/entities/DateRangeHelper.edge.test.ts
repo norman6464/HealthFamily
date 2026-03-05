@@ -105,4 +105,87 @@ describe('DateRangeHelper エッジケーステスト', () => {
       expect(DateRangeHelper.toDateKey(new Date(2026, 9, 10))).toBe('2026-10-10');
     });
   });
+
+  describe('diffDays 追加境界値', () => {
+    it('同日は0を返す', () => {
+      const d = new Date('2026-03-05');
+      expect(DateRangeHelper.diffDays(d, d)).toBe(0);
+    });
+
+    it('逆順は負の値を返す', () => {
+      expect(DateRangeHelper.diffDays(new Date('2026-03-06'), new Date('2026-03-05'))).toBe(-1);
+    });
+
+    it('月をまたぐ2月28日→3月1日は1日', () => {
+      expect(DateRangeHelper.diffDays(new Date('2026-02-28'), new Date('2026-03-01'))).toBe(1);
+    });
+
+    it('年をまたぐ12月31日→1月1日は1日', () => {
+      expect(DateRangeHelper.diffDays(new Date('2025-12-31'), new Date('2026-01-01'))).toBe(1);
+    });
+  });
+
+  describe('isWithinDays 境界値', () => {
+    it('ちょうどdays日はtrueを返す', () => {
+      expect(DateRangeHelper.isWithinDays(new Date('2026-03-10'), new Date('2026-03-05'), 5)).toBe(true);
+    });
+
+    it('days+1日はfalseを返す', () => {
+      expect(DateRangeHelper.isWithinDays(new Date('2026-03-11'), new Date('2026-03-05'), 5)).toBe(false);
+    });
+
+    it('過去方向もtrueを返す', () => {
+      expect(DateRangeHelper.isWithinDays(new Date('2026-03-01'), new Date('2026-03-05'), 5)).toBe(true);
+    });
+  });
+
+  describe('getDatesBetween 追加テスト', () => {
+    it('7日間は7要素を返す', () => {
+      const result = DateRangeHelper.getDatesBetween(new Date('2026-03-01'), new Date('2026-03-07'));
+      expect(result).toHaveLength(7);
+    });
+
+    it('年をまたぐ場合も正しく生成する', () => {
+      const result = DateRangeHelper.getDatesBetween(new Date('2025-12-30'), new Date('2026-01-02'));
+      expect(result).toEqual(['2025-12-30', '2025-12-31', '2026-01-01', '2026-01-02']);
+    });
+  });
+
+  describe('getDayLabels', () => {
+    it('7要素の配列を返す', () => {
+      expect(DateRangeHelper.getDayLabels()).toHaveLength(7);
+    });
+
+    it('日〜土の順序で返す', () => {
+      expect(DateRangeHelper.getDayLabels()).toEqual(['日', '月', '火', '水', '木', '金', '土']);
+    });
+
+    it('返り値は元配列のコピーである', () => {
+      const a = DateRangeHelper.getDayLabels();
+      const b = DateRangeHelper.getDayLabels();
+      expect(a).not.toBe(b);
+    });
+  });
+
+  describe('isWeekend 全曜日', () => {
+    it('月〜金はfalse', () => {
+      for (let i = 2; i <= 6; i++) {
+        const d = new Date(`2026-03-0${i}`);
+        expect(DateRangeHelper.isWeekend(d)).toBe(false);
+      }
+    });
+
+    it('土日はtrue', () => {
+      expect(DateRangeHelper.isWeekend(new Date('2026-03-07'))).toBe(true);
+      expect(DateRangeHelper.isWeekend(new Date('2026-03-01'))).toBe(true);
+    });
+  });
+
+  describe('daysAgo 追加テスト', () => {
+    it('負の日数は未来の日付を返す', () => {
+      const from = new Date('2026-03-05');
+      const result = DateRangeHelper.daysAgo(-3, from);
+      expect(DateRangeHelper.toDateKey(result)).toBe('2026-03-08');
+    });
+  });
 });
