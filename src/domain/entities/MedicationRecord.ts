@@ -111,4 +111,36 @@ export class MedicationRecordEntity {
       }))
       .filter((g) => g.records.length > 0);
   }
+
+  /**
+   * 日別の服薬回数を集計
+   */
+  static getDailyRecordCounts(records: MedicationRecord[]): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const record of records) {
+      const key = DateRangeHelper.toDateKey(new Date(record.takenAt));
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    return counts;
+  }
+
+  /**
+   * 薬別の服薬回数をランキング形式で返す(多い順)
+   */
+  static getMedicationFrequency(records: MedicationRecord[]): { medicationName: string; count: number }[] {
+    const counts: Record<string, number> = {};
+    for (const record of records) {
+      counts[record.medicationName] = (counts[record.medicationName] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([medicationName, count]) => ({ medicationName, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * 総服薬回数を返す
+   */
+  static getTotalRecordCount(records: MedicationRecord[]): number {
+    return records.length;
+  }
 }
