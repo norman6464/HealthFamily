@@ -231,6 +231,50 @@ export class HealthLogEntity {
   }
 
   /**
+   * 症状のペア(同時出現)を集計する
+   */
+  static getSymptomPairs(logs: HealthLog[]): Map<string, number> {
+    const pairs = new Map<string, number>();
+    for (const log of logs) {
+      const sorted = [...log.symptoms].sort();
+      for (let i = 0; i < sorted.length; i++) {
+        for (let j = i + 1; j < sorted.length; j++) {
+          const key = `${sorted[i]}+${sorted[j]}`;
+          pairs.set(key, (pairs.get(key) || 0) + 1);
+        }
+      }
+    }
+    return pairs;
+  }
+
+  /**
+   * 特定の2症状の同時出現率を算出(0-100%)
+   */
+  static getCoOccurrenceRate(logs: HealthLog[], symptom1: SymptomType, symptom2: SymptomType): number {
+    const logsWithSymptom1 = logs.filter((l) => l.symptoms.includes(symptom1));
+    if (logsWithSymptom1.length === 0) return 0;
+    const coOccurrences = logsWithSymptom1.filter((l) => l.symptoms.includes(symptom2)).length;
+    return Math.round((coOccurrences / logsWithSymptom1.length) * 100);
+  }
+
+  /**
+   * 最も多い症状ペアを返す
+   */
+  static getMostCommonPair(logs: HealthLog[]): { pair: string; count: number } | null {
+    const pairs = HealthLogEntity.getSymptomPairs(logs);
+    if (pairs.size === 0) return null;
+    let maxPair = '';
+    let maxCount = 0;
+    for (const [pair, count] of pairs) {
+      if (count > maxCount) {
+        maxPair = pair;
+        maxCount = count;
+      }
+    }
+    return { pair: maxPair, count: maxCount };
+  }
+
+  /**
    * 体調レベルに応じた日本語ラベルを返す
    */
   static getConditionLevelLabel(level: ConditionLevel): string {
