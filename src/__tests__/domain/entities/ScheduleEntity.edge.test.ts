@@ -159,4 +159,113 @@ describe('ScheduleEntity - エッジケース', () => {
       expect(entity.getOverdueLevel(time, false)).toBe('danger');
     });
   });
+
+  describe('getTimePeriod 境界値', () => {
+    it('4:59はnightを返す', () => {
+      expect(ScheduleEntity.getTimePeriod('04:59')).toBe('night');
+    });
+
+    it('5:00はmorningを返す(境界)', () => {
+      expect(ScheduleEntity.getTimePeriod('05:00')).toBe('morning');
+    });
+
+    it('11:59はmorningを返す', () => {
+      expect(ScheduleEntity.getTimePeriod('11:59')).toBe('morning');
+    });
+
+    it('12:00はafternoonを返す(境界)', () => {
+      expect(ScheduleEntity.getTimePeriod('12:00')).toBe('afternoon');
+    });
+
+    it('16:59はafternoonを返す', () => {
+      expect(ScheduleEntity.getTimePeriod('16:59')).toBe('afternoon');
+    });
+
+    it('17:00はeveningを返す(境界)', () => {
+      expect(ScheduleEntity.getTimePeriod('17:00')).toBe('evening');
+    });
+
+    it('20:59はeveningを返す', () => {
+      expect(ScheduleEntity.getTimePeriod('20:59')).toBe('evening');
+    });
+
+    it('21:00はnightを返す(境界)', () => {
+      expect(ScheduleEntity.getTimePeriod('21:00')).toBe('night');
+    });
+  });
+
+  describe('calculateCompletionRate 追加境界値', () => {
+    it('0/0は0を返す', () => {
+      expect(ScheduleEntity.calculateCompletionRate(0, 0)).toBe(0);
+    });
+
+    it('1/3は33を返す(四捨五入)', () => {
+      expect(ScheduleEntity.calculateCompletionRate(1, 3)).toBe(33);
+    });
+
+    it('2/3は67を返す(四捨五入)', () => {
+      expect(ScheduleEntity.calculateCompletionRate(2, 3)).toBe(67);
+    });
+
+    it('負の合計は0を返す', () => {
+      expect(ScheduleEntity.calculateCompletionRate(5, -1)).toBe(0);
+    });
+  });
+
+  describe('getCompletionMessage 全パターン', () => {
+    it('100%は全完了メッセージ', () => {
+      expect(ScheduleEntity.getCompletionMessage(100)).toBe('全ての予定が完了しました');
+    });
+
+    it('80%はあと少しメッセージ(境界)', () => {
+      expect(ScheduleEntity.getCompletionMessage(80)).toBe('あと少しで全て完了です');
+    });
+
+    it('79%は順調メッセージ(境界)', () => {
+      expect(ScheduleEntity.getCompletionMessage(79)).toBe('順調に進んでいます');
+    });
+
+    it('50%は順調メッセージ(境界)', () => {
+      expect(ScheduleEntity.getCompletionMessage(50)).toBe('順調に進んでいます');
+    });
+
+    it('49%は頑張りましょうメッセージ(境界)', () => {
+      expect(ScheduleEntity.getCompletionMessage(49)).toBe('今日も頑張りましょう');
+    });
+
+    it('0%は頑張りましょうメッセージ', () => {
+      expect(ScheduleEntity.getCompletionMessage(0)).toBe('今日も頑張りましょう');
+    });
+  });
+
+  describe('groupByTimePeriod', () => {
+    it('空配列は全時間帯を空で返す', () => {
+      const groups = ScheduleEntity.groupByTimePeriod([]);
+      expect(groups).toHaveLength(4);
+      expect(groups.every((g) => g.schedules.length === 0)).toBe(true);
+    });
+
+    it('各時間帯にラベルが設定されている', () => {
+      const groups = ScheduleEntity.groupByTimePeriod([]);
+      expect(groups[0].label).toBe('朝');
+      expect(groups[1].label).toBe('昼');
+      expect(groups[2].label).toBe('夕');
+      expect(groups[3].label).toBe('夜');
+    });
+
+    it('複数スケジュールが正しくグループ化される', () => {
+      const schedules = [
+        { scheduledTime: '08:00' },
+        { scheduledTime: '12:30' },
+        { scheduledTime: '18:00' },
+        { scheduledTime: '22:00' },
+        { scheduledTime: '09:00' },
+      ];
+      const groups = ScheduleEntity.groupByTimePeriod(schedules);
+      expect(groups[0].schedules).toHaveLength(2);
+      expect(groups[1].schedules).toHaveLength(1);
+      expect(groups[2].schedules).toHaveLength(1);
+      expect(groups[3].schedules).toHaveLength(1);
+    });
+  });
 });
