@@ -4,6 +4,7 @@
 
 import { DAY_LABELS_JP } from '../../lib/constants';
 import { DateRangeHelper } from './DateRange';
+import { MathHelper } from './MathHelper';
 
 export const CONDITION_LEVELS = [1, 2, 3, 4, 5] as const;
 export type ConditionLevel = (typeof CONDITION_LEVELS)[number];
@@ -254,7 +255,7 @@ export class HealthLogEntity {
     const logsWithSymptom1 = logs.filter((l) => l.symptoms.includes(symptom1));
     if (logsWithSymptom1.length === 0) return 0;
     const coOccurrences = logsWithSymptom1.filter((l) => l.symptoms.includes(symptom2)).length;
-    return Math.round((coOccurrences / logsWithSymptom1.length) * 100);
+    return MathHelper.calculatePercentage(coOccurrences, logsWithSymptom1.length);
   }
 
   /**
@@ -274,17 +275,4 @@ export class HealthLogEntity {
     return { pair: maxPair, count: maxCount };
   }
 
-  /**
-   * 体調レベルに応じた日本語ラベルを返す
-   */
-  static getConditionLevelLabel(level: ConditionLevel): string {
-    const labels: Record<ConditionLevel, string> = {
-      1: 'とても悪い',
-      2: '悪い',
-      3: '普通',
-      4: '良い',
-      5: 'とても良い',
-    };
-    return labels[level];
-  }
 }

@@ -3,6 +3,7 @@
  */
 
 import { DateRangeHelper } from './DateRange';
+import { MathHelper } from './MathHelper';
 
 export interface MemberAdherenceStats {
   readonly memberId: string;
@@ -95,8 +96,7 @@ export class AdherenceStatsEntity {
    * 遵守率を算出（0-100%）
    */
   static calculateRate(actual: number, expected: number): number {
-    if (expected <= 0) return 0;
-    return Math.min(100, Math.round((actual / expected) * 100));
+    return MathHelper.calculatePercentage(actual, expected, true);
   }
 
   /**
