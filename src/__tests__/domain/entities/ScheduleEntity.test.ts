@@ -149,6 +149,83 @@ describe('ScheduleEntity', () => {
     });
   });
 
+  describe('getOverdueLevel', () => {
+    it('完了済みの場合 none を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T10:00:00');
+      expect(entity.getOverdueLevel(now, true)).toBe('none');
+    });
+
+    it('予定時刻前は none を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '14:00' }));
+      const now = new Date('2024-06-01T09:00:00');
+      expect(entity.getOverdueLevel(now, false)).toBe('none');
+    });
+
+    it('30分未満の遅れは none を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T08:20:00');
+      expect(entity.getOverdueLevel(now, false)).toBe('none');
+    });
+
+    it('30分以上60分未満の遅れは warning を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T08:45:00');
+      expect(entity.getOverdueLevel(now, false)).toBe('warning');
+    });
+
+    it('60分以上の遅れは danger を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T09:30:00');
+      expect(entity.getOverdueLevel(now, false)).toBe('danger');
+    });
+
+    it('ちょうど30分で warning を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T08:30:00');
+      expect(entity.getOverdueLevel(now, false)).toBe('warning');
+    });
+
+    it('ちょうど60分で danger を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T09:00:00');
+      expect(entity.getOverdueLevel(now, false)).toBe('danger');
+    });
+  });
+
+  describe('getOverdueMinutes', () => {
+    it('予定時刻前は0を返す', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '14:00' }));
+      const now = new Date('2024-06-01T09:00:00');
+      expect(entity.getOverdueMinutes(now)).toBe(0);
+    });
+
+    it('遅れ分数を正しく計算する', () => {
+      const entity = new ScheduleEntity(createSchedule({ scheduledTime: '08:00' }));
+      const now = new Date('2024-06-01T08:45:00');
+      expect(entity.getOverdueMinutes(now)).toBe(45);
+    });
+  });
+
+  describe('getOverdueLevelStyle', () => {
+    it('dangerは赤系スタイルを返す', () => {
+      const style = ScheduleEntity.getOverdueLevelStyle('danger');
+      expect(style.bg).toBe('bg-red-50');
+      expect(style.text).toBe('text-red-600');
+    });
+
+    it('warningはオレンジ系スタイルを返す', () => {
+      const style = ScheduleEntity.getOverdueLevelStyle('warning');
+      expect(style.bg).toBe('bg-orange-50');
+      expect(style.text).toBe('text-orange-600');
+    });
+
+    it('noneは空文字を返す', () => {
+      const style = ScheduleEntity.getOverdueLevelStyle('none');
+      expect(style.bg).toBe('');
+    });
+  });
+
   describe('id / data', () => {
     it('プロパティにアクセスできる', () => {
       const schedule = createSchedule({ id: 'sched-abc' });
