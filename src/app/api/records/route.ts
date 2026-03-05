@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createRecordSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
   const records = await prisma.medicationRecord.findMany({
@@ -13,13 +13,9 @@ export const GET = withAuth(async (userId) => {
       medication: { select: { name: true } },
     },
   });
-  const result = records.map((r) => ({
-    ...r,
-    memberName: r.member.name,
-    medicationName: r.medication.name,
-    member: undefined,
-    medication: undefined,
-  }));
+  const result = records.map((r) =>
+    flattenRelations(r, { member: 'memberName', medication: 'medicationName' }),
+  );
   return success(result);
 });
 

@@ -80,6 +80,24 @@ export function validateParamId(id: string): Response | null {
  * リクエストボディのサイズを検証する
  * 制限を超える場合は413レスポンスを返す
  */
+/**
+ * Prismaのincludeで取得したリレーションオブジェクトを
+ * フラットなフィールドに変換する
+ * 例: { member: { name: '太郎' } } → { memberName: '太郎', member: undefined }
+ */
+export function flattenRelations(
+  record: Record<string, unknown>,
+  mappings: Record<string, string>,
+): Record<string, unknown> {
+  const result = { ...record };
+  for (const [relationKey, flatKey] of Object.entries(mappings)) {
+    const relation = record[relationKey] as { name: string } | null | undefined;
+    result[flatKey] = relation?.name;
+    result[relationKey] = undefined;
+  }
+  return result;
+}
+
 const MAX_BODY_SIZE = 100 * 1024; // 100KB
 
 export function validateBodySize(request: Request): Response | null {
