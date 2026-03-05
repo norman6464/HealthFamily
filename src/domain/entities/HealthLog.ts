@@ -275,4 +275,31 @@ export class HealthLogEntity {
     return { pair: maxPair, count: maxCount };
   }
 
+  /**
+   * 記録群の週間サマリーを算出
+   */
+  static getWeeklySummary(logs: HealthLog[]): {
+    totalLogs: number;
+    averageCondition: number | null;
+    topSymptom: SymptomType | null;
+  } {
+    if (logs.length === 0) {
+      return { totalLogs: 0, averageCondition: null, topSymptom: null };
+    }
+    const avg = HealthLogEntity.getAverageCondition(logs);
+    const symptoms = HealthLogEntity.getMostFrequentSymptoms(logs, 1);
+    return {
+      totalLogs: logs.length,
+      averageCondition: Math.round(avg),
+      topSymptom: symptoms.length > 0 ? symptoms[0].symptom : null,
+    };
+  }
+
+  /**
+   * 前週との体調変化率を算出(%)
+   */
+  static getConditionChangeRate(currentAvg: number, previousAvg: number): number {
+    if (previousAvg === 0) return 0;
+    return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
+  }
 }
