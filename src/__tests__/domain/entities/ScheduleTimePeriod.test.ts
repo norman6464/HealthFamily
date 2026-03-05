@@ -79,7 +79,7 @@ describe('ScheduleEntity 時間帯グループ化', () => {
         { scheduledTime: '18:00', id: '3' },
         { scheduledTime: '22:00', id: '4' },
       ];
-      const result = ScheduleEntity.groupByTimePeriod(schedules as any);
+      const result = ScheduleEntity.groupByTimePeriod(schedules);
       expect(result[0].schedules).toHaveLength(1); // morning
       expect(result[1].schedules).toHaveLength(1); // afternoon
       expect(result[2].schedules).toHaveLength(1); // evening
@@ -92,7 +92,7 @@ describe('ScheduleEntity 時間帯グループ化', () => {
         { scheduledTime: '09:00', id: '2' },
         { scheduledTime: '10:00', id: '3' },
       ];
-      const result = ScheduleEntity.groupByTimePeriod(schedules as any);
+      const result = ScheduleEntity.groupByTimePeriod(schedules);
       expect(result[0].schedules).toHaveLength(3); // all morning
       expect(result[1].schedules).toHaveLength(0);
       expect(result[2].schedules).toHaveLength(0);
