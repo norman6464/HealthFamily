@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createScheduleSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
 import { ScheduleEntity, Schedule } from '@/domain/entities/Schedule';
 
 export const GET = withAuth(async (userId) => {
@@ -10,6 +10,9 @@ export const GET = withAuth(async (userId) => {
 });
 
 export async function POST(request: Request) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = createScheduleSchema.safeParse(body);

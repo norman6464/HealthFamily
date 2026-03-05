@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createHospitalSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth } from '@/lib/api-helpers';
+import { withAuth, validateBodySize } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
   const hospitals = await prisma.hospital.findMany({ where: { userId }, take: 100 });
@@ -9,6 +9,9 @@ export const GET = withAuth(async (userId) => {
 });
 
 export async function POST(request: Request) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = createHospitalSchema.safeParse(body);

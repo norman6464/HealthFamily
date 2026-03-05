@@ -2,12 +2,15 @@ import { prisma } from '@/lib/prisma';
 import { updateStockSchema } from '@/lib/schemas';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
 
 const findMedicationWithMember = (id: string) =>
   prisma.medication.findUnique({ where: { id }, include: { member: true } });
 
 export async function PUT(request: Request, { params }: { params: Promise<{ medicationId: string }> }) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const { medicationId } = await params;
     return withOwnershipCheck({

@@ -1,11 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import { updateScheduleSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
 
 const findSchedule = (id: string) => prisma.schedule.findUnique({ where: { id } });
 
 export async function PUT(request: Request, { params }: { params: Promise<{ scheduleId: string }> }) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const { scheduleId } = await params;
     return withOwnershipCheck({

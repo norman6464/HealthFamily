@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { updateMemberSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
 
 const findMember = (id: string) => prisma.member.findUnique({ where: { id } });
 
@@ -19,6 +19,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ mem
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ memberId: string }> }) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const { memberId } = await params;
     return withOwnershipCheck({

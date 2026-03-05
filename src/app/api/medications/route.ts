@@ -1,9 +1,12 @@
 import { prisma } from '@/lib/prisma';
 import { createMedicationSchema } from '@/lib/schemas';
 import { created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
 
 export async function POST(request: Request) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = createMedicationSchema.safeParse(body);
