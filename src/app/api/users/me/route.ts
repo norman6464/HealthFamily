@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { updateUserProfileSchema } from '@/lib/schemas';
 import { success, errorResponse, notFound } from '@/lib/auth-helpers';
-import { withAuth } from '@/lib/api-helpers';
+import { withAuth, validateBodySize } from '@/lib/api-helpers';
 
 export const GET = withAuth(async (userId) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -17,6 +17,9 @@ export const GET = withAuth(async (userId) => {
 });
 
 export async function PUT(request: Request) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = updateUserProfileSchema.safeParse(body);

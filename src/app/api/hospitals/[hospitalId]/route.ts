@@ -1,11 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import { updateHospitalSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
 
 const findHospital = (id: string) => prisma.hospital.findUnique({ where: { id } });
 
 export async function PUT(request: Request, { params }: { params: Promise<{ hospitalId: string }> }) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const { hospitalId } = await params;
     return withOwnershipCheck({
