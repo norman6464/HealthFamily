@@ -212,6 +212,30 @@ export class ScheduleEntity {
     return '今日も頑張りましょう';
   }
 
+  /**
+   * ステータス配列からoverdueの件数を返す
+   */
+  static countOverdue(statuses: readonly string[]): number {
+    return statuses.filter((s) => s === 'overdue').length;
+  }
+
+  /**
+   * 飲み忘れ率を算出(0-100%)
+   */
+  static getOverdueRate(overdueCount: number, total: number): number {
+    if (total <= 0) return 0;
+    return Math.round((overdueCount / total) * 100);
+  }
+
+  /**
+   * 飲み忘れ率に応じたアラートレベルを返す
+   */
+  static getOverdueAlertLevel(rate: number): 'good' | 'caution' | 'alert' {
+    if (rate >= 60) return 'alert';
+    if (rate >= 30) return 'caution';
+    return 'good';
+  }
+
   get id(): string {
     return this.schedule.id;
   }
