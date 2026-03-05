@@ -271,10 +271,10 @@ export class ScheduleEntity {
     total: number;
     rate: number;
   } {
-    const completed = statuses.filter((s) => s === 'completed').length;
-    const pending = statuses.filter((s) => s === 'pending').length;
-    const overdue = statuses.filter((s) => s === 'overdue').length;
     const total = statuses.length;
+    const completed = statuses.filter((s) => s === 'completed').length;
+    const overdue = ScheduleEntity.countOverdue(statuses);
+    const pending = total - completed - overdue;
     return {
       completed,
       pending,
