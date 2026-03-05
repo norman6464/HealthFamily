@@ -6,6 +6,7 @@ import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { HealthLogList } from '@/components/health-logs/HealthLogList';
 import { HealthLogForm } from '@/components/health-logs/HealthLogForm';
 import { HealthWeeklyTrend } from '@/components/health-logs/HealthWeeklyTrend';
+import { SymptomFrequencySummary } from '@/components/health-logs/SymptomFrequencySummary';
 import { useHealthLogs } from '@/presentation/hooks/useHealthLogs';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,11 @@ export default function HealthLogsPage() {
 
   const weeklyAverages = useMemo(
     () => HealthLogEntity.getDailyAverages(allLogs, 7, new Date()),
+    [allLogs],
+  );
+
+  const frequentSymptoms = useMemo(
+    () => HealthLogEntity.getMostFrequentSymptoms(allLogs, 5),
     [allLogs],
   );
 
@@ -69,6 +75,8 @@ export default function HealthLogsPage() {
         )}
 
         <HealthWeeklyTrend averages={weeklyAverages} />
+
+        <SymptomFrequencySummary symptoms={frequentSymptoms} />
 
         <HealthLogList groups={groups} isLoading={isLoading} onDelete={deleteLog} />
       </main>
