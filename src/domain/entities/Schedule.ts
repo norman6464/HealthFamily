@@ -6,6 +6,13 @@
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type ScheduleStatus = 'pending' | 'completed' | 'overdue';
 export type OverdueLevel = 'none' | 'warning' | 'danger';
+export type TimePeriod = 'morning' | 'afternoon' | 'evening' | 'night';
+
+export interface TimePeriodGroup<T> {
+  period: TimePeriod;
+  label: string;
+  schedules: T[];
+}
 
 export interface Schedule {
   readonly id: string;
@@ -142,6 +149,50 @@ export class ScheduleEntity {
       default:
         return { bg: '', text: '', border: '' };
     }
+  }
+
+  /**
+   * 時刻文字列(HH:mm)から時間帯を判定
+   */
+  static getTimePeriod(time: string): TimePeriod {
+    const hour = parseInt(time.split(':')[0], 10);
+    if (hour >= 5 && hour < 12) return 'morning';
+    if (hour >= 12 && hour < 17) return 'afternoon';
+    if (hour >= 17 && hour < 21) return 'evening';
+    return 'night';
+  }
+
+  /**
+   * 時間帯の日本語ラベルを取得
+   */
+  static getTimePeriodLabel(period: TimePeriod): string {
+    const labels: Record<TimePeriod, string> = {
+      morning: '朝',
+      afternoon: '昼',
+      evening: '夕',
+      night: '夜',
+    };
+    return labels[period];
+  }
+
+  /**
+   * スケジュールを時間帯別にグループ化
+   */
+  static groupByTimePeriod<T extends { scheduledTime: string }>(schedules: T[]): TimePeriodGroup<T>[] {
+    const periods: TimePeriod[] = ['morning', 'afternoon', 'evening', 'night'];
+    const groups: TimePeriodGroup<T>[] = periods.map((period) => ({
+      period,
+      label: ScheduleEntity.getTimePeriodLabel(period),
+      schedules: [],
+    }));
+
+    for (const schedule of schedules) {
+      const period = ScheduleEntity.getTimePeriod(schedule.scheduledTime);
+      const group = groups.find((g) => g.period === period);
+      if (group) group.schedules.push(schedule);
+    }
+
+    return groups;
   }
 
   get id(): string {
