@@ -45,4 +45,29 @@ export class DateRangeHelper {
     }
     return expected;
   }
+
+  /**
+   * 日数から期間ラベルを生成
+   */
+  static getPeriodLabel(days: number): string {
+    return `過去${days}日間`;
+  }
+
+  /**
+   * 2つの日付間の日数差を計算（to - from）
+   */
+  static diffDays(from: Date, to: Date): number {
+    const fromStart = new Date(from);
+    fromStart.setHours(0, 0, 0, 0);
+    const toStart = new Date(to);
+    toStart.setHours(0, 0, 0, 0);
+    return Math.round((toStart.getTime() - fromStart.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * 日付が基準日からdays日以内かどうかを判定
+   */
+  static isWithinDays(date: Date, reference: Date, days: number): boolean {
+    return Math.abs(DateRangeHelper.diffDays(reference, date)) <= days;
+  }
 }
