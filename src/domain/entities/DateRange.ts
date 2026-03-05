@@ -94,9 +94,17 @@ export class DateRangeHelper {
   /**
    * 曜日の日本語ラベルを返す
    */
+  private static readonly DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+
   static getDayOfWeekLabel(date: Date): string {
-    const labels = ['日', '月', '火', '水', '木', '金', '土'];
-    return labels[date.getDay()];
+    return DateRangeHelper.DAY_LABELS[date.getDay()];
+  }
+
+  /**
+   * 曜日ラベル配列を返す（日〜土）
+   */
+  static getDayLabels(): string[] {
+    return [...DateRangeHelper.DAY_LABELS];
   }
 
   /**

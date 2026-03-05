@@ -2,7 +2,6 @@
  * カレンダーユーティリティ
  */
 
-import { DAY_LABELS_JP } from '../../lib/constants';
 import { DateRangeHelper } from './DateRange';
 
 export interface CalendarDay {
@@ -90,7 +89,7 @@ export class CalendarEntity {
    * 曜日ヘッダーを取得
    */
   static getWeekdayHeaders(): string[] {
-    return [...DAY_LABELS_JP];
+    return DateRangeHelper.getDayLabels();
   }
 
   /**
