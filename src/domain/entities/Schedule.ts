@@ -261,6 +261,39 @@ export class ScheduleEntity {
     return 'none';
   }
 
+  /**
+   * ステータス配列から日別完了サマリーを算出
+   */
+  static getDailyCompletionSummary(statuses: ScheduleStatus[]): {
+    completed: number;
+    pending: number;
+    overdue: number;
+    total: number;
+    rate: number;
+  } {
+    const completed = statuses.filter((s) => s === 'completed').length;
+    const pending = statuses.filter((s) => s === 'pending').length;
+    const overdue = statuses.filter((s) => s === 'overdue').length;
+    const total = statuses.length;
+    return {
+      completed,
+      pending,
+      overdue,
+      total,
+      rate: MathHelper.calculatePercentage(completed, total),
+    };
+  }
+
+  /**
+   * 完了数と合計数に応じた進捗メッセージを返す
+   */
+  static getProgressMessage(completed: number, total: number): string {
+    if (total === 0) return '予定がありません';
+    if (completed === total) return '全ての予定を達成しました';
+    if (completed >= total / 2) return 'もう少しで全て完了です';
+    return '少しずつ進めていきましょう';
+  }
+
   get id(): string {
     return this.schedule.id;
   }
