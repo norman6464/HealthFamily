@@ -4,6 +4,7 @@
 
 import { DAY_LABELS_JP } from '../../lib/constants';
 import { DateRangeHelper } from './DateRange';
+import { ScheduleEntity } from './Schedule';
 
 export interface MedicationRecord {
   readonly id: string;
@@ -142,5 +143,59 @@ export class MedicationRecordEntity {
    */
   static getTotalRecordCount(records: MedicationRecord[]): number {
     return records.length;
+  }
+
+  /**
+   * 平均服薬時刻をHH:mm形式で返す
+   */
+  static getAverageTimeTaken(records: MedicationRecord[]): string | null {
+    if (records.length === 0) return null;
+    const totalMinutes = records.reduce((sum, r) => {
+      const d = new Date(r.takenAt);
+      return sum + d.getHours() * 60 + d.getMinutes();
+    }, 0);
+    const avg = Math.round(totalMinutes / records.length);
+    const h = Math.floor(avg / 60).toString().padStart(2, '0');
+    const m = (avg % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
+  /**
+   * 時間帯別の服薬件数分布を返す
+   */
+  static getTimePeriodDistribution(records: MedicationRecord[]): {
+    morning: number;
+    afternoon: number;
+    evening: number;
+    night: number;
+  } {
+    const dist = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+    for (const r of records) {
+      const time = MedicationRecordEntity.formatTime(new Date(r.takenAt));
+      const period = ScheduleEntity.getTimePeriod(time);
+      dist[period]++;
+    }
+    return dist;
+  }
+
+  /**
+   * 最も服薬が多い時間(時)を返す
+   */
+  static getMostActiveHour(records: MedicationRecord[]): number | null {
+    if (records.length === 0) return null;
+    const counts: Record<number, number> = {};
+    for (const r of records) {
+      const hour = new Date(r.takenAt).getHours();
+      counts[hour] = (counts[hour] || 0) + 1;
+    }
+    let maxHour = 0;
+    let maxCount = 0;
+    for (const [hour, count] of Object.entries(counts)) {
+      if (count > maxCount) {
+        maxHour = Number(hour);
+        maxCount = count;
+      }
+    }
+    return maxHour;
   }
 }
