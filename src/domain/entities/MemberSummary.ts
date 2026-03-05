@@ -2,6 +2,8 @@
  * メンバーサマリーエンティティ
  */
 
+import { DateRangeHelper } from './DateRange';
+
 export interface MemberSummary {
   readonly memberId: string;
   readonly memberName: string;
@@ -23,11 +25,7 @@ export class MemberSummaryEntity {
 
   getDaysUntilAppointment(): number | null {
     if (!this.summary.nextAppointmentDate) return null;
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const appointmentDate = new Date(this.summary.nextAppointmentDate);
-    appointmentDate.setHours(0, 0, 0, 0);
-    return Math.ceil((appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return DateRangeHelper.diffDays(new Date(), new Date(this.summary.nextAppointmentDate));
   }
 
   getAppointmentLabel(): string {
