@@ -236,6 +236,31 @@ export class ScheduleEntity {
     return 'good';
   }
 
+  /**
+   * 2つの時刻文字列(HH:mm)間の差を分で返す(絶対値)
+   */
+  static getTimeDiffMinutes(time1: string, time2: string): number {
+    const [h1, m1] = time1.split(':').map(Number);
+    const [h2, m2] = time2.split(':').map(Number);
+    return Math.abs(h1 * 60 + m1 - (h2 * 60 + m2));
+  }
+
+  /**
+   * 2つの時刻が指定分数以内に近接しているか判定
+   */
+  static isTimeClose(time1: string, time2: string, thresholdMinutes: number = 30): boolean {
+    return ScheduleEntity.getTimeDiffMinutes(time1, time2) <= thresholdMinutes;
+  }
+
+  /**
+   * 時間差(分)に応じた近接レベルを返す
+   */
+  static getTimeProximityLevel(diffMinutes: number): 'warning' | 'info' | 'none' {
+    if (diffMinutes <= 15) return 'warning';
+    if (diffMinutes <= 30) return 'info';
+    return 'none';
+  }
+
   get id(): string {
     return this.schedule.id;
   }
