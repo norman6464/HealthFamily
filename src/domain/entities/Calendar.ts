@@ -135,6 +135,47 @@ export class CalendarEntity {
   }
 
   /**
+   * 週間サマリーを算出
+   */
+  static getWeekSummary(days: CalendarDay[]): {
+    totalRecords: number;
+    averageCondition: number | null;
+    daysWithRecords: number;
+  } {
+    const totalRecords = days.reduce((sum, d) => sum + d.recordCount, 0);
+    const daysWithCondition = days.filter((d) => d.averageCondition !== null);
+    const daysWithRecords = days.filter((d) => d.recordCount > 0).length;
+    const averageCondition =
+      daysWithCondition.length > 0
+        ? Math.round(
+            daysWithCondition.reduce((sum, d) => sum + (d.averageCondition as number), 0) /
+              daysWithCondition.length,
+          )
+        : null;
+    return { totalRecords, averageCondition, daysWithRecords };
+  }
+
+  /**
+   * 週の完了状態を判定
+   */
+  static getWeekCompletionStatus(days: CalendarDay[]): 'complete' | 'partial' | 'empty' {
+    if (days.length === 0) return 'empty';
+    const hasRecord = days.filter((d) => d.recordCount > 0).length;
+    if (hasRecord === 0) return 'empty';
+    if (hasRecord === days.length) return 'complete';
+    return 'partial';
+  }
+
+  /**
+   * 最も記録が多い日を返す
+   */
+  static getBusiestDay(days: CalendarDay[]): CalendarDay | null {
+    if (days.length === 0) return null;
+    const max = days.reduce((best, d) => (d.recordCount > best.recordCount ? d : best), days[0]);
+    return max.recordCount > 0 ? max : null;
+  }
+
+  /**
    * 日付をYYYY-MM-DD形式に変換
    */
   static formatDateKey(date: Date): string {
