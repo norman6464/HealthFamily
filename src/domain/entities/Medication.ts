@@ -119,11 +119,41 @@ export class MedicationEntity {
   }
 
   getDisplayInfo(): { name: string; categoryLabel: string; dosageInfo: string } {
-    const dosageParts = [this.medication.dosage, this.medication.frequency].filter(Boolean);
     return {
       name: this.medication.name,
       categoryLabel: MedicationEntity.categoryLabels[this.medication.category],
-      dosageInfo: dosageParts.join(' / '),
+      dosageInfo: this.getDosageSummary(),
     };
+  }
+
+  /**
+   * 用量と頻度の統合表示文字列を返す
+   */
+  getDosageSummary(): string {
+    const parts = [this.medication.dosage, this.medication.frequency].filter(Boolean);
+    return parts.join(' / ');
+  }
+
+  /**
+   * 在庫状態を判定する
+   */
+  getStockStatus(): 'safe' | 'low' | 'critical' | 'unknown' {
+    if (this.medication.stockQuantity === undefined) return 'unknown';
+    if (this.medication.stockQuantity === 0) return 'critical';
+    if (this.medication.stockQuantity <= 5) return 'low';
+    return 'safe';
+  }
+
+  /**
+   * 在庫状態の日本語ラベルを返す
+   */
+  static getStockStatusLabel(status: 'safe' | 'low' | 'critical' | 'unknown'): string {
+    const labels: Record<string, string> = {
+      safe: '十分',
+      low: '残りわずか',
+      critical: '在庫切れ',
+      unknown: '未設定',
+    };
+    return labels[status];
   }
 }
