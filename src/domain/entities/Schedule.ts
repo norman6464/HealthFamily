@@ -5,6 +5,7 @@
 
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type ScheduleStatus = 'pending' | 'completed' | 'overdue';
+export type OverdueLevel = 'none' | 'warning' | 'danger';
 
 export interface Schedule {
   readonly id: string;
@@ -94,6 +95,53 @@ export class ScheduleEntity {
     }
 
     return this.schedule.daysOfWeek.some((day) => other.daysOfWeek.includes(day));
+  }
+
+  /**
+   * 飲み忘れの深刻度を取得
+   * 30分以上: warning, 1時間以上: danger
+   */
+  getOverdueLevel(currentTime: Date, isCompleted: boolean): OverdueLevel {
+    if (isCompleted) return 'none';
+
+    const [hours, minutes] = this.schedule.scheduledTime.split(':').map(Number);
+    const scheduledDateTime = new Date(currentTime);
+    scheduledDateTime.setHours(hours, minutes, 0, 0);
+
+    const diffMs = currentTime.getTime() - scheduledDateTime.getTime();
+    if (diffMs <= 0) return 'none';
+
+    const diffMinutes = diffMs / (1000 * 60);
+    if (diffMinutes >= 60) return 'danger';
+    if (diffMinutes >= 30) return 'warning';
+    return 'none';
+  }
+
+  /**
+   * 飲み忘れの経過時間を取得（分）
+   */
+  getOverdueMinutes(currentTime: Date): number {
+    const [hours, minutes] = this.schedule.scheduledTime.split(':').map(Number);
+    const scheduledDateTime = new Date(currentTime);
+    scheduledDateTime.setHours(hours, minutes, 0, 0);
+
+    const diffMs = currentTime.getTime() - scheduledDateTime.getTime();
+    if (diffMs <= 0) return 0;
+    return Math.floor(diffMs / (1000 * 60));
+  }
+
+  /**
+   * 飲み忘れレベルに応じたスタイルクラスを取得
+   */
+  static getOverdueLevelStyle(level: OverdueLevel): { bg: string; text: string; border: string } {
+    switch (level) {
+      case 'danger':
+        return { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-300' };
+      case 'warning':
+        return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-300' };
+      default:
+        return { bg: '', text: '', border: '' };
+    }
   }
 
   get id(): string {

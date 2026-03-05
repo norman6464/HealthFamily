@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Check } from 'lucide-react';
 import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
+import { ScheduleEntity } from '../../domain/entities/Schedule';
+import { MissedDoseIndicator } from './MissedDoseIndicator';
 
 interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
@@ -44,9 +46,34 @@ interface ScheduleCardProps {
 }
 
 const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMarkCompleted }) => {
+  const overdueInfo = useMemo(() => {
+    const now = new Date();
+    const entity = new ScheduleEntity({
+      id: schedule.scheduleId,
+      medicationId: schedule.medicationId,
+      userId: schedule.userId,
+      memberId: schedule.memberId,
+      scheduledTime: schedule.scheduledTime,
+      daysOfWeek: [],
+      isEnabled: schedule.isEnabled,
+      reminderMinutesBefore: schedule.reminderMinutesBefore,
+      createdAt: new Date(),
+    });
+    return {
+      level: entity.getOverdueLevel(now, schedule.status === 'completed'),
+      minutes: entity.getOverdueMinutes(now),
+    };
+  }, [schedule]);
+
+  const overdueStyle = ScheduleEntity.getOverdueLevelStyle(overdueInfo.level);
+
   return (
     <div
-      className="bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:shadow-lg transition-shadow"
+      className={`bg-white rounded-lg shadow-md p-4 border hover:shadow-lg transition-shadow ${
+        overdueInfo.level !== 'none'
+          ? `${overdueStyle.bg} ${overdueStyle.border}`
+          : 'border-gray-200'
+      }`}
       data-testid="schedule-item"
       role="article"
       aria-label={`${schedule.scheduledTime}の服薬スケジュール - ${schedule.medicationName}`}
@@ -60,6 +87,10 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMark
             >
               {schedule.scheduledTime}
             </span>
+            <MissedDoseIndicator
+              overdueLevel={overdueInfo.level}
+              overdueMinutes={overdueInfo.minutes}
+            />
           </div>
 
           <div className="flex flex-col">
