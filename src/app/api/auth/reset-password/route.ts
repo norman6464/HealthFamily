@@ -3,6 +3,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
+import { validateBodySize } from '@/lib/api-helpers';
 import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
 const resetPasswordSchema = z.object({
@@ -16,6 +17,9 @@ const resetPasswordSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   try {
     const body = await request.json();
     const parsed = resetPasswordSchema.safeParse(body);

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth } from '@/lib/api-helpers';
+import { withAuth, validateBodySize } from '@/lib/api-helpers';
 
 const sendNotificationSchema = z.object({
   type: z.enum(['medication_reminder', 'missed_medication', 'appointment_reminder', 'low_stock']),
@@ -13,6 +13,9 @@ const sendNotificationSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   return withAuth(async (userId) => {
     const body = await request.json();
     const parsed = sendNotificationSchema.safeParse(body);

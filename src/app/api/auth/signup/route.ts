@@ -4,9 +4,13 @@ import { prisma } from '@/lib/prisma';
 import { signUpSchema } from '@/lib/schemas';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { created, errorResponse } from '@/lib/auth-helpers';
+import { validateBodySize } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   try {
     const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
     const rateLimit = checkRateLimit(`signup:${ip}`, { maxAttempts: 10, windowMs: 60 * 1000 });
