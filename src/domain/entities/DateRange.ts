@@ -76,4 +76,44 @@ export class DateRangeHelper {
   static isWithinDays(date: Date, reference: Date, days: number): boolean {
     return Math.abs(DateRangeHelper.diffDays(reference, date)) <= days;
   }
+
+  /**
+   * 2つの日付間の全日付キー（YYYY-MM-DD）を配列で返す
+   */
+  static getDatesBetween(from: Date, to: Date): string[] {
+    const result: string[] = [];
+    const current = DateRangeHelper.toStartOfDay(from);
+    const end = DateRangeHelper.toStartOfDay(to);
+    while (current <= end) {
+      result.push(DateRangeHelper.toDateKey(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return result;
+  }
+
+  /**
+   * 曜日の日本語ラベルを返す
+   */
+  static getDayOfWeekLabel(date: Date): string {
+    const labels = ['日', '月', '火', '水', '木', '金', '土'];
+    return labels[date.getDay()];
+  }
+
+  /**
+   * 土日かどうかを判定
+   */
+  static isWeekend(date: Date): boolean {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  }
+
+  /**
+   * 年内の週番号を返す（1始まり）
+   */
+  static getWeekNumber(date: Date): number {
+    const start = new Date(date.getFullYear(), 0, 1);
+    const diff = date.getTime() - start.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    return Math.ceil((days + 1) / 7);
+  }
 }
