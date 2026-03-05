@@ -2,9 +2,13 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
+import { validateBodySize } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   try {
     const body = await request.json();
     const email = (body.email ?? '').trim().toLowerCase();

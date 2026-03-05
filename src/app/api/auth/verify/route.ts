@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
+import { validateBodySize } from '@/lib/api-helpers';
 import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
 const verifySchema = z.object({
@@ -12,6 +13,9 @@ const verifySchema = z.object({
 const MAX_ATTEMPTS = 5;
 
 export async function POST(request: NextRequest) {
+  const sizeError = validateBodySize(request);
+  if (sizeError) return sizeError;
+
   try {
     const body = await request.json();
     const parsed = verifySchema.safeParse(body);
