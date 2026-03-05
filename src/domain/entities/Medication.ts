@@ -2,6 +2,8 @@
  * お薬エンティティ
  */
 
+import { DateRangeHelper } from './DateRange';
+
 export type MedicationCategory =
   | 'regular'
   | 'supplement'
@@ -44,13 +46,9 @@ export class MedicationEntity {
       return false;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const alertDate = new Date(this.medication.stockAlertDate);
-    alertDate.setHours(0, 0, 0, 0);
-
-    const daysUntilAlert = Math.ceil(
-      (alertDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    const daysUntilAlert = DateRangeHelper.diffDays(
+      new Date(),
+      new Date(this.medication.stockAlertDate),
     );
 
     if (daysUntilAlert <= 0) return false;
