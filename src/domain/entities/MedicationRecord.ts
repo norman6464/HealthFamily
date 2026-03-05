@@ -61,4 +61,27 @@ export class MedicationRecordEntity {
     const m = date.getMinutes().toString().padStart(2, '0');
     return `${h}:${m}`;
   }
+
+  /**
+   * メンバーIDでレコードをフィルタリング
+   * nullの場合は全レコードを返す
+   */
+  static filterByMember(records: MedicationRecord[], memberId: string | null): MedicationRecord[] {
+    if (memberId === null) return records;
+    return records.filter((r) => r.memberId === memberId);
+  }
+
+  /**
+   * グループ内のレコードをメンバーIDでフィルタリング
+   * フィルタ後に空になったグループは除外する
+   */
+  static filterGroupsByMember(groups: DailyRecordGroup[], memberId: string | null): DailyRecordGroup[] {
+    if (memberId === null) return groups;
+    return groups
+      .map((g) => ({
+        ...g,
+        records: g.records.filter((r) => r.memberId === memberId),
+      }))
+      .filter((g) => g.records.length > 0);
+  }
 }
