@@ -85,4 +85,30 @@ export class MedicationRecordEntity {
       }))
       .filter((g) => g.records.length > 0);
   }
+
+  /**
+   * 記録にメモが含まれているか判定
+   */
+  static hasNotes(record: MedicationRecord): boolean {
+    return !!record.notes && record.notes.trim().length > 0;
+  }
+
+  /**
+   * メモ付き記録のみをフィルタリング
+   */
+  static filterWithNotes(records: MedicationRecord[]): MedicationRecord[] {
+    return records.filter((r) => MedicationRecordEntity.hasNotes(r));
+  }
+
+  /**
+   * グループ内のメモ付き記録のみを残し、空グループは除外
+   */
+  static filterGroupsWithNotes(groups: DailyRecordGroup[]): DailyRecordGroup[] {
+    return groups
+      .map((g) => ({
+        ...g,
+        records: g.records.filter((r) => MedicationRecordEntity.hasNotes(r)),
+      }))
+      .filter((g) => g.records.length > 0);
+  }
 }
