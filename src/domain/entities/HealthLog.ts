@@ -84,6 +84,20 @@ export class HealthLogEntity {
   }
 
   /**
+   * 体調レベルに応じたlucide-reactアイコン名を取得
+   */
+  static getConditionIcon(level: ConditionLevel): string {
+    const icons: Record<ConditionLevel, string> = {
+      1: 'Frown',
+      2: 'Meh',
+      3: 'MinusCircle',
+      4: 'Smile',
+      5: 'Laugh',
+    };
+    return icons[level];
+  }
+
+  /**
    * 症状ラベルを取得
    */
   static getSymptomLabel(symptom: SymptomType): string {
