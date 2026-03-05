@@ -91,4 +91,18 @@ export class MemberEntity {
       typeLabel: this.isPet() ? 'ペット' : '家族',
     };
   }
+
+  /**
+   * メンバー種別に応じたlucide-reactアイコン名を返す
+   */
+  static getMemberIcon(memberType: MemberType, petType?: PetType): string {
+    if (memberType === 'human') return 'User';
+    const petIcons: Record<string, string> = {
+      dog: 'Dog',
+      cat: 'Cat',
+      rabbit: 'Rabbit',
+      bird: 'Bird',
+    };
+    return petIcons[petType ?? ''] ?? 'PawPrint';
+  }
 }
