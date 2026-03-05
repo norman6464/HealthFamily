@@ -70,4 +70,48 @@ describe('StockAlertEntity', () => {
       expect(entity.data).toBe(alert);
     });
   });
+
+  describe('calculateRemainingDays', () => {
+    it('在庫数と1日消費量から残日数を算出する', () => {
+      expect(StockAlertEntity.calculateRemainingDays(30, 2)).toBe(15);
+    });
+
+    it('1日1回の場合は在庫数がそのまま残日数になる', () => {
+      expect(StockAlertEntity.calculateRemainingDays(10, 1)).toBe(10);
+    });
+
+    it('1日3回の場合は在庫数の1/3が残日数になる', () => {
+      expect(StockAlertEntity.calculateRemainingDays(9, 3)).toBe(3);
+    });
+
+    it('割り切れない場合は切り捨てる', () => {
+      expect(StockAlertEntity.calculateRemainingDays(10, 3)).toBe(3);
+    });
+
+    it('消費量が0の場合はnullを返す', () => {
+      expect(StockAlertEntity.calculateRemainingDays(10, 0)).toBeNull();
+    });
+
+    it('在庫が0の場合は0を返す', () => {
+      expect(StockAlertEntity.calculateRemainingDays(0, 2)).toBe(0);
+    });
+
+    it('在庫がnullの場合はnullを返す', () => {
+      expect(StockAlertEntity.calculateRemainingDays(null, 2)).toBeNull();
+    });
+  });
+
+  describe('getRemainingDaysLabel', () => {
+    it('残日数からラベルを生成する', () => {
+      expect(StockAlertEntity.getRemainingDaysLabel(15)).toBe('約15日分');
+    });
+
+    it('0日の場合は在庫切れラベルを返す', () => {
+      expect(StockAlertEntity.getRemainingDaysLabel(0)).toBe('在庫切れ');
+    });
+
+    it('nullの場合は不明ラベルを返す', () => {
+      expect(StockAlertEntity.getRemainingDaysLabel(null)).toBe('残量不明');
+    });
+  });
 });

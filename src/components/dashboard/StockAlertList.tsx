@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { StockAlert } from '../../domain/entities/StockAlert';
+import { StockAlert, StockAlertEntity } from '../../domain/entities/StockAlert';
 
 interface StockAlertListProps {
   alerts: StockAlert[];
@@ -41,8 +41,11 @@ const StockAlertItem: React.FC<StockAlertItemProps> = React.memo(({ alert }) => 
         <p className="text-xs text-gray-500">{alert.memberName}</p>
       </div>
       <div className="text-right">
+        <p className="text-sm font-medium text-gray-700">
+          {StockAlertEntity.getRemainingDaysLabel(alert.remainingDays ?? null)}
+        </p>
         {alert.stockQuantity !== null && (
-          <p className="text-sm font-medium text-gray-700">残り{alert.stockQuantity}日分</p>
+          <p className="text-xs text-gray-400">残{alert.stockQuantity}錠</p>
         )}
         <p className={`text-xs font-medium ${alert.isOverdue ? 'text-red-600' : 'text-yellow-600'}`}>
           {alert.isOverdue ? '期限超過' : `あと${alert.daysUntilAlert}日`}

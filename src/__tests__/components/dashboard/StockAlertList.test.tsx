@@ -51,8 +51,17 @@ describe('StockAlertList', () => {
 
   it('残り日数を表示する', () => {
     render(<StockAlertList alerts={alerts} isLoading={false} />);
-    expect(screen.getByText('残り5日分')).toBeInTheDocument();
+    expect(screen.getAllByText('残量不明')).toHaveLength(2);
+    expect(screen.getByText('残5錠')).toBeInTheDocument();
     expect(screen.getByText('あと5日')).toBeInTheDocument();
+  });
+
+  it('remainingDaysがある場合は残日数を表示する', () => {
+    const alertsWithDays = [
+      { ...alerts[0], remainingDays: 10 },
+    ];
+    render(<StockAlertList alerts={alertsWithDays} isLoading={false} />);
+    expect(screen.getByText('約10日分')).toBeInTheDocument();
   });
 
   it('期限超過のアラートには期限超過を表示する', () => {
