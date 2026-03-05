@@ -194,6 +194,24 @@ export class ScheduleEntity {
     return groups;
   }
 
+  /**
+   * 完了率を算出(0-100%)
+   */
+  static calculateCompletionRate(completed: number, total: number): number {
+    if (total <= 0) return 0;
+    return Math.round((completed / total) * 100);
+  }
+
+  /**
+   * 完了率に応じたメッセージを返す
+   */
+  static getCompletionMessage(rate: number): string {
+    if (rate >= 100) return '全ての予定が完了しました';
+    if (rate >= 80) return 'あと少しで全て完了です';
+    if (rate >= 50) return '順調に進んでいます';
+    return '今日も頑張りましょう';
+  }
+
   get id(): string {
     return this.schedule.id;
   }
