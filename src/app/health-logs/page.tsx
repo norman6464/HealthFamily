@@ -1,19 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Activity } from 'lucide-react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { HealthLogList } from '@/components/health-logs/HealthLogList';
 import { HealthLogForm } from '@/components/health-logs/HealthLogForm';
+import { HealthWeeklyTrend } from '@/components/health-logs/HealthWeeklyTrend';
 import { useHealthLogs } from '@/presentation/hooks/useHealthLogs';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useAuth } from '@/hooks/useAuth';
+import { HealthLogEntity } from '@/domain/entities/HealthLog';
 
 export default function HealthLogsPage() {
   const { userId } = useAuth();
   const { groups, isLoading, createLog, deleteLog } = useHealthLogs();
   const { members } = useMembers(userId ?? '');
   const [showForm, setShowForm] = useState(false);
+
+  const allLogs = useMemo(
+    () => groups.flatMap((g) => g.logs),
+    [groups],
+  );
+
+  const weeklyAverages = useMemo(
+    () => HealthLogEntity.getDailyAverages(allLogs, 7, new Date()),
+    [allLogs],
+  );
 
   const handleSubmit = async (input: {
     memberId: string;
@@ -55,6 +67,8 @@ export default function HealthLogsPage() {
             />
           </div>
         )}
+
+        <HealthWeeklyTrend averages={weeklyAverages} />
 
         <HealthLogList groups={groups} isLoading={isLoading} onDelete={deleteLog} />
       </main>

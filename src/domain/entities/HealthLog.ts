@@ -140,4 +140,59 @@ export class HealthLogEntity {
     const days = ['日', '月', '火', '水', '木', '金', '土'];
     return `${date.getMonth() + 1}月${date.getDate()}日(${days[date.getDay()]})`;
   }
+
+  /**
+   * 日ごとの平均体調レベルを算出（古い→新しい順）
+   */
+  static getDailyAverages(
+    logs: HealthLog[],
+    days: number,
+    today: Date,
+  ): { date: string; dayLabel: string; average: number | null }[] {
+    const dayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+    const result: { date: string; dayLabel: string; average: number | null }[] = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dayLabel = dayLabels[d.getDay()];
+
+      const dayLogs = logs.filter((log) => {
+        const ld = log.recordedAt;
+        const logKey = `${ld.getFullYear()}-${String(ld.getMonth() + 1).padStart(2, '0')}-${String(ld.getDate()).padStart(2, '0')}`;
+        return logKey === dateKey;
+      });
+
+      if (dayLogs.length === 0) {
+        result.push({ date: dateKey, dayLabel, average: null });
+      } else {
+        const sum = dayLogs.reduce((acc, log) => acc + log.conditionLevel, 0);
+        result.push({ date: dateKey, dayLabel, average: Math.round(sum / dayLogs.length) });
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 体調トレンドの方向を判定
+   */
+  static getConditionTrendDirection(
+    averages: { average: number | null }[],
+  ): 'up' | 'down' | 'stable' {
+    const values = averages.filter((a) => a.average !== null).map((a) => a.average as number);
+    if (values.length < 2) return 'stable';
+
+    const firstHalf = values.slice(0, Math.floor(values.length / 2));
+    const secondHalf = values.slice(Math.floor(values.length / 2));
+
+    const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+
+    const diff = secondAvg - firstAvg;
+    if (diff > 0.5) return 'up';
+    if (diff < -0.5) return 'down';
+    return 'stable';
+  }
 }
