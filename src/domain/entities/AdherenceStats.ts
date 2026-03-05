@@ -2,6 +2,8 @@
  * 服薬アドヒアランス統計エンティティ
  */
 
+import { DateRangeHelper } from './DateRange';
+
 export interface MemberAdherenceStats {
   readonly memberId: string;
   readonly memberName: string;
@@ -98,24 +100,14 @@ export class AdherenceStatsEntity {
   }
 
   /**
-   * 日付をYYYY-MM-DD形式のキーに変換
-   */
-  private static toDateKey(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
-
-  /**
    * 現在のストリーク（連続服薬日数）を算出
    * todayから遡って連続して記録がある日数を返す
    */
   static calculateStreak(recordDates: Date[], today: Date): number {
     if (recordDates.length === 0) return 0;
 
-    const uniqueDays = new Set(recordDates.map((d) => AdherenceStatsEntity.toDateKey(d)));
-    const todayKey = AdherenceStatsEntity.toDateKey(today);
+    const uniqueDays = new Set(recordDates.map((d) => DateRangeHelper.toDateKey(d)));
+    const todayKey = DateRangeHelper.toDateKey(today);
 
     if (!uniqueDays.has(todayKey)) return 0;
 
@@ -123,7 +115,7 @@ export class AdherenceStatsEntity {
     const current = new Date(today);
     current.setHours(0, 0, 0, 0);
 
-    while (uniqueDays.has(AdherenceStatsEntity.toDateKey(current))) {
+    while (uniqueDays.has(DateRangeHelper.toDateKey(current))) {
       streak++;
       current.setDate(current.getDate() - 1);
     }
@@ -137,7 +129,7 @@ export class AdherenceStatsEntity {
   static calculateLongestStreak(recordDates: Date[]): number {
     if (recordDates.length === 0) return 0;
 
-    const uniqueDays = [...new Set(recordDates.map((d) => AdherenceStatsEntity.toDateKey(d)))].sort().reverse();
+    const uniqueDays = [...new Set(recordDates.map((d) => DateRangeHelper.toDateKey(d)))].sort().reverse();
 
     let longest = 1;
     let current = 1;

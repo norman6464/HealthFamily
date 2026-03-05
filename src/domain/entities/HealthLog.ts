@@ -2,6 +2,9 @@
  * 体調記録エンティティ
  */
 
+import { DAY_LABELS_JP } from '../../lib/constants';
+import { DateRangeHelper } from './DateRange';
+
 export const CONDITION_LEVELS = [1, 2, 3, 4, 5] as const;
 export type ConditionLevel = (typeof CONDITION_LEVELS)[number];
 
@@ -94,8 +97,7 @@ export class HealthLogEntity {
     const groups = new Map<string, HealthLog[]>();
 
     for (const log of logs) {
-      const d = log.recordedAt;
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dateStr = DateRangeHelper.toDateKey(log.recordedAt);
       if (!groups.has(dateStr)) {
         groups.set(dateStr, []);
       }
@@ -137,8 +139,7 @@ export class HealthLogEntity {
    */
   static formatDate(dateStr: string): string {
     const date = new Date(dateStr + 'T00:00:00');
-    const days = ['日', '月', '火', '水', '木', '金', '土'];
-    return `${date.getMonth() + 1}月${date.getDate()}日(${days[date.getDay()]})`;
+    return `${date.getMonth() + 1}月${date.getDate()}日(${DAY_LABELS_JP[date.getDay()]})`;
   }
 
   /**
@@ -149,20 +150,15 @@ export class HealthLogEntity {
     days: number,
     today: Date,
   ): { date: string; dayLabel: string; average: number | null }[] {
-    const dayLabels = ['日', '月', '火', '水', '木', '金', '土'];
     const result: { date: string; dayLabel: string; average: number | null }[] = [];
 
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const dayLabel = dayLabels[d.getDay()];
+      const dateKey = DateRangeHelper.toDateKey(d);
+      const dayLabel = DAY_LABELS_JP[d.getDay()];
 
-      const dayLogs = logs.filter((log) => {
-        const ld = log.recordedAt;
-        const logKey = `${ld.getFullYear()}-${String(ld.getMonth() + 1).padStart(2, '0')}-${String(ld.getDate()).padStart(2, '0')}`;
-        return logKey === dateKey;
-      });
+      const dayLogs = logs.filter((log) => DateRangeHelper.toDateKey(log.recordedAt) === dateKey);
 
       if (dayLogs.length === 0) {
         result.push({ date: dateKey, dayLabel, average: null });

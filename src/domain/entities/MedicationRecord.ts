@@ -2,6 +2,9 @@
  * 服薬記録エンティティ
  */
 
+import { DAY_LABELS_JP } from '../../lib/constants';
+import { DateRangeHelper } from './DateRange';
+
 export interface MedicationRecord {
   readonly id: string;
   readonly memberId: string;
@@ -31,8 +34,7 @@ export class MedicationRecordEntity {
     const groups = new Map<string, MedicationRecord[]>();
 
     for (const record of records) {
-      const d = record.takenAt;
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dateStr = DateRangeHelper.toDateKey(record.takenAt);
       if (!groups.has(dateStr)) {
         groups.set(dateStr, []);
       }
@@ -49,8 +51,7 @@ export class MedicationRecordEntity {
    */
   static formatDate(dateStr: string): string {
     const date = new Date(dateStr + 'T00:00:00');
-    const days = ['日', '月', '火', '水', '木', '金', '土'];
-    return `${date.getMonth() + 1}月${date.getDate()}日(${days[date.getDay()]})`;
+    return `${date.getMonth() + 1}月${date.getDate()}日(${DAY_LABELS_JP[date.getDay()]})`;
   }
 
   /**
