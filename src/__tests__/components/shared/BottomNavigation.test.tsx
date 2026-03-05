@@ -7,8 +7,8 @@ describe('BottomNavigation', () => {
     render(<BottomNavigation activePath="/" />);
     expect(screen.getByText('ホーム')).toBeInTheDocument();
     expect(screen.getByText('お薬')).toBeInTheDocument();
+    expect(screen.getByText('体調')).toBeInTheDocument();
     expect(screen.getByText('通院')).toBeInTheDocument();
-    expect(screen.getByText('メンバー')).toBeInTheDocument();
     expect(screen.getByText('設定')).toBeInTheDocument();
   });
 
@@ -20,16 +20,16 @@ describe('BottomNavigation', () => {
 
   it('非アクティブなパスのリンクにはaria-currentが設定されない', () => {
     render(<BottomNavigation activePath="/" />);
-    const membersLink = screen.getByText('メンバー').closest('a');
-    expect(membersLink).not.toHaveAttribute('aria-current');
+    const healthLink = screen.getByText('体調').closest('a');
+    expect(healthLink).not.toHaveAttribute('aria-current');
   });
 
   it('各リンクが正しいhrefを持つ', () => {
     render(<BottomNavigation activePath="/" />);
     expect(screen.getByText('ホーム').closest('a')).toHaveAttribute('href', '/');
     expect(screen.getByText('お薬').closest('a')).toHaveAttribute('href', '/medications');
+    expect(screen.getByText('体調').closest('a')).toHaveAttribute('href', '/health-logs');
     expect(screen.getByText('通院').closest('a')).toHaveAttribute('href', '/appointments');
-    expect(screen.getByText('メンバー').closest('a')).toHaveAttribute('href', '/members');
     expect(screen.getByText('設定').closest('a')).toHaveAttribute('href', '/settings');
   });
 

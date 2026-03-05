@@ -137,6 +137,14 @@ export const updateAppointmentSchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== Health Logs =====
+export const createHealthLogSchema = z.object({
+  memberId: idField,
+  conditionLevel: z.number().int().min(1, '体調レベルは1以上を指定してください').max(5, '体調レベルは5以下を指定してください'),
+  symptoms: z.array(z.string().max(50)).max(10).optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
 // ===== Auth =====
 export const signUpSchema = z.object({
   email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email('有効なメールアドレスを入力してください'),

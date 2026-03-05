@@ -76,3 +76,14 @@ export interface BackendRecord {
   notes?: string;
   dosageAmount?: string;
 }
+
+export interface BackendHealthLog {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  conditionLevel: number;
+  symptoms: string[];
+  notes?: string;
+  recordedAt: string;
+}
