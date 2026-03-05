@@ -11,6 +11,12 @@ export interface MemberAdherenceStats {
   readonly monthlyCount: number;
 }
 
+export interface StreakInfo {
+  readonly current: number;
+  readonly longest: number;
+  readonly message: string;
+}
+
 export interface AdherenceStats {
   readonly overall: {
     readonly weeklyRate: number;
@@ -19,6 +25,7 @@ export interface AdherenceStats {
     readonly monthlyCount: number;
   };
   readonly members: MemberAdherenceStats[];
+  readonly streak?: StreakInfo;
 }
 
 /**
@@ -88,5 +95,77 @@ export class AdherenceStatsEntity {
   static calculateRate(actual: number, expected: number): number {
     if (expected <= 0) return 0;
     return Math.min(100, Math.round((actual / expected) * 100));
+  }
+
+  /**
+   * 日付をYYYY-MM-DD形式のキーに変換
+   */
+  private static toDateKey(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  /**
+   * 現在のストリーク（連続服薬日数）を算出
+   * todayから遡って連続して記録がある日数を返す
+   */
+  static calculateStreak(recordDates: Date[], today: Date): number {
+    if (recordDates.length === 0) return 0;
+
+    const uniqueDays = new Set(recordDates.map((d) => AdherenceStatsEntity.toDateKey(d)));
+    const todayKey = AdherenceStatsEntity.toDateKey(today);
+
+    if (!uniqueDays.has(todayKey)) return 0;
+
+    let streak = 0;
+    const current = new Date(today);
+    current.setHours(0, 0, 0, 0);
+
+    while (uniqueDays.has(AdherenceStatsEntity.toDateKey(current))) {
+      streak++;
+      current.setDate(current.getDate() - 1);
+    }
+
+    return streak;
+  }
+
+  /**
+   * 最長ストリーク（連続服薬日数の最大値）を算出
+   */
+  static calculateLongestStreak(recordDates: Date[]): number {
+    if (recordDates.length === 0) return 0;
+
+    const uniqueDays = [...new Set(recordDates.map((d) => AdherenceStatsEntity.toDateKey(d)))].sort().reverse();
+
+    let longest = 1;
+    let current = 1;
+
+    for (let i = 1; i < uniqueDays.length; i++) {
+      const prevDate = new Date(uniqueDays[i - 1] + 'T00:00:00');
+      const currDate = new Date(uniqueDays[i] + 'T00:00:00');
+      const diffMs = prevDate.getTime() - currDate.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        current++;
+        longest = Math.max(longest, current);
+      } else {
+        current = 1;
+      }
+    }
+
+    return longest;
+  }
+
+  /**
+   * ストリークに応じた応援メッセージを返す
+   */
+  static getStreakMessage(streak: number): string {
+    if (streak === 0) return '今日から始めよう';
+    if (streak < 7) return '良いスタート';
+    if (streak < 30) return '素晴らしい習慣';
+    return '完璧な継続';
   }
 }
