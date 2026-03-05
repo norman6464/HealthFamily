@@ -2,17 +2,13 @@ import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
 import { AdherenceStatsEntity } from '@/domain/entities/AdherenceStats';
+import { DateRangeHelper } from '@/domain/entities/DateRange';
 import { DAY_LABELS_JP } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
   const now = new Date();
-  const fourteenDaysAgo = new Date(now);
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-  fourteenDaysAgo.setHours(0, 0, 0, 0);
-
-  const sevenDaysAgo = new Date(now);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const fourteenDaysAgo = DateRangeHelper.daysAgo(14, now);
+  const sevenDaysAgo = DateRangeHelper.daysAgo(7, now);
 
   const [records, schedules] = await Promise.all([
     prisma.medicationRecord.findMany({
@@ -27,20 +23,7 @@ export const GET = withAuth(async (userId) => {
     }),
   ]);
 
-  const dayToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
-
-  // 曜日別の期待数
-  const expectedByDay = new Array(7).fill(0);
-  for (const schedule of schedules) {
-    if (schedule.daysOfWeek.length === 0) {
-      for (let i = 0; i < 7; i++) expectedByDay[i] += 1;
-    } else {
-      for (const day of schedule.daysOfWeek) {
-        const dayIndex = dayToIndex[day];
-        if (dayIndex !== undefined) expectedByDay[dayIndex] += 1;
-      }
-    }
-  }
+  const expectedByDay = DateRangeHelper.calculateExpectedByDayOfWeek(schedules);
 
   const currentByDay = new Array(7).fill(0);
   const previousByDay = new Array(7).fill(0);
