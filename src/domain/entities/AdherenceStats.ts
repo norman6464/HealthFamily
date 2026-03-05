@@ -193,4 +193,35 @@ export class AdherenceStatsEntity {
     };
     return styles[level];
   }
+
+  /**
+   * ストリーク日数に応じたランクを判定
+   */
+  static getStreakRank(streak: number): 'bronze' | 'silver' | 'gold' | 'platinum' {
+    if (streak >= 90) return 'platinum';
+    if (streak >= 30) return 'gold';
+    if (streak >= 7) return 'silver';
+    return 'bronze';
+  }
+
+  /**
+   * ストリークランクに応じたスタイルクラスを返す
+   */
+  static getStreakRankStyle(rank: 'bronze' | 'silver' | 'gold' | 'platinum'): { bg: string; text: string } {
+    const styles: Record<string, { bg: string; text: string }> = {
+      bronze: { bg: 'bg-orange-50', text: 'text-orange-600' },
+      silver: { bg: 'bg-gray-50', text: 'text-gray-600' },
+      gold: { bg: 'bg-yellow-50', text: 'text-yellow-600' },
+      platinum: { bg: 'bg-purple-50', text: 'text-purple-600' },
+    };
+    return styles[rank];
+  }
+
+  /**
+   * マイルストーン日数かどうかを判定
+   */
+  static isStreakMilestone(streak: number): boolean {
+    const milestones = [7, 14, 30, 60, 90, 100, 180, 365];
+    return milestones.includes(streak);
+  }
 }
