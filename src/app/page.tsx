@@ -16,6 +16,7 @@ import { AdherenceTrendCard } from '@/components/dashboard/AdherenceTrendCard';
 import { StockAlertList } from '@/components/dashboard/StockAlertList';
 import { WeeklySummaryCard } from '@/components/dashboard/WeeklySummaryCard';
 import { GreetingCard } from '@/components/dashboard/GreetingCard';
+import { StreakCard } from '@/components/dashboard/StreakCard';
 import { MemberFilter } from '@/components/shared/MemberFilter';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 
@@ -50,6 +51,8 @@ export default function Dashboard() {
 
       <main className="max-w-md mx-auto px-4 py-4">
         <GreetingCard displayName={profile?.displayName || ''} />
+
+        <StreakCard streak={stats?.streak ?? null} isLoading={statsLoading} />
 
         <AdherenceStatsCard stats={stats} isLoading={statsLoading} />
 

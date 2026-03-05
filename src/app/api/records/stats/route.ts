@@ -13,7 +13,7 @@ export const GET = withAuth(async (userId) => {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-  const [weeklyRecords, monthlyRecords, schedules, members] = await Promise.all([
+  const [weeklyRecords, monthlyRecords, allRecordDates, schedules, members] = await Promise.all([
     prisma.medicationRecord.findMany({
       where: { userId, takenAt: { gte: sevenDaysAgo } },
       select: { memberId: true, medicationId: true, takenAt: true },
@@ -23,6 +23,12 @@ export const GET = withAuth(async (userId) => {
       where: { userId, takenAt: { gte: thirtyDaysAgo } },
       select: { memberId: true, medicationId: true, takenAt: true },
       take: 5000,
+    }),
+    prisma.medicationRecord.findMany({
+      where: { userId },
+      select: { takenAt: true },
+      orderBy: { takenAt: 'desc' },
+      take: 10000,
     }),
     prisma.schedule.findMany({
       where: { userId, isEnabled: true },
@@ -57,6 +63,10 @@ export const GET = withAuth(async (userId) => {
     };
   });
 
+  const recordDates = allRecordDates.map((r) => r.takenAt);
+  const currentStreak = AdherenceStatsEntity.calculateStreak(recordDates, now);
+  const longestStreak = AdherenceStatsEntity.calculateLongestStreak(recordDates);
+
   return success({
     overall: {
       weeklyRate: AdherenceStatsEntity.calculateRate(weeklyRecords.length, weeklyExpected),
@@ -65,5 +75,10 @@ export const GET = withAuth(async (userId) => {
       monthlyCount: monthlyRecords.length,
     },
     members: memberStats,
+    streak: {
+      current: currentStreak,
+      longest: longestStreak,
+      message: AdherenceStatsEntity.getStreakMessage(currentStreak),
+    },
   });
 });
