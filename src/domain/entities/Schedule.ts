@@ -32,6 +32,13 @@ export interface Schedule {
 export class ScheduleEntity {
   constructor(private readonly schedule: Schedule) {}
 
+  private getScheduledDateTime(baseTime: Date): Date {
+    const [hours, minutes] = this.schedule.scheduledTime.split(':').map(Number);
+    const dt = new Date(baseTime);
+    dt.setHours(hours, minutes, 0, 0);
+    return dt;
+  }
+
   /**
    * 現在時刻に基づいてスケジュールのステータスを取得
    */
@@ -40,9 +47,7 @@ export class ScheduleEntity {
       return 'completed';
     }
 
-    const [hours, minutes] = this.schedule.scheduledTime.split(':').map(Number);
-    const scheduledDateTime = new Date(currentTime);
-    scheduledDateTime.setHours(hours, minutes, 0, 0);
+    const scheduledDateTime = this.getScheduledDateTime(currentTime);
 
     if (currentTime > scheduledDateTime) {
       return 'overdue';
@@ -82,9 +87,7 @@ export class ScheduleEntity {
    * リマインダーを送信すべき時刻を取得
    */
   getReminderTime(date: Date): Date {
-    const [hours, minutes] = this.schedule.scheduledTime.split(':').map(Number);
-    const reminderTime = new Date(date);
-    reminderTime.setHours(hours, minutes, 0, 0);
+    const reminderTime = this.getScheduledDateTime(date);
     reminderTime.setMinutes(reminderTime.getMinutes() - this.schedule.reminderMinutesBefore);
     return reminderTime;
   }
@@ -111,9 +114,7 @@ export class ScheduleEntity {
   getOverdueLevel(currentTime: Date, isCompleted: boolean): OverdueLevel {
     if (isCompleted) return 'none';
 
-    const [hours, minutes] = this.schedule.scheduledTime.split(':').map(Number);
-    const scheduledDateTime = new Date(currentTime);
-    scheduledDateTime.setHours(hours, minutes, 0, 0);
+    const scheduledDateTime = this.getScheduledDateTime(currentTime);
 
     const diffMs = currentTime.getTime() - scheduledDateTime.getTime();
     if (diffMs <= 0) return 'none';
@@ -128,9 +129,7 @@ export class ScheduleEntity {
    * 飲み忘れの経過時間を取得（分）
    */
   getOverdueMinutes(currentTime: Date): number {
-    const [hours, minutes] = this.schedule.scheduledTime.split(':').map(Number);
-    const scheduledDateTime = new Date(currentTime);
-    scheduledDateTime.setHours(hours, minutes, 0, 0);
+    const scheduledDateTime = this.getScheduledDateTime(currentTime);
 
     const diffMs = currentTime.getTime() - scheduledDateTime.getTime();
     if (diffMs <= 0) return 0;
