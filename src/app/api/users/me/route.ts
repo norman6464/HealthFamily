@@ -3,17 +3,22 @@ import { updateUserProfileSchema } from '@/lib/schemas';
 import { success, errorResponse, notFound } from '@/lib/auth-helpers';
 import { withAuth, validateBodySize } from '@/lib/api-helpers';
 
+const USER_SELECT = {
+  id: true,
+  email: true,
+  displayName: true,
+  characterType: true,
+  characterName: true,
+} as const;
+
 export const GET = withAuth(async (userId) => {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: USER_SELECT,
+  });
   if (!user) return notFound('ユーザー');
 
-  return success({
-    id: user.id,
-    email: user.email,
-    displayName: user.displayName,
-    characterType: user.characterType,
-    characterName: user.characterName,
-  });
+  return success(user);
 });
 
 export async function PUT(request: Request) {
@@ -28,14 +33,9 @@ export async function PUT(request: Request) {
     const updated = await prisma.user.update({
       where: { id: userId },
       data: { displayName: parsed.data.displayName },
+      select: USER_SELECT,
     });
 
-    return success({
-      id: updated.id,
-      email: updated.email,
-      displayName: updated.displayName,
-      characterType: updated.characterType,
-      characterName: updated.characterName,
-    });
+    return success(updated);
   })();
 }
