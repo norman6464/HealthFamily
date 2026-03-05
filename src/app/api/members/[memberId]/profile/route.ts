@@ -1,10 +1,13 @@
 import { prisma } from '@/lib/prisma';
 import { success, notFound } from '@/lib/auth-helpers';
-import { withAuth } from '@/lib/api-helpers';
+import { withAuth, validateParamId } from '@/lib/api-helpers';
+import { DateRangeHelper } from '@/domain/entities/DateRange';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
     const { memberId } = await params;
+    const idError = validateParamId(memberId);
+    if (idError) return idError;
 
     const member = await prisma.member.findUnique({ where: { id: memberId } });
     if (!member || member.userId !== userId) return notFound('メンバー');
@@ -17,8 +20,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ mem
       }),
     ]);
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgo = DateRangeHelper.daysAgo(7);
 
     const [recordCount, scheduleCount] = await Promise.all([
       prisma.medicationRecord.count({ where: { memberId, userId, takenAt: { gte: sevenDaysAgo } } }),
