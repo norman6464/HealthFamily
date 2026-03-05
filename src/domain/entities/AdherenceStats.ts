@@ -160,4 +160,37 @@ export class AdherenceStatsEntity {
     if (streak < 30) return '素晴らしい習慣';
     return '完璧な継続';
   }
+
+  /**
+   * 今週と前週の遵守率を比較したメッセージを返す
+   */
+  static getComparisonMessage(currentRate: number, previousRate: number): string {
+    const diff = currentRate - previousRate;
+    if (diff >= 10) return '先週より改善しています';
+    if (diff <= -10) return '先週より下がっています';
+    return '先週と同じペースです';
+  }
+
+  /**
+   * 遵守率に応じたレベルを判定
+   */
+  static getAdherenceLevel(rate: number): 'excellent' | 'good' | 'fair' | 'poor' {
+    if (rate >= 90) return 'excellent';
+    if (rate >= 70) return 'good';
+    if (rate >= 50) return 'fair';
+    return 'poor';
+  }
+
+  /**
+   * 遵守率レベルに応じたスタイルクラスを返す
+   */
+  static getAdherenceLevelStyle(level: 'excellent' | 'good' | 'fair' | 'poor'): { bg: string; text: string } {
+    const styles: Record<string, { bg: string; text: string }> = {
+      excellent: { bg: 'bg-green-50', text: 'text-green-600' },
+      good: { bg: 'bg-blue-50', text: 'text-blue-600' },
+      fair: { bg: 'bg-orange-50', text: 'text-orange-600' },
+      poor: { bg: 'bg-red-50', text: 'text-red-600' },
+    };
+    return styles[level];
+  }
 }
