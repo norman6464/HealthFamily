@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
+import { AdherenceStatsEntity } from '@/domain/entities/AdherenceStats';
 
 export const GET = withAuth(async (userId) => {
   const now = new Date();
@@ -35,32 +36,22 @@ export const GET = withAuth(async (userId) => {
     }),
   ]);
 
-  // 1週間のスケジュール数を計算（各スケジュールの有効曜日数）
-  // daysOfWeekが空配列の場合は毎日（7日）として計算
-  const getActiveDays = (daysOfWeek: string[]) => daysOfWeek.length === 0 ? 7 : daysOfWeek.length;
+  const weeklyExpected = AdherenceStatsEntity.calculateWeeklyExpected(schedules);
+  const monthlyExpected = AdherenceStatsEntity.calculateMonthlyExpected(schedules);
 
-  const weeklyExpected = schedules.reduce((sum, s) => sum + Math.min(getActiveDays(s.daysOfWeek), 7), 0);
-  const monthlyExpected = schedules.reduce((sum, s) => {
-    const daysPerWeek = getActiveDays(s.daysOfWeek);
-    return sum + Math.round(daysPerWeek * (30 / 7));
-  }, 0);
-
-  // メンバー別の統計
   const memberStats = members.map((member) => {
     const memberSchedules = schedules.filter((s) => s.memberId === member.id);
     const memberWeekly = weeklyRecords.filter((r) => r.memberId === member.id);
     const memberMonthly = monthlyRecords.filter((r) => r.memberId === member.id);
 
-    const expected7 = memberSchedules.reduce((sum, s) => sum + Math.min(getActiveDays(s.daysOfWeek), 7), 0);
-    const expected30 = memberSchedules.reduce((sum, s) => {
-      return sum + Math.round(getActiveDays(s.daysOfWeek) * (30 / 7));
-    }, 0);
+    const expected7 = AdherenceStatsEntity.calculateWeeklyExpected(memberSchedules);
+    const expected30 = AdherenceStatsEntity.calculateMonthlyExpected(memberSchedules);
 
     return {
       memberId: member.id,
       memberName: member.name,
-      weeklyRate: expected7 > 0 ? Math.min(100, Math.round((memberWeekly.length / expected7) * 100)) : 0,
-      monthlyRate: expected30 > 0 ? Math.min(100, Math.round((memberMonthly.length / expected30) * 100)) : 0,
+      weeklyRate: AdherenceStatsEntity.calculateRate(memberWeekly.length, expected7),
+      monthlyRate: AdherenceStatsEntity.calculateRate(memberMonthly.length, expected30),
       weeklyCount: memberWeekly.length,
       monthlyCount: memberMonthly.length,
     };
@@ -68,8 +59,8 @@ export const GET = withAuth(async (userId) => {
 
   return success({
     overall: {
-      weeklyRate: weeklyExpected > 0 ? Math.min(100, Math.round((weeklyRecords.length / weeklyExpected) * 100)) : 0,
-      monthlyRate: monthlyExpected > 0 ? Math.min(100, Math.round((monthlyRecords.length / monthlyExpected) * 100)) : 0,
+      weeklyRate: AdherenceStatsEntity.calculateRate(weeklyRecords.length, weeklyExpected),
+      monthlyRate: AdherenceStatsEntity.calculateRate(monthlyRecords.length, monthlyExpected),
       weeklyCount: weeklyRecords.length,
       monthlyCount: monthlyRecords.length,
     },

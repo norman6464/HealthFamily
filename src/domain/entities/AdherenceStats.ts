@@ -54,4 +54,39 @@ export class AdherenceStatsEntity {
   get data(): AdherenceStats {
     return this.stats;
   }
+
+  /**
+   * 曜日配列の有効日数を取得（空配列は毎日=7日）
+   */
+  static getActiveDaysCount(daysOfWeek: string[]): number {
+    return daysOfWeek.length === 0 ? 7 : daysOfWeek.length;
+  }
+
+  /**
+   * 週間期待数を算出
+   */
+  static calculateWeeklyExpected(schedules: { daysOfWeek: string[] }[]): number {
+    return schedules.reduce(
+      (sum, s) => sum + Math.min(AdherenceStatsEntity.getActiveDaysCount(s.daysOfWeek), 7),
+      0,
+    );
+  }
+
+  /**
+   * 月間期待数を算出（30日ベース）
+   */
+  static calculateMonthlyExpected(schedules: { daysOfWeek: string[] }[]): number {
+    return schedules.reduce((sum, s) => {
+      const daysPerWeek = AdherenceStatsEntity.getActiveDaysCount(s.daysOfWeek);
+      return sum + Math.round(daysPerWeek * (30 / 7));
+    }, 0);
+  }
+
+  /**
+   * 遵守率を算出（0-100%）
+   */
+  static calculateRate(actual: number, expected: number): number {
+    if (expected <= 0) return 0;
+    return Math.min(100, Math.round((actual / expected) * 100));
+  }
 }

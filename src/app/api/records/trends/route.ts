@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { success } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
+import { AdherenceStatsEntity } from '@/domain/entities/AdherenceStats';
 import { DAY_LABELS_JP } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
@@ -26,14 +27,12 @@ export const GET = withAuth(async (userId) => {
     }),
   ]);
 
-  // 英語の曜日名からJavaScript Date.getDay()のインデックスへの変換
   const dayToIndex: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 
-  // 曜日別の期待数（スケジュールから）
+  // 曜日別の期待数
   const expectedByDay = new Array(7).fill(0);
   for (const schedule of schedules) {
     if (schedule.daysOfWeek.length === 0) {
-      // 空配列は毎日有効
       for (let i = 0; i < 7; i++) expectedByDay[i] += 1;
     } else {
       for (const day of schedule.daysOfWeek) {
@@ -43,7 +42,6 @@ export const GET = withAuth(async (userId) => {
     }
   }
 
-  // 直近7日の曜日別実績
   const currentByDay = new Array(7).fill(0);
   const previousByDay = new Array(7).fill(0);
 
@@ -61,10 +59,9 @@ export const GET = withAuth(async (userId) => {
     dayLabel: label,
     count: currentByDay[i],
     expected: expectedByDay[i],
-    rate: expectedByDay[i] > 0 ? Math.min(100, Math.round((currentByDay[i] / expectedByDay[i]) * 100)) : 0,
+    rate: AdherenceStatsEntity.calculateRate(currentByDay[i], expectedByDay[i]),
   }));
 
-  // ベスト/ワーストの曜日（期待値のある曜日のみ）
   const activeDays = dayOfWeekStats.filter((d) => d.expected > 0);
   const bestDay = activeDays.length > 0
     ? activeDays.reduce((a, b) => (a.rate >= b.rate ? a : b)).dayLabel
@@ -73,13 +70,12 @@ export const GET = withAuth(async (userId) => {
     ? activeDays.reduce((a, b) => (a.rate <= b.rate ? a : b)).dayLabel
     : '-';
 
-  // 前期間と今期間の全体率
   const currentTotal = currentByDay.reduce((a, b) => a + b, 0);
   const previousTotal = previousByDay.reduce((a, b) => a + b, 0);
   const weeklyExpected = expectedByDay.reduce((a, b) => a + b, 0);
 
-  const currentPeriodRate = weeklyExpected > 0 ? Math.min(100, Math.round((currentTotal / weeklyExpected) * 100)) : 0;
-  const previousPeriodRate = weeklyExpected > 0 ? Math.min(100, Math.round((previousTotal / weeklyExpected) * 100)) : 0;
+  const currentPeriodRate = AdherenceStatsEntity.calculateRate(currentTotal, weeklyExpected);
+  const previousPeriodRate = AdherenceStatsEntity.calculateRate(previousTotal, weeklyExpected);
 
   return success({
     dayOfWeekStats,
