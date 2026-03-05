@@ -4,7 +4,10 @@ import { Member, MemberType, PetType } from '../../domain/entities/Member';
 import { Medication, MedicationCategory } from '../../domain/entities/Medication';
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
-import { BackendAppointment, BackendHospital, BackendMember, BackendMedication, BackendRecord, BackendSchedule } from './types';
+import { HealthLog, ConditionLevel, SymptomType, SYMPTOM_OPTIONS } from '../../domain/entities/HealthLog';
+import { BackendAppointment, BackendHealthLog, BackendHospital, BackendMember, BackendMedication, BackendRecord, BackendSchedule } from './types';
+
+const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
 const VALID_MEMBER_TYPES: readonly string[] = ['human', 'pet'];
 const VALID_MEDICATION_CATEGORIES: readonly string[] = ['regular', 'supplement', 'prn', 'inhaler', 'flea_tick', 'heartworm'];
@@ -99,5 +102,19 @@ export function toSchedule(b: BackendSchedule): Schedule {
     isEnabled: b.isEnabled ?? true,
     reminderMinutesBefore: b.reminderMinutesBefore ?? 10,
     createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toHealthLog(b: BackendHealthLog): HealthLog {
+  const validLevel = b.conditionLevel >= 1 && b.conditionLevel <= 5 ? (b.conditionLevel as ConditionLevel) : (3 as ConditionLevel);
+  return {
+    id: b.id,
+    memberId: b.memberId,
+    memberName: b.memberName || '',
+    userId: b.userId,
+    conditionLevel: validLevel,
+    symptoms: (b.symptoms?.filter((s: string) => VALID_SYMPTOMS.includes(s)) as SymptomType[]) ?? [],
+    notes: b.notes,
+    recordedAt: new Date(b.recordedAt),
   };
 }

@@ -29,6 +29,7 @@ model User {
   records      MedicationRecord[]
   hospitals    Hospital[]
   appointments Appointment[]
+  healthLogs   HealthLog[]
 }
 
 model Member {
@@ -47,6 +48,7 @@ model Member {
   medications  Medication[]
   records      MedicationRecord[]
   appointments Appointment[]
+  healthLogs   HealthLog[]
 
   @@index([userId])
 }
@@ -124,6 +126,21 @@ model Hospital {
   appointments Appointment[]
 
   @@index([userId])
+}
+
+model HealthLog {
+  id             String   @id @default(cuid())
+  memberId       String
+  member         Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conditionLevel Int
+  symptoms       String[]
+  notes          String?
+  recordedAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([memberId])
 }
 
 model Appointment {
