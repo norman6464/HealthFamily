@@ -5,22 +5,42 @@ import { Calendar, List } from 'lucide-react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MedicationHistoryList } from '@/components/history/MedicationHistoryList';
 import { MedicationCalendar } from '@/components/history/MedicationCalendar';
+import { MemberFilter } from '@/components/shared/MemberFilter';
 import { useMedicationHistory } from '@/presentation/hooks/useMedicationHistory';
 import { useHealthLogs } from '@/presentation/hooks/useHealthLogs';
+import { useMembers } from '@/presentation/hooks/useMembers';
+import { useAuth } from '@/hooks/useAuth';
 import { MedicationRecordEntity } from '@/domain/entities/MedicationRecord';
 
 type ViewMode = 'list' | 'calendar';
 
 export default function HistoryPage() {
+  const { userId } = useAuth();
   const { groups, isLoading, deleteRecord } = useMedicationHistory();
   const { groups: healthLogGroups } = useHealthLogs();
+  const { members } = useMembers(userId);
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
-  // groupsからフラットなレコード配列を取得
+  const memberOptions = useMemo(
+    () => members.map((m) => ({ id: m.id, name: m.name })),
+    [members],
+  );
+
+  // メンバーフィルタ適用済みグループ
+  const memberFilteredGroups = useMemo(
+    () => MedicationRecordEntity.filterGroupsByMember(groups, selectedMemberId),
+    [groups, selectedMemberId],
+  );
+
+  // groupsからフラットなレコード配列を取得（メンバーフィルタ適用済み）
   const allRecords = useMemo(
-    () => groups.flatMap((g) => g.records),
-    [groups],
+    () => MedicationRecordEntity.filterByMember(
+      groups.flatMap((g) => g.records),
+      selectedMemberId,
+    ),
+    [groups, selectedMemberId],
   );
 
   // groupsからフラットな体調記録配列を取得
@@ -31,8 +51,8 @@ export default function HistoryPage() {
 
   // 選択日のレコードをフィルタリング
   const filteredGroups = useMemo(() => {
-    if (!selectedDate) return groups;
-    const filtered = groups
+    if (!selectedDate) return memberFilteredGroups;
+    const filtered = memberFilteredGroups
       .map((g) => ({
         ...g,
         records: g.records.filter((r) => {
@@ -43,7 +63,7 @@ export default function HistoryPage() {
       }))
       .filter((g) => g.records.length > 0);
     return filtered;
-  }, [groups, selectedDate]);
+  }, [memberFilteredGroups, selectedDate]);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -74,6 +94,13 @@ export default function HistoryPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-4">
+        <div className="mb-4">
+          <MemberFilter
+            members={memberOptions}
+            selectedMemberId={selectedMemberId}
+            onSelect={setSelectedMemberId}
+          />
+        </div>
         {viewMode === 'calendar' ? (
           <div className="space-y-4">
             <MedicationCalendar
@@ -101,7 +128,7 @@ export default function HistoryPage() {
             )}
           </div>
         ) : (
-          <MedicationHistoryList groups={groups} isLoading={isLoading} onDelete={deleteRecord} />
+          <MedicationHistoryList groups={memberFilteredGroups} isLoading={isLoading} onDelete={deleteRecord} />
         )}
       </main>
 
