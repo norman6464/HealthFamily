@@ -205,4 +205,42 @@ export class HealthLogEntity {
     if (diff < -0.5) return 'down';
     return 'stable';
   }
+
+  /**
+   * トレンド方向に応じたメッセージを返す
+   */
+  static getConditionTrendMessage(direction: 'up' | 'down' | 'stable'): string {
+    const messages: Record<string, string> = {
+      up: '体調が改善傾向です',
+      down: '体調が下降傾向です',
+      stable: '体調は安定しています',
+    };
+    return messages[direction];
+  }
+
+  /**
+   * トレンド方向に応じたスタイルクラスを返す
+   */
+  static getConditionTrendStyle(direction: 'up' | 'down' | 'stable'): { text: string; icon: string } {
+    const styles: Record<string, { text: string; icon: string }> = {
+      up: { text: 'text-green-600', icon: 'TrendingUp' },
+      down: { text: 'text-red-600', icon: 'TrendingDown' },
+      stable: { text: 'text-gray-600', icon: 'Minus' },
+    };
+    return styles[direction];
+  }
+
+  /**
+   * 体調レベルに応じた日本語ラベルを返す
+   */
+  static getConditionLevelLabel(level: ConditionLevel): string {
+    const labels: Record<ConditionLevel, string> = {
+      1: 'とても悪い',
+      2: '悪い',
+      3: '普通',
+      4: '良い',
+      5: 'とても良い',
+    };
+    return labels[level];
+  }
 }
