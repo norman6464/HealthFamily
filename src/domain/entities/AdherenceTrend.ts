@@ -242,6 +242,37 @@ export class AdherenceTrendEntity {
   /**
    * パフォーマンスグレードに応じたラベルを返す
    */
+  /**
+   * 遵守率配列の分布（高/中/低の割合%）を算出する
+   * 高: 80以上, 中: 50-79, 低: 50未満
+   */
+  static getRateDistribution(rates: number[]): { high: number; medium: number; low: number } {
+    if (rates.length === 0) return { high: 0, medium: 0, low: 0 };
+    let high = 0;
+    let medium = 0;
+    let low = 0;
+    for (const rate of rates) {
+      if (rate >= 80) high++;
+      else if (rate >= 50) medium++;
+      else low++;
+    }
+    const total = rates.length;
+    return {
+      high: Math.round((high / total) * 100),
+      medium: Math.round((medium / total) * 100),
+      low: Math.round((low / total) * 100),
+    };
+  }
+
+  /**
+   * 遵守率分布に応じたラベルを返す
+   */
+  static getRateDistributionLabel(dist: { high: number; medium: number; low: number }): string {
+    if (dist.high >= 50) return '安定して高い';
+    if (dist.low >= 50) return '改善が必要';
+    return 'ばらつきあり';
+  }
+
   static getPerformanceGradeLabel(grade: string): string {
     const labels: Record<string, string> = {
       A: '優秀',
