@@ -387,4 +387,42 @@ export class HealthLogEntity {
     }
     return best;
   }
+
+  /**
+   * 全症状の出現回数を多い順に返す
+   */
+  static getSymptomCountSummary(
+    logs: HealthLog[],
+  ): { symptom: SymptomType; label: string; count: number }[] {
+    const counts: Record<string, number> = {};
+    for (const log of logs) {
+      for (const s of log.symptoms) {
+        counts[s] = (counts[s] || 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .map(([symptom, count]) => ({
+        symptom: symptom as SymptomType,
+        label: SYMPTOM_LABELS[symptom as SymptomType],
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * 症状コード配列を日本語ラベル配列に変換する
+   */
+  static getSymptomLabels(symptoms: SymptomType[]): string[] {
+    return symptoms.map((s) => SYMPTOM_LABELS[s]);
+  }
+
+  /**
+   * 体調レベルと症状の要約テキストを生成する
+   */
+  static formatConditionSummary(level: ConditionLevel, symptoms: SymptomType[]): string {
+    const condLabel = HealthLogEntity.getConditionLabel(level);
+    if (symptoms.length === 0) return `体調: ${condLabel}`;
+    const symptomLabels = HealthLogEntity.getSymptomLabels(symptoms);
+    return `体調: ${condLabel} / ${symptomLabels.join(', ')}`;
+  }
 }
