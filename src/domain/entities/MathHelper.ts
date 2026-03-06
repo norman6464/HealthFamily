@@ -51,6 +51,8 @@ export class MathHelper {
   private static readonly JACCARD_MODERATE_THRESHOLD = 40;
   private static readonly LR_SLOPE_THRESHOLD = 0.1;
   private static readonly SPEARMAN_STRONG_THRESHOLD = 0.6;
+  private static readonly DECAY_HIGH_THRESHOLD = 60;
+  private static readonly DECAY_MODERATE_THRESHOLD = 30;
 
   /**
    * パーセントを算出(0-100%)
@@ -888,5 +890,27 @@ export class MathHelper {
     if (rho >= MathHelper.SPEARMAN_STRONG_THRESHOLD) return '正相関';
     if (rho <= -MathHelper.SPEARMAN_STRONG_THRESHOLD) return '逆相関';
     return '無相関';
+  }
+
+  /**
+   * 指数減衰を算出する
+   * initialValue * e^(-decayRate * time)
+   */
+  static getExponentialDecay(
+    initialValue: number,
+    time: number,
+    decayRate: number
+  ): number {
+    if (initialValue === 0) return 0;
+    return Math.round(initialValue * Math.exp(-decayRate * time) * 100) / 100;
+  }
+
+  /**
+   * 減衰後の値に応じたラベルを返す
+   */
+  static getExponentialDecayLabel(value: number): string {
+    if (value >= MathHelper.DECAY_HIGH_THRESHOLD) return '有効';
+    if (value >= MathHelper.DECAY_MODERATE_THRESHOLD) return 'やや減衰';
+    return '減衰大';
   }
 }

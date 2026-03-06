@@ -85,6 +85,10 @@ export class HealthLogEntity {
   private static readonly IMPROVEMENT_IMPROVED_THRESHOLD = 70;
   private static readonly IMPROVEMENT_DECLINED_THRESHOLD = 30;
   private static readonly IMPROVEMENT_MAX_DIFF = 4;
+  private static readonly BURDEN_MAX_SYMPTOMS = 5;
+  private static readonly BURDEN_MAX_CONDITION = 5;
+  private static readonly BURDEN_HEAVY_THRESHOLD = 70;
+  private static readonly BURDEN_MODERATE_THRESHOLD = 40;
 
   private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
     1: 'とても悪い',
@@ -992,5 +996,37 @@ export class HealthLogEntity {
     if (score >= HealthLogEntity.IMPROVEMENT_IMPROVED_THRESHOLD) return '改善';
     if (score >= HealthLogEntity.IMPROVEMENT_DECLINED_THRESHOLD) return '横ばい';
     return '悪化';
+  }
+
+  /**
+   * 症状負担スコアを算出する（0-100）
+   * 症状数と体調レベル（1-5、1が最悪）から算出
+   */
+  static getSymptomBurdenScore(
+    symptomCount: number,
+    conditionLevel: number
+  ): number {
+    if (symptomCount <= 0) return 0;
+    const symptomNorm = Math.min(
+      symptomCount / HealthLogEntity.BURDEN_MAX_SYMPTOMS,
+      1
+    );
+    const conditionPenalty =
+      1 -
+      Math.min(conditionLevel, HealthLogEntity.BURDEN_MAX_CONDITION) /
+        HealthLogEntity.BURDEN_MAX_CONDITION;
+    return Math.min(
+      100,
+      Math.round(((symptomNorm + conditionPenalty) / 2) * 100)
+    );
+  }
+
+  /**
+   * 症状負担スコアに応じたラベルを返す
+   */
+  static getSymptomBurdenScoreLabel(score: number): string {
+    if (score >= HealthLogEntity.BURDEN_HEAVY_THRESHOLD) return '重い';
+    if (score >= HealthLogEntity.BURDEN_MODERATE_THRESHOLD) return 'やや重い';
+    return '軽い';
   }
 }

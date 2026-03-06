@@ -100,6 +100,11 @@ export class MedicationEntity {
 
   private static readonly LOW_STOCK_THRESHOLD = 5;
   private static readonly MEDIUM_STOCK_THRESHOLD = 10;
+  private static readonly COMPLEXITY_MAX_MEDS = 10;
+  private static readonly COMPLEXITY_MAX_TIMES = 6;
+  private static readonly COMPLEXITY_MAX_TYPES = 5;
+  private static readonly COMPLEXITY_HIGH_THRESHOLD = 70;
+  private static readonly COMPLEXITY_MODERATE_THRESHOLD = 40;
 
   private static readonly categoryLabels: Record<MedicationCategory, string> = {
     regular: '常用薬',
@@ -339,5 +344,30 @@ export class MedicationEntity {
     if (MedicationEntity.isIntervalSafe(hoursSinceLastDose, timesPerDay)) return null;
     const minInterval = MedicationEntity.getMinimumInterval(timesPerDay);
     return `前回の服用から十分な時間が経っていません。最低${minInterval}時間の間隔をあけてください`;
+  }
+
+  /**
+   * 薬の複雑さスコアを算出する（0-100）
+   * 薬数・服用回数・種類数から算出
+   */
+  static getMedicationComplexityScore(
+    medicationCount: number,
+    timesPerDay: number,
+    typeCount: number
+  ): number {
+    if (medicationCount <= 0 && timesPerDay <= 0 && typeCount <= 0) return 0;
+    const medNorm = Math.min(medicationCount / MedicationEntity.COMPLEXITY_MAX_MEDS, 1);
+    const timesNorm = Math.min(timesPerDay / MedicationEntity.COMPLEXITY_MAX_TIMES, 1);
+    const typeNorm = Math.min(typeCount / MedicationEntity.COMPLEXITY_MAX_TYPES, 1);
+    return Math.min(100, Math.round(((medNorm + timesNorm + typeNorm) / 3) * 100));
+  }
+
+  /**
+   * 薬の複雑さスコアに応じたラベルを返す
+   */
+  static getMedicationComplexityScoreLabel(score: number): string {
+    if (score >= MedicationEntity.COMPLEXITY_HIGH_THRESHOLD) return '複雑';
+    if (score >= MedicationEntity.COMPLEXITY_MODERATE_THRESHOLD) return '普通';
+    return 'シンプル';
   }
 }
