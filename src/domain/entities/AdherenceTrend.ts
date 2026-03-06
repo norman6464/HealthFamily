@@ -312,4 +312,21 @@ export class AdherenceTrendEntity {
     };
     return labels[grade] ?? '要注意';
   }
+
+  /**
+   * 週次遵守率配列の直近2週間の変化量を算出する
+   */
+  static getWeekOverWeekChange(weeklyRates: number[]): number {
+    if (weeklyRates.length < 2) return 0;
+    return weeklyRates[weeklyRates.length - 1] - weeklyRates[weeklyRates.length - 2];
+  }
+
+  /**
+   * 週次変化量に応じたラベルを返す
+   */
+  static getWeekOverWeekLabel(change: number): string {
+    if (change >= 5) return '改善';
+    if (change <= -5) return '悪化';
+    return '横ばい';
+  }
 }

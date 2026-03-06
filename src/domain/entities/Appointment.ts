@@ -533,4 +533,27 @@ export class AppointmentEntity {
     if (rate >= AppointmentEntity.COMPLETION_FAIR_THRESHOLD) return '要改善';
     return '不十分';
   }
+
+  /**
+   * 通院間隔配列の均等度スコア(0-100)を算出する
+   * 変動係数が小さいほど高スコア
+   */
+  static getAppointmentSpacing(intervals: number[]): number {
+    if (intervals.length === 0) return 0;
+    if (intervals.length === 1) return 100;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    if (avg === 0) return 100;
+    const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.max(0, Math.min(100, Math.round(100 - cv * 100)));
+  }
+
+  /**
+   * 均等度スコアに応じたラベルを返す
+   */
+  static getAppointmentSpacingLabel(score: number): string {
+    if (score >= 80) return '均等';
+    if (score >= 50) return 'やや不均等';
+    return '不均等';
+  }
 }
