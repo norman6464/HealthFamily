@@ -26,6 +26,7 @@ export class MathHelper {
   private static readonly RUNNING_MAX_NEAR_RATIO = 0.9;
   private static readonly MOVING_STDDEV_STABLE_THRESHOLD = 5;
   private static readonly MOVING_STDDEV_MODERATE_THRESHOLD = 15;
+  private static readonly CUMSUM_NEAR_RATIO = 0.7;
 
   /**
    * パーセントを算出(0-100%)
@@ -510,5 +511,27 @@ export class MathHelper {
     if (stdDev < MathHelper.MOVING_STDDEV_STABLE_THRESHOLD) return '安定';
     if (stdDev < MathHelper.MOVING_STDDEV_MODERATE_THRESHOLD) return 'やや変動';
     return '大きな変動';
+  }
+
+  /**
+   * 累積和配列を算出する
+   */
+  static getCumulativeSum(values: number[]): number[] {
+    if (values.length === 0) return [];
+    const result: number[] = [values[0]];
+    for (let i = 1; i < values.length; i++) {
+      result.push(result[i - 1] + values[i]);
+    }
+    return result;
+  }
+
+  /**
+   * 累積合計と目標値の比較でラベルを返す
+   */
+  static getCumulativeSumLabel(currentSum: number, target: number): string {
+    if (target <= 0) return '達成';
+    if (currentSum >= target) return '達成';
+    if (currentSum >= target * MathHelper.CUMSUM_NEAR_RATIO) return 'あと少し';
+    return '途中';
   }
 }
