@@ -100,4 +100,46 @@ export class HospitalEntity {
     if (daysSinceLastVisit <= 90) return 'warning';
     return 'alert';
   }
+
+  /**
+   * 訪問間隔（日数）から頻度ラベルを返す
+   */
+  static getVisitFrequencyLabel(intervalDays: number): string {
+    if (intervalDays <= 0) return '毎日';
+    if (intervalDays <= 7) return '週1回程度';
+    if (intervalDays <= 14) return '2週に1回程度';
+    if (intervalDays <= 31) return '月1回程度';
+    if (intervalDays <= 180) return `${Math.round(intervalDays / 30)}ヶ月に1回程度`;
+    return '年1回程度';
+  }
+
+  /**
+   * 病院をタイプ別にグループ化する
+   */
+  static groupByType<T extends { hospitalType?: string }>(hospitals: T[]): Record<string, T[]> {
+    const result: Record<string, T[]> = {};
+    for (const h of hospitals) {
+      const type = h.hospitalType ?? 'unknown';
+      if (!result[type]) result[type] = [];
+      result[type].push(h);
+    }
+    return result;
+  }
+
+  /**
+   * タイプ別の分布を件数降順で返す
+   */
+  static getTypeDistribution(hospitals: { hospitalType?: string }[]): Array<{ type: string; label: string; count: number; percentage: number }> {
+    if (hospitals.length === 0) return [];
+    const groups = HospitalEntity.groupByType(hospitals);
+    const total = hospitals.length;
+    return Object.entries(groups)
+      .map(([type, items]) => ({
+        type,
+        label: HospitalEntity.getHospitalTypeLabel(type),
+        count: items.length,
+        percentage: Math.round((items.length / total) * 100),
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
 }
