@@ -37,7 +37,13 @@ export class AdherenceTrendEntity {
   }
 
   getRateChangeLabel(): string {
-    const change = this.trend.rateChange;
+    return AdherenceTrendEntity.formatRateChange(this.trend.rateChange);
+  }
+
+  /**
+   * 変化率を+X%/-X%/0%形式でフォーマットする
+   */
+  static formatRateChange(change: number): string {
     if (change > 0) return `+${change}%`;
     if (change < 0) return `${change}%`;
     return '0%';
