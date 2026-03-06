@@ -45,6 +45,9 @@ export class AdherenceTrendEntity {
   private static readonly STABILITY_MAX_STDDEV = 30;
   private static readonly STABILITY_HIGH_THRESHOLD = 80;
   private static readonly STABILITY_MODERATE_THRESHOLD = 50;
+  private static readonly STREAK_BONUS_MAX_DAYS = 30;
+  private static readonly STREAK_BONUS_HIGH_THRESHOLD = 70;
+  private static readonly STREAK_BONUS_MODERATE_THRESHOLD = 30;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -519,5 +522,29 @@ export class AdherenceTrendEntity {
     if (score >= AdherenceTrendEntity.STABILITY_HIGH_THRESHOLD) return '安定';
     if (score >= AdherenceTrendEntity.STABILITY_MODERATE_THRESHOLD) return 'やや不安定';
     return '不安定';
+  }
+
+  /**
+   * 連続服薬日数からボーナススコアを算出する（0-100）
+   */
+  static getAdherenceStreakBonus(streakDays: number): number {
+    if (streakDays <= 0) return 0;
+    return Math.min(
+      100,
+      Math.round(
+        (Math.min(streakDays, AdherenceTrendEntity.STREAK_BONUS_MAX_DAYS) /
+          AdherenceTrendEntity.STREAK_BONUS_MAX_DAYS) *
+          100
+      )
+    );
+  }
+
+  /**
+   * 連続ボーナススコアに応じたラベルを返す
+   */
+  static getAdherenceStreakBonusLabel(bonus: number): string {
+    if (bonus >= AdherenceTrendEntity.STREAK_BONUS_HIGH_THRESHOLD) return 'ボーナス大';
+    if (bonus >= AdherenceTrendEntity.STREAK_BONUS_MODERATE_THRESHOLD) return 'ボーナス中';
+    return 'ボーナス小';
   }
 }

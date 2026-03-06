@@ -801,6 +801,8 @@ export class ScheduleEntity {
   private static readonly LOAD_MAX_PER_HOUR = 1;
   private static readonly LOAD_HIGH_THRESHOLD = 70;
   private static readonly LOAD_MODERATE_THRESHOLD = 30;
+  private static readonly UTILIZATION_HIGH_THRESHOLD = 80;
+  private static readonly UTILIZATION_MODERATE_THRESHOLD = 50;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -1052,5 +1054,26 @@ export class ScheduleEntity {
     if (score >= ScheduleEntity.LOAD_HIGH_THRESHOLD) return '過密';
     if (score >= ScheduleEntity.LOAD_MODERATE_THRESHOLD) return '適度';
     return '余裕';
+  }
+
+  /**
+   * スケジュール稼働率を算出する（0-100）
+   * 完了数 / 予定数
+   */
+  static getScheduleUtilizationRate(
+    completed: number,
+    scheduled: number
+  ): number {
+    if (scheduled <= 0) return 0;
+    return Math.min(100, Math.round((completed / scheduled) * 100));
+  }
+
+  /**
+   * 稼働率に応じたラベルを返す
+   */
+  static getScheduleUtilizationRateLabel(rate: number): string {
+    if (rate >= ScheduleEntity.UTILIZATION_HIGH_THRESHOLD) return '高稼働';
+    if (rate >= ScheduleEntity.UTILIZATION_MODERATE_THRESHOLD) return '普通';
+    return '低稼働';
   }
 }
