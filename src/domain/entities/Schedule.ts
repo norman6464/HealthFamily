@@ -570,4 +570,46 @@ export class ScheduleEntity {
     const m = (bestTime % 60).toString().padStart(2, '0');
     return `${h}:${m}`;
   }
+
+  /**
+   * 週あたりのスケジュール回数を算出する
+   */
+  static getWeeklyScheduleCount(schedules: { daysOfWeek: string[] }[]): number {
+    let count = 0;
+    for (const s of schedules) {
+      count += s.daysOfWeek.length === 0 ? 7 : s.daysOfWeek.length;
+    }
+    return count;
+  }
+
+  /**
+   * 薬別のスケジュール件数サマリーを件数降順で返す
+   */
+  static getMedicationScheduleSummary(
+    schedules: { medicationId: string; medicationName: string }[],
+  ): Array<{ medicationId: string; name: string; count: number }> {
+    const map = new Map<string, { name: string; count: number }>();
+    for (const s of schedules) {
+      const existing = map.get(s.medicationId);
+      if (existing) {
+        existing.count++;
+      } else {
+        map.set(s.medicationId, { name: s.medicationName, count: 1 });
+      }
+    }
+    return Array.from(map.entries())
+      .map(([medicationId, v]) => ({ medicationId, name: v.name, count: v.count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * スケジュール件数に応じた負荷ラベルを返す
+   */
+  static getScheduleLoadLabel(count: number): string {
+    if (count === 0) return 'なし';
+    if (count <= 5) return '軽い';
+    if (count <= 10) return '普通';
+    if (count < 20) return '多い';
+    return '非常に多い';
+  }
 }
