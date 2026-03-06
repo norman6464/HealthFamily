@@ -1,10 +1,13 @@
 import { prisma } from '@/lib/prisma';
-import { success, notFound } from '@/lib/auth-helpers';
+import { success, notFound, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateParamId } from '@/lib/api-helpers';
+import { checkRateLimit } from '@/lib/security';
 import { DateRangeHelper } from '@/domain/entities/DateRange';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`member-profile-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { memberId } = await params;
     const idError = validateParamId(memberId);
     if (idError) return idError;
