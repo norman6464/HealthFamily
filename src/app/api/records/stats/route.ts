@@ -1,11 +1,14 @@
 import { prisma } from '@/lib/prisma';
-import { success } from '@/lib/auth-helpers';
+import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
+import { checkRateLimit } from '@/lib/security';
 import { AdherenceStatsEntity } from '@/domain/entities/AdherenceStats';
 import { DateRangeHelper } from '@/domain/entities/DateRange';
 import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
+  const { allowed } = checkRateLimit(`records-stats-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+  if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
   const now = new Date();
   const sevenDaysAgo = DateRangeHelper.daysAgo(7, now);
   const thirtyDaysAgo = DateRangeHelper.daysAgo(30, now);
