@@ -344,4 +344,47 @@ export class HealthLogEntity {
     if (logs.length === 0) return null;
     return logs.reduce((worst, log) => (log.conditionLevel < worst.conditionLevel ? log : worst));
   }
+
+  /**
+   * 特定症状の深刻度スコア(0-100)を算出する
+   * 症状が体調レベル1-2の時に出現する割合
+   */
+  static getSymptomSeverityScore(logs: HealthLog[], symptom: SymptomType): number {
+    const logsWithSymptom = logs.filter((l) => l.symptoms.includes(symptom));
+    if (logsWithSymptom.length === 0) return 0;
+    const lowConditionCount = logsWithSymptom.filter((l) => l.conditionLevel <= 2).length;
+    return MathHelper.calculatePercentage(lowConditionCount, logsWithSymptom.length);
+  }
+
+  /**
+   * 深刻度スコアに応じたリスクレベルを返す
+   */
+  static getSymptomRiskLevel(score: number): 'low' | 'medium' | 'high' {
+    if (score >= 80) return 'high';
+    if (score >= 50) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * 最も深刻度が高い症状を返す
+   */
+  static getMostSevereSymptom(
+    logs: HealthLog[],
+  ): { symptom: SymptomType; score: number } | null {
+    const allSymptoms = new Set<SymptomType>();
+    for (const log of logs) {
+      for (const s of log.symptoms) {
+        allSymptoms.add(s);
+      }
+    }
+    if (allSymptoms.size === 0) return null;
+    let best: { symptom: SymptomType; score: number } | null = null;
+    for (const symptom of allSymptoms) {
+      const score = HealthLogEntity.getSymptomSeverityScore(logs, symptom);
+      if (!best || score > best.score) {
+        best = { symptom, score };
+      }
+    }
+    return best;
+  }
 }
