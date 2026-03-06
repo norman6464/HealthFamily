@@ -3,6 +3,7 @@ import { createAppointmentSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
 import { QUERY_LIMITS } from '@/lib/constants';
+import { checkRateLimit } from '@/lib/security';
 
 export const GET = withAuth(async (userId) => {
   const appointments = await prisma.appointment.findMany({
@@ -25,6 +26,9 @@ export async function POST(request: Request) {
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
+    const rateLimitError = checkRateLimit(userId, 'appointments-post', 10);
+    if (rateLimitError) return rateLimitError;
+
     const body = await request.json();
     const parsed = createAppointmentSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
