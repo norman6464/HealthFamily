@@ -339,10 +339,6 @@ export class ScheduleEntity {
     return `${medicationNameA}と${medicationNameB}が${time}に重複しています`;
   }
 
-  private static readonly DAY_INDEX: Record<DayOfWeek, number> = {
-    sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6,
-  };
-
   /**
    * 曜日別の完了率を算出する
    * 返り値: [日, 月, 火, 水, 木, 金, 土] の完了率(0-100)
@@ -351,10 +347,10 @@ export class ScheduleEntity {
     const completedCounts = new Array(7).fill(0);
     const scheduledCounts = new Array(7).fill(0);
     for (const day of completed) {
-      completedCounts[ScheduleEntity.DAY_INDEX[day]]++;
+      completedCounts[ScheduleEntity.VALID_DAYS.indexOf(day)]++;
     }
     for (const day of scheduled) {
-      scheduledCounts[ScheduleEntity.DAY_INDEX[day]]++;
+      scheduledCounts[ScheduleEntity.VALID_DAYS.indexOf(day)]++;
     }
     return scheduledCounts.map((total, i) =>
       total === 0 ? 0 : MathHelper.calculatePercentage(completedCounts[i], total),
