@@ -106,6 +106,8 @@ export class DateRangeHelper {
   private static readonly DENSITY_MODERATE_THRESHOLD = 50;
   private static readonly WEEKDAY_CONCENTRATION_HIGH_THRESHOLD = 70;
   private static readonly WEEKDAY_CONCENTRATION_MODERATE_THRESHOLD = 40;
+  private static readonly DATE_GAP_REGULAR_THRESHOLD = 80;
+  private static readonly DATE_GAP_MODERATE_THRESHOLD = 50;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -395,5 +397,27 @@ export class DateRangeHelper {
     if (score >= DateRangeHelper.WEEKDAY_CONCENTRATION_HIGH_THRESHOLD) return '集中';
     if (score >= DateRangeHelper.WEEKDAY_CONCENTRATION_MODERATE_THRESHOLD) return 'やや偏り';
     return '分散';
+  }
+
+  /**
+   * 日付間隔配列の規則性スコア(0-100)を算出する
+   * 変動係数ベースで間隔の均一性を評価
+   */
+  static getDateGapScore(gaps: number[]): number {
+    if (gaps.length <= 1) return 0;
+    const avg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    if (avg === 0) return 100;
+    const variance = gaps.reduce((sum, v) => sum + (v - avg) ** 2, 0) / gaps.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.max(0, Math.min(100, Math.round((1 - cv) * 100)));
+  }
+
+  /**
+   * 日付間隔スコアに応じたラベルを返す
+   */
+  static getDateGapScoreLabel(score: number): string {
+    if (score >= DateRangeHelper.DATE_GAP_REGULAR_THRESHOLD) return '規則的';
+    if (score >= DateRangeHelper.DATE_GAP_MODERATE_THRESHOLD) return 'やや不規則';
+    return '不規則';
   }
 }

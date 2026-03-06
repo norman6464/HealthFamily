@@ -33,6 +33,8 @@ export class AppointmentEntity {
   private static readonly DENSITY_REGULAR_THRESHOLD = 2;
   private static readonly CYCLE_REGULAR_THRESHOLD = 70;
   private static readonly CYCLE_MODERATE_THRESHOLD = 40;
+  private static readonly APPT_REGULARITY_HIGH_THRESHOLD = 80;
+  private static readonly APPT_REGULARITY_MODERATE_THRESHOLD = 50;
 
   constructor(private readonly appointment: Appointment) {}
 
@@ -602,5 +604,27 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.FREQUENCY_HIGH_THRESHOLD) return '高頻度';
     if (score >= AppointmentEntity.FREQUENCY_MODERATE_THRESHOLD) return '中頻度';
     return '低頻度';
+  }
+
+  /**
+   * 通院間隔配列から規則性スコア(0-100)を算出する
+   * 変動係数ベースで間隔の均一性を評価
+   */
+  static getAppointmentRegularity(intervals: number[]): number {
+    if (intervals.length <= 1) return 0;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    if (avg === 0) return 100;
+    const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.max(0, Math.min(100, Math.round((1 - cv) * 100)));
+  }
+
+  /**
+   * 通院規則性スコアに応じたラベルを返す
+   */
+  static getAppointmentRegularityLabel(score: number): string {
+    if (score >= AppointmentEntity.APPT_REGULARITY_HIGH_THRESHOLD) return '規則的';
+    if (score >= AppointmentEntity.APPT_REGULARITY_MODERATE_THRESHOLD) return 'やや不規則';
+    return '不規則';
   }
 }
