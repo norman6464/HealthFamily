@@ -331,4 +331,40 @@ export class AdherenceStatsEntity {
     if (rate >= 50) return '少しずつ習慣にしていきましょう';
     return '一回でも記録をつけることが大切です';
   }
+
+  private static readonly MILESTONES = [7, 14, 30, 60, 90, 100, 180, 365];
+
+  /**
+   * 現在の連続日数から次のマイルストーンを取得する
+   */
+  static getNextMilestone(currentStreak: number): number | null {
+    return AdherenceStatsEntity.MILESTONES.find((m) => m > currentStreak) ?? null;
+  }
+
+  /**
+   * 次のマイルストーンまでの残り日数を返す
+   */
+  static getDaysUntilMilestone(currentStreak: number): number | null {
+    const next = AdherenceStatsEntity.getNextMilestone(currentStreak);
+    if (next === null) return null;
+    return next - currentStreak;
+  }
+
+  private static readonly milestoneMessages: Record<number, string> = {
+    7: '1週間連続達成です',
+    14: '2週間連続達成です',
+    30: '1ヶ月連続達成です',
+    60: '2ヶ月連続達成です',
+    90: '3ヶ月連続達成です',
+    100: '100日連続達成です',
+    180: '半年連続達成です',
+    365: '1年連続達成です',
+  };
+
+  /**
+   * マイルストーン達成時のメッセージを返す（マイルストーンでない場合はnull）
+   */
+  static getMilestoneAchievementMessage(streak: number): string | null {
+    return AdherenceStatsEntity.milestoneMessages[streak] ?? null;
+  }
 }
