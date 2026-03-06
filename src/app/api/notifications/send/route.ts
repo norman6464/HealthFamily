@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateBodySize } from '@/lib/api-helpers';
+import { checkRateLimit } from '@/lib/security';
 
 const sendNotificationSchema = z.object({
   type: z.enum(['medication_reminder', 'missed_medication', 'appointment_reminder', 'low_stock']),
@@ -17,6 +18,11 @@ export async function POST(request: NextRequest) {
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
+    const rateLimit = checkRateLimit(`notification:${userId}`, { maxAttempts: 10, windowMs: 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return errorResponse('通知の送信回数が上限に達しました。しばらくしてから再試行してください。', 429);
+    }
+
     const body = await request.json();
     const parsed = sendNotificationSchema.safeParse(body);
     if (!parsed.success) {
