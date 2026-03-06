@@ -82,4 +82,35 @@ export class MathHelper {
     if (stdDev < 3) return 'やや不安定';
     return '不安定';
   }
+
+  /**
+   * 指定ウィンドウの移動平均を算出する
+   */
+  static calculateMovingAverage(values: number[], window: number): number[] {
+    if (values.length < window || window <= 0) return [];
+    const result: number[] = [];
+    for (let i = 0; i <= values.length - window; i++) {
+      const slice = values.slice(i, i + window);
+      const avg = slice.reduce((a, b) => a + b, 0) / window;
+      result.push(Math.round(avg * 10) / 10);
+    }
+    return result;
+  }
+
+  /**
+   * 前後の値から変化率(%)を算出する
+   */
+  static calculateChangeRate(previous: number, current: number): number {
+    if (previous === 0) return 0;
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
+  /**
+   * 変化率に応じたラベルを返す
+   */
+  static getChangeRateLabel(changeRate: number): string {
+    if (changeRate >= 10) return '上昇';
+    if (changeRate <= -10) return '下降';
+    return '横ばい';
+  }
 }
