@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const body = jsonResult.data;
     const parsed = sendNotificationSchema.safeParse(body);
     if (!parsed.success) {
-      return errorResponse('Invalid request body');
+      return errorResponse('リクエストの形式が不正です');
     }
 
     const { type, memberId, medicationId, appointmentId } = parsed.data;
@@ -40,20 +40,20 @@ export async function POST(request: NextRequest) {
       where: { id: memberId, userId },
     });
     if (!member) {
-      return errorResponse('Member not found', 404);
+      return errorResponse('メンバーが見つかりません', 404);
     }
 
     switch (type) {
       case 'medication_reminder':
       case 'missed_medication': {
         if (!medicationId) {
-          return errorResponse('medicationId is required');
+          return errorResponse('薬IDは必須です');
         }
         const medication = await prisma.medication.findFirst({
           where: { id: medicationId, userId },
         });
         if (!medication) {
-          return errorResponse('Medication not found', 404);
+          return errorResponse('薬が見つかりません', 404);
         }
         const template = type === 'medication_reminder'
           ? emailTemplates.medicationReminder({
@@ -72,14 +72,14 @@ export async function POST(request: NextRequest) {
 
       case 'appointment_reminder': {
         if (!appointmentId) {
-          return errorResponse('appointmentId is required');
+          return errorResponse('予約IDは必須です');
         }
         const appointment = await prisma.appointment.findFirst({
           where: { id: appointmentId, userId },
           include: { hospital: true },
         });
         if (!appointment) {
-          return errorResponse('Appointment not found', 404);
+          return errorResponse('予約が見つかりません', 404);
         }
         const template = emailTemplates.appointmentReminder({
           memberName: member.name,
@@ -93,13 +93,13 @@ export async function POST(request: NextRequest) {
 
       case 'low_stock': {
         if (!medicationId) {
-          return errorResponse('medicationId is required');
+          return errorResponse('薬IDは必須です');
         }
         const medication = await prisma.medication.findFirst({
           where: { id: medicationId, userId },
         });
         if (!medication) {
-          return errorResponse('Medication not found', 404);
+          return errorResponse('薬が見つかりません', 404);
         }
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -121,6 +121,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return success({ message: 'Notification sent' });
+    return success({ message: '通知を送信しました' });
   })();
 }
