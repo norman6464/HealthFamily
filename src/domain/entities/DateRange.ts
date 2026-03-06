@@ -104,6 +104,8 @@ export class DateRangeHelper {
   private static readonly SPAN_LONG_THRESHOLD = 90;
   private static readonly DENSITY_HIGH_THRESHOLD = 80;
   private static readonly DENSITY_MODERATE_THRESHOLD = 50;
+  private static readonly WEEKDAY_CONCENTRATION_HIGH_THRESHOLD = 70;
+  private static readonly WEEKDAY_CONCENTRATION_MODERATE_THRESHOLD = 40;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -366,5 +368,32 @@ export class DateRangeHelper {
     if (days < DateRangeHelper.SPAN_SHORT_THRESHOLD) return '短期間';
     if (days < DateRangeHelper.SPAN_LONG_THRESHOLD) return '中期間';
     return '長期間';
+  }
+
+  /**
+   * 曜日インデックス配列(0=日〜6=土)から集中度(0-100)を算出する
+   * 最頻曜日の出現率を100点満点で正規化（均等=1/7=14.3%→0, 全集中=100%→100）
+   */
+  static getWeekdayConcentration(dayIndices: number[]): number {
+    if (dayIndices.length === 0) return 0;
+    if (dayIndices.length === 1) return 100;
+    const counts = new Array(DateRangeHelper.DAYS_IN_WEEK).fill(0);
+    for (const d of dayIndices) {
+      if (d >= 0 && d < DateRangeHelper.DAYS_IN_WEEK) counts[d]++;
+    }
+    const maxCount = Math.max(...counts);
+    const maxRatio = maxCount / dayIndices.length;
+    const minRatio = 1 / DateRangeHelper.DAYS_IN_WEEK;
+    if (maxRatio <= minRatio) return 0;
+    return Math.round(((maxRatio - minRatio) / (1 - minRatio)) * 100);
+  }
+
+  /**
+   * 曜日集中度に応じたラベルを返す
+   */
+  static getWeekdayConcentrationLabel(score: number): string {
+    if (score >= DateRangeHelper.WEEKDAY_CONCENTRATION_HIGH_THRESHOLD) return '集中';
+    if (score >= DateRangeHelper.WEEKDAY_CONCENTRATION_MODERATE_THRESHOLD) return 'やや偏り';
+    return '分散';
   }
 }

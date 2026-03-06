@@ -16,6 +16,8 @@ export class MathHelper {
   private static readonly GEOMETRIC_LOW_THRESHOLD = 30;
   private static readonly ENTROPY_HIGH_THRESHOLD = 70;
   private static readonly ENTROPY_LOW_THRESHOLD = 30;
+  private static readonly ZSCORE_ABNORMAL_THRESHOLD = 2;
+  private static readonly ZSCORE_OUTLIER_THRESHOLD = 1;
 
   /**
    * パーセントを算出(0-100%)
@@ -360,5 +362,26 @@ export class MathHelper {
     if (score >= MathHelper.ENTROPY_HIGH_THRESHOLD) return '多様';
     if (score >= MathHelper.ENTROPY_LOW_THRESHOLD) return '普通';
     return '均一';
+  }
+
+  /**
+   * 値配列と対象値からZ値（標準化スコア）を算出する
+   */
+  static getZScore(values: number[], target: number): number {
+    if (values.length <= 1) return 0;
+    const stdDev = MathHelper.calculateStdDev(values);
+    if (stdDev === 0) return 0;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    return Math.round(((target - avg) / stdDev) * 100) / 100;
+  }
+
+  /**
+   * Z値に応じた異常度ラベルを返す
+   */
+  static getZScoreLabel(z: number): string {
+    const abs = Math.abs(z);
+    if (abs >= MathHelper.ZSCORE_ABNORMAL_THRESHOLD) return '異常';
+    if (abs >= MathHelper.ZSCORE_OUTLIER_THRESHOLD) return 'やや外れ値';
+    return '正常';
   }
 }
