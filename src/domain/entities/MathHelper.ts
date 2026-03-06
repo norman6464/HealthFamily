@@ -29,6 +29,8 @@ export class MathHelper {
   private static readonly CUMSUM_NEAR_RATIO = 0.7;
   private static readonly MINMAX_HIGH_THRESHOLD = 80;
   private static readonly MINMAX_MEDIUM_THRESHOLD = 40;
+  private static readonly IQR_STABLE_THRESHOLD = 5;
+  private static readonly IQR_MODERATE_THRESHOLD = 20;
 
   /**
    * パーセントを算出(0-100%)
@@ -555,5 +557,23 @@ export class MathHelper {
     if (value >= MathHelper.MINMAX_HIGH_THRESHOLD) return '高い';
     if (value >= MathHelper.MINMAX_MEDIUM_THRESHOLD) return '中程度';
     return '低い';
+  }
+
+  /**
+   * 四分位範囲(IQR = Q3 - Q1)を算出する
+   */
+  static getInterquartileRange(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const { q1, q3 } = MathHelper.getQuartiles(values);
+    return q3 - q1;
+  }
+
+  /**
+   * IQRに応じたラベルを返す
+   */
+  static getIQRLabel(iqr: number): string {
+    if (iqr <= MathHelper.IQR_STABLE_THRESHOLD) return '安定';
+    if (iqr <= MathHelper.IQR_MODERATE_THRESHOLD) return 'やや散布';
+    return '散布';
   }
 }

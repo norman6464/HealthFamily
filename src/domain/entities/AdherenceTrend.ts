@@ -39,6 +39,7 @@ export class AdherenceTrendEntity {
   private static readonly PEAK_EXCELLENT_THRESHOLD = 90;
   private static readonly PEAK_GOOD_THRESHOLD = 70;
   private static readonly PEAK_MODERATE_THRESHOLD = 50;
+  private static readonly MOMENTUM_THRESHOLD = 5;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -425,5 +426,35 @@ export class AdherenceTrendEntity {
     if (rate >= AdherenceTrendEntity.PEAK_GOOD_THRESHOLD) return '良好';
     if (rate >= AdherenceTrendEntity.PEAK_MODERATE_THRESHOLD) return '普通';
     return '低調';
+  }
+
+  /**
+   * 遵守率配列からモメンタム(変化の加速度)を算出する
+   * 2次差分の平均を返す（3件未満は0）
+   */
+  static getAdherenceMomentum(rates: number[]): number {
+    if (rates.length < 3) return 0;
+    const diffs: number[] = [];
+    for (let i = 1; i < rates.length; i++) {
+      diffs.push(rates[i] - rates[i - 1]);
+    }
+    // 直近の変化を重視した加重平均
+    let weightedSum = 0;
+    let weightTotal = 0;
+    for (let i = 0; i < diffs.length; i++) {
+      const weight = i + 1;
+      weightedSum += diffs[i] * weight;
+      weightTotal += weight;
+    }
+    return Math.round((weightedSum / weightTotal) * 100) / 100;
+  }
+
+  /**
+   * モメンタムに応じたラベルを返す
+   */
+  static getAdherenceMomentumLabel(momentum: number): string {
+    if (momentum >= AdherenceTrendEntity.MOMENTUM_THRESHOLD) return '加速改善';
+    if (momentum <= -AdherenceTrendEntity.MOMENTUM_THRESHOLD) return '加速悪化';
+    return '安定';
   }
 }
