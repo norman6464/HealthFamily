@@ -241,6 +241,29 @@ export class MedicationEntity {
   /**
    * 頻度と用量のサマリーテキストを返す
    */
+  /**
+   * 用量と単位を結合してフォーマットする
+   */
+  static formatDosageWithUnit(amount: number, unit: string): string {
+    return `${amount}${unit}`;
+  }
+
+  /**
+   * 1回の用量と1日の回数から日あたり総用量を算出する
+   */
+  static getDailyDosageTotal(dosagePerTime: number, timesPerDay: number): number {
+    return dosagePerTime * timesPerDay;
+  }
+
+  /**
+   * 日用量の注意レベルを判定する
+   */
+  static getDosageWarningLevel(dailyTotal: number): 'normal' | 'medium' | 'high' {
+    if (dailyTotal >= 10) return 'high';
+    if (dailyTotal >= 5) return 'medium';
+    return 'normal';
+  }
+
   static getFrequencySummary(frequency?: string, dosage?: string): string {
     const parts: string[] = [];
     if (frequency) {
