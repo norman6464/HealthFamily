@@ -39,6 +39,9 @@ export class CalendarEntity {
   private static readonly COMPLETENESS_PERFECT_THRESHOLD = 90;
   private static readonly COMPLETENESS_GOOD_THRESHOLD = 70;
   private static readonly COMPLETENESS_FAIR_THRESHOLD = 50;
+  private static readonly MONTHLY_VARIANCE_MAX_CV = 1;
+  private static readonly MONTHLY_VARIANCE_HIGH_THRESHOLD = 60;
+  private static readonly MONTHLY_VARIANCE_MODERATE_THRESHOLD = 30;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -540,5 +543,27 @@ export class CalendarEntity {
     if (gapDays < CalendarEntity.GAP_SHORT_THRESHOLD) return '短い空白';
     if (gapDays < CalendarEntity.GAP_LONG_THRESHOLD) return '長い空白';
     return '記録途絶';
+  }
+
+  /**
+   * 月間記録数配列からばらつき度(0-100)を算出する
+   * 変動係数ベースで数値化
+   */
+  static getMonthlyVariance(monthlyCounts: number[]): number {
+    if (monthlyCounts.length <= 1) return 0;
+    const avg = monthlyCounts.reduce((a, b) => a + b, 0) / monthlyCounts.length;
+    if (avg === 0) return 0;
+    const variance = monthlyCounts.reduce((sum, v) => sum + (v - avg) ** 2, 0) / monthlyCounts.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.min(100, Math.round((cv / CalendarEntity.MONTHLY_VARIANCE_MAX_CV) * 100));
+  }
+
+  /**
+   * 月間記録ばらつき度に応じたラベルを返す
+   */
+  static getMonthlyVarianceLabel(score: number): string {
+    if (score >= CalendarEntity.MONTHLY_VARIANCE_HIGH_THRESHOLD) return '不安定';
+    if (score >= CalendarEntity.MONTHLY_VARIANCE_MODERATE_THRESHOLD) return 'やや不安定';
+    return '安定';
   }
 }
