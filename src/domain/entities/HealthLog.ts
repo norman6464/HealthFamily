@@ -55,46 +55,49 @@ export interface DailyHealthLogGroup {
  * 体調記録のビジネスロジック
  */
 export class HealthLogEntity {
+  private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
+    1: 'とても悪い',
+    2: '悪い',
+    3: '普通',
+    4: '良い',
+    5: 'とても良い',
+  };
+
+  private static readonly CONDITION_COLORS: Record<ConditionLevel, string> = {
+    1: 'text-red-600',
+    2: 'text-orange-500',
+    3: 'text-yellow-500',
+    4: 'text-green-500',
+    5: 'text-green-600',
+  };
+
+  private static readonly CONDITION_ICONS: Record<ConditionLevel, string> = {
+    1: 'Frown',
+    2: 'Meh',
+    3: 'MinusCircle',
+    4: 'Smile',
+    5: 'Laugh',
+  };
+
   /**
    * 体調レベルのラベルを取得
    */
   static getConditionLabel(level: ConditionLevel): string {
-    const labels: Record<ConditionLevel, string> = {
-      1: 'とても悪い',
-      2: '悪い',
-      3: '普通',
-      4: '良い',
-      5: 'とても良い',
-    };
-    return labels[level];
+    return HealthLogEntity.CONDITION_LABELS[level];
   }
 
   /**
    * 体調レベルのカラークラスを取得
    */
   static getConditionColor(level: ConditionLevel): string {
-    const colors: Record<ConditionLevel, string> = {
-      1: 'text-red-600',
-      2: 'text-orange-500',
-      3: 'text-yellow-500',
-      4: 'text-green-500',
-      5: 'text-green-600',
-    };
-    return colors[level];
+    return HealthLogEntity.CONDITION_COLORS[level];
   }
 
   /**
    * 体調レベルに応じたlucide-reactアイコン名を取得
    */
   static getConditionIcon(level: ConditionLevel): string {
-    const icons: Record<ConditionLevel, string> = {
-      1: 'Frown',
-      2: 'Meh',
-      3: 'MinusCircle',
-      4: 'Smile',
-      5: 'Laugh',
-    };
-    return icons[level];
+    return HealthLogEntity.CONDITION_ICONS[level];
   }
 
   /**
