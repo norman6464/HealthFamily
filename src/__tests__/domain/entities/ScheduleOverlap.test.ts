@@ -1,86 +1,67 @@
 import { describe, it, expect } from 'vitest';
 import { ScheduleEntity } from '@/domain/entities/Schedule';
 
-interface SimpleSchedule {
-  id: string;
-  time: string;
-  daysOfWeek: string[];
-  medicationName: string;
-}
-
-describe('ScheduleEntity スケジュール重複検知', () => {
-  describe('findOverlappingSchedules', () => {
-    it('空配列は空配列を返す', () => {
-      expect(ScheduleEntity.findOverlappingSchedules([])).toEqual([]);
-    });
-
-    it('1件のみは空配列を返す', () => {
-      const schedules: SimpleSchedule[] = [
-        { id: '1', time: '08:00', daysOfWeek: ['mon'], medicationName: '薬A' },
-      ];
-      expect(ScheduleEntity.findOverlappingSchedules(schedules)).toEqual([]);
-    });
-
-    it('同じ時間・同じ曜日のスケジュールは重複として検知する', () => {
-      const schedules: SimpleSchedule[] = [
-        { id: '1', time: '08:00', daysOfWeek: ['mon'], medicationName: '薬A' },
-        { id: '2', time: '08:00', daysOfWeek: ['mon'], medicationName: '薬B' },
-      ];
-      const result = ScheduleEntity.findOverlappingSchedules(schedules);
-      expect(result).toHaveLength(1);
-      expect(result[0].scheduleIds).toContain('1');
-      expect(result[0].scheduleIds).toContain('2');
-    });
-
-    it('異なる時間は重複しない', () => {
-      const schedules: SimpleSchedule[] = [
-        { id: '1', time: '08:00', daysOfWeek: ['mon'], medicationName: '薬A' },
-        { id: '2', time: '12:00', daysOfWeek: ['mon'], medicationName: '薬B' },
-      ];
-      expect(ScheduleEntity.findOverlappingSchedules(schedules)).toEqual([]);
-    });
-
-    it('異なる曜日は重複しない', () => {
-      const schedules: SimpleSchedule[] = [
-        { id: '1', time: '08:00', daysOfWeek: ['mon'], medicationName: '薬A' },
-        { id: '2', time: '08:00', daysOfWeek: ['tue'], medicationName: '薬B' },
-      ];
-      expect(ScheduleEntity.findOverlappingSchedules(schedules)).toEqual([]);
-    });
-
-    it('曜日未設定（毎日）同士は時間が同じなら重複する', () => {
-      const schedules: SimpleSchedule[] = [
-        { id: '1', time: '08:00', daysOfWeek: [], medicationName: '薬A' },
-        { id: '2', time: '08:00', daysOfWeek: [], medicationName: '薬B' },
-      ];
-      const result = ScheduleEntity.findOverlappingSchedules(schedules);
-      expect(result).toHaveLength(1);
-    });
+describe('getScheduleOverlap', () => {
+  it('空配列の場合0を返す', () => {
+    expect(ScheduleEntity.getScheduleOverlap([])).toBe(0);
   });
 
-  describe('hasTimeConflict', () => {
-    it('同じ時間はtrueを返す', () => {
-      expect(ScheduleEntity.hasTimeConflict('08:00', '08:00')).toBe(true);
-    });
-
-    it('15分差以内はtrueを返す（デフォルト）', () => {
-      expect(ScheduleEntity.hasTimeConflict('08:00', '08:10')).toBe(true);
-    });
-
-    it('16分差はfalseを返す（デフォルト）', () => {
-      expect(ScheduleEntity.hasTimeConflict('08:00', '08:16')).toBe(false);
-    });
-
-    it('カスタム閾値で判定する', () => {
-      expect(ScheduleEntity.hasTimeConflict('08:00', '08:25', 30)).toBe(true);
-      expect(ScheduleEntity.hasTimeConflict('08:00', '08:31', 30)).toBe(false);
-    });
+  it('1つの時間帯の場合0を返す', () => {
+    expect(ScheduleEntity.getScheduleOverlap([{ start: 480, end: 540 }])).toBe(0);
   });
 
-  describe('getConflictMessage', () => {
-    it('重複メッセージを生成する', () => {
-      const result = ScheduleEntity.getConflictMessage('薬A', '薬B', '08:00');
-      expect(result).toBe('薬Aと薬Bが08:00に重複しています');
-    });
+  it('重複なしの場合0を返す', () => {
+    const ranges = [
+      { start: 480, end: 540 },
+      { start: 600, end: 660 },
+    ];
+    expect(ScheduleEntity.getScheduleOverlap(ranges)).toBe(0);
+  });
+
+  it('完全に重複する場合100を返す', () => {
+    const ranges = [
+      { start: 480, end: 540 },
+      { start: 480, end: 540 },
+    ];
+    expect(ScheduleEntity.getScheduleOverlap(ranges)).toBe(100);
+  });
+
+  it('2つの時間帯が部分的に重複する場合100を返す', () => {
+    const ranges = [
+      { start: 480, end: 540 },
+      { start: 510, end: 570 },
+    ];
+    expect(ScheduleEntity.getScheduleOverlap(ranges)).toBe(100);
+  });
+
+  it('3つ中1ペアのみ重複の場合33を返す', () => {
+    const ranges = [
+      { start: 480, end: 540 },
+      { start: 510, end: 570 },
+      { start: 700, end: 760 },
+    ];
+    expect(ScheduleEntity.getScheduleOverlap(ranges)).toBe(33);
+  });
+});
+
+describe('getScheduleOverlapLabel', () => {
+  it('0は重複なしを返す', () => {
+    expect(ScheduleEntity.getScheduleOverlapLabel(0)).toBe('重複なし');
+  });
+
+  it('30未満は軽微を返す', () => {
+    expect(ScheduleEntity.getScheduleOverlapLabel(20)).toBe('軽微');
+  });
+
+  it('30以上60未満は注意を返す', () => {
+    expect(ScheduleEntity.getScheduleOverlapLabel(45)).toBe('注意');
+  });
+
+  it('60以上は要調整を返す', () => {
+    expect(ScheduleEntity.getScheduleOverlapLabel(80)).toBe('要調整');
+  });
+
+  it('100は要調整を返す', () => {
+    expect(ScheduleEntity.getScheduleOverlapLabel(100)).toBe('要調整');
   });
 });

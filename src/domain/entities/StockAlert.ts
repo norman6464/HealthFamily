@@ -475,6 +475,24 @@ export class StockAlertEntity {
     return '低回転';
   }
 
+  /**
+   * 在庫効率スコア(0-100)を算出する
+   * 消費量/購入(在庫)量の割合をスコア化
+   */
+  static getStockEfficiencyScore(consumed: number, purchased: number): number {
+    if (purchased <= 0 || consumed <= 0) return 0;
+    return Math.min(100, Math.round((consumed / purchased) * 100));
+  }
+
+  /**
+   * 在庫効率スコアに応じたラベルを返す
+   */
+  static getStockEfficiencyLabel(score: number): string {
+    if (score >= 80) return '効率的';
+    if (score >= 50) return '標準';
+    return '非効率';
+  }
+
   static getRefillPriorityLabel(rank: number): string {
     if (rank === 1) return '最優先';
     if (rank === 2) return '優先';

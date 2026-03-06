@@ -879,4 +879,34 @@ export class ScheduleEntity {
     if (gapMinutes < ScheduleEntity.SCHEDULE_GAP_LONG_THRESHOLD) return '適切';
     return '長い';
   }
+
+  /**
+   * 時間帯(start/end分単位)配列から重複度スコア(0-100)を算出する
+   * 重複するペアの割合をスコア化
+   */
+  static getScheduleOverlap(ranges: { start: number; end: number }[]): number {
+    if (ranges.length <= 1) return 0;
+    let overlapPairs = 0;
+    let totalPairs = 0;
+    for (let i = 0; i < ranges.length; i++) {
+      for (let j = i + 1; j < ranges.length; j++) {
+        totalPairs++;
+        const overlapStart = Math.max(ranges[i].start, ranges[j].start);
+        const overlapEnd = Math.min(ranges[i].end, ranges[j].end);
+        if (overlapStart < overlapEnd) overlapPairs++;
+      }
+    }
+    if (totalPairs === 0) return 0;
+    return Math.round((overlapPairs / totalPairs) * 100);
+  }
+
+  /**
+   * 重複度スコアに応じたラベルを返す
+   */
+  static getScheduleOverlapLabel(score: number): string {
+    if (score === 0) return '重複なし';
+    if (score < 30) return '軽微';
+    if (score < 60) return '注意';
+    return '要調整';
+  }
 }

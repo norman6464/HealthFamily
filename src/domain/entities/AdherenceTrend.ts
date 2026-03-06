@@ -315,6 +315,30 @@ export class AdherenceTrendEntity {
   }
 
   /**
+   * 遵守率配列から変動性スコア(0-100)を算出する
+   * 隣接値の差分の平均をスコア化（最大差50基準）
+   */
+  static getAdherenceVolatility(rates: number[]): number {
+    if (rates.length <= 1) return 0;
+    let totalDiff = 0;
+    for (let i = 1; i < rates.length; i++) {
+      totalDiff += Math.abs(rates[i] - rates[i - 1]);
+    }
+    const avgDiff = totalDiff / (rates.length - 1);
+    const maxDiff = 50;
+    return Math.min(100, Math.round((avgDiff / maxDiff) * 100));
+  }
+
+  /**
+   * 変動性スコアに応じたラベルを返す
+   */
+  static getAdherenceVolatilityLabel(score: number): string {
+    if (score <= 30) return '安定';
+    if (score <= 60) return 'やや不安定';
+    return '不安定';
+  }
+
+  /**
    * 週次遵守率配列の直近2週間の変化量を算出する
    */
   static getWeekOverWeekChange(weeklyRates: number[]): number {
