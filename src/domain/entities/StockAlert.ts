@@ -32,6 +32,9 @@ export class StockAlertEntity {
   private static readonly COVERAGE_LOW_THRESHOLD = 40;
   private static readonly STOCK_EFFICIENCY_HIGH_THRESHOLD = 80;
   private static readonly STOCK_EFFICIENCY_NORMAL_THRESHOLD = 50;
+  private static readonly STABILITY_MAX_CV = 1;
+  private static readonly STABILITY_HIGH_THRESHOLD = 80;
+  private static readonly STABILITY_MODERATE_THRESHOLD = 50;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -519,5 +522,27 @@ export class StockAlertEntity {
     if (score >= StockAlertEntity.COVERAGE_SUFFICIENT_THRESHOLD) return '十分';
     if (score >= StockAlertEntity.COVERAGE_LOW_THRESHOLD) return 'やや不足';
     return '不足';
+  }
+
+  /**
+   * 在庫量配列から安定性スコア(0-100)を算出する
+   * 変動係数(CV)ベースで安定性を数値化
+   */
+  static getStockStabilityScore(stockLevels: number[]): number {
+    if (stockLevels.length <= 1) return stockLevels.length === 0 ? 0 : 100;
+    const avg = stockLevels.reduce((a, b) => a + b, 0) / stockLevels.length;
+    if (avg === 0) return 0;
+    const variance = stockLevels.reduce((sum, v) => sum + (v - avg) ** 2, 0) / stockLevels.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.max(0, Math.min(100, Math.round(100 - (cv / StockAlertEntity.STABILITY_MAX_CV) * 100)));
+  }
+
+  /**
+   * 在庫安定性スコアに応じたラベルを返す
+   */
+  static getStockStabilityLabel(score: number): string {
+    if (score >= StockAlertEntity.STABILITY_HIGH_THRESHOLD) return '安定';
+    if (score >= StockAlertEntity.STABILITY_MODERATE_THRESHOLD) return 'やや不安定';
+    return '不安定';
   }
 }
