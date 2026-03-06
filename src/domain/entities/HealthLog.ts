@@ -57,6 +57,11 @@ export interface DailyHealthLogGroup {
  * 体調記録のビジネスロジック
  */
 export class HealthLogEntity {
+  private static readonly TEMP_HYPOTHERMIA = 35.0;
+  private static readonly TEMP_LOW_FEVER = 37.5;
+  private static readonly TEMP_FEVER = 38.0;
+  private static readonly TEMP_HIGH_FEVER = 39.0;
+
   private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
     1: 'とても悪い',
     2: '悪い',
@@ -477,10 +482,10 @@ export class HealthLogEntity {
    */
   static classifyTemperature(temperature: number | null): 'hypothermia' | 'normal' | 'low_fever' | 'fever' | 'high_fever' | 'unknown' {
     if (temperature === null) return 'unknown';
-    if (temperature < 35.0) return 'hypothermia';
-    if (temperature < 37.5) return 'normal';
-    if (temperature < 38.0) return 'low_fever';
-    if (temperature < 39.0) return 'fever';
+    if (temperature < HealthLogEntity.TEMP_HYPOTHERMIA) return 'hypothermia';
+    if (temperature < HealthLogEntity.TEMP_LOW_FEVER) return 'normal';
+    if (temperature < HealthLogEntity.TEMP_FEVER) return 'low_fever';
+    if (temperature < HealthLogEntity.TEMP_HIGH_FEVER) return 'fever';
     return 'high_fever';
   }
 
