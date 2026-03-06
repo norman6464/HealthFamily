@@ -137,8 +137,7 @@ export class AdherenceStatsEntity {
     for (let i = 1; i < uniqueDays.length; i++) {
       const prevDate = new Date(uniqueDays[i - 1] + 'T00:00:00');
       const currDate = new Date(uniqueDays[i] + 'T00:00:00');
-      const diffMs = prevDate.getTime() - currDate.getTime();
-      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+      const diffDays = DateRangeHelper.diffDays(currDate, prevDate);
 
       if (diffDays === 1) {
         current++;
