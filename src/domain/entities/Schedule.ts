@@ -853,4 +853,28 @@ export class ScheduleEntity {
     if (rate >= ScheduleEntity.ADHERENCE_FAIR_THRESHOLD) return '要改善';
     return '不十分';
   }
+
+  /**
+   * 時刻配列(HH:mm)の最大間隔（分）を算出する
+   */
+  static getScheduleGapMinutes(times: string[]): number {
+    if (times.length <= 1) return 0;
+    const minutes = times.map((t) => ScheduleEntity.timeToMinutes(t)).sort((a, b) => a - b);
+    let maxGap = 0;
+    for (let i = 1; i < minutes.length; i++) {
+      const gap = minutes[i] - minutes[i - 1];
+      if (gap > maxGap) maxGap = gap;
+    }
+    return maxGap;
+  }
+
+  /**
+   * スケジュール間隔に応じたラベルを返す
+   */
+  static getScheduleGapLabel(gapMinutes: number): string {
+    if (gapMinutes === 0) return '間隔なし';
+    if (gapMinutes < 180) return '短い';
+    if (gapMinutes < 480) return '適切';
+    return '長い';
+  }
 }

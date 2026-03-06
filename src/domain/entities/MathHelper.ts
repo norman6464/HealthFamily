@@ -261,4 +261,24 @@ export class MathHelper {
     if (rate >= MathHelper.OUTLIER_MINOR_RATE) return '軽微';
     return '正常';
   }
+
+  /**
+   * 幾何平均を算出する（0以下の値を含む場合は0）
+   */
+  static getGeometricMean(values: number[]): number {
+    if (values.length === 0) return 0;
+    if (values.some((v) => v <= 0)) return 0;
+    const logSum = values.reduce((sum, v) => sum + Math.log(v), 0);
+    const mean = Math.exp(logSum / values.length);
+    return Math.round(mean * 100) / 100;
+  }
+
+  /**
+   * 幾何平均に応じたラベルを返す
+   */
+  static getGeometricMeanLabel(mean: number): string {
+    if (mean >= 70) return '高い';
+    if (mean >= 30) return '中程度';
+    return '低い';
+  }
 }
