@@ -438,4 +438,27 @@ export class MathHelper {
     if (percentile >= MathHelper.RANK_MEDIUM_THRESHOLD) return '中位';
     return '下位';
   }
+
+  /**
+   * 指数移動平均(EMA)を算出する
+   */
+  static getExponentialMovingAverage(values: number[], period: number): number[] {
+    if (values.length === 0) return [];
+    const multiplier = 2 / (period + 1);
+    const result: number[] = [values[0]];
+    for (let i = 1; i < values.length; i++) {
+      const ema = (values[i] - result[i - 1]) * multiplier + result[i - 1];
+      result.push(Math.round(ema * 10) / 10);
+    }
+    return result;
+  }
+
+  /**
+   * 現在値とEMAの比較でトレンドラベルを返す
+   */
+  static getEMALabel(currentValue: number, emaValue: number): string {
+    if (currentValue > emaValue) return '上昇基調';
+    if (currentValue < emaValue) return '下降基調';
+    return '横ばい';
+  }
 }
