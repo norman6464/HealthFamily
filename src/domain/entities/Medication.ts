@@ -147,17 +147,18 @@ export class MedicationEntity {
     return 'safe';
   }
 
+  private static readonly STOCK_STATUS_LABELS: Record<string, string> = {
+    safe: '十分',
+    low: '残りわずか',
+    critical: '在庫切れ',
+    unknown: '未設定',
+  };
+
   /**
    * 在庫状態の日本語ラベルを返す
    */
   static getStockStatusLabel(status: 'safe' | 'low' | 'critical' | 'unknown'): string {
-    const labels: Record<string, string> = {
-      safe: '十分',
-      low: '残りわずか',
-      critical: '在庫切れ',
-      unknown: '未設定',
-    };
-    return labels[status];
+    return MedicationEntity.STOCK_STATUS_LABELS[status];
   }
 
   private static readonly frequencyLabels: Record<string, string> = {
@@ -194,17 +195,18 @@ export class MedicationEntity {
     return '十分な在庫があります';
   }
 
+  private static readonly STOCK_STATUS_COLORS: Record<string, string> = {
+    safe: 'text-green-600',
+    low: 'text-orange-600',
+    critical: 'text-red-600',
+    unknown: 'text-gray-400',
+  };
+
   /**
    * 在庫ステータスに応じたスタイルクラスを返す
    */
   static getStockStatusColor(status: 'safe' | 'low' | 'critical' | 'unknown'): string {
-    const colors: Record<string, string> = {
-      safe: 'text-green-600',
-      low: 'text-orange-600',
-      critical: 'text-red-600',
-      unknown: 'text-gray-400',
-    };
-    return colors[status];
+    return MedicationEntity.STOCK_STATUS_COLORS[status];
   }
 
   /**
