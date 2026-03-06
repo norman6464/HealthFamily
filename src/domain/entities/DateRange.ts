@@ -95,6 +95,8 @@ export class DateRangeHelper {
    * 曜日の日本語ラベルを返す
    */
   private static readonly DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+  private static readonly DAYS_IN_WEEK = 7;
+  private static readonly MS_PER_DAY = 1000 * 60 * 60 * 24;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -273,9 +275,9 @@ export class DateRangeHelper {
     if (diff === 0) return '今日';
     if (diff === 1) return '明日';
     if (diff === -1) return '昨日';
-    if (diff < 0 && diff % 7 === 0) return `${Math.abs(diff) / 7}週間前`;
+    if (diff < 0 && diff % DateRangeHelper.DAYS_IN_WEEK === 0) return `${Math.abs(diff) / DateRangeHelper.DAYS_IN_WEEK}週間前`;
     if (diff < 0) return `${Math.abs(diff)}日前`;
-    if (diff > 0 && diff % 7 === 0) return `${diff / 7}週間後`;
+    if (diff > 0 && diff % DateRangeHelper.DAYS_IN_WEEK === 0) return `${diff / DateRangeHelper.DAYS_IN_WEEK}週間後`;
     return `${diff}日後`;
   }
 
@@ -288,7 +290,7 @@ export class DateRangeHelper {
       const prev = new Date(dateKeys[i - 1]);
       const curr = new Date(dateKeys[i]);
       const diffMs = curr.getTime() - prev.getTime();
-      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round(diffMs / DateRangeHelper.MS_PER_DAY);
       if (diffDays !== 1) return false;
     }
     return true;

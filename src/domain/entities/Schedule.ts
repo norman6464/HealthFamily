@@ -39,6 +39,8 @@ export class ScheduleEntity {
   private static readonly PROXIMITY_IMMINENT_MINUTES = 15;
   private static readonly PROXIMITY_SOON_MINUTES = 30;
   private static readonly PROXIMITY_NEAR_MINUTES = 60;
+  private static readonly STREAK_MONTH_THRESHOLD = 30;
+  private static readonly STREAK_WEEK_THRESHOLD = 7;
 
   constructor(private readonly schedule: Schedule) {}
 
@@ -768,8 +770,8 @@ export class ScheduleEntity {
    */
   static getCompletionStreakLabel(days: number): string {
     if (days === 0) return '記録なし';
-    if (days >= 30) return '1ヶ月連続';
-    if (days >= 7 && days % 7 === 0) return `${days / 7}週間連続`;
+    if (days >= ScheduleEntity.STREAK_MONTH_THRESHOLD) return '1ヶ月連続';
+    if (days >= ScheduleEntity.STREAK_WEEK_THRESHOLD && days % ScheduleEntity.STREAK_WEEK_THRESHOLD === 0) return `${days / ScheduleEntity.STREAK_WEEK_THRESHOLD}週間連続`;
     return `${days}日連続`;
   }
 }
