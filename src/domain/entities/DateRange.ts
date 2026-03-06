@@ -102,6 +102,8 @@ export class DateRangeHelper {
   private static readonly CLUSTER_MODERATE_THRESHOLD = 40;
   private static readonly SPAN_SHORT_THRESHOLD = 14;
   private static readonly SPAN_LONG_THRESHOLD = 90;
+  private static readonly DENSITY_HIGH_THRESHOLD = 80;
+  private static readonly DENSITY_MODERATE_THRESHOLD = 50;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -351,8 +353,8 @@ export class DateRangeHelper {
    * 日付密度スコアに応じたラベルを返す
    */
   static getDateDensityLabel(score: number): string {
-    if (score >= 80) return '高密度';
-    if (score >= 50) return '中密度';
+    if (score >= DateRangeHelper.DENSITY_HIGH_THRESHOLD) return '高密度';
+    if (score >= DateRangeHelper.DENSITY_MODERATE_THRESHOLD) return '中密度';
     return '低密度';
   }
 
