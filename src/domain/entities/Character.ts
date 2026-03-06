@@ -31,6 +31,34 @@ export interface CharacterConfig {
   };
 }
 
+const VALID_TYPES: CharacterType[] = ['dog', 'cat', 'rabbit', 'bird'];
+
+export class CharacterEntity {
+  /**
+   * 文字列がCharacterTypeか検証する
+   */
+  static isValidCharacterType(type: string): type is CharacterType {
+    return VALID_TYPES.includes(type as CharacterType);
+  }
+
+  /**
+   * タイプからConfigを取得する(無効時はdogをデフォルトで返す)
+   */
+  static getCharacterConfig(type: string): CharacterConfig {
+    if (CharacterEntity.isValidCharacterType(type)) {
+      return CHARACTER_CONFIGS[type];
+    }
+    return CHARACTER_CONFIGS.dog;
+  }
+
+  /**
+   * 全キャラクタータイプのリストを返す
+   */
+  static getAllCharacterTypes(): CharacterType[] {
+    return [...VALID_TYPES];
+  }
+}
+
 export const CHARACTER_CONFIGS: Record<CharacterType, CharacterConfig> = {
   dog: {
     type: 'dog',
