@@ -439,4 +439,23 @@ export class CalendarEntity {
   static getHeatMapColor(intensity: number): string {
     return CalendarEntity.HEAT_MAP_COLORS[intensity] ?? CalendarEntity.HEAT_MAP_COLORS[0];
   }
+
+  /**
+   * 日別完了フラグから月間完了率(0-100)を算出する
+   */
+  static getMonthlyCompletionRate(dailyCompleted: boolean[]): number {
+    if (dailyCompleted.length === 0) return 0;
+    const completed = dailyCompleted.filter(Boolean).length;
+    return Math.round((completed / dailyCompleted.length) * 100);
+  }
+
+  /**
+   * 月間完了率に応じたラベルを返す
+   */
+  static getMonthlyCompletionLabel(rate: number): string {
+    if (rate >= 90) return '完璧';
+    if (rate >= 70) return '良好';
+    if (rate >= 50) return 'まずまず';
+    return '要改善';
+  }
 }

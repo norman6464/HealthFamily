@@ -410,4 +410,23 @@ export class StockAlertEntity {
     };
     return labels[status] ?? '在庫データがありません';
   }
+
+  /**
+   * 残日数の少ない順にソートした補充推奨リストを返す
+   */
+  static getRefillRecommendation(
+    items: { name: string; remainingDays: number }[],
+  ): { name: string; remainingDays: number }[] {
+    return [...items].sort((a, b) => a.remainingDays - b.remainingDays);
+  }
+
+  /**
+   * 補充優先度の順位に応じたラベルを返す
+   */
+  static getRefillPriorityLabel(rank: number): string {
+    if (rank === 1) return '最優先';
+    if (rank === 2) return '優先';
+    if (rank === 3) return '通常';
+    return '低優先';
+  }
 }

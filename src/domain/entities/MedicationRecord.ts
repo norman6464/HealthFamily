@@ -636,4 +636,36 @@ export class MedicationRecordEntity {
     if (weekdayRatio < 0.3) return '休日中心';
     return '均等';
   }
+
+  /**
+   * メンバー別の遵守率(0-100)を算出する
+   */
+  static getMedicationAdherenceByMember(
+    records: { memberId: string; completed: boolean }[],
+  ): Record<string, number> {
+    if (records.length === 0) return {};
+    const memberData: Record<string, { total: number; completed: number }> = {};
+    for (const record of records) {
+      if (!memberData[record.memberId]) {
+        memberData[record.memberId] = { total: 0, completed: 0 };
+      }
+      memberData[record.memberId].total++;
+      if (record.completed) memberData[record.memberId].completed++;
+    }
+    const result: Record<string, number> = {};
+    for (const [memberId, data] of Object.entries(memberData)) {
+      result[memberId] = Math.round((data.completed / data.total) * 100);
+    }
+    return result;
+  }
+
+  /**
+   * メンバー別遵守率に応じたラベルを返す
+   */
+  static getMemberAdherenceLabel(rate: number): string {
+    if (rate >= 90) return '優秀';
+    if (rate >= 70) return '良好';
+    if (rate >= 50) return '要注意';
+    return '要改善';
+  }
 }
