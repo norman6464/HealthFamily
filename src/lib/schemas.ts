@@ -141,7 +141,7 @@ export const updateAppointmentSchema = z.object({
 export const createHealthLogSchema = z.object({
   memberId: idField,
   conditionLevel: z.number().int().min(1, '体調レベルは1以上を指定してください').max(5, '体調レベルは5以下を指定してください'),
-  symptoms: z.array(z.enum(['headache', 'fever', 'fatigue', 'nausea', 'stomachache', 'dizziness', 'cough', 'runny_nose', 'joint_pain', 'insomnia'])).max(10).optional(),
+  symptoms: z.array(z.enum(['headache', 'fever', 'fatigue', 'nausea', 'stomachache', 'dizziness', 'cough', 'runny_nose', 'joint_pain', 'insomnia', 'menstrual_pain'])).max(10).optional(),
   notes: z.string().trim().max(500).optional(),
 });
 
