@@ -791,6 +791,9 @@ export class ScheduleEntity {
   private static readonly FRAGMENTATION_MAX_STDDEV = 720;
   private static readonly FRAGMENTATION_HIGH_THRESHOLD = 60;
   private static readonly FRAGMENTATION_MODERATE_THRESHOLD = 30;
+  private static readonly BALANCE_NOON_BOUNDARY = 720;
+  private static readonly BALANCE_HIGH_THRESHOLD = 70;
+  private static readonly BALANCE_MODERATE_THRESHOLD = 40;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -934,5 +937,34 @@ export class ScheduleEntity {
     if (score >= ScheduleEntity.FRAGMENTATION_HIGH_THRESHOLD) return '分散';
     if (score >= ScheduleEntity.FRAGMENTATION_MODERATE_THRESHOLD) return 'やや分散';
     return '集中';
+  }
+
+  /**
+   * AM/PMバランススコア(0-100)を算出する
+   * 午前(0-719分)と午後(720-1439分)の件数比率でバランスを評価
+   */
+  static getScheduleBalance(timesInMinutes: number[]): number {
+    if (timesInMinutes.length <= 1) return 0;
+    let amCount = 0;
+    let pmCount = 0;
+    for (const t of timesInMinutes) {
+      if (t < ScheduleEntity.BALANCE_NOON_BOUNDARY) {
+        amCount++;
+      } else {
+        pmCount++;
+      }
+    }
+    if (amCount === 0 || pmCount === 0) return 0;
+    const ratio = Math.min(amCount, pmCount) / Math.max(amCount, pmCount);
+    return Math.round(ratio * 100);
+  }
+
+  /**
+   * バランススコアに応じたラベルを返す
+   */
+  static getScheduleBalanceLabel(score: number): string {
+    if (score >= ScheduleEntity.BALANCE_HIGH_THRESHOLD) return '均衡';
+    if (score >= ScheduleEntity.BALANCE_MODERATE_THRESHOLD) return 'やや偏り';
+    return '偏り';
   }
 }

@@ -36,6 +36,9 @@ export class AdherenceTrendEntity {
   private static readonly ADHERENCE_VOLATILITY_MODERATE_THRESHOLD = 60;
   private static readonly RECOVERY_GOOD_THRESHOLD = 70;
   private static readonly RECOVERY_MODERATE_THRESHOLD = 40;
+  private static readonly PEAK_EXCELLENT_THRESHOLD = 90;
+  private static readonly PEAK_GOOD_THRESHOLD = 70;
+  private static readonly PEAK_MODERATE_THRESHOLD = 50;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -404,5 +407,23 @@ export class AdherenceTrendEntity {
     if (rate >= AdherenceTrendEntity.RECOVERY_GOOD_THRESHOLD) return '良好';
     if (rate >= AdherenceTrendEntity.RECOVERY_MODERATE_THRESHOLD) return 'やや遅い';
     return '低回復';
+  }
+
+  /**
+   * 遵守率配列からピーク値(最大値)を返す
+   */
+  static getAdherencePeakRate(rates: number[]): number {
+    if (rates.length === 0) return 0;
+    return Math.max(...rates);
+  }
+
+  /**
+   * ピーク率に応じたラベルを返す
+   */
+  static getAdherencePeakLabel(rate: number): string {
+    if (rate >= AdherenceTrendEntity.PEAK_EXCELLENT_THRESHOLD) return '優秀';
+    if (rate >= AdherenceTrendEntity.PEAK_GOOD_THRESHOLD) return '良好';
+    if (rate >= AdherenceTrendEntity.PEAK_MODERATE_THRESHOLD) return '普通';
+    return '低調';
   }
 }
