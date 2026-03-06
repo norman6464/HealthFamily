@@ -3,6 +3,7 @@ import { updateStockSchema } from '@/lib/schemas';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
+import { checkRateLimit } from '@/lib/security';
 
 const findMedicationWithMember = (id: string) =>
   prisma.medication.findUnique({ where: { id }, include: { member: true } });
@@ -12,6 +13,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`stock-put:${userId}`, { maxRequests: 20, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
     return withOwnershipCheck({
       userId,
