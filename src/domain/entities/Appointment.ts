@@ -395,4 +395,40 @@ export class AppointmentEntity {
     if (daysBefore % 7 === 0) return `${daysBefore / 7}週間前にお知らせ`;
     return `${daysBefore}日前にお知らせ`;
   }
+
+  /**
+   * 予約日リストから月別件数を集計する
+   */
+  static getAppointmentFrequency(dates: Date[]): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const date of dates) {
+      const d = new Date(date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  /**
+   * 月別件数から頻度の推移傾向を判定する
+   */
+  static getFrequencyTrend(monthly: Record<string, number>): 'increasing' | 'decreasing' | 'stable' {
+    const keys = Object.keys(monthly).sort();
+    if (keys.length < 2) return 'stable';
+    const first = monthly[keys[0]];
+    const last = monthly[keys[keys.length - 1]];
+    if (last > first) return 'increasing';
+    if (last < first) return 'decreasing';
+    return 'stable';
+  }
+
+  /**
+   * 月間予約件数に応じた密度ラベルを返す
+   */
+  static getAppointmentDensityLabel(countPerMonth: number): string {
+    if (countPerMonth >= 4) return '頻繁';
+    if (countPerMonth >= 2) return '定期的';
+    if (countPerMonth >= 1) return '少なめ';
+    return 'なし';
+  }
 }

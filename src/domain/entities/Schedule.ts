@@ -653,4 +653,47 @@ export class ScheduleEntity {
       return priorityB - priorityA;
     });
   }
+
+  /**
+   * 時間帯別のスケジュール分布を集計する
+   */
+  static getTimePeriodDistribution(times: string[]): Record<TimePeriod, number> {
+    const dist: Record<TimePeriod, number> = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+    for (const time of times) {
+      const hour = parseInt(time.split(':')[0], 10);
+      const period = ScheduleEntity.getTimePeriodForHour(hour);
+      dist[period]++;
+    }
+    return dist;
+  }
+
+  private static getTimePeriodForHour(hour: number): TimePeriod {
+    if (hour >= ScheduleEntity.TIME_PERIOD_NIGHT_START) return 'night';
+    if (hour >= ScheduleEntity.TIME_PERIOD_EVENING_START) return 'evening';
+    if (hour >= ScheduleEntity.TIME_PERIOD_AFTERNOON_START) return 'afternoon';
+    if (hour >= ScheduleEntity.TIME_PERIOD_MORNING_START) return 'morning';
+    return 'night';
+  }
+
+  private static readonly TIME_PERIOD_LABELS: Record<TimePeriod, string> = {
+    morning: '朝',
+    afternoon: '午後',
+    evening: '夕方',
+    night: '夜',
+  };
+
+  /**
+   * 時間帯分布の偏りラベルを返す
+   */
+  static getTimePeriodDistributionLabel(dist: Record<TimePeriod, number>): string {
+    const total = dist.morning + dist.afternoon + dist.evening + dist.night;
+    if (total === 0) return '均等';
+    const periods: TimePeriod[] = ['morning', 'afternoon', 'evening', 'night'];
+    const max = Math.max(...periods.map((p) => dist[p]));
+    if (max > total * 0.6) {
+      const dominant = periods.find((p) => dist[p] === max);
+      return `${ScheduleEntity.TIME_PERIOD_LABELS[dominant!]}に集中`;
+    }
+    return '均等';
+  }
 }

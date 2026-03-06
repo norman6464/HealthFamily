@@ -616,4 +616,50 @@ export class HealthLogEntity {
     if (count >= 1) return '弱い相関';
     return '相関なし';
   }
+
+  /**
+   * 週間の体調・症状サマリーを算出する（簡易版）
+   */
+  static getConditionWeeklySummary(
+    logs: { condition: number; symptoms: string[] }[],
+  ): {
+    logCount: number;
+    averageCondition: number | null;
+    symptomCount: number;
+    mostCommonSymptom: string | null;
+  } {
+    if (logs.length === 0) {
+      return { logCount: 0, averageCondition: null, symptomCount: 0, mostCommonSymptom: null };
+    }
+    const avgCondition = logs.reduce((sum, l) => sum + l.condition, 0) / logs.length;
+    const allSymptoms = logs.flatMap((l) => l.symptoms);
+    const symptomCounts = new Map<string, number>();
+    for (const s of allSymptoms) {
+      symptomCounts.set(s, (symptomCounts.get(s) ?? 0) + 1);
+    }
+    let mostCommon: string | null = null;
+    let maxCount = 0;
+    for (const [symptom, count] of symptomCounts) {
+      if (count > maxCount) {
+        maxCount = count;
+        mostCommon = symptom;
+      }
+    }
+    return {
+      logCount: logs.length,
+      averageCondition: Math.round(avgCondition * 100) / 100,
+      symptomCount: allSymptoms.length,
+      mostCommonSymptom: mostCommon,
+    };
+  }
+
+  /**
+   * 週間サマリーの状態ラベルを返す
+   */
+  static getConditionWeeklySummaryLabel(averageCondition: number | null, symptomCount: number): string {
+    if (averageCondition === null) return 'データ不足';
+    if (averageCondition >= 4 && symptomCount <= 1) return '体調良好';
+    if (averageCondition >= 3) return 'やや不調';
+    return '注意が必要';
+  }
 }
