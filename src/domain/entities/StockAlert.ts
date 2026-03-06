@@ -321,4 +321,24 @@ export class StockAlertEntity {
   static getRefillCostEstimate(quantity: number, unitPrice: number): number {
     return Math.round(quantity * unitPrice);
   }
+
+  /**
+   * 月間コストに応じたカテゴリを返す
+   */
+  static getCostCategory(monthlyCost: number): 'low' | 'standard' | 'moderate' | 'high' {
+    if (monthlyCost < 1000) return 'low';
+    if (monthlyCost < 5000) return 'standard';
+    if (monthlyCost < 10000) return 'moderate';
+    return 'high';
+  }
+
+  /**
+   * 在庫金額サマリーを算出する
+   */
+  static getStockValueSummary(
+    items: { stockQuantity: number; unitPrice: number }[],
+  ): { totalValue: number; itemCount: number } {
+    const totalValue = items.reduce((sum, item) => sum + item.stockQuantity * item.unitPrice, 0);
+    return { totalValue, itemCount: items.length };
+  }
 }
