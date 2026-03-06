@@ -62,6 +62,8 @@ export class HealthLogEntity {
   private static readonly VOLATILITY_MODERATE_THRESHOLD = 60;
   private static readonly DIVERSITY_HIGH_THRESHOLD = 70;
   private static readonly DIVERSITY_MEDIUM_THRESHOLD = 30;
+  private static readonly RECOVERY_GOOD_THRESHOLD = 70;
+  private static readonly RECOVERY_MODERATE_THRESHOLD = 40;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -788,8 +790,8 @@ export class HealthLogEntity {
    * 回復速度スコアに応じたラベルを返す
    */
   static getRecoveryRateLabel(score: number): string {
-    if (score >= 70) return '良好な回復';
-    if (score >= 40) return '緩やかな回復';
+    if (score >= HealthLogEntity.RECOVERY_GOOD_THRESHOLD) return '良好な回復';
+    if (score >= HealthLogEntity.RECOVERY_MODERATE_THRESHOLD) return '緩やかな回復';
     return '回復が遅い';
   }
 

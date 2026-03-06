@@ -25,6 +25,9 @@ export class AdherenceTrendEntity {
   private static readonly GRADE_A_THRESHOLD = 80;
   private static readonly GRADE_B_THRESHOLD = 60;
   private static readonly GRADE_C_THRESHOLD = 40;
+  private static readonly RATE_HIGH_THRESHOLD = 80;
+  private static readonly RATE_MEDIUM_THRESHOLD = 50;
+  private static readonly DISTRIBUTION_DOMINANT_THRESHOLD = 50;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -252,8 +255,8 @@ export class AdherenceTrendEntity {
     let medium = 0;
     let low = 0;
     for (const rate of rates) {
-      if (rate >= 80) high++;
-      else if (rate >= 50) medium++;
+      if (rate >= AdherenceTrendEntity.RATE_HIGH_THRESHOLD) high++;
+      else if (rate >= AdherenceTrendEntity.RATE_MEDIUM_THRESHOLD) medium++;
       else low++;
     }
     const total = rates.length;
@@ -268,8 +271,8 @@ export class AdherenceTrendEntity {
    * 遵守率分布に応じたラベルを返す
    */
   static getRateDistributionLabel(dist: { high: number; medium: number; low: number }): string {
-    if (dist.high >= 50) return '安定して高い';
-    if (dist.low >= 50) return '改善が必要';
+    if (dist.high >= AdherenceTrendEntity.DISTRIBUTION_DOMINANT_THRESHOLD) return '安定して高い';
+    if (dist.low >= AdherenceTrendEntity.DISTRIBUTION_DOMINANT_THRESHOLD) return '改善が必要';
     return 'ばらつきあり';
   }
 
