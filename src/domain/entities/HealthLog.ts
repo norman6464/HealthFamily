@@ -57,6 +57,9 @@ export interface DailyHealthLogGroup {
  * 体調記録のビジネスロジック
  */
 export class HealthLogEntity {
+  private static readonly VOLATILITY_MAX_DIFF = 4;
+  private static readonly VOLATILITY_STABLE_THRESHOLD = 30;
+  private static readonly VOLATILITY_MODERATE_THRESHOLD = 60;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -736,16 +739,15 @@ export class HealthLogEntity {
       totalDiff += Math.abs(conditions[i] - conditions[i - 1]);
     }
     const avgDiff = totalDiff / (conditions.length - 1);
-    const maxPossibleDiff = 4;
-    return Math.min(100, Math.round((avgDiff / maxPossibleDiff) * 100));
+    return Math.min(100, Math.round((avgDiff / HealthLogEntity.VOLATILITY_MAX_DIFF) * 100));
   }
 
   /**
    * 変動性スコアに応じたラベルを返す
    */
   static getVolatilityLabel(score: number): string {
-    if (score <= 30) return '安定';
-    if (score <= 60) return 'やや変動';
+    if (score <= HealthLogEntity.VOLATILITY_STABLE_THRESHOLD) return '安定';
+    if (score <= HealthLogEntity.VOLATILITY_MODERATE_THRESHOLD) return 'やや変動';
     return '不安定';
   }
 }

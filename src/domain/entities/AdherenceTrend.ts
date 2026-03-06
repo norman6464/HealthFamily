@@ -22,6 +22,10 @@ export interface AdherenceTrend {
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export class AdherenceTrendEntity {
+  private static readonly GRADE_A_THRESHOLD = 80;
+  private static readonly GRADE_B_THRESHOLD = 60;
+  private static readonly GRADE_C_THRESHOLD = 40;
+
   constructor(private readonly trend: AdherenceTrend) {}
 
   get data(): AdherenceTrend {
@@ -229,9 +233,9 @@ export class AdherenceTrendEntity {
    */
   static getPerformanceGrade(rate: number, consistency: number): string {
     const combined = (rate + consistency) / 2;
-    if (combined >= 80) return 'A';
-    if (combined >= 60) return 'B';
-    if (combined >= 40) return 'C';
+    if (combined >= AdherenceTrendEntity.GRADE_A_THRESHOLD) return 'A';
+    if (combined >= AdherenceTrendEntity.GRADE_B_THRESHOLD) return 'B';
+    if (combined >= AdherenceTrendEntity.GRADE_C_THRESHOLD) return 'C';
     return 'D';
   }
 
