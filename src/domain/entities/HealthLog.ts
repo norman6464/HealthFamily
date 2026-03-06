@@ -447,4 +447,31 @@ export class HealthLogEntity {
     if (avg >= 3) return `${logs.length}件の記録があり、体調は普通です`;
     return `${logs.length}件の記録があり、体調に注意が必要です`;
   }
+
+  /**
+   * 症状数の増減トレンドメッセージを返す
+   */
+  static getSymptomTrendMessage(currentCount: number, previousCount: number): string {
+    const diff = currentCount - previousCount;
+    if (Math.abs(diff) <= 1) return '症状数に大きな変化はありません';
+    if (diff > 0) return `症状が${diff}件増加しています`;
+    return `症状が${Math.abs(diff)}件減少しています`;
+  }
+
+  /**
+   * 体調改善率を算出する（現在 - 過去の差）
+   */
+  static getConditionImprovementRate(currentAvg: number, previousAvg: number): number {
+    return currentAvg - previousAvg;
+  }
+
+  /**
+   * 記録頻度に応じたメッセージを返す
+   */
+  static getRecordFrequencyMessage(recordDays: number, totalDays: number): string {
+    if (recordDays === 0) return '記録を始めましょう';
+    if (recordDays === totalDays) return '毎日記録できています';
+    if (recordDays >= totalDays / 2) return '順調に記録できています';
+    return 'もう少し記録をつけてみましょう';
+  }
 }
