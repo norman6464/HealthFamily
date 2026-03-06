@@ -45,6 +45,8 @@ export class MathHelper {
   private static readonly RANGE_MODERATE_THRESHOLD = 25;
   private static readonly PMEAN_HIGH_THRESHOLD = 70;
   private static readonly PMEAN_MEDIUM_THRESHOLD = 30;
+  private static readonly MSE_LOW_THRESHOLD = 5;
+  private static readonly MSE_MODERATE_THRESHOLD = 25;
 
   /**
    * パーセントを算出(0-100%)
@@ -779,5 +781,27 @@ export class MathHelper {
     if (value >= MathHelper.PMEAN_HIGH_THRESHOLD) return '高い';
     if (value >= MathHelper.PMEAN_MEDIUM_THRESHOLD) return '中程度';
     return '低い';
+  }
+
+  /**
+   * 平均二乗誤差(MSE)を算出する
+   * 配列長が異なる場合は短い方に合わせる
+   */
+  static getMeanSquaredError(predictions: number[], actuals: number[]): number {
+    const len = Math.min(predictions.length, actuals.length);
+    if (len === 0) return 0;
+    const sumSqErr = predictions
+      .slice(0, len)
+      .reduce((sum, pred, i) => sum + (pred - actuals[i]) ** 2, 0);
+    return Math.round((sumSqErr / len) * 100) / 100;
+  }
+
+  /**
+   * MSEに応じたラベルを返す
+   */
+  static getMeanSquaredErrorLabel(mse: number): string {
+    if (mse <= MathHelper.MSE_LOW_THRESHOLD) return '正確';
+    if (mse <= MathHelper.MSE_MODERATE_THRESHOLD) return 'やや乖離';
+    return '乖離大';
   }
 }

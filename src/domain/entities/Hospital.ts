@@ -19,6 +19,10 @@ export interface Hospital {
  * 病院のビジネスロジック
  */
 export class HospitalEntity {
+  private static readonly VISIT_REGULARITY_HIGH_THRESHOLD = 80;
+  private static readonly VISIT_REGULARITY_MODERATE_THRESHOLD = 50;
+  private static readonly VISIT_REGULARITY_MAX_CV = 100;
+
   private static readonly typeLabels: Record<string, string> = {
     general: '総合病院',
     clinic: 'クリニック',
@@ -174,5 +178,31 @@ export class HospitalEntity {
     if (avgPerMonth >= 2) return '定期的';
     if (avgPerMonth > 0) return '少ない';
     return '通院なし';
+  }
+
+  /**
+   * 通院間隔の規則性スコアを算出する（0-100）
+   * 変動係数(CV)が小さいほどスコアが高い
+   */
+  static getVisitRegularityScore(intervalDays: number[]): number {
+    if (intervalDays.length <= 1) return intervalDays.length === 0 ? 0 : 100;
+    const avg = intervalDays.reduce((a, b) => a + b, 0) / intervalDays.length;
+    if (avg === 0) return 0;
+    const variance =
+      intervalDays.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervalDays.length;
+    const cv = (Math.sqrt(variance) / avg) * 100;
+    return Math.max(
+      0,
+      Math.min(100, Math.round(100 - (cv / HospitalEntity.VISIT_REGULARITY_MAX_CV) * 100))
+    );
+  }
+
+  /**
+   * 通院規則性スコアに応じたラベルを返す
+   */
+  static getVisitRegularityScoreLabel(score: number): string {
+    if (score >= HospitalEntity.VISIT_REGULARITY_HIGH_THRESHOLD) return '規則的';
+    if (score >= HospitalEntity.VISIT_REGULARITY_MODERATE_THRESHOLD) return 'やや不規則';
+    return '不規則';
   }
 }
