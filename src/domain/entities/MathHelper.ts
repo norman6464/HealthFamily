@@ -2,6 +2,10 @@
  * 数値計算ヘルパー
  */
 export class MathHelper {
+  private static readonly WEIGHTED_AVG_VERY_HIGH_THRESHOLD = 90;
+  private static readonly WEIGHTED_AVG_HIGH_THRESHOLD = 70;
+  private static readonly WEIGHTED_AVG_NORMAL_THRESHOLD = 40;
+
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -173,9 +177,9 @@ export class MathHelper {
    * 加重平均値に応じたラベルを返す
    */
   static getWeightedAverageLabel(value: number): string {
-    if (value >= 90) return '非常に高い';
-    if (value >= 70) return '高い';
-    if (value >= 40) return '普通';
+    if (value >= MathHelper.WEIGHTED_AVG_VERY_HIGH_THRESHOLD) return '非常に高い';
+    if (value >= MathHelper.WEIGHTED_AVG_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.WEIGHTED_AVG_NORMAL_THRESHOLD) return '普通';
     return '低い';
   }
 }
