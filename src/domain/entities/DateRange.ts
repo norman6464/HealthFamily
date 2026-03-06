@@ -108,6 +108,8 @@ export class DateRangeHelper {
   private static readonly WEEKDAY_CONCENTRATION_MODERATE_THRESHOLD = 40;
   private static readonly DATE_GAP_REGULAR_THRESHOLD = 80;
   private static readonly DATE_GAP_MODERATE_THRESHOLD = 50;
+  private static readonly WEEKEND_RATIO_HIGH_THRESHOLD = 40;
+  private static readonly WEEKEND_RATIO_LOW_THRESHOLD = 20;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -419,5 +421,23 @@ export class DateRangeHelper {
     if (score >= DateRangeHelper.DATE_GAP_REGULAR_THRESHOLD) return '規則的';
     if (score >= DateRangeHelper.DATE_GAP_MODERATE_THRESHOLD) return 'やや不規則';
     return '不規則';
+  }
+
+  /**
+   * 曜日番号配列(0=日〜6=土)から休日(土日)の割合(0-100)を算出する
+   */
+  static getWeekendRatio(dayOfWeeks: number[]): number {
+    if (dayOfWeeks.length === 0) return 0;
+    const weekendCount = dayOfWeeks.filter((d) => d === 0 || d === 6).length;
+    return Math.round((weekendCount / dayOfWeeks.length) * 100);
+  }
+
+  /**
+   * 休日比率に応じたラベルを返す
+   */
+  static getWeekendRatioLabel(ratio: number): string {
+    if (ratio >= DateRangeHelper.WEEKEND_RATIO_HIGH_THRESHOLD) return '休日中心';
+    if (ratio >= DateRangeHelper.WEEKEND_RATIO_LOW_THRESHOLD) return '均等';
+    return '平日中心';
   }
 }
