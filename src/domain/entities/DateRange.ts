@@ -163,6 +163,41 @@ export class DateRangeHelper {
   /**
    * 相対日付を日本語で表示する
    */
+  /**
+   * 営業日（月-金）かどうかを判定する
+   */
+  static isBusinessDay(date: Date): boolean {
+    return !DateRangeHelper.isWeekend(date);
+  }
+
+  /**
+   * 期間内の営業日数を算出する（from/to含む）
+   */
+  static countBusinessDays(from: Date, to: Date): number {
+    let count = 0;
+    const current = DateRangeHelper.toStartOfDay(from);
+    const end = DateRangeHelper.toStartOfDay(to);
+    while (current <= end) {
+      if (DateRangeHelper.isBusinessDay(current)) count++;
+      current.setDate(current.getDate() + 1);
+    }
+    return count;
+  }
+
+  /**
+   * 営業日数を加算した日付を返す
+   */
+  static addBusinessDays(from: Date, days: number): Date {
+    const result = new Date(from);
+    let added = 0;
+    if (days === 0) return result;
+    while (added < days) {
+      result.setDate(result.getDate() + 1);
+      if (DateRangeHelper.isBusinessDay(result)) added++;
+    }
+    return result;
+  }
+
   static formatRelativeDate(date: Date, today: Date): string {
     const startOfDate = DateRangeHelper.toStartOfDay(date);
     const startOfToday = DateRangeHelper.toStartOfDay(today);
