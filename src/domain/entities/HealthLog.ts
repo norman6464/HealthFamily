@@ -468,6 +468,43 @@ export class HealthLogEntity {
   /**
    * 記録頻度に応じたメッセージを返す
    */
+  /**
+   * 体温値からカテゴリを判定する
+   */
+  static classifyTemperature(temperature: number | null): 'hypothermia' | 'normal' | 'low_fever' | 'fever' | 'high_fever' | 'unknown' {
+    if (temperature === null) return 'unknown';
+    if (temperature < 35.0) return 'hypothermia';
+    if (temperature < 37.5) return 'normal';
+    if (temperature < 38.0) return 'low_fever';
+    if (temperature < 39.0) return 'fever';
+    return 'high_fever';
+  }
+
+  private static readonly TEMPERATURE_LABELS: Record<string, string> = {
+    hypothermia: '低体温',
+    normal: '平熱',
+    low_fever: '微熱',
+    fever: '発熱',
+    high_fever: '高熱',
+    unknown: '不明',
+  };
+
+  /**
+   * 体温カテゴリの日本語ラベルを返す
+   */
+  static getTemperatureLabel(category: string): string {
+    return HealthLogEntity.TEMPERATURE_LABELS[category] || '不明';
+  }
+
+  /**
+   * 体調レベルと症状数から総合ヘルススコア(0-100)を算出する
+   */
+  static calculateHealthScore(conditionLevel: number, symptomCount: number): number {
+    const baseScore = (conditionLevel / 5) * 100;
+    const penalty = symptomCount * 10;
+    return Math.max(0, Math.round(baseScore - penalty));
+  }
+
   static getRecordFrequencyMessage(recordDays: number, totalDays: number): string {
     if (recordDays === 0) return '記録を始めましょう';
     if (recordDays === totalDays) return '毎日記録できています';
