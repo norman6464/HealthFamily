@@ -519,6 +519,9 @@ export class AppointmentEntity {
   private static readonly PUNCTUALITY_MAX_DELAY = 30;
   private static readonly PUNCTUALITY_HIGH_THRESHOLD = 80;
   private static readonly PUNCTUALITY_MODERATE_THRESHOLD = 50;
+  private static readonly FREQUENCY_MAX_INTERVAL = 90;
+  private static readonly FREQUENCY_HIGH_THRESHOLD = 70;
+  private static readonly FREQUENCY_MODERATE_THRESHOLD = 40;
 
   /**
    * 通院完了/未完了配列から完了率(0-100)を算出する
@@ -580,5 +583,24 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.PUNCTUALITY_HIGH_THRESHOLD) return '時間厳守';
     if (score >= AppointmentEntity.PUNCTUALITY_MODERATE_THRESHOLD) return 'やや遅れ';
     return '遅刻傾向';
+  }
+
+  /**
+   * 通院間隔(日数)配列から頻度スコア(0-100)を算出する
+   * 間隔が短いほど高スコア（最大間隔90日基準）
+   */
+  static getAppointmentFrequencyScore(intervals: number[]): number {
+    if (intervals.length <= 1) return 0;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    return Math.max(0, Math.min(100, Math.round(100 - (avg / AppointmentEntity.FREQUENCY_MAX_INTERVAL) * 100)));
+  }
+
+  /**
+   * 頻度スコアに応じたラベルを返す
+   */
+  static getAppointmentFrequencyScoreLabel(score: number): string {
+    if (score >= AppointmentEntity.FREQUENCY_HIGH_THRESHOLD) return '高頻度';
+    if (score >= AppointmentEntity.FREQUENCY_MODERATE_THRESHOLD) return '中頻度';
+    return '低頻度';
   }
 }

@@ -21,6 +21,8 @@ export class MathHelper {
   private static readonly COSINE_SIMILAR_THRESHOLD = 0.7;
   private static readonly COSINE_SOMEWHAT_THRESHOLD = 0.3;
   private static readonly COSINE_OPPOSITE_THRESHOLD = -0.7;
+  private static readonly RANK_HIGH_THRESHOLD = 80;
+  private static readonly RANK_MEDIUM_THRESHOLD = 50;
 
   /**
    * パーセントを算出(0-100%)
@@ -415,5 +417,25 @@ export class MathHelper {
     if (similarity >= MathHelper.COSINE_SOMEWHAT_THRESHOLD) return 'やや類似';
     if (similarity <= MathHelper.COSINE_OPPOSITE_THRESHOLD) return '正反対';
     return '無関係';
+  }
+
+  /**
+   * 値配列中の対象値の順位百分率(0-100)を算出する
+   * 対象値以下の値の割合を返す
+   */
+  static getRankPercentile(values: number[], target: number): number {
+    if (values.length === 0) return 0;
+    const belowCount = values.filter((v) => v < target).length;
+    const equalCount = values.filter((v) => v === target).length;
+    return Math.round(((belowCount + equalCount * 0.5) / values.length) * 100);
+  }
+
+  /**
+   * 順位百分率に応じたラベルを返す
+   */
+  static getRankPercentileLabel(percentile: number): string {
+    if (percentile >= MathHelper.RANK_HIGH_THRESHOLD) return '上位';
+    if (percentile >= MathHelper.RANK_MEDIUM_THRESHOLD) return '中位';
+    return '下位';
   }
 }
