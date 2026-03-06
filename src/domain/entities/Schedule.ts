@@ -688,6 +688,26 @@ export class ScheduleEntity {
   /**
    * 時間帯分布の偏りラベルを返す
    */
+  /**
+   * 完了履歴から規則性スコア(0-100)を算出する
+   */
+  static getScheduleRegularityScore(completionHistory: boolean[]): number {
+    if (completionHistory.length === 0) return 0;
+    const completed = completionHistory.filter(Boolean).length;
+    return Math.round((completed / completionHistory.length) * 100);
+  }
+
+  /**
+   * 規則性スコアに応じたラベルを返す
+   */
+  static getRegularityLabel(score: number): string {
+    if (score >= 100) return '完璧';
+    if (score >= 80) return '優秀';
+    if (score >= 60) return '良好';
+    if (score >= 40) return '要改善';
+    return '不十分';
+  }
+
   static getTimePeriodDistributionLabel(dist: Record<TimePeriod, number>): string {
     const total = dist.morning + dist.afternoon + dist.evening + dist.night;
     if (total === 0) return '均等';
