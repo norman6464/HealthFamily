@@ -8,9 +8,9 @@ import { checkRateLimit } from '@/lib/security';
 
 const sendNotificationSchema = z.object({
   type: z.enum(['medication_reminder', 'missed_medication', 'appointment_reminder', 'low_stock']),
-  memberId: z.string().min(1).max(50),
-  medicationId: z.string().min(1).max(50).optional(),
-  appointmentId: z.string().min(1).max(50).optional(),
+  memberId: z.string().trim().min(1).max(50),
+  medicationId: z.string().trim().min(1).max(50).optional(),
+  appointmentId: z.string().trim().min(1).max(50).optional(),
 });
 
 export async function POST(request: NextRequest) {
