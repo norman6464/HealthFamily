@@ -29,6 +29,9 @@ export class CalendarEntity {
   private static readonly HEAT_MAP_MEDIUM_HIGH_RATIO = 0.75;
   private static readonly HEAT_MAP_MEDIUM_RATIO = 0.5;
   private static readonly COMPARISON_TOLERANCE = 5;
+  private static readonly COMPLETION_PERFECT_THRESHOLD = 90;
+  private static readonly COMPLETION_GOOD_THRESHOLD = 70;
+  private static readonly COMPLETION_FAIR_THRESHOLD = 50;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -453,9 +456,9 @@ export class CalendarEntity {
    * 月間完了率に応じたラベルを返す
    */
   static getMonthlyCompletionLabel(rate: number): string {
-    if (rate >= 90) return '完璧';
-    if (rate >= 70) return '良好';
-    if (rate >= 50) return 'まずまず';
+    if (rate >= CalendarEntity.COMPLETION_PERFECT_THRESHOLD) return '完璧';
+    if (rate >= CalendarEntity.COMPLETION_GOOD_THRESHOLD) return '良好';
+    if (rate >= CalendarEntity.COMPLETION_FAIR_THRESHOLD) return 'まずまず';
     return '要改善';
   }
 }

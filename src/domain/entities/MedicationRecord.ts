@@ -33,6 +33,9 @@ export class MedicationRecordEntity {
   private static readonly EVENING_START_HOUR = 17;
   private static readonly NIGHT_START_HOUR = 21;
   private static readonly PATTERN_DOMINANCE_THRESHOLD = 0.5;
+  private static readonly ADHERENCE_EXCELLENT_THRESHOLD = 90;
+  private static readonly ADHERENCE_GOOD_THRESHOLD = 70;
+  private static readonly ADHERENCE_WARNING_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -663,9 +666,9 @@ export class MedicationRecordEntity {
    * メンバー別遵守率に応じたラベルを返す
    */
   static getMemberAdherenceLabel(rate: number): string {
-    if (rate >= 90) return '優秀';
-    if (rate >= 70) return '良好';
-    if (rate >= 50) return '要注意';
+    if (rate >= MedicationRecordEntity.ADHERENCE_EXCELLENT_THRESHOLD) return '優秀';
+    if (rate >= MedicationRecordEntity.ADHERENCE_GOOD_THRESHOLD) return '良好';
+    if (rate >= MedicationRecordEntity.ADHERENCE_WARNING_THRESHOLD) return '要注意';
     return '要改善';
   }
 }
