@@ -333,6 +333,30 @@ export class DateRangeHelper {
   }
 
   /**
+   * 日付キー配列の密度スコア(0-100)を算出する
+   * ユニーク日数 / (最初〜最後の全日数) * 100
+   */
+  static getDateDensityScore(dateKeys: string[]): number {
+    if (dateKeys.length === 0) return 0;
+    const unique = [...new Set(dateKeys)].sort();
+    if (unique.length === 1) return 100;
+    const first = new Date(unique[0] + 'T00:00:00');
+    const last = new Date(unique[unique.length - 1] + 'T00:00:00');
+    const totalDays = Math.round((last.getTime() - first.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    if (totalDays <= 0) return 100;
+    return Math.min(100, Math.round((unique.length / totalDays) * 100));
+  }
+
+  /**
+   * 日付密度スコアに応じたラベルを返す
+   */
+  static getDateDensityLabel(score: number): string {
+    if (score >= 80) return '高密度';
+    if (score >= 50) return '中密度';
+    return '低密度';
+  }
+
+  /**
    * 日付範囲日数に応じたラベルを返す
    */
   static getDateSpanLabel(days: number): string {
