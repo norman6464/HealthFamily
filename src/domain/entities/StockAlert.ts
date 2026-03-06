@@ -2,6 +2,8 @@
  * 在庫アラートエンティティ
  */
 
+import { DateRangeHelper } from './DateRange';
+
 export interface StockAlert {
   readonly medicationId: string;
   readonly medicationName: string;
@@ -96,10 +98,7 @@ export class StockAlertEntity {
     const daysLeft = Math.floor(stockQuantity / dailyConsumption);
     const date = new Date(baseDate);
     date.setDate(date.getDate() + daysLeft);
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return DateRangeHelper.toDateKey(date);
   }
 
   /**
