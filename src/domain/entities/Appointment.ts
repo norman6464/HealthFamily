@@ -78,8 +78,7 @@ export class AppointmentEntity {
   };
 
   getTypeLabel(): string {
-    if (!this.appointment.appointmentType) return '';
-    return AppointmentEntity.typeLabels[this.appointment.appointmentType] || this.appointment.appointmentType;
+    return AppointmentEntity.getTypeDisplayInfo(this.appointment.appointmentType).label;
   }
 
   /**
