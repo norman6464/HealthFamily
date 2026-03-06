@@ -3,6 +3,13 @@
  */
 
 export class GreetingMessageEntity {
+  private static readonly GREETING_INTENSITY_HIGH_THRESHOLD = 70;
+  private static readonly GREETING_INTENSITY_MODERATE_THRESHOLD = 40;
+  private static readonly GREETING_INTENSITY_MAX_HOURS = 72;
+  private static readonly GREETING_INTENSITY_MAX_STREAK = 30;
+  private static readonly GREETING_INTENSITY_HOURS_WEIGHT = 0.6;
+  private static readonly GREETING_INTENSITY_STREAK_WEIGHT = 0.4;
+
   /**
    * 時間帯に応じた挨拶を返す
    */
@@ -64,5 +71,36 @@ export class GreetingMessageEntity {
   static formatGreetingWithName(greeting: string, name: string | null): string {
     if (!name || name === '') return greeting;
     return `${name}さん、${greeting}`;
+  }
+
+  /**
+   * ログイン間隔とストリークから挨拶強度スコアを算出する（0-100）
+   */
+  static getGreetingIntensityScore(
+    hoursSinceLastLogin: number,
+    streak: number
+  ): number {
+    if (hoursSinceLastLogin <= 0 && streak <= 0) return 0;
+    const hoursNorm = Math.min(
+      hoursSinceLastLogin / GreetingMessageEntity.GREETING_INTENSITY_MAX_HOURS,
+      1
+    );
+    const streakNorm = Math.min(
+      streak / GreetingMessageEntity.GREETING_INTENSITY_MAX_STREAK,
+      1
+    );
+    const score =
+      hoursNorm * GreetingMessageEntity.GREETING_INTENSITY_HOURS_WEIGHT +
+      streakNorm * GreetingMessageEntity.GREETING_INTENSITY_STREAK_WEIGHT;
+    return Math.max(0, Math.min(100, Math.round(score * 100)));
+  }
+
+  /**
+   * 挨拶強度スコアに応じたラベルを返す
+   */
+  static getGreetingIntensityScoreLabel(score: number): string {
+    if (score >= GreetingMessageEntity.GREETING_INTENSITY_HIGH_THRESHOLD) return '熱烈';
+    if (score >= GreetingMessageEntity.GREETING_INTENSITY_MODERATE_THRESHOLD) return '普通';
+    return '軽め';
   }
 }
