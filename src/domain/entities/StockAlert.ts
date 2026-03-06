@@ -20,6 +20,10 @@ export interface StockAlert {
 export class StockAlertEntity {
   private static readonly CRITICAL_DAYS_THRESHOLD = 3;
   private static readonly WARNING_DAYS_THRESHOLD = 7;
+  private static readonly COST_LOW_THRESHOLD = 1000;
+  private static readonly COST_STANDARD_THRESHOLD = 5000;
+  private static readonly COST_MODERATE_THRESHOLD = 10000;
+  private static readonly DAYS_PER_MONTH = 30;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -278,16 +282,16 @@ export class StockAlertEntity {
    */
   static getMonthlyConsumptionCost(dailyConsumption: number, unitPrice: number): number {
     if (dailyConsumption <= 0 || unitPrice <= 0) return 0;
-    return Math.round(dailyConsumption * 30 * unitPrice);
+    return Math.round(dailyConsumption * StockAlertEntity.DAYS_PER_MONTH * unitPrice);
   }
 
   /**
    * 月間コストに応じた効率ラベルを返す
    */
   static getCostEfficiencyLabel(monthlyCost: number): string {
-    if (monthlyCost < 1000) return '低コスト';
-    if (monthlyCost < 5000) return '標準';
-    if (monthlyCost < 10000) return 'やや高額';
+    if (monthlyCost < StockAlertEntity.COST_LOW_THRESHOLD) return '低コスト';
+    if (monthlyCost < StockAlertEntity.COST_STANDARD_THRESHOLD) return '標準';
+    if (monthlyCost < StockAlertEntity.COST_MODERATE_THRESHOLD) return 'やや高額';
     return '高額';
   }
 
@@ -326,9 +330,9 @@ export class StockAlertEntity {
    * 月間コストに応じたカテゴリを返す
    */
   static getCostCategory(monthlyCost: number): 'low' | 'standard' | 'moderate' | 'high' {
-    if (monthlyCost < 1000) return 'low';
-    if (monthlyCost < 5000) return 'standard';
-    if (monthlyCost < 10000) return 'moderate';
+    if (monthlyCost < StockAlertEntity.COST_LOW_THRESHOLD) return 'low';
+    if (monthlyCost < StockAlertEntity.COST_STANDARD_THRESHOLD) return 'standard';
+    if (monthlyCost < StockAlertEntity.COST_MODERATE_THRESHOLD) return 'moderate';
     return 'high';
   }
 
