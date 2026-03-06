@@ -31,6 +31,9 @@ export class AdherenceTrendEntity {
   private static readonly FAILURES_WARNING_THRESHOLD = 3;
   private static readonly FAILURES_DANGER_THRESHOLD = 7;
   private static readonly WOW_CHANGE_THRESHOLD = 5;
+  private static readonly ADHERENCE_VOLATILITY_MAX_DIFF = 50;
+  private static readonly ADHERENCE_VOLATILITY_STABLE_THRESHOLD = 30;
+  private static readonly ADHERENCE_VOLATILITY_MODERATE_THRESHOLD = 60;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -325,16 +328,15 @@ export class AdherenceTrendEntity {
       totalDiff += Math.abs(rates[i] - rates[i - 1]);
     }
     const avgDiff = totalDiff / (rates.length - 1);
-    const maxDiff = 50;
-    return Math.min(100, Math.round((avgDiff / maxDiff) * 100));
+    return Math.min(100, Math.round((avgDiff / AdherenceTrendEntity.ADHERENCE_VOLATILITY_MAX_DIFF) * 100));
   }
 
   /**
    * 変動性スコアに応じたラベルを返す
    */
   static getAdherenceVolatilityLabel(score: number): string {
-    if (score <= 30) return '安定';
-    if (score <= 60) return 'やや不安定';
+    if (score <= AdherenceTrendEntity.ADHERENCE_VOLATILITY_STABLE_THRESHOLD) return '安定';
+    if (score <= AdherenceTrendEntity.ADHERENCE_VOLATILITY_MODERATE_THRESHOLD) return 'やや不安定';
     return '不安定';
   }
 

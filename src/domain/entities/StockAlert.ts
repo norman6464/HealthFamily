@@ -30,6 +30,8 @@ export class StockAlertEntity {
   private static readonly ROTATION_NORMAL_THRESHOLD = 1;
   private static readonly COVERAGE_SUFFICIENT_THRESHOLD = 70;
   private static readonly COVERAGE_LOW_THRESHOLD = 40;
+  private static readonly STOCK_EFFICIENCY_HIGH_THRESHOLD = 80;
+  private static readonly STOCK_EFFICIENCY_NORMAL_THRESHOLD = 50;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -488,8 +490,8 @@ export class StockAlertEntity {
    * 在庫効率スコアに応じたラベルを返す
    */
   static getStockEfficiencyLabel(score: number): string {
-    if (score >= 80) return '効率的';
-    if (score >= 50) return '標準';
+    if (score >= StockAlertEntity.STOCK_EFFICIENCY_HIGH_THRESHOLD) return '効率的';
+    if (score >= StockAlertEntity.STOCK_EFFICIENCY_NORMAL_THRESHOLD) return '標準';
     return '非効率';
   }
 
