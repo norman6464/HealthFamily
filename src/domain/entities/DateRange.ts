@@ -149,4 +149,38 @@ export class DateRangeHelper {
     const end = new Date(year, month + 1, 0);
     return { start, end };
   }
+
+  /**
+   * 日付範囲を日本語でフォーマットする
+   */
+  static formatDateRange(start: Date, end: Date): string {
+    const startStr = `${start.getMonth() + 1}月${start.getDate()}日`;
+    const endStr = `${end.getMonth() + 1}月${end.getDate()}日`;
+    if (startStr === endStr) return startStr;
+    return `${startStr}〜${endStr}`;
+  }
+
+  /**
+   * 相対日付を日本語で表示する
+   */
+  static formatRelativeDate(date: Date, today: Date): string {
+    const startOfDate = DateRangeHelper.toStartOfDay(date);
+    const startOfToday = DateRangeHelper.toStartOfDay(today);
+    const diffDays = DateRangeHelper.diffDays(startOfDate, startOfToday);
+
+    if (diffDays === 0) return '今日';
+    if (diffDays === 1) return '昨日';
+    if (diffDays > 1 && diffDays <= 7) return `${diffDays}日前`;
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
+  }
+
+  /**
+   * 日数を日本語の期間説明に変換する
+   */
+  static getDateRangeDescription(days: number): string {
+    if (days >= 365) return `約${Math.round(days / 365)}年`;
+    if (days >= 28 && days % 30 <= 5) return `約${Math.round(days / 30)}ヶ月`;
+    if (days % 7 === 0 && days <= 28) return `${days / 7}週間`;
+    return `${days}日間`;
+  }
 }
