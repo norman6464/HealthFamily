@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { updateMemberSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize , safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 const findMember = (id: string) => prisma.member.findUnique({ where: { id } });
@@ -35,7 +35,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ memb
       finder: findMember,
       resourceName: 'メンバー',
       handler: async () => {
-        const body = await request.json();
+        const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const body = jsonResult.data;
         const parsed = updateMemberSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 

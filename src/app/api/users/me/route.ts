@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { updateUserProfileSchema } from '@/lib/schemas';
 import { success, errorResponse, notFound } from '@/lib/auth-helpers';
-import { withAuth, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, validateBodySize , safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 const USER_SELECT = {
@@ -34,7 +34,9 @@ export async function PUT(request: Request) {
       return errorResponse('更新回数の上限に達しました。しばらくしてから再試行してください。', 429);
     }
 
-    const body = await request.json();
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const body = jsonResult.data;
     const parsed = updateUserProfileSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
