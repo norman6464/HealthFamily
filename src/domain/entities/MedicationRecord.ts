@@ -58,6 +58,8 @@ export class MedicationRecordEntity {
   private static readonly DOSE_VARIABILITY_MODERATE_THRESHOLD = 50;
   private static readonly DOSE_CONSECUTIVE_EXCELLENT_THRESHOLD = 80;
   private static readonly DOSE_CONSECUTIVE_GOOD_THRESHOLD = 50;
+  private static readonly DOSE_COMPLETION_PERFECT_THRESHOLD = 90;
+  private static readonly DOSE_COMPLETION_GOOD_THRESHOLD = 70;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -863,6 +865,24 @@ export class MedicationRecordEntity {
   static getDoseConsecutiveScoreLabel(score: number): string {
     if (score >= MedicationRecordEntity.DOSE_CONSECUTIVE_EXCELLENT_THRESHOLD) return '優秀';
     if (score >= MedicationRecordEntity.DOSE_CONSECUTIVE_GOOD_THRESHOLD) return '良好';
+    return '要改善';
+  }
+
+  /**
+   * 服薬完了率(0-100)を算出する
+   * 完了数/予定数の割合（予定0は100、上限100）
+   */
+  static getDoseCompletionRate(completed: number, scheduled: number): number {
+    if (scheduled <= 0) return completed > 0 ? 100 : 0;
+    return Math.min(100, Math.round((completed / scheduled) * 100));
+  }
+
+  /**
+   * 服薬完了率に応じたラベルを返す
+   */
+  static getDoseCompletionRateLabel(rate: number): string {
+    if (rate >= MedicationRecordEntity.DOSE_COMPLETION_PERFECT_THRESHOLD) return '完璧';
+    if (rate >= MedicationRecordEntity.DOSE_COMPLETION_GOOD_THRESHOLD) return '良好';
     return '要改善';
   }
 }
