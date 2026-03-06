@@ -8,6 +8,8 @@ export class MathHelper {
   private static readonly NORMALIZED_HIGH_THRESHOLD = 80;
   private static readonly NORMALIZED_MEDIUM_THRESHOLD = 50;
   private static readonly NORMALIZED_LOW_THRESHOLD = 20;
+  private static readonly CORRELATION_STRONG_THRESHOLD = 0.7;
+  private static readonly CORRELATION_WEAK_THRESHOLD = 0.3;
 
   /**
    * パーセントを算出(0-100%)
@@ -233,8 +235,8 @@ export class MathHelper {
    */
   static getCorrelationLabel(r: number): string {
     const abs = Math.abs(r);
-    if (abs >= 0.7) return r > 0 ? '強い正相関' : '強い負相関';
-    if (abs >= 0.3) return r > 0 ? '弱い正相関' : '弱い負相関';
+    if (abs >= MathHelper.CORRELATION_STRONG_THRESHOLD) return r > 0 ? '強い正相関' : '強い負相関';
+    if (abs >= MathHelper.CORRELATION_WEAK_THRESHOLD) return r > 0 ? '弱い正相関' : '弱い負相関';
     return '相関なし';
   }
 }

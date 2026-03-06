@@ -25,6 +25,7 @@ export class StockAlertEntity {
   private static readonly COST_MODERATE_THRESHOLD = 10000;
   private static readonly DAYS_PER_MONTH = 30;
   private static readonly DEPLETION_COMFORT_THRESHOLD = 14;
+  private static readonly STOCK_TREND_THRESHOLD = 2;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -434,8 +435,8 @@ export class StockAlertEntity {
     const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
     const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
     const diff = secondAvg - firstAvg;
-    if (diff > 2) return 'increasing';
-    if (diff < -2) return 'decreasing';
+    if (diff > StockAlertEntity.STOCK_TREND_THRESHOLD) return 'increasing';
+    if (diff < -StockAlertEntity.STOCK_TREND_THRESHOLD) return 'decreasing';
     return 'stable';
   }
 
