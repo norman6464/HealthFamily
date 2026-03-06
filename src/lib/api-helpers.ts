@@ -103,6 +103,10 @@ export function flattenRelations(
  * 不正なJSON時は400エラーレスポンスを返す
  */
 export async function safeParseJson(request: Request): Promise<{ data: unknown } | { error: Response }> {
+  const contentType = request.headers.get('content-type');
+  if (contentType && !contentType.includes('application/json')) {
+    return { error: errorResponse('Content-Typeはapplication/jsonを指定してください', 415) };
+  }
   try {
     const data = await request.json();
     return { data };
