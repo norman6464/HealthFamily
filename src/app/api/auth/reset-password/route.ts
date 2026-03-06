@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     return success({ message: 'パスワードを再設定しました' });
   } catch (error) {
-    console.error('Reset password error:', error);
+    console.error('パスワードリセットエラー:', error);
     return errorResponse('再設定に失敗しました', 500);
   }
 }

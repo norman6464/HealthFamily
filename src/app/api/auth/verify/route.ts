@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     return success({ message: 'メールアドレスが確認されました' });
   } catch (error) {
-    console.error('Verify error:', error);
+    console.error('認証コード確認エラー:', error);
     return errorResponse('認証に失敗しました', 500);
   }
 }

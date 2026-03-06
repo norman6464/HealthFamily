@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     return success({ message: '確認コードを再送信しました' });
   } catch (error) {
-    console.error('Resend code error:', error);
+    console.error('認証コード再送エラー:', error);
     return errorResponse('再送信に失敗しました', 500);
   }
 }

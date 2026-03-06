@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     return created({ email, requiresVerification: true });
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('サインアップエラー:', error);
     return errorResponse('登録に失敗しました', 500);
   }
 }
