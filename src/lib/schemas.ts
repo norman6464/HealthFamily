@@ -127,7 +127,7 @@ export const createAppointmentSchema = z.object({
 });
 
 export const updateAppointmentSchema = z.object({
-  appointmentDate: z.string().optional(),
+  appointmentDate: z.string().max(20).optional(),
   appointmentTime: z.string().max(10).optional(),
   type: z.string().trim().max(100).optional(),
   notes: z.string().trim().max(1000).optional(),
