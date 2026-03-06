@@ -830,6 +830,25 @@ export class HealthLogEntity {
   }
 
   /**
+   * 症状の持続率(0-100)を算出する
+   * 全記録中に指定症状が含まれる割合
+   */
+  static getSymptomPersistenceRate(symptomLists: string[][], symptom: string): number {
+    if (symptomLists.length === 0) return 0;
+    const count = symptomLists.filter((list) => list.includes(symptom)).length;
+    return Math.round((count / symptomLists.length) * 100);
+  }
+
+  /**
+   * 症状持続率に応じたラベルを返す
+   */
+  static getSymptomPersistenceLabel(rate: number): string {
+    if (rate >= 70) return '持続的';
+    if (rate >= 40) return '断続的';
+    return '一時的';
+  }
+
+  /**
    * 体調レベル配列の分散値を算出する
    */
   static getConditionVariance(conditions: number[]): number {
