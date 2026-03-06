@@ -34,6 +34,8 @@ export class CalendarEntity {
   private static readonly COMPLETION_FAIR_THRESHOLD = 50;
   private static readonly WEEKDAY_BIAS_THRESHOLD = 80;
   private static readonly WEEKEND_BIAS_THRESHOLD = 60;
+  private static readonly GAP_SHORT_THRESHOLD = 3;
+  private static readonly GAP_LONG_THRESHOLD = 14;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -513,8 +515,8 @@ export class CalendarEntity {
    */
   static getRecordGapLabel(gapDays: number): string {
     if (gapDays === 0) return '連続記録';
-    if (gapDays < 3) return '短い空白';
-    if (gapDays < 14) return '長い空白';
+    if (gapDays < CalendarEntity.GAP_SHORT_THRESHOLD) return '短い空白';
+    if (gapDays < CalendarEntity.GAP_LONG_THRESHOLD) return '長い空白';
     return '記録途絶';
   }
 }
