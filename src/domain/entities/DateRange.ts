@@ -124,4 +124,29 @@ export class DateRangeHelper {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     return Math.ceil((days + 1) / 7);
   }
+
+  /**
+   * 開始日が終了日以前であることを検証する
+   */
+  static isValidDateRange(from: Date, to: Date): boolean {
+    return from.getTime() <= to.getTime();
+  }
+
+  /**
+   * 日付を指定範囲内に制約する
+   */
+  static clampDate(date: Date, min: Date, max: Date): Date {
+    if (date.getTime() < min.getTime()) return min;
+    if (date.getTime() > max.getTime()) return max;
+    return date;
+  }
+
+  /**
+   * 指定月の開始日と終了日を返す（monthは0-indexed）
+   */
+  static getMonthRange(year: number, month: number): { start: Date; end: Date } {
+    const start = new Date(year, month, 1);
+    const end = new Date(year, month + 1, 0);
+    return { start, end };
+  }
 }
