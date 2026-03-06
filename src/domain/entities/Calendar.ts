@@ -20,6 +20,8 @@ export interface CalendarMonth {
 }
 
 export class CalendarEntity {
+  private static readonly WEEKLY_RECORD_DAILY_THRESHOLD = 80;
+  private static readonly WEEKLY_RECORD_MODERATE_THRESHOLD = 50;
   private static readonly RECORD_COUNT_LOW_THRESHOLD = 2;
   private static readonly RECORD_COUNT_MEDIUM_THRESHOLD = 5;
   private static readonly CONDITION_GOOD_THRESHOLD = 4;
@@ -649,5 +651,24 @@ export class CalendarEntity {
     if (score >= CalendarEntity.RECORD_GAP_SCORE_GOOD_THRESHOLD) return '良好';
     if (score >= CalendarEntity.RECORD_GAP_SCORE_FAIR_THRESHOLD) return 'まずまず';
     return '空白多い';
+  }
+
+  /**
+   * 日別記録数配列から週間記録率を算出する（0-100）
+   * 記録がある日の割合
+   */
+  static getWeeklyRecordRate(dailyCounts: number[]): number {
+    if (dailyCounts.length === 0) return 0;
+    const recordDays = dailyCounts.filter((c) => c > 0).length;
+    return Math.round((recordDays / dailyCounts.length) * 100);
+  }
+
+  /**
+   * 週間記録率に応じたラベルを返す
+   */
+  static getWeeklyRecordRateLabel(rate: number): string {
+    if (rate >= CalendarEntity.WEEKLY_RECORD_DAILY_THRESHOLD) return '毎日記録';
+    if (rate >= CalendarEntity.WEEKLY_RECORD_MODERATE_THRESHOLD) return 'まずまず';
+    return '記録不足';
   }
 }

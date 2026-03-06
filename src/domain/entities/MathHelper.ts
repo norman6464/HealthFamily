@@ -47,6 +47,8 @@ export class MathHelper {
   private static readonly PMEAN_MEDIUM_THRESHOLD = 30;
   private static readonly MSE_LOW_THRESHOLD = 5;
   private static readonly MSE_MODERATE_THRESHOLD = 25;
+  private static readonly JACCARD_HIGH_THRESHOLD = 70;
+  private static readonly JACCARD_MODERATE_THRESHOLD = 40;
 
   /**
    * パーセントを算出(0-100%)
@@ -803,5 +805,27 @@ export class MathHelper {
     if (mse <= MathHelper.MSE_LOW_THRESHOLD) return '正確';
     if (mse <= MathHelper.MSE_MODERATE_THRESHOLD) return 'やや乖離';
     return '乖離大';
+  }
+
+  /**
+   * ジャッカード類似度を算出する（0-100）
+   * 2つの集合の共通要素数 / 和集合要素数
+   */
+  static getJaccardSimilarity(a: number[], b: number[]): number {
+    const setA = new Set(a);
+    const setB = new Set(b);
+    if (setA.size === 0 && setB.size === 0) return 0;
+    const intersection = [...setA].filter((v) => setB.has(v)).length;
+    const union = new Set([...setA, ...setB]).size;
+    return Math.round((intersection / union) * 100);
+  }
+
+  /**
+   * ジャッカード類似度に応じたラベルを返す
+   */
+  static getJaccardSimilarityLabel(similarity: number): string {
+    if (similarity >= MathHelper.JACCARD_HIGH_THRESHOLD) return '類似';
+    if (similarity >= MathHelper.JACCARD_MODERATE_THRESHOLD) return 'やや類似';
+    return '異なる';
   }
 }
