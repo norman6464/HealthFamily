@@ -3,6 +3,7 @@
  */
 
 import { DateRangeHelper } from './DateRange';
+import { MathHelper } from './MathHelper';
 
 export interface Appointment {
   readonly id: string;
@@ -218,7 +219,7 @@ export class AppointmentEntity {
         type,
         label: AppointmentEntity.typeLabels[type] || type,
         count,
-        percentage: Math.round((count / appointments.length) * 100),
+        percentage: MathHelper.calculatePercentage(count, appointments.length),
       }))
       .sort((a, b) => b.count - a.count);
   }
@@ -240,6 +241,6 @@ export class AppointmentEntity {
   static getTypePercentage(appointments: Appointment[], type: string): number {
     if (appointments.length === 0) return 0;
     const count = appointments.filter((a) => (a.appointmentType || 'other') === type).length;
-    return Math.round((count / appointments.length) * 100);
+    return MathHelper.calculatePercentage(count, appointments.length);
   }
 }

@@ -235,7 +235,7 @@ export class AdherenceStatsEntity {
     }
     return expected.map((exp, i) => {
       if (exp === 0) return 0;
-      return Math.min(100, Math.round((counts[i] / exp) * 100));
+      return MathHelper.calculatePercentage(counts[i], exp, true);
     });
   }
 

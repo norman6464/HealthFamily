@@ -3,6 +3,7 @@
  */
 
 import { DateRangeHelper } from './DateRange';
+import { MathHelper } from './MathHelper';
 
 export interface StockAlert {
   readonly medicationId: string;
@@ -112,7 +113,7 @@ export class StockAlertEntity {
     if (stockQuantity === null) return 0;
     if (dailyConsumption <= 0 || targetDays <= 0) return 100;
     const needed = dailyConsumption * targetDays;
-    return Math.min(100, Math.round((stockQuantity / needed) * 100));
+    return MathHelper.calculatePercentage(stockQuantity, needed, true);
   }
 
   /**
