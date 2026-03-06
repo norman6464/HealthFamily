@@ -8,6 +8,8 @@ const findMember = (id: string) => prisma.member.findUnique({ where: { id } });
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`members-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { memberId } = await params;
     return withOwnershipCheck({
       userId,

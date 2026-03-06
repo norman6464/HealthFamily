@@ -8,6 +8,8 @@ const findMedication = (id: string) => prisma.medication.findUnique({ where: { i
 
 export async function GET(_request: Request, { params }: { params: Promise<{ medicationId: string }> }) {
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`medications-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
     return withOwnershipCheck({
       userId,
