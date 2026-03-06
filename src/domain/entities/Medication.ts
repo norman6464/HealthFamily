@@ -220,4 +220,35 @@ export class MedicationEntity {
   static getActiveStatusLabel(isActive: boolean): string {
     return isActive ? '有効' : '無効';
   }
+
+  /**
+   * 頻度コードが有効か検証する
+   */
+  static validateFrequency(frequency: string): boolean {
+    return frequency in MedicationEntity.frequencyLabels;
+  }
+
+  /**
+   * 全頻度の一覧を返す
+   */
+  static getAllFrequencies(): Array<{ id: string; label: string }> {
+    return Object.entries(MedicationEntity.frequencyLabels).map(([id, label]) => ({
+      id,
+      label,
+    }));
+  }
+
+  /**
+   * 頻度と用量のサマリーテキストを返す
+   */
+  static getFrequencySummary(frequency?: string, dosage?: string): string {
+    const parts: string[] = [];
+    if (frequency) {
+      parts.push(MedicationEntity.getFrequencyLabel(frequency));
+    }
+    if (dosage) {
+      parts.push(dosage);
+    }
+    return parts.join(' / ');
+  }
 }
