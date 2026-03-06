@@ -795,6 +795,9 @@ export class ScheduleEntity {
   private static readonly BALANCE_HIGH_THRESHOLD = 70;
   private static readonly BALANCE_MODERATE_THRESHOLD = 40;
   private static readonly COMPLETION_TREND_THRESHOLD = 0;
+  private static readonly CONFLICT_PROXIMITY_MINUTES = 15;
+  private static readonly CONFLICT_LOW_THRESHOLD = 10;
+  private static readonly CONFLICT_MODERATE_THRESHOLD = 30;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -998,5 +1001,34 @@ export class ScheduleEntity {
     if (slope > ScheduleEntity.COMPLETION_TREND_THRESHOLD) return '上昇';
     if (slope < ScheduleEntity.COMPLETION_TREND_THRESHOLD) return '下降';
     return '横ばい';
+  }
+
+  /**
+   * スケジュール時刻(分単位)配列から競合率(0-100)を算出する
+   * 15分以内のペア数/全ペア数の割合
+   */
+  static getScheduleConflictRate(timesInMinutes: number[]): number {
+    if (timesInMinutes.length <= 1) return 0;
+    let conflictPairs = 0;
+    let totalPairs = 0;
+    for (let i = 0; i < timesInMinutes.length; i++) {
+      for (let j = i + 1; j < timesInMinutes.length; j++) {
+        totalPairs++;
+        if (Math.abs(timesInMinutes[i] - timesInMinutes[j]) <= ScheduleEntity.CONFLICT_PROXIMITY_MINUTES) {
+          conflictPairs++;
+        }
+      }
+    }
+    if (totalPairs === 0) return 0;
+    return Math.round((conflictPairs / totalPairs) * 100);
+  }
+
+  /**
+   * 競合率に応じたラベルを返す
+   */
+  static getScheduleConflictRateLabel(rate: number): string {
+    if (rate < ScheduleEntity.CONFLICT_LOW_THRESHOLD) return '競合なし';
+    if (rate < ScheduleEntity.CONFLICT_MODERATE_THRESHOLD) return 'やや競合';
+    return '競合多い';
   }
 }
