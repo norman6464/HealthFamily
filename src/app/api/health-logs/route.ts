@@ -6,6 +6,8 @@ import { checkRateLimit } from '@/lib/security';
 import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
+  const { allowed } = checkRateLimit(`health-logs-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
+  if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
   const logs = await prisma.healthLog.findMany({
     where: { userId },
     orderBy: { recordedAt: 'desc' },
