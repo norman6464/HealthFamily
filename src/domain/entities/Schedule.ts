@@ -784,6 +784,8 @@ export class ScheduleEntity {
   private static readonly EFFICIENCY_EXCELLENT_THRESHOLD = 90;
   private static readonly EFFICIENCY_GOOD_THRESHOLD = 70;
   private static readonly EFFICIENCY_NORMAL_THRESHOLD = 50;
+  private static readonly SCHEDULE_GAP_SHORT_THRESHOLD = 180;
+  private static readonly SCHEDULE_GAP_LONG_THRESHOLD = 480;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -873,8 +875,8 @@ export class ScheduleEntity {
    */
   static getScheduleGapLabel(gapMinutes: number): string {
     if (gapMinutes === 0) return '間隔なし';
-    if (gapMinutes < 180) return '短い';
-    if (gapMinutes < 480) return '適切';
+    if (gapMinutes < ScheduleEntity.SCHEDULE_GAP_SHORT_THRESHOLD) return '短い';
+    if (gapMinutes < ScheduleEntity.SCHEDULE_GAP_LONG_THRESHOLD) return '適切';
     return '長い';
   }
 }

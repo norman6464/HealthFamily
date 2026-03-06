@@ -12,6 +12,8 @@ export class MathHelper {
   private static readonly CORRELATION_WEAK_THRESHOLD = 0.3;
   private static readonly OUTLIER_SEVERE_RATE = 0.2;
   private static readonly OUTLIER_MINOR_RATE = 0.05;
+  private static readonly GEOMETRIC_HIGH_THRESHOLD = 70;
+  private static readonly GEOMETRIC_LOW_THRESHOLD = 30;
 
   /**
    * パーセントを算出(0-100%)
@@ -277,8 +279,8 @@ export class MathHelper {
    * 幾何平均に応じたラベルを返す
    */
   static getGeometricMeanLabel(mean: number): string {
-    if (mean >= 70) return '高い';
-    if (mean >= 30) return '中程度';
+    if (mean >= MathHelper.GEOMETRIC_HIGH_THRESHOLD) return '高い';
+    if (mean >= MathHelper.GEOMETRIC_LOW_THRESHOLD) return '中程度';
     return '低い';
   }
 }
