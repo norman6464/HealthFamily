@@ -276,6 +276,31 @@ export class AdherenceTrendEntity {
     return 'ばらつきあり';
   }
 
+  /**
+   * 末尾からの連続未達成回数を算出する
+   */
+  static getConsecutiveFailures(dailyResults: boolean[]): number {
+    let count = 0;
+    for (let i = dailyResults.length - 1; i >= 0; i--) {
+      if (!dailyResults[i]) {
+        count++;
+      } else {
+        break;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * 連続未達成回数に応じたラベルを返す
+   */
+  static getConsecutiveFailuresLabel(count: number): string {
+    if (count === 0) return '良好';
+    if (count < 3) return '注意';
+    if (count < 7) return '警告';
+    return '危険';
+  }
+
   static getPerformanceGradeLabel(grade: string): string {
     const labels: Record<string, string> = {
       A: '優秀',

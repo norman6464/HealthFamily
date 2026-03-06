@@ -452,6 +452,25 @@ export class StockAlertEntity {
     return labels[trend] ?? '在庫安定';
   }
 
+  /**
+   * 在庫回転率を算出する（消費量 / 平均在庫）
+   */
+  static getStockRotationRate(consumed: number, averageStock: number): number | null {
+    if (averageStock <= 0) return null;
+    if (consumed <= 0) return 0;
+    return Math.round((consumed / averageStock) * 100) / 100;
+  }
+
+  /**
+   * 在庫回転率に応じたラベルを返す
+   */
+  static getStockRotationLabel(rate: number | null): string {
+    if (rate === null) return 'データなし';
+    if (rate >= 2) return '高回転';
+    if (rate >= 1) return '適正';
+    return '低回転';
+  }
+
   static getRefillPriorityLabel(rank: number): string {
     if (rank === 1) return '最優先';
     if (rank === 2) return '優先';
