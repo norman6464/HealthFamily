@@ -50,6 +50,7 @@ export class MathHelper {
   private static readonly JACCARD_HIGH_THRESHOLD = 70;
   private static readonly JACCARD_MODERATE_THRESHOLD = 40;
   private static readonly LR_SLOPE_THRESHOLD = 0.1;
+  private static readonly SPEARMAN_STRONG_THRESHOLD = 0.6;
 
   /**
    * パーセントを算出(0-100%)
@@ -860,5 +861,32 @@ export class MathHelper {
     if (slope > MathHelper.LR_SLOPE_THRESHOLD) return '上昇';
     if (slope < -MathHelper.LR_SLOPE_THRESHOLD) return '下降';
     return '横ばい';
+  }
+
+  /**
+   * スピアマン順位相関係数を算出する（-1〜1）
+   * 配列長が異なる場合は短い方に合わせる
+   */
+  static getSpearmanRankCorrelation(x: number[], y: number[]): number {
+    const n = Math.min(x.length, y.length);
+    if (n <= 1) return 0;
+    const rank = (arr: number[]): number[] => {
+      const sorted = [...arr].sort((a, b) => a - b);
+      return arr.map((v) => sorted.indexOf(v) + 1);
+    };
+    const rx = rank(x.slice(0, n));
+    const ry = rank(y.slice(0, n));
+    const d2 = rx.reduce((sum, r, i) => sum + (r - ry[i]) ** 2, 0);
+    const rho = 1 - (6 * d2) / (n * (n * n - 1));
+    return Math.round(rho * 100) / 100;
+  }
+
+  /**
+   * スピアマン順位相関係数に応じたラベルを返す
+   */
+  static getSpearmanRankCorrelationLabel(rho: number): string {
+    if (rho >= MathHelper.SPEARMAN_STRONG_THRESHOLD) return '正相関';
+    if (rho <= -MathHelper.SPEARMAN_STRONG_THRESHOLD) return '逆相関';
+    return '無相関';
   }
 }
