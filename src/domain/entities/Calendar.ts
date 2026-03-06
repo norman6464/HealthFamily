@@ -408,4 +408,31 @@ export class CalendarEntity {
     if (days % 7 === 0) return `${days / 7}週間連続`;
     return `${days}日連続`;
   }
+
+  /**
+   * 記録数からヒートマップ強度(0-4)を算出する
+   */
+  static getHeatMapIntensity(count: number, maxCount: number): number {
+    if (maxCount <= 0 || count <= 0) return 0;
+    const ratio = count / maxCount;
+    if (ratio >= 1) return 4;
+    if (ratio >= 0.75) return 3;
+    if (ratio >= 0.5) return 2;
+    return 1;
+  }
+
+  private static readonly HEAT_MAP_COLORS = [
+    'bg-gray-100',
+    'bg-green-100',
+    'bg-green-200',
+    'bg-green-300',
+    'bg-green-400',
+  ];
+
+  /**
+   * ヒートマップ強度に応じた背景色クラスを返す
+   */
+  static getHeatMapColor(intensity: number): string {
+    return CalendarEntity.HEAT_MAP_COLORS[intensity] ?? CalendarEntity.HEAT_MAP_COLORS[0];
+  }
 }

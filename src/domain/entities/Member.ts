@@ -464,4 +464,29 @@ export class MemberEntity {
     if (rank <= 0) return 'ランク外';
     return `${rank}位`;
   }
+
+  /**
+   * 複数メンバーの服薬率比較サマリーを生成する
+   */
+  static getMemberComparisonSummary(
+    members: { name: string; adherenceRate: number }[],
+  ): { bestMember: string; worstMember: string; averageRate: number } | null {
+    if (members.length === 0) return null;
+    const sorted = [...members].sort((a, b) => b.adherenceRate - a.adherenceRate);
+    const sum = members.reduce((acc, m) => acc + m.adherenceRate, 0);
+    return {
+      bestMember: sorted[0].name,
+      worstMember: sorted[sorted.length - 1].name,
+      averageRate: Math.round(sum / members.length),
+    };
+  }
+
+  /**
+   * メンバー間の服薬率差に応じたメッセージを返す
+   */
+  static getComparisonMessage(bestRate: number, worstRate: number): string {
+    const diff = bestRate - worstRate;
+    if (diff >= 20) return 'メンバー間で差があります';
+    return 'メンバー全体で安定しています';
+  }
 }
