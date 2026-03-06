@@ -724,4 +724,28 @@ export class HealthLogEntity {
     };
     return messages[trend];
   }
+
+  /**
+   * 体調レベル配列から変動性スコア(0-100)を算出する
+   * 隣接日の差分の平均を使用
+   */
+  static getConditionVolatility(conditions: number[]): number {
+    if (conditions.length <= 1) return 0;
+    let totalDiff = 0;
+    for (let i = 1; i < conditions.length; i++) {
+      totalDiff += Math.abs(conditions[i] - conditions[i - 1]);
+    }
+    const avgDiff = totalDiff / (conditions.length - 1);
+    const maxPossibleDiff = 4;
+    return Math.min(100, Math.round((avgDiff / maxPossibleDiff) * 100));
+  }
+
+  /**
+   * 変動性スコアに応じたラベルを返す
+   */
+  static getVolatilityLabel(score: number): string {
+    if (score <= 30) return '安定';
+    if (score <= 60) return 'やや変動';
+    return '不安定';
+  }
 }

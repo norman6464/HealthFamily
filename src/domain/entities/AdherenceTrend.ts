@@ -223,4 +223,28 @@ export class AdherenceTrendEntity {
     if (progress >= 40) return '半分';
     return '頑張りましょう';
   }
+
+  /**
+   * 遵守率と一貫性スコアからパフォーマンスグレード(A-D)を判定する
+   */
+  static getPerformanceGrade(rate: number, consistency: number): string {
+    const combined = (rate + consistency) / 2;
+    if (combined >= 80) return 'A';
+    if (combined >= 60) return 'B';
+    if (combined >= 40) return 'C';
+    return 'D';
+  }
+
+  /**
+   * パフォーマンスグレードに応じたラベルを返す
+   */
+  static getPerformanceGradeLabel(grade: string): string {
+    const labels: Record<string, string> = {
+      A: '優秀',
+      B: '良好',
+      C: '要改善',
+      D: '要注意',
+    };
+    return labels[grade] ?? '要注意';
+  }
 }
