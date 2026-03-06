@@ -60,6 +60,8 @@ export class HealthLogEntity {
   private static readonly VOLATILITY_MAX_DIFF = 4;
   private static readonly VOLATILITY_STABLE_THRESHOLD = 30;
   private static readonly VOLATILITY_MODERATE_THRESHOLD = 60;
+  private static readonly DIVERSITY_HIGH_THRESHOLD = 70;
+  private static readonly DIVERSITY_MEDIUM_THRESHOLD = 30;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -764,8 +766,8 @@ export class HealthLogEntity {
    * 症状多様性スコアに応じたラベルを返す
    */
   static getSymptomDiversityLabel(score: number): string {
-    if (score >= 70) return '多様';
-    if (score >= 30) return '中程度';
+    if (score >= HealthLogEntity.DIVERSITY_HIGH_THRESHOLD) return '多様';
+    if (score >= HealthLogEntity.DIVERSITY_MEDIUM_THRESHOLD) return '中程度';
     return '限定的';
   }
 }
