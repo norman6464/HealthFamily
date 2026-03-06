@@ -224,4 +224,37 @@ export class AdherenceStatsEntity {
     const milestones = [7, 14, 30, 60, 90, 100, 180, 365];
     return milestones.includes(streak);
   }
+
+  /**
+   * 曜日別の服薬率を算出する
+   * 返り値: [日, 月, 火, 水, 木, 金, 土] の服薬率(0-100)
+   */
+  static getDayOfWeekRates(recordDates: Date[], expected: number[]): number[] {
+    const counts = new Array(7).fill(0);
+    for (const date of recordDates) {
+      counts[date.getDay()]++;
+    }
+    return expected.map((exp, i) => {
+      if (exp === 0) return 0;
+      return Math.min(100, Math.round((counts[i] / exp) * 100));
+    });
+  }
+
+  /**
+   * 最も服薬率が高い曜日インデックスを返す
+   */
+  static getBestDay(rates: number[]): number | null {
+    const max = Math.max(...rates);
+    if (max === 0) return null;
+    return rates.indexOf(max);
+  }
+
+  /**
+   * 最も服薬率が低い曜日インデックスを返す（0%の曜日は除外）
+   */
+  static getWorstDay(rates: number[]): number | null {
+    const nonZeroRates = rates.map((r, i) => ({ rate: r, index: i })).filter((r) => r.rate > 0);
+    if (nonZeroRates.length === 0) return null;
+    return nonZeroRates.reduce((min, r) => (r.rate < min.rate ? r : min)).index;
+  }
 }
