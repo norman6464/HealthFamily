@@ -474,4 +474,35 @@ export class MedicationRecordEntity {
     };
     return labels[level];
   }
+
+  /**
+   * 予定時刻と実際の服薬時刻の差を分単位で算出する
+   */
+  static getTimingGaps(records: { scheduledTime: string; takenAt: Date }[]): number[] {
+    return records.map((r) => {
+      const [hours, minutes] = r.scheduledTime.split(':').map(Number);
+      const scheduled = hours * 60 + minutes;
+      const taken = r.takenAt.getHours() * 60 + r.takenAt.getMinutes();
+      return taken - scheduled;
+    });
+  }
+
+  /**
+   * 時間差の平均を算出する(絶対値の平均)
+   */
+  static getAverageTimingGap(gaps: number[]): number {
+    if (gaps.length === 0) return 0;
+    const totalAbs = gaps.reduce((sum, g) => sum + Math.abs(g), 0);
+    return Math.round(totalAbs / gaps.length);
+  }
+
+  /**
+   * 平均時間差に応じた正確性ラベルを返す
+   */
+  static getTimingAccuracyLabel(averageGapMinutes: number): string {
+    if (averageGapMinutes <= 5) return '正確';
+    if (averageGapMinutes <= 15) return 'ほぼ正確';
+    if (averageGapMinutes <= 30) return 'やや遅れ';
+    return '大幅な遅れ';
+  }
 }
