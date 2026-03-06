@@ -18,6 +18,9 @@ export class MathHelper {
   private static readonly ENTROPY_LOW_THRESHOLD = 30;
   private static readonly ZSCORE_ABNORMAL_THRESHOLD = 2;
   private static readonly ZSCORE_OUTLIER_THRESHOLD = 1;
+  private static readonly COSINE_SIMILAR_THRESHOLD = 0.7;
+  private static readonly COSINE_SOMEWHAT_THRESHOLD = 0.3;
+  private static readonly COSINE_OPPOSITE_THRESHOLD = -0.7;
 
   /**
    * パーセントを算出(0-100%)
@@ -383,5 +386,34 @@ export class MathHelper {
     if (abs >= MathHelper.ZSCORE_ABNORMAL_THRESHOLD) return '異常';
     if (abs >= MathHelper.ZSCORE_OUTLIER_THRESHOLD) return 'やや外れ値';
     return '正常';
+  }
+
+  /**
+   * 2つの数値配列のコサイン類似度(-1〜1)を算出する
+   */
+  static getCosineSimilarity(a: number[], b: number[]): number {
+    const len = Math.min(a.length, b.length);
+    if (len === 0) return 0;
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    for (let i = 0; i < len; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+    const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+    if (denominator === 0) return 0;
+    return Math.round((dotProduct / denominator) * 100) / 100;
+  }
+
+  /**
+   * コサイン類似度に応じたラベルを返す
+   */
+  static getCosineSimilarityLabel(similarity: number): string {
+    if (similarity >= MathHelper.COSINE_SIMILAR_THRESHOLD) return '類似';
+    if (similarity >= MathHelper.COSINE_SOMEWHAT_THRESHOLD) return 'やや類似';
+    if (similarity <= MathHelper.COSINE_OPPOSITE_THRESHOLD) return '正反対';
+    return '無関係';
   }
 }

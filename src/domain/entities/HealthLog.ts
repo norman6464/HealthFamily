@@ -72,6 +72,7 @@ export class HealthLogEntity {
   private static readonly CONSISTENCY_MAX_AVG_DIFF = 4;
   private static readonly CONSISTENCY_HIGH_THRESHOLD = 80;
   private static readonly CONSISTENCY_MODERATE_THRESHOLD = 50;
+  private static readonly TREND_SLOPE_THRESHOLD = 0.3;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -893,5 +894,37 @@ export class HealthLogEntity {
     if (score >= HealthLogEntity.CONSISTENCY_HIGH_THRESHOLD) return '安定';
     if (score >= HealthLogEntity.CONSISTENCY_MODERATE_THRESHOLD) return '変動あり';
     return '不安定';
+  }
+
+  /**
+   * 体調値配列の線形回帰傾きを算出する
+   * 最小二乗法による傾き（正=改善、負=悪化）
+   */
+  static getConditionTrendSlope(conditions: number[]): number {
+    if (conditions.length <= 1) return 0;
+    const n = conditions.length;
+    let sumX = 0;
+    let sumY = 0;
+    let sumXY = 0;
+    let sumX2 = 0;
+    for (let i = 0; i < n; i++) {
+      sumX += i;
+      sumY += conditions[i];
+      sumXY += i * conditions[i];
+      sumX2 += i * i;
+    }
+    const denominator = n * sumX2 - sumX * sumX;
+    if (denominator === 0) return 0;
+    const slope = (n * sumXY - sumX * sumY) / denominator;
+    return Math.round(slope * 100) / 100;
+  }
+
+  /**
+   * 傾きに応じたラベルを返す
+   */
+  static getConditionTrendSlopeLabel(slope: number): string {
+    if (slope >= HealthLogEntity.TREND_SLOPE_THRESHOLD) return '改善傾向';
+    if (slope <= -HealthLogEntity.TREND_SLOPE_THRESHOLD) return '悪化傾向';
+    return '横ばい';
   }
 }
