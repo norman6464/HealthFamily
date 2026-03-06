@@ -7,7 +7,7 @@ const findRecord = (id: string) => prisma.medicationRecord.findUnique({ where: {
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ recordId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`records-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`records-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { recordId } = await params;
     return withOwnershipCheck({

@@ -6,7 +6,7 @@ import { QUERY_LIMITS } from '@/lib/constants';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`medications-member-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`medications-member-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { memberId } = await params;
     const idError = validateParamId(memberId);

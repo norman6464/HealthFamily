@@ -11,7 +11,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ hosp
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`hospitals-put:${userId}`, { maxRequests: 20, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`hospitals-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
 
     const { hospitalId } = await params;
@@ -43,7 +43,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ hosp
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ hospitalId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`hospitals-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`hospitals-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { hospitalId } = await params;
     return withOwnershipCheck({

@@ -5,7 +5,7 @@ import { checkRateLimit } from '@/lib/security';
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ logId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`health-logs-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`health-logs-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { logId } = await params;
     return withOwnershipCheck({

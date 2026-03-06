@@ -7,7 +7,7 @@ import { QUERY_LIMITS } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`medications-search-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`medications-search-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const q = request.nextUrl.searchParams.get('q')?.trim() ?? '';
     if (!q) {

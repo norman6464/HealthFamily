@@ -8,7 +8,7 @@ const findMedication = (id: string) => prisma.medication.findUnique({ where: { i
 
 export async function GET(_request: Request, { params }: { params: Promise<{ medicationId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`medications-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`medications-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
     return withOwnershipCheck({
@@ -26,7 +26,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`medications-put:${userId}`, { maxRequests: 20, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`medications-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
     return withOwnershipCheck({
@@ -63,7 +63,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ medicationId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`medications-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`medications-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
     return withOwnershipCheck({
