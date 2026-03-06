@@ -153,6 +153,10 @@ export class MemberEntity {
   private static readonly ACTIVITY_HIGH_THRESHOLD = 80;
   private static readonly ACTIVITY_NORMAL_THRESHOLD = 50;
   private static readonly ACTIVITY_LOW_THRESHOLD = 20;
+  private static readonly CARE_SCORE_GOOD_THRESHOLD = 80;
+  private static readonly CARE_SCORE_MODERATE_THRESHOLD = 50;
+  private static readonly CARE_SCORE_ADHERENCE_WEIGHT = 0.6;
+  private static readonly CARE_SCORE_RECORD_WEIGHT = 0.4;
 
   private static readonly memberTypeLabels: Record<MemberType, string> = {
     human: '家族',
@@ -512,5 +516,29 @@ export class MemberEntity {
     if (score >= MemberEntity.ACTIVITY_NORMAL_THRESHOLD) return '普通';
     if (score >= MemberEntity.ACTIVITY_LOW_THRESHOLD) return '低調';
     return '非活動';
+  }
+
+  /**
+   * 服薬率と記録率からケアスコアを算出する（0-100）
+   */
+  static getMemberCareScore(adherenceRate: number, recordRate: number): number {
+    const clampedAdherence = Math.max(0, Math.min(100, adherenceRate));
+    const clampedRecord = Math.max(0, Math.min(100, recordRate));
+    return Math.min(
+      100,
+      Math.round(
+        clampedAdherence * MemberEntity.CARE_SCORE_ADHERENCE_WEIGHT +
+          clampedRecord * MemberEntity.CARE_SCORE_RECORD_WEIGHT
+      )
+    );
+  }
+
+  /**
+   * ケアスコアに応じたラベルを返す
+   */
+  static getMemberCareScoreLabel(score: number): string {
+    if (score >= MemberEntity.CARE_SCORE_GOOD_THRESHOLD) return '良好';
+    if (score >= MemberEntity.CARE_SCORE_MODERATE_THRESHOLD) return '普通';
+    return '要注意';
   }
 }
