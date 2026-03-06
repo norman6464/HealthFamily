@@ -25,6 +25,10 @@ export class CalendarEntity {
   private static readonly CONDITION_GOOD_THRESHOLD = 4;
   private static readonly CONDITION_FAIR_THRESHOLD = 3;
   private static readonly CONDITION_POOR_THRESHOLD = 2;
+  private static readonly HEAT_MAP_HIGH_RATIO = 1;
+  private static readonly HEAT_MAP_MEDIUM_HIGH_RATIO = 0.75;
+  private static readonly HEAT_MAP_MEDIUM_RATIO = 0.5;
+  private static readonly COMPARISON_TOLERANCE = 5;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -243,7 +247,7 @@ export class CalendarEntity {
    */
   static getMonthComparisonMessage(currentRate: number, previousRate: number): string {
     const diff = currentRate - previousRate;
-    if (Math.abs(diff) <= 5) return '先月と同水準を維持しています';
+    if (Math.abs(diff) <= CalendarEntity.COMPARISON_TOLERANCE) return '先月と同水準を維持しています';
     if (diff > 0) return `先月より${diff}%改善しました`;
     return `先月より${Math.abs(diff)}%低下しています`;
   }
@@ -415,9 +419,9 @@ export class CalendarEntity {
   static getHeatMapIntensity(count: number, maxCount: number): number {
     if (maxCount <= 0 || count <= 0) return 0;
     const ratio = count / maxCount;
-    if (ratio >= 1) return 4;
-    if (ratio >= 0.75) return 3;
-    if (ratio >= 0.5) return 2;
+    if (ratio >= CalendarEntity.HEAT_MAP_HIGH_RATIO) return 4;
+    if (ratio >= CalendarEntity.HEAT_MAP_MEDIUM_HIGH_RATIO) return 3;
+    if (ratio >= CalendarEntity.HEAT_MAP_MEDIUM_RATIO) return 2;
     return 1;
   }
 
