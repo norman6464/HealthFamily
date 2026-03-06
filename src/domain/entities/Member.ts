@@ -332,4 +332,44 @@ export class MemberEntity {
     if (percentage >= 50) return '半分入力済み';
     return '入力が必要';
   }
+
+  private static readonly ageMilestones: Record<number, string> = {
+    0: '誕生',
+    1: '1歳',
+    20: '成人',
+    65: '高齢者',
+    75: '後期高齢者',
+  };
+
+  /**
+   * 年齢に応じたマイルストーンを返す
+   */
+  static getAgeMilestone(age: number): string | null {
+    return MemberEntity.ageMilestones[age] ?? null;
+  }
+
+  /**
+   * 誕生日が指定日数以内かどうかを判定する
+   */
+  static isUpcomingBirthday(birthDate: Date, today: Date, withinDays: number): boolean {
+    const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+    const diffTime = thisYearBirthday.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= withinDays;
+  }
+
+  /**
+   * 誕生日までのカウントダウンテキストを返す
+   */
+  static getBirthdayCountdown(birthDate: Date, today: Date): string {
+    const todayNorm = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    let nextBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+    if (nextBirthday.getTime() < todayNorm.getTime()) {
+      nextBirthday = new Date(today.getFullYear() + 1, birthDate.getMonth(), birthDate.getDate());
+    }
+    const diffTime = nextBirthday.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return '今日が誕生日です';
+    return `誕生日まであと${diffDays}日`;
+  }
 }
