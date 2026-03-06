@@ -800,4 +800,29 @@ export class HealthLogEntity {
     if (score >= HealthLogEntity.DIVERSITY_MEDIUM_THRESHOLD) return '中程度';
     return '限定的';
   }
+
+  /**
+   * 体調レベル配列の直近の変化速度（モメンタム）を算出する
+   * 直近3件の傾き（正=改善、負=悪化、0=横ばい）
+   */
+  static getConditionMomentum(conditions: number[]): number {
+    if (conditions.length <= 1) return 0;
+    const recent = conditions.slice(-3);
+    if (recent.length <= 1) return 0;
+    const diffs: number[] = [];
+    for (let i = 1; i < recent.length; i++) {
+      diffs.push(recent[i] - recent[i - 1]);
+    }
+    const avg = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+    return Math.round(avg * 10) / 10;
+  }
+
+  /**
+   * モメンタムに応じたラベルを返す
+   */
+  static getMomentumLabel(momentum: number): string {
+    if (momentum >= 0.5) return '改善傾向';
+    if (momentum <= -0.5) return '悪化傾向';
+    return '変化なし';
+  }
 }

@@ -831,4 +831,23 @@ export class ScheduleEntity {
     if (score >= ScheduleEntity.EFFICIENCY_NORMAL_THRESHOLD) return '普通';
     return '要改善';
   }
+
+  /**
+   * 完了/未完了配列から遵守率(0-100%)を算出する
+   */
+  static getScheduleAdherenceRate(completions: boolean[]): number {
+    if (completions.length === 0) return 0;
+    const completed = completions.filter(Boolean).length;
+    return Math.round((completed / completions.length) * 100);
+  }
+
+  /**
+   * 遵守率に応じたラベルを返す
+   */
+  static getAdherenceRateLabel(rate: number): string {
+    if (rate >= 90) return '優秀';
+    if (rate >= 70) return '良好';
+    if (rate >= 50) return '要改善';
+    return '不十分';
+  }
 }
