@@ -371,4 +371,59 @@ export class MedicationRecordEntity {
     if (rate >= 50) return 'もう少しで達成です';
     return '少しずつ頑張りましょう';
   }
+
+  /**
+   * 最後の服薬からの経過時間を日本語文字列で返す
+   */
+  static getTimeSinceLastDose(records: MedicationRecord[], now: Date): string | null {
+    if (records.length === 0) return null;
+    const latest = records.reduce((a, b) =>
+      new Date(a.takenAt).getTime() > new Date(b.takenAt).getTime() ? a : b,
+    );
+    const diffMs = now.getTime() - new Date(latest.takenAt).getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    if (diffMinutes < 60) return `${diffMinutes}分前`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}時間前`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}日前`;
+  }
+
+  /**
+   * 服薬記録間隔の統計(平均・最小・最大)を算出
+   */
+  static getDoseIntervalStats(
+    records: MedicationRecord[],
+  ): { averageMinutes: number; minMinutes: number; maxMinutes: number } | null {
+    if (records.length < 2) return null;
+    const sorted = [...records].sort(
+      (a, b) => new Date(a.takenAt).getTime() - new Date(b.takenAt).getTime(),
+    );
+    const intervals: number[] = [];
+    for (let i = 1; i < sorted.length; i++) {
+      const diff =
+        (new Date(sorted[i].takenAt).getTime() - new Date(sorted[i - 1].takenAt).getTime()) /
+        (1000 * 60);
+      intervals.push(diff);
+    }
+    const sum = intervals.reduce((a, b) => a + b, 0);
+    return {
+      averageMinutes: Math.round(sum / intervals.length),
+      minMinutes: Math.min(...intervals),
+      maxMinutes: Math.max(...intervals),
+    };
+  }
+
+  /**
+   * 平均間隔に基づく次回服薬予定時刻を推定
+   */
+  static getNextDoseEstimate(records: MedicationRecord[]): Date | null {
+    const stats = MedicationRecordEntity.getDoseIntervalStats(records);
+    if (!stats) return null;
+    const sorted = [...records].sort(
+      (a, b) => new Date(a.takenAt).getTime() - new Date(b.takenAt).getTime(),
+    );
+    const lastTime = new Date(sorted[sorted.length - 1].takenAt).getTime();
+    return new Date(lastTime + stats.averageMinutes * 60 * 1000);
+  }
 }
