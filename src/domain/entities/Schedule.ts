@@ -378,4 +378,41 @@ export class ScheduleEntity {
     if (max === 0) return null;
     return rates.indexOf(max);
   }
+
+  /**
+   * 開始時刻と分数から時間範囲の文字列を生成する
+   */
+  static formatTimeRange(startTime: string, durationMinutes: number): string {
+    if (durationMinutes === 0) return startTime;
+    const [h, m] = startTime.split(':').map(Number);
+    const totalMinutes = h * 60 + m + durationMinutes;
+    const endH = Math.floor(totalMinutes / 60) % 24;
+    const endM = totalMinutes % 60;
+    const endTime = `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
+    return `${startTime} - ${endTime}`;
+  }
+
+  /**
+   * 予定までの残り時間を日本語で表示する
+   */
+  static getTimeUntilLabel(minutes: number): string {
+    if (minutes < 0) return '予定時刻を過ぎています';
+    if (minutes === 0) return 'まもなく';
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0) return `${m}分後`;
+    if (m === 0) return `${h}時間後`;
+    return `${h}時間${m}分後`;
+  }
+
+  private static readonly DAY_LABELS: Record<DayOfWeek, string> = {
+    sun: '日', mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土',
+  };
+
+  /**
+   * 曜日コード配列を日本語ラベルに変換する
+   */
+  static getDaysOfWeekLabels(days: DayOfWeek[]): string[] {
+    return days.map((d) => ScheduleEntity.DAY_LABELS[d]);
+  }
 }
