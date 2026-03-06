@@ -119,7 +119,7 @@ export const createAppointmentSchema = z.object({
   memberId: idField,
   hospitalId: optionalIdField,
   appointmentDate: dateString,
-  appointmentTime: z.string().max(10).optional(),
+  appointmentTime: z.string().trim().max(10).optional(),
   type: z.string().trim().max(100).optional(),
   notes: z.string().trim().max(1000).optional(),
   reminderEnabled: z.boolean().optional(),
