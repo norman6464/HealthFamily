@@ -20,6 +20,12 @@ export interface CalendarMonth {
 }
 
 export class CalendarEntity {
+  private static readonly RECORD_COUNT_LOW_THRESHOLD = 2;
+  private static readonly RECORD_COUNT_MEDIUM_THRESHOLD = 5;
+  private static readonly CONDITION_GOOD_THRESHOLD = 4;
+  private static readonly CONDITION_FAIR_THRESHOLD = 3;
+  private static readonly CONDITION_POOR_THRESHOLD = 2;
+
   /**
    * 指定月のカレンダーデータを生成
    * 前月末・翌月初の日も含めて6週分を生成
@@ -114,8 +120,8 @@ export class CalendarEntity {
    */
   static getRecordCountColor(count: number): string {
     if (count === 0) return '';
-    if (count <= 2) return 'bg-green-100';
-    if (count <= 5) return 'bg-green-200';
+    if (count <= CalendarEntity.RECORD_COUNT_LOW_THRESHOLD) return 'bg-green-100';
+    if (count <= CalendarEntity.RECORD_COUNT_MEDIUM_THRESHOLD) return 'bg-green-200';
     return 'bg-green-300';
   }
 
@@ -124,9 +130,9 @@ export class CalendarEntity {
    */
   static getConditionColor(level: number | null): string {
     if (level === null) return '';
-    if (level >= 4) return 'bg-green-100';
-    if (level >= 3) return 'bg-yellow-100';
-    if (level >= 2) return 'bg-orange-100';
+    if (level >= CalendarEntity.CONDITION_GOOD_THRESHOLD) return 'bg-green-100';
+    if (level >= CalendarEntity.CONDITION_FAIR_THRESHOLD) return 'bg-yellow-100';
+    if (level >= CalendarEntity.CONDITION_POOR_THRESHOLD) return 'bg-orange-100';
     return 'bg-red-100';
   }
 
