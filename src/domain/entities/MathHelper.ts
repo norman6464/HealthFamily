@@ -152,4 +152,30 @@ export class MathHelper {
       upper: q3 + 1.5 * iqr,
     };
   }
+
+  /**
+   * 加重平均を算出する
+   */
+  static getWeightedAverage(values: number[], weights: number[]): number {
+    const len = Math.min(values.length, weights.length);
+    if (len === 0) return 0;
+    let weightedSum = 0;
+    let totalWeight = 0;
+    for (let i = 0; i < len; i++) {
+      weightedSum += values[i] * weights[i];
+      totalWeight += weights[i];
+    }
+    if (totalWeight === 0) return 0;
+    return weightedSum / totalWeight;
+  }
+
+  /**
+   * 加重平均値に応じたラベルを返す
+   */
+  static getWeightedAverageLabel(value: number): string {
+    if (value >= 90) return '非常に高い';
+    if (value >= 70) return '高い';
+    if (value >= 40) return '普通';
+    return '低い';
+  }
 }

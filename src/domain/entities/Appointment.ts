@@ -457,4 +457,32 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.REGULARITY_MEDIUM_THRESHOLD) return 'やや不規則';
     return '不規則';
   }
+
+  /**
+   * 予約間隔の最大/最小/平均を算出する
+   */
+  static getAppointmentGapAnalysis(intervals: number[]): {
+    maxGap: number;
+    minGap: number;
+    averageGap: number;
+  } {
+    if (intervals.length === 0) return { maxGap: 0, minGap: 0, averageGap: 0 };
+    const maxGap = Math.max(...intervals);
+    const minGap = Math.min(...intervals);
+    const averageGap = Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
+    return { maxGap, minGap, averageGap };
+  }
+
+  private static readonly GAP_REGULAR_THRESHOLD = 7;
+  private static readonly GAP_IRREGULAR_THRESHOLD = 30;
+
+  /**
+   * 最大/最小間隔の差からラベルを返す
+   */
+  static getGapAnalysisLabel(maxGap: number, minGap: number): string {
+    const diff = maxGap - minGap;
+    if (diff <= AppointmentEntity.GAP_REGULAR_THRESHOLD) return '規則的';
+    if (diff <= AppointmentEntity.GAP_IRREGULAR_THRESHOLD) return 'やや不規則';
+    return '不規則';
+  }
 }

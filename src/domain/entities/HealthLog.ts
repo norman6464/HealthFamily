@@ -750,4 +750,22 @@ export class HealthLogEntity {
     if (score <= HealthLogEntity.VOLATILITY_MODERATE_THRESHOLD) return 'やや変動';
     return '不安定';
   }
+
+  /**
+   * 症状リストからユニーク症状数に基づく多様性スコア(0-100)を算出する
+   */
+  static getSymptomDiversity(symptoms: string[], totalKnownSymptoms: number): number {
+    if (symptoms.length === 0 || totalKnownSymptoms <= 0) return 0;
+    const unique = new Set(symptoms).size;
+    return Math.min(100, Math.round((unique / totalKnownSymptoms) * 100));
+  }
+
+  /**
+   * 症状多様性スコアに応じたラベルを返す
+   */
+  static getSymptomDiversityLabel(score: number): string {
+    if (score >= 70) return '多様';
+    if (score >= 30) return '中程度';
+    return '限定的';
+  }
 }
