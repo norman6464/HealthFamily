@@ -100,6 +100,48 @@ export class CharacterEntity {
     };
     return messages[mood];
   }
+
+  /**
+   * 時間帯に応じた挨拶テキストを返す
+   */
+  static getTimeBasedGreeting(hour: number): string {
+    if (hour >= 5 && hour < 12) return 'おはようございます';
+    if (hour >= 12 && hour < 18) return 'こんにちは';
+    return 'こんばんは';
+  }
+
+  /**
+   * 挨拶に含めるコンテキスト情報を構築する
+   */
+  static getGreetingContext(info: {
+    pendingMedications: number;
+    upcomingAppointments: number;
+    memberName: string;
+  }): string {
+    const parts: string[] = [];
+    if (info.pendingMedications > 0) {
+      parts.push(`${info.memberName}さんの服薬が${info.pendingMedications}件あります`);
+    }
+    if (info.upcomingAppointments > 0) {
+      parts.push(`通院予定が${info.upcomingAppointments}件あります`);
+    }
+    if (parts.length === 0) {
+      return `${info.memberName}さんの今日の予定はありません`;
+    }
+    return parts.join('。');
+  }
+
+  /**
+   * 挨拶テキストとコンテキストを組み合わせたメッセージを生成する
+   */
+  static buildGreetingMessage(
+    hour: number,
+    info: { pendingMedications: number; upcomingAppointments: number; memberName: string },
+  ): string {
+    const greeting = CharacterEntity.getTimeBasedGreeting(hour);
+    const context = CharacterEntity.getGreetingContext(info);
+    return `${greeting}、${info.memberName}さん。${context}`;
+  }
 }
 
 export const CHARACTER_CONFIGS: Record<CharacterType, CharacterConfig> = {
