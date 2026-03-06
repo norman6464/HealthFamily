@@ -44,6 +44,9 @@ export class MedicationRecordEntity {
   private static readonly REGULARITY_MAX_STDDEV = 120;
   private static readonly REGULARITY_HIGH_THRESHOLD = 80;
   private static readonly REGULARITY_MODERATE_THRESHOLD = 50;
+  private static readonly GAP_VARIABILITY_MAX_CV = 1;
+  private static readonly GAP_VARIABILITY_HIGH_THRESHOLD = 60;
+  private static readonly GAP_VARIABILITY_MODERATE_THRESHOLD = 30;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -748,5 +751,27 @@ export class MedicationRecordEntity {
     if (days < MedicationRecordEntity.STREAK_GOOD_THRESHOLD) return '継続中';
     if (days < MedicationRecordEntity.STREAK_EXCELLENT_THRESHOLD) return '好調';
     return '素晴らしい';
+  }
+
+  /**
+   * 服薬間隔配列(分単位)からばらつき度(0-100)を算出する
+   * 変動係数ベースで数値化
+   */
+  static getDoseGapVariability(gaps: number[]): number {
+    if (gaps.length <= 1) return 0;
+    const avg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    if (avg === 0) return 0;
+    const variance = gaps.reduce((sum, v) => sum + (v - avg) ** 2, 0) / gaps.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.min(100, Math.round((cv / MedicationRecordEntity.GAP_VARIABILITY_MAX_CV) * 100));
+  }
+
+  /**
+   * 服薬間隔ばらつき度に応じたラベルを返す
+   */
+  static getDoseGapVariabilityLabel(score: number): string {
+    if (score >= MedicationRecordEntity.GAP_VARIABILITY_HIGH_THRESHOLD) return '不規則';
+    if (score >= MedicationRecordEntity.GAP_VARIABILITY_MODERATE_THRESHOLD) return 'やや不規則';
+    return '規則的';
   }
 }
