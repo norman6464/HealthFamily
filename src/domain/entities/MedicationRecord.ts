@@ -56,6 +56,8 @@ export class MedicationRecordEntity {
   private static readonly DOSE_VARIABILITY_MAX_STDDEV = 120;
   private static readonly DOSE_VARIABILITY_STABLE_THRESHOLD = 20;
   private static readonly DOSE_VARIABILITY_MODERATE_THRESHOLD = 50;
+  private static readonly DOSE_CONSECUTIVE_EXCELLENT_THRESHOLD = 80;
+  private static readonly DOSE_CONSECUTIVE_GOOD_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -843,5 +845,24 @@ export class MedicationRecordEntity {
     if (score < MedicationRecordEntity.DOSE_VARIABILITY_STABLE_THRESHOLD) return '安定';
     if (score < MedicationRecordEntity.DOSE_VARIABILITY_MODERATE_THRESHOLD) return 'やや不安定';
     return '不安定';
+  }
+
+  /**
+   * 服用達成フラグ配列から連続服用スコア(0-100)を算出する
+   * 達成日数/全日数の割合
+   */
+  static getDoseConsecutiveScore(dailyResults: boolean[]): number {
+    if (dailyResults.length === 0) return 0;
+    const achieved = dailyResults.filter(Boolean).length;
+    return Math.round((achieved / dailyResults.length) * 100);
+  }
+
+  /**
+   * 連続服用スコアに応じたラベルを返す
+   */
+  static getDoseConsecutiveScoreLabel(score: number): string {
+    if (score >= MedicationRecordEntity.DOSE_CONSECUTIVE_EXCELLENT_THRESHOLD) return '優秀';
+    if (score >= MedicationRecordEntity.DOSE_CONSECUTIVE_GOOD_THRESHOLD) return '良好';
+    return '要改善';
   }
 }

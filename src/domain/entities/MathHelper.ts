@@ -35,6 +35,8 @@ export class MathHelper {
   private static readonly KURTOSIS_THRESHOLD = 1;
   private static readonly CV_STABLE_THRESHOLD = 20;
   private static readonly CV_MODERATE_THRESHOLD = 50;
+  private static readonly WMEDIAN_HIGH_THRESHOLD = 70;
+  private static readonly WMEDIAN_MEDIUM_THRESHOLD = 40;
 
   /**
    * パーセントを算出(0-100%)
@@ -649,5 +651,32 @@ export class MathHelper {
     if (cv < MathHelper.CV_STABLE_THRESHOLD) return '安定';
     if (cv < MathHelper.CV_MODERATE_THRESHOLD) return 'やや変動';
     return '変動大';
+  }
+
+  /**
+   * 加重中央値を算出する
+   * 値と重みの配列長が異なる場合は0を返す
+   */
+  static getWeightedMedian(values: number[], weights: number[]): number {
+    if (values.length === 0 || values.length !== weights.length) return 0;
+    const pairs = values.map((v, i) => ({ value: v, weight: weights[i] }));
+    pairs.sort((a, b) => a.value - b.value);
+    const totalWeight = pairs.reduce((sum, p) => sum + p.weight, 0);
+    if (totalWeight === 0) return 0;
+    let cumWeight = 0;
+    for (const pair of pairs) {
+      cumWeight += pair.weight;
+      if (cumWeight >= totalWeight / 2) return pair.value;
+    }
+    return pairs[pairs.length - 1].value;
+  }
+
+  /**
+   * 加重中央値に応じたラベルを返す
+   */
+  static getWeightedMedianLabel(value: number): string {
+    if (value >= MathHelper.WMEDIAN_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.WMEDIAN_MEDIUM_THRESHOLD) return '中程度';
+    return '低い';
   }
 }

@@ -46,6 +46,8 @@ export class CalendarEntity {
   private static readonly STREAK_SCORE_GOOD_THRESHOLD = 50;
   private static readonly RECORD_DENSITY_HIGH_THRESHOLD = 80;
   private static readonly RECORD_DENSITY_MEDIUM_THRESHOLD = 50;
+  private static readonly RECORD_FREQUENCY_HIGH_THRESHOLD = 80;
+  private static readonly RECORD_FREQUENCY_MEDIUM_THRESHOLD = 50;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -607,5 +609,24 @@ export class CalendarEntity {
     if (score >= CalendarEntity.RECORD_DENSITY_HIGH_THRESHOLD) return '高密度';
     if (score >= CalendarEntity.RECORD_DENSITY_MEDIUM_THRESHOLD) return '中密度';
     return '低密度';
+  }
+
+  /**
+   * 日別記録件数配列から記録頻度スコア(0-100)を算出する
+   * 記録がある日数/全日数の割合
+   */
+  static getRecordFrequencyScore(dailyCounts: number[]): number {
+    if (dailyCounts.length === 0) return 0;
+    const recordDays = dailyCounts.filter((c) => c > 0).length;
+    return Math.round((recordDays / dailyCounts.length) * 100);
+  }
+
+  /**
+   * 記録頻度スコアに応じたラベルを返す
+   */
+  static getRecordFrequencyScoreLabel(score: number): string {
+    if (score >= CalendarEntity.RECORD_FREQUENCY_HIGH_THRESHOLD) return '高頻度';
+    if (score >= CalendarEntity.RECORD_FREQUENCY_MEDIUM_THRESHOLD) return '中頻度';
+    return '低頻度';
   }
 }
