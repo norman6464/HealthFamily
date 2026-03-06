@@ -209,11 +209,7 @@ export class AppointmentEntity {
     appointments: Appointment[],
   ): { type: string; label: string; count: number; percentage: number }[] {
     if (appointments.length === 0) return [];
-    const counts: Record<string, number> = {};
-    for (const apt of appointments) {
-      const type = apt.appointmentType || 'other';
-      counts[type] = (counts[type] || 0) + 1;
-    }
+    const counts = AppointmentEntity.countByType(appointments);
     return Object.entries(counts)
       .map(([type, count]) => ({
         type,
