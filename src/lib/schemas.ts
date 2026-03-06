@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const dateString = z.string().refine(
+const dateString = z.string().max(50, '日付形式が長すぎます').refine(
   (val) => !isNaN(Date.parse(val)),
   { message: '有効な日付形式で入力してください' },
 );
