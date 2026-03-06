@@ -479,4 +479,23 @@ export class StockAlertEntity {
     if (rank === 3) return '通常';
     return '低優先';
   }
+
+  /**
+   * 在庫カバレッジスコア(0-100)を算出する
+   * 30日分を100%とし、在庫数/日消費量で算出
+   */
+  static getStockCoverageScore(stock: number, dailyConsumption: number): number {
+    if (dailyConsumption <= 0) return 100;
+    const coverageDays = stock / dailyConsumption;
+    return Math.min(100, Math.max(0, Math.round((coverageDays / StockAlertEntity.DAYS_PER_MONTH) * 100)));
+  }
+
+  /**
+   * 在庫カバレッジスコアに応じたラベルを返す
+   */
+  static getStockCoverageLabel(score: number): string {
+    if (score >= 70) return '十分';
+    if (score >= 40) return 'やや不足';
+    return '不足';
+  }
 }
