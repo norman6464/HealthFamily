@@ -27,6 +27,8 @@ export class MathHelper {
   private static readonly MOVING_STDDEV_STABLE_THRESHOLD = 5;
   private static readonly MOVING_STDDEV_MODERATE_THRESHOLD = 15;
   private static readonly CUMSUM_NEAR_RATIO = 0.7;
+  private static readonly MINMAX_HIGH_THRESHOLD = 80;
+  private static readonly MINMAX_MEDIUM_THRESHOLD = 40;
 
   /**
    * パーセントを算出(0-100%)
@@ -533,5 +535,25 @@ export class MathHelper {
     if (currentSum >= target) return '達成';
     if (currentSum >= target * MathHelper.CUMSUM_NEAR_RATIO) return 'あと少し';
     return '途中';
+  }
+
+  /**
+   * 配列を0-100の範囲に最小最大正規化する
+   */
+  static getMinMaxNormalized(values: number[]): number[] {
+    if (values.length === 0) return [];
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (max === min) return values.map(() => 0);
+    return values.map((v) => Math.round(((v - min) / (max - min)) * 100));
+  }
+
+  /**
+   * 正規化された値に応じたラベルを返す
+   */
+  static getMinMaxNormalizedLabel(value: number): string {
+    if (value >= MathHelper.MINMAX_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.MINMAX_MEDIUM_THRESHOLD) return '中程度';
+    return '低い';
   }
 }
