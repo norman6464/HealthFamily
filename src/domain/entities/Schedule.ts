@@ -798,6 +798,9 @@ export class ScheduleEntity {
   private static readonly CONFLICT_PROXIMITY_MINUTES = 15;
   private static readonly CONFLICT_LOW_THRESHOLD = 10;
   private static readonly CONFLICT_MODERATE_THRESHOLD = 30;
+  private static readonly LOAD_MAX_PER_HOUR = 1;
+  private static readonly LOAD_HIGH_THRESHOLD = 70;
+  private static readonly LOAD_MODERATE_THRESHOLD = 30;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -1030,5 +1033,24 @@ export class ScheduleEntity {
     if (rate < ScheduleEntity.CONFLICT_LOW_THRESHOLD) return '競合なし';
     if (rate < ScheduleEntity.CONFLICT_MODERATE_THRESHOLD) return 'やや競合';
     return '競合多い';
+  }
+
+  /**
+   * スケジュール負荷スコア(0-100)を算出する
+   * スケジュール件数/時間帯の密度（1件/時間を100%基準）
+   */
+  static getScheduleLoadScore(scheduleCount: number, totalHours: number): number {
+    if (totalHours <= 0) return 0;
+    const density = scheduleCount / totalHours / ScheduleEntity.LOAD_MAX_PER_HOUR;
+    return Math.max(0, Math.min(100, Math.round(density * 100)));
+  }
+
+  /**
+   * スケジュール負荷スコアに応じたラベルを返す
+   */
+  static getScheduleLoadScoreLabel(score: number): string {
+    if (score >= ScheduleEntity.LOAD_HIGH_THRESHOLD) return '過密';
+    if (score >= ScheduleEntity.LOAD_MODERATE_THRESHOLD) return '適度';
+    return '余裕';
   }
 }

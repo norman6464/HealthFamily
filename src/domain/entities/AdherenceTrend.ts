@@ -42,6 +42,9 @@ export class AdherenceTrendEntity {
   private static readonly MOMENTUM_THRESHOLD = 5;
   private static readonly RESILIENCE_HIGH_THRESHOLD = 70;
   private static readonly RESILIENCE_MODERATE_THRESHOLD = 40;
+  private static readonly STABILITY_MAX_STDDEV = 30;
+  private static readonly STABILITY_HIGH_THRESHOLD = 80;
+  private static readonly STABILITY_MODERATE_THRESHOLD = 50;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -494,5 +497,27 @@ export class AdherenceTrendEntity {
     if (score >= AdherenceTrendEntity.RESILIENCE_HIGH_THRESHOLD) return '回復力高';
     if (score >= AdherenceTrendEntity.RESILIENCE_MODERATE_THRESHOLD) return 'やや回復';
     return '回復力低';
+  }
+
+  /**
+   * 服薬遵守率配列から安定性スコア(0-100)を算出する
+   * 標準偏差が小さいほど高スコア（最大30基準）
+   */
+  static getAdherenceStabilityScore(rates: number[]): number {
+    if (rates.length === 0) return 0;
+    if (rates.length === 1) return 100;
+    const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
+    const variance = rates.reduce((sum, v) => sum + (v - avg) ** 2, 0) / rates.length;
+    const stdDev = Math.sqrt(variance);
+    return Math.max(0, Math.min(100, Math.round(100 - (stdDev / AdherenceTrendEntity.STABILITY_MAX_STDDEV) * 100)));
+  }
+
+  /**
+   * 服薬遵守安定性スコアに応じたラベルを返す
+   */
+  static getAdherenceStabilityScoreLabel(score: number): string {
+    if (score >= AdherenceTrendEntity.STABILITY_HIGH_THRESHOLD) return '安定';
+    if (score >= AdherenceTrendEntity.STABILITY_MODERATE_THRESHOLD) return 'やや不安定';
+    return '不安定';
   }
 }

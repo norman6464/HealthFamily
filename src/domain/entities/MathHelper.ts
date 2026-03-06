@@ -41,6 +41,8 @@ export class MathHelper {
   private static readonly MAD_MODERATE_THRESHOLD = 15;
   private static readonly RMS_HIGH_THRESHOLD = 70;
   private static readonly RMS_MEDIUM_THRESHOLD = 30;
+  private static readonly RANGE_NARROW_THRESHOLD = 10;
+  private static readonly RANGE_MODERATE_THRESHOLD = 25;
 
   /**
    * パーセントを算出(0-100%)
@@ -739,5 +741,22 @@ export class MathHelper {
     if (rms >= MathHelper.RMS_HIGH_THRESHOLD) return '高い';
     if (rms >= MathHelper.RMS_MEDIUM_THRESHOLD) return '中程度';
     return '低い';
+  }
+
+  /**
+   * 値域（最大値-最小値）を算出する
+   */
+  static getRange(values: number[]): number {
+    if (values.length <= 1) return 0;
+    return Math.max(...values) - Math.min(...values);
+  }
+
+  /**
+   * 値域に応じたラベルを返す
+   */
+  static getRangeLabel(range: number): string {
+    if (range < MathHelper.RANGE_NARROW_THRESHOLD) return '狭い';
+    if (range < MathHelper.RANGE_MODERATE_THRESHOLD) return 'やや広い';
+    return '広い';
   }
 }
