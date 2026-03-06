@@ -826,4 +826,23 @@ export class HealthLogEntity {
     if (momentum <= -HealthLogEntity.MOMENTUM_THRESHOLD) return '悪化傾向';
     return '変化なし';
   }
+
+  /**
+   * 体調レベル配列の分散値を算出する
+   */
+  static getConditionVariance(conditions: number[]): number {
+    if (conditions.length <= 1) return 0;
+    const avg = conditions.reduce((a, b) => a + b, 0) / conditions.length;
+    const variance = conditions.reduce((sum, c) => sum + (c - avg) ** 2, 0) / conditions.length;
+    return Math.round(variance * 100) / 100;
+  }
+
+  /**
+   * 分散値に応じたラベルを返す
+   */
+  static getConditionVarianceLabel(variance: number): string {
+    if (variance < 1) return '安定';
+    if (variance < 3) return 'やや不安定';
+    return '不安定';
+  }
 }
