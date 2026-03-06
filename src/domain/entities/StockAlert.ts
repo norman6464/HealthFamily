@@ -220,10 +220,9 @@ export class StockAlertEntity {
   }
 
   /**
-   * 在庫切れまでの日数を算出する（切り捨て）
+   * 在庫切れまでの日数を算出する（calculateRemainingDaysに委譲）
    */
   static getDaysUntilStockout(stockQuantity: number | null, dailyConsumption: number): number | null {
-    if (stockQuantity === null || dailyConsumption <= 0) return null;
-    return Math.floor(stockQuantity / dailyConsumption);
+    return StockAlertEntity.calculateRemainingDays(stockQuantity, dailyConsumption);
   }
 }
