@@ -83,4 +83,45 @@ export class StockAlertEntity {
     if (daysUntilAlert <= 7) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
     return { bg: 'bg-green-50', text: 'text-green-600' };
   }
+
+  /**
+   * 在庫切れ予測日をYYYY-MM-DD形式で返す
+   */
+  static predictStockoutDate(
+    stockQuantity: number | null,
+    dailyConsumption: number,
+    baseDate: Date,
+  ): string | null {
+    if (stockQuantity === null || dailyConsumption <= 0) return null;
+    const daysLeft = Math.floor(stockQuantity / dailyConsumption);
+    const date = new Date(baseDate);
+    date.setDate(date.getDate() + daysLeft);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  /**
+   * 目標日数に対する在庫充足率(0-100)を返す
+   */
+  static getStockSufficiencyRate(
+    stockQuantity: number | null,
+    dailyConsumption: number,
+    targetDays: number,
+  ): number {
+    if (stockQuantity === null) return 0;
+    if (dailyConsumption <= 0 || targetDays <= 0) return 100;
+    const needed = dailyConsumption * targetDays;
+    return Math.min(100, Math.round((stockQuantity / needed) * 100));
+  }
+
+  /**
+   * 充足率に応じたラベルを返す
+   */
+  static getStockSufficiencyLabel(rate: number): string {
+    if (rate >= 70) return '十分';
+    if (rate >= 40) return 'やや不足';
+    return '不足';
+  }
 }
