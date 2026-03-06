@@ -415,4 +415,27 @@ export class ScheduleEntity {
   static getDaysOfWeekLabels(days: DayOfWeek[]): string[] {
     return days.map((d) => ScheduleEntity.DAY_LABELS[d]);
   }
+
+  /**
+   * 重複件数に応じたサマリーメッセージを返す
+   */
+  static getOverlapSummary(overlapCount: number): string {
+    if (overlapCount === 0) return '重複するスケジュールはありません';
+    return `${overlapCount}件の重複があります`;
+  }
+
+  /**
+   * 個別の重複情報をテキスト化する
+   */
+  static formatOverlapDetail(time: string, day: string): string {
+    const dayLabel = day === 'every' ? '毎日' : (ScheduleEntity.DAY_LABELS[day as DayOfWeek] || day);
+    return `${dayLabel} ${time}に重複`;
+  }
+
+  /**
+   * 重複が1件以上あるかを判定する
+   */
+  static hasAnyOverlap(overlaps: { scheduleIds: string[]; time: string; day: string }[]): boolean {
+    return overlaps.length > 0;
+  }
 }
