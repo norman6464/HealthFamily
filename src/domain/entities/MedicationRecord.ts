@@ -573,4 +573,31 @@ export class MedicationRecordEntity {
     if (pattern.evening / total > MedicationRecordEntity.PATTERN_DOMINANCE_THRESHOLD) return '夕方型';
     return '均等';
   }
+
+  /**
+   * 指定日の薬別服薬回数を集計する
+   */
+  static getDailyDosageCount(
+    records: { medicationName: string; date: string }[],
+    dateKey: string,
+  ): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const r of records) {
+      if (r.date === dateKey) {
+        counts[r.medicationName] = (counts[r.medicationName] || 0) + 1;
+      }
+    }
+    return counts;
+  }
+
+  /**
+   * 服薬回数に応じたカテゴリラベルを返す
+   */
+  static getDosageCategoryLabel(count: number): string {
+    if (count === 0) return 'なし';
+    if (count <= 2) return '少なめ';
+    if (count <= 4) return '標準';
+    if (count <= 6) return '多め';
+    return '非常に多い';
+  }
 }
