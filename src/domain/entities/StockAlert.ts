@@ -423,6 +423,34 @@ export class StockAlertEntity {
   /**
    * 補充優先度の順位に応じたラベルを返す
    */
+  /**
+   * 在庫数量の推移配列からトレンドを判定する
+   */
+  static getStockTrend(quantities: number[]): 'increasing' | 'decreasing' | 'stable' {
+    if (quantities.length <= 1) return 'stable';
+    const mid = Math.floor(quantities.length / 2);
+    const firstHalf = quantities.slice(0, mid);
+    const secondHalf = quantities.slice(mid);
+    const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+    const diff = secondAvg - firstAvg;
+    if (diff > 2) return 'increasing';
+    if (diff < -2) return 'decreasing';
+    return 'stable';
+  }
+
+  /**
+   * 在庫トレンドに応じたラベルを返す
+   */
+  static getStockTrendLabel(trend: string): string {
+    const labels: Record<string, string> = {
+      increasing: '在庫増加中',
+      decreasing: '在庫減少中',
+      stable: '在庫安定',
+    };
+    return labels[trend] ?? '在庫安定';
+  }
+
   static getRefillPriorityLabel(rank: number): string {
     if (rank === 1) return '最優先';
     if (rank === 2) return '優先';
