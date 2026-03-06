@@ -261,4 +261,30 @@ export class StockAlertEntity {
     };
     return messages[urgency];
   }
+
+  /**
+   * 補充コストの概算を返す（必要量 x 単価）
+   */
+  static estimateRefillCost(quantity: number, unitPrice: number): number {
+    if (quantity <= 0 || unitPrice <= 0) return 0;
+    return Math.ceil(quantity * unitPrice);
+  }
+
+  /**
+   * 月間消費コストを算出する（日消費量 x 30日 x 単価）
+   */
+  static getMonthlyConsumptionCost(dailyConsumption: number, unitPrice: number): number {
+    if (dailyConsumption <= 0 || unitPrice <= 0) return 0;
+    return Math.round(dailyConsumption * 30 * unitPrice);
+  }
+
+  /**
+   * 月間コストに応じた効率ラベルを返す
+   */
+  static getCostEfficiencyLabel(monthlyCost: number): string {
+    if (monthlyCost < 1000) return '低コスト';
+    if (monthlyCost < 5000) return '標準';
+    if (monthlyCost < 10000) return 'やや高額';
+    return '高額';
+  }
 }
