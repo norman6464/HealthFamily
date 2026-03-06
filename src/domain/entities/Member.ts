@@ -372,4 +372,38 @@ export class MemberEntity {
     if (diffDays === 0) return '今日が誕生日です';
     return `誕生日まであと${diffDays}日`;
   }
+
+  /**
+   * 服薬遵守率・体調・通院状況からヘルススコアを算出する(0-100)
+   */
+  static calculateHealthScore(params: {
+    adherenceRate: number;
+    averageCondition: number;
+    appointmentComplianceRate: number;
+  }): number {
+    const adherenceScore = params.adherenceRate * 0.5;
+    const conditionScore = ((params.averageCondition - 1) / 4) * 100 * 0.3;
+    const appointmentScore = params.appointmentComplianceRate * 0.2;
+    return Math.round(adherenceScore + conditionScore + appointmentScore);
+  }
+
+  /**
+   * ヘルススコアに応じたラベルを返す
+   */
+  static getHealthScoreLabel(score: number): string {
+    if (score >= 90) return '優良';
+    if (score >= 70) return '良好';
+    if (score >= 50) return '普通';
+    return '要改善';
+  }
+
+  /**
+   * ヘルススコアに応じたカラークラスを返す
+   */
+  static getHealthScoreColor(score: number): string {
+    if (score >= 90) return 'text-green-600';
+    if (score >= 70) return 'text-blue-600';
+    if (score >= 50) return 'text-orange-600';
+    return 'text-red-600';
+  }
 }
