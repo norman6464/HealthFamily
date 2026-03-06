@@ -295,4 +295,25 @@ export class DateRangeHelper {
     }
     return true;
   }
+
+  /**
+   * 日数間隔配列から日付の密集度スコア(0-100)を算出する
+   * 間隔が短いほど高スコア（最大間隔30日基準）
+   */
+  static getDateClusterAnalysis(intervals: number[]): number {
+    if (intervals.length === 0) return 0;
+    if (intervals.length === 1 && intervals[0] <= 1) return 100;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    const maxInterval = 30;
+    return Math.max(0, Math.min(100, Math.round(100 - (avg / maxInterval) * 100)));
+  }
+
+  /**
+   * 密集度スコアに応じたラベルを返す
+   */
+  static getClusterLabel(score: number): string {
+    if (score >= 70) return '密集';
+    if (score >= 40) return '中程度';
+    return '疎ら';
+  }
 }

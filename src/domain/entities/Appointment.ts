@@ -485,4 +485,27 @@ export class AppointmentEntity {
     if (diff <= AppointmentEntity.GAP_IRREGULAR_THRESHOLD) return 'やや不規則';
     return '不規則';
   }
+
+  /**
+   * 通院間隔配列からサイクル安定度スコア(0-100)を算出する
+   * 標準偏差が小さいほど高スコア
+   */
+  static getAppointmentCycleScore(intervals: number[]): number {
+    if (intervals.length <= 1) return 0;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    if (avg === 0) return 100;
+    const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
+    const stdDev = Math.sqrt(variance);
+    const cv = stdDev / avg;
+    return Math.max(0, Math.min(100, Math.round(100 - cv * 100)));
+  }
+
+  /**
+   * サイクル安定度スコアに応じたラベルを返す
+   */
+  static getCycleScoreLabel(score: number): string {
+    if (score >= 70) return '規則的';
+    if (score >= 40) return 'やや不規則';
+    return '不規則';
+  }
 }

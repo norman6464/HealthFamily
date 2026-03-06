@@ -671,4 +671,28 @@ export class MedicationRecordEntity {
     if (rate >= MedicationRecordEntity.ADHERENCE_WARNING_THRESHOLD) return '要注意';
     return '要改善';
   }
+
+  /**
+   * 時間差(分)配列から服薬時間の一貫性スコア(0-100)を算出する
+   * 標準偏差が小さいほど高スコア
+   */
+  static getDoseTimingConsistency(gaps: number[]): number {
+    if (gaps.length === 0) return 0;
+    if (gaps.length === 1) return 100;
+    const absGaps = gaps.map(Math.abs);
+    const avg = absGaps.reduce((a, b) => a + b, 0) / absGaps.length;
+    const variance = absGaps.reduce((sum, v) => sum + (v - avg) ** 2, 0) / absGaps.length;
+    const stdDev = Math.sqrt(variance);
+    const maxStdDev = 60;
+    return Math.max(0, Math.min(100, Math.round(100 - (stdDev / maxStdDev) * 100)));
+  }
+
+  /**
+   * 服薬時間一貫性スコアに応じたラベルを返す
+   */
+  static getDoseTimingLabel(score: number): string {
+    if (score >= 70) return '安定';
+    if (score >= 40) return 'やや不安定';
+    return '不安定';
+  }
 }
