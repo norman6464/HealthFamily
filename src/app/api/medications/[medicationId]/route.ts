@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { updateMedicationSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize , safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 const findMedication = (id: string) => prisma.medication.findUnique({ where: { id } });
@@ -35,7 +35,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
       finder: findMedication,
       resourceName: 'お薬',
       handler: async () => {
-        const body = await request.json();
+        const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const body = jsonResult.data;
         const parsed = updateMedicationSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 

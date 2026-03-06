@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createRecordSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations , safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { QUERY_LIMITS } from '@/lib/constants';
 
@@ -33,7 +33,9 @@ export async function POST(request: Request) {
       return errorResponse('記録回数の上限に達しました。しばらくしてから再試行してください。', 429);
     }
 
-    const body = await request.json();
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const body = jsonResult.data;
     const parsed = createRecordSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 

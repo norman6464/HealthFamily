@@ -98,6 +98,19 @@ export function flattenRelations(
   return result;
 }
 
+/**
+ * リクエストボディを安全にJSONパースする
+ * 不正なJSON時は400エラーレスポンスを返す
+ */
+export async function safeParseJson(request: Request): Promise<{ data: unknown } | { error: Response }> {
+  try {
+    const data = await request.json();
+    return { data };
+  } catch {
+    return { error: errorResponse('リクエストの形式が不正です', 400) };
+  }
+}
+
 const MAX_BODY_SIZE = 100 * 1024; // 100KB
 
 export function validateBodySize(request: Request): Response | null {

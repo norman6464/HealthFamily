@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createScheduleSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize , safeParseJson } from '@/lib/api-helpers';
 import { ScheduleEntity, Schedule } from '@/domain/entities/Schedule';
 import { QUERY_LIMITS } from '@/lib/constants';
 import { checkRateLimit } from '@/lib/security';
@@ -21,7 +21,9 @@ export async function POST(request: Request) {
     const { allowed } = checkRateLimit(`schedules-post:${userId}`, { maxAttempts: 15, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
 
-    const body = await request.json();
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const body = jsonResult.data;
     const parsed = createScheduleSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 

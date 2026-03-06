@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, validateBodySize } from '@/lib/api-helpers';
+import { withAuth, validateBodySize , safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 const sendNotificationSchema = z.object({
@@ -23,7 +23,9 @@ export async function POST(request: NextRequest) {
       return errorResponse('通知の送信回数が上限に達しました。しばらくしてから再試行してください。', 429);
     }
 
-    const body = await request.json();
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const body = jsonResult.data;
     const parsed = sendNotificationSchema.safeParse(body);
     if (!parsed.success) {
       return errorResponse('Invalid request body');
