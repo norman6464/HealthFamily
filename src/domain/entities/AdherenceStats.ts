@@ -256,4 +256,43 @@ export class AdherenceStatsEntity {
     if (nonZeroRates.length === 0) return null;
     return nonZeroRates.reduce((min, r) => (r.rate < min.rate ? r : min)).index;
   }
+
+  /**
+   * 遵守率に応じたグレードを返す
+   */
+  static getComplianceGrade(rate: number): 'A' | 'B' | 'C' | 'D' | 'F' {
+    if (rate >= 90) return 'A';
+    if (rate >= 80) return 'B';
+    if (rate >= 60) return 'C';
+    if (rate >= 40) return 'D';
+    return 'F';
+  }
+
+  /**
+   * グレードに応じたメッセージを返す
+   */
+  static getComplianceMessage(grade: 'A' | 'B' | 'C' | 'D' | 'F'): string {
+    const messages: Record<string, string> = {
+      A: 'とても良い服薬管理です',
+      B: '良好な服薬管理です',
+      C: 'もう少し改善できます',
+      D: '服薬の見直しが必要です',
+      F: '服薬管理を始めましょう',
+    };
+    return messages[grade];
+  }
+
+  /**
+   * グレードに応じた色クラスを返す
+   */
+  static getComplianceColor(grade: 'A' | 'B' | 'C' | 'D' | 'F'): string {
+    const colors: Record<string, string> = {
+      A: 'text-green-600',
+      B: 'text-blue-600',
+      C: 'text-yellow-600',
+      D: 'text-orange-600',
+      F: 'text-red-600',
+    };
+    return colors[grade];
+  }
 }
