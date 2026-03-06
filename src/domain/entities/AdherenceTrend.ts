@@ -30,6 +30,7 @@ export class AdherenceTrendEntity {
   private static readonly DISTRIBUTION_DOMINANT_THRESHOLD = 50;
   private static readonly FAILURES_WARNING_THRESHOLD = 3;
   private static readonly FAILURES_DANGER_THRESHOLD = 7;
+  private static readonly WOW_CHANGE_THRESHOLD = 5;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -325,8 +326,8 @@ export class AdherenceTrendEntity {
    * 週次変化量に応じたラベルを返す
    */
   static getWeekOverWeekLabel(change: number): string {
-    if (change >= 5) return '改善';
-    if (change <= -5) return '悪化';
+    if (change >= AdherenceTrendEntity.WOW_CHANGE_THRESHOLD) return '改善';
+    if (change <= -AdherenceTrendEntity.WOW_CHANGE_THRESHOLD) return '悪化';
     return '横ばい';
   }
 }

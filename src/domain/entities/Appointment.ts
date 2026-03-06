@@ -514,6 +514,8 @@ export class AppointmentEntity {
   private static readonly COMPLETION_EXCELLENT_THRESHOLD = 90;
   private static readonly COMPLETION_GOOD_THRESHOLD = 70;
   private static readonly COMPLETION_FAIR_THRESHOLD = 50;
+  private static readonly SPACING_EVEN_THRESHOLD = 80;
+  private static readonly SPACING_MODERATE_THRESHOLD = 50;
 
   /**
    * 通院完了/未完了配列から完了率(0-100)を算出する
@@ -552,8 +554,8 @@ export class AppointmentEntity {
    * 均等度スコアに応じたラベルを返す
    */
   static getAppointmentSpacingLabel(score: number): string {
-    if (score >= 80) return '均等';
-    if (score >= 50) return 'やや不均等';
+    if (score >= AppointmentEntity.SPACING_EVEN_THRESHOLD) return '均等';
+    if (score >= AppointmentEntity.SPACING_MODERATE_THRESHOLD) return 'やや不均等';
     return '不均等';
   }
 }

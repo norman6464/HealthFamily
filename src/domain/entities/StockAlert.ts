@@ -28,6 +28,8 @@ export class StockAlertEntity {
   private static readonly STOCK_TREND_THRESHOLD = 2;
   private static readonly ROTATION_HIGH_THRESHOLD = 2;
   private static readonly ROTATION_NORMAL_THRESHOLD = 1;
+  private static readonly COVERAGE_SUFFICIENT_THRESHOLD = 70;
+  private static readonly COVERAGE_LOW_THRESHOLD = 40;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -494,8 +496,8 @@ export class StockAlertEntity {
    * 在庫カバレッジスコアに応じたラベルを返す
    */
   static getStockCoverageLabel(score: number): string {
-    if (score >= 70) return '十分';
-    if (score >= 40) return 'やや不足';
+    if (score >= StockAlertEntity.COVERAGE_SUFFICIENT_THRESHOLD) return '十分';
+    if (score >= StockAlertEntity.COVERAGE_LOW_THRESHOLD) return 'やや不足';
     return '不足';
   }
 }
