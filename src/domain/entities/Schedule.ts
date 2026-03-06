@@ -338,4 +338,44 @@ export class ScheduleEntity {
   static getConflictMessage(medicationNameA: string, medicationNameB: string, time: string): string {
     return `${medicationNameA}と${medicationNameB}が${time}に重複しています`;
   }
+
+  private static readonly DAY_INDEX: Record<DayOfWeek, number> = {
+    sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6,
+  };
+
+  /**
+   * 曜日別の完了率を算出する
+   * 返り値: [日, 月, 火, 水, 木, 金, 土] の完了率(0-100)
+   */
+  static getDayCompletionRates(completed: DayOfWeek[], scheduled: DayOfWeek[]): number[] {
+    const completedCounts = new Array(7).fill(0);
+    const scheduledCounts = new Array(7).fill(0);
+    for (const day of completed) {
+      completedCounts[ScheduleEntity.DAY_INDEX[day]]++;
+    }
+    for (const day of scheduled) {
+      scheduledCounts[ScheduleEntity.DAY_INDEX[day]]++;
+    }
+    return scheduledCounts.map((total, i) =>
+      total === 0 ? 0 : MathHelper.calculatePercentage(completedCounts[i], total),
+    );
+  }
+
+  /**
+   * 最も完了率が低い曜日インデックスを返す（0%の曜日は除外）
+   */
+  static getWeakestDay(rates: number[]): number | null {
+    const nonZero = rates.map((r, i) => ({ rate: r, index: i })).filter((r) => r.rate > 0);
+    if (nonZero.length === 0) return null;
+    return nonZero.reduce((min, r) => (r.rate < min.rate ? r : min)).index;
+  }
+
+  /**
+   * 最も完了率が高い曜日インデックスを返す
+   */
+  static getStrongestDay(rates: number[]): number | null {
+    const max = Math.max(...rates);
+    if (max === 0) return null;
+    return rates.indexOf(max);
+  }
 }
