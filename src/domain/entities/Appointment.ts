@@ -27,6 +27,10 @@ export class AppointmentEntity {
   private static readonly REMINDER_URGENT_DAYS = 1;
   private static readonly REMINDER_SOON_DAYS = 3;
   private static readonly REMINDER_NORMAL_DAYS = 7;
+  private static readonly REGULARITY_HIGH_THRESHOLD = 80;
+  private static readonly REGULARITY_MEDIUM_THRESHOLD = 50;
+  private static readonly DENSITY_FREQUENT_THRESHOLD = 4;
+  private static readonly DENSITY_REGULAR_THRESHOLD = 2;
 
   constructor(private readonly appointment: Appointment) {}
 
@@ -426,8 +430,8 @@ export class AppointmentEntity {
    * 月間予約件数に応じた密度ラベルを返す
    */
   static getAppointmentDensityLabel(countPerMonth: number): string {
-    if (countPerMonth >= 4) return '頻繁';
-    if (countPerMonth >= 2) return '定期的';
+    if (countPerMonth >= AppointmentEntity.DENSITY_FREQUENT_THRESHOLD) return '頻繁';
+    if (countPerMonth >= AppointmentEntity.DENSITY_REGULAR_THRESHOLD) return '定期的';
     if (countPerMonth >= 1) return '少なめ';
     return 'なし';
   }
@@ -449,8 +453,8 @@ export class AppointmentEntity {
    * 規則性スコアに応じたラベルを返す
    */
   static getIntervalRegularityLabel(score: number): string {
-    if (score >= 80) return '規則的';
-    if (score >= 50) return 'やや不規則';
+    if (score >= AppointmentEntity.REGULARITY_HIGH_THRESHOLD) return '規則的';
+    if (score >= AppointmentEntity.REGULARITY_MEDIUM_THRESHOLD) return 'やや不規則';
     return '不規則';
   }
 }
