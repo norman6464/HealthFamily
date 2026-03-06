@@ -121,7 +121,7 @@ export class MedicationEntity {
   getDisplayInfo(): { name: string; categoryLabel: string; dosageInfo: string } {
     return {
       name: this.medication.name,
-      categoryLabel: MedicationEntity.categoryLabels[this.medication.category],
+      categoryLabel: MedicationEntity.getCategoryLabel(this.medication.category),
       dosageInfo: this.getDosageSummary(),
     };
   }
