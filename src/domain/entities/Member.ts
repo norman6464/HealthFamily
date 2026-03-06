@@ -135,4 +135,64 @@ export class MemberEntity {
     if (trimmed.length === 0) return '?';
     return trimmed[0].toUpperCase();
   }
+
+  /**
+   * 生年月日から年齢を計算する（staticバージョン）
+   */
+  static calculateAge(birthDate: Date | null | undefined, today: Date): number | null {
+    if (!birthDate) return null;
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  private static readonly memberTypeLabels: Record<MemberType, string> = {
+    human: '家族',
+    pet: 'ペット',
+  };
+
+  /**
+   * メンバータイプの日本語ラベルを返す
+   */
+  static getMemberTypeLabel(type: MemberType): string {
+    return MemberEntity.memberTypeLabels[type];
+  }
+
+  private static readonly petTypeLabels: Record<PetType, string> = {
+    dog: '犬',
+    cat: '猫',
+    rabbit: 'うさぎ',
+    bird: '鳥',
+    other: 'その他',
+  };
+
+  /**
+   * ペットタイプの日本語ラベルを返す
+   */
+  static getPetTypeLabel(type: PetType | undefined): string {
+    if (!type) return '';
+    return MemberEntity.petTypeLabels[type];
+  }
+
+  /**
+   * プロフィール要約テキストを返す
+   */
+  static getProfileSummary(
+    memberType: MemberType,
+    age: number | null,
+    petType?: PetType,
+  ): string {
+    const typeLabel = MemberEntity.getMemberTypeLabel(memberType);
+    const petLabel = petType ? MemberEntity.getPetTypeLabel(petType) : '';
+    const ageLabel = age !== null ? ` (${age}歳)` : '';
+
+    if (memberType === 'pet' && petLabel) {
+      return `${typeLabel} - ${petLabel}${ageLabel}`;
+    }
+    return `${typeLabel}${ageLabel}`;
+  }
 }
