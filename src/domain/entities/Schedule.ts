@@ -531,14 +531,18 @@ export class ScheduleEntity {
   }
 
   /**
+   * HH:mm形式の時刻を分数に変換する
+   */
+  private static timeToMinutes(time: string): number {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  /**
    * 2つの時刻が指定分数以内に近いか判定する
    */
   static hasTimeOverlap(time1: string, time2: string, thresholdMinutes: number): boolean {
-    const toMinutes = (t: string) => {
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + m;
-    };
-    const diff = Math.abs(toMinutes(time1) - toMinutes(time2));
+    const diff = Math.abs(ScheduleEntity.timeToMinutes(time1) - ScheduleEntity.timeToMinutes(time2));
     return diff <= thresholdMinutes;
   }
 
@@ -548,12 +552,7 @@ export class ScheduleEntity {
   static getOptimalTimeSuggestion(existingTimes: string[]): string {
     if (existingTimes.length === 0) return '08:00';
 
-    const toMinutes = (t: string) => {
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + m;
-    };
-
-    const existing = existingTimes.map(toMinutes).sort((a, b) => a - b);
+    const existing = existingTimes.map((t) => ScheduleEntity.timeToMinutes(t)).sort((a, b) => a - b);
     const candidates = [480, 720, 840, 960, 1080, 1200]; // 08,12,14,16,18,20
 
     let bestTime = candidates[0];
