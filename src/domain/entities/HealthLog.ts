@@ -61,6 +61,7 @@ export class HealthLogEntity {
   private static readonly VOLATILITY_STABLE_THRESHOLD = 30;
   private static readonly VOLATILITY_MODERATE_THRESHOLD = 60;
   private static readonly DIVERSITY_HIGH_THRESHOLD = 70;
+  private static readonly MOMENTUM_THRESHOLD = 0.5;
   private static readonly DIVERSITY_MEDIUM_THRESHOLD = 30;
   private static readonly RECOVERY_GOOD_THRESHOLD = 70;
   private static readonly RECOVERY_MODERATE_THRESHOLD = 40;
@@ -821,8 +822,8 @@ export class HealthLogEntity {
    * モメンタムに応じたラベルを返す
    */
   static getMomentumLabel(momentum: number): string {
-    if (momentum >= 0.5) return '改善傾向';
-    if (momentum <= -0.5) return '悪化傾向';
+    if (momentum >= HealthLogEntity.MOMENTUM_THRESHOLD) return '改善傾向';
+    if (momentum <= -HealthLogEntity.MOMENTUM_THRESHOLD) return '悪化傾向';
     return '変化なし';
   }
 }
