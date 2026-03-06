@@ -48,6 +48,8 @@ export class CalendarEntity {
   private static readonly RECORD_DENSITY_MEDIUM_THRESHOLD = 50;
   private static readonly RECORD_FREQUENCY_HIGH_THRESHOLD = 80;
   private static readonly RECORD_FREQUENCY_MEDIUM_THRESHOLD = 50;
+  private static readonly RECORD_GAP_SCORE_GOOD_THRESHOLD = 80;
+  private static readonly RECORD_GAP_SCORE_FAIR_THRESHOLD = 50;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -628,5 +630,24 @@ export class CalendarEntity {
     if (score >= CalendarEntity.RECORD_FREQUENCY_HIGH_THRESHOLD) return '高頻度';
     if (score >= CalendarEntity.RECORD_FREQUENCY_MEDIUM_THRESHOLD) return '中頻度';
     return '低頻度';
+  }
+
+  /**
+   * 日別記録件数配列から記録空白スコア(0-100)を算出する
+   * 記録がある日の割合をスコア化
+   */
+  static getRecordGapScore(dailyCounts: number[]): number {
+    if (dailyCounts.length === 0) return 0;
+    const recordDays = dailyCounts.filter((c) => c > 0).length;
+    return Math.round((recordDays / dailyCounts.length) * 100);
+  }
+
+  /**
+   * 記録空白スコアに応じたラベルを返す
+   */
+  static getRecordGapScoreLabel(score: number): string {
+    if (score >= CalendarEntity.RECORD_GAP_SCORE_GOOD_THRESHOLD) return '良好';
+    if (score >= CalendarEntity.RECORD_GAP_SCORE_FAIR_THRESHOLD) return 'まずまず';
+    return '空白多い';
   }
 }

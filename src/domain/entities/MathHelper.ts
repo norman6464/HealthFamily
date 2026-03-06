@@ -37,6 +37,8 @@ export class MathHelper {
   private static readonly CV_MODERATE_THRESHOLD = 50;
   private static readonly WMEDIAN_HIGH_THRESHOLD = 70;
   private static readonly WMEDIAN_MEDIUM_THRESHOLD = 40;
+  private static readonly MAD_STABLE_THRESHOLD = 5;
+  private static readonly MAD_MODERATE_THRESHOLD = 15;
 
   /**
    * パーセントを算出(0-100%)
@@ -698,5 +700,24 @@ export class MathHelper {
   static getRunningMinLabel(currentValue: number, minValue: number): string {
     if (currentValue <= minValue) return '最低値';
     return '最低値以上';
+  }
+
+  /**
+   * 平均絶対偏差(MAD)を算出する
+   */
+  static getMeanAbsoluteDeviation(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const mad = values.reduce((sum, v) => sum + Math.abs(v - avg), 0) / values.length;
+    return Math.round(mad * 100) / 100;
+  }
+
+  /**
+   * 平均絶対偏差に応じたラベルを返す
+   */
+  static getMeanAbsoluteDeviationLabel(mad: number): string {
+    if (mad <= MathHelper.MAD_STABLE_THRESHOLD) return '安定';
+    if (mad <= MathHelper.MAD_MODERATE_THRESHOLD) return 'やや散布';
+    return '散布';
   }
 }
