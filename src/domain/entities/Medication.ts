@@ -190,4 +190,34 @@ export class MedicationEntity {
     if (quantity <= 10) return 'そろそろ補充を検討してください';
     return '十分な在庫があります';
   }
+
+  /**
+   * 在庫ステータスに応じたスタイルクラスを返す
+   */
+  static getStockStatusColor(status: 'safe' | 'low' | 'critical' | 'unknown'): string {
+    const colors: Record<string, string> = {
+      safe: 'text-green-600',
+      low: 'text-orange-600',
+      critical: 'text-red-600',
+      unknown: 'text-gray-400',
+    };
+    return colors[status];
+  }
+
+  /**
+   * カテゴリと在庫数からサマリーテキストを生成する
+   */
+  static getMedicationSummary(category: MedicationCategory, stockQuantity: number | undefined): string {
+    const catLabel = MedicationEntity.getCategoryLabel(category);
+    if (stockQuantity === undefined) return `${catLabel} / 在庫: 未設定`;
+    if (stockQuantity === 0) return `${catLabel} / 在庫切れ`;
+    return `${catLabel} / 在庫: ${stockQuantity}`;
+  }
+
+  /**
+   * アクティブフラグの日本語ラベルを返す
+   */
+  static getActiveStatusLabel(isActive: boolean): string {
+    return isActive ? '有効' : '無効';
+  }
 }
