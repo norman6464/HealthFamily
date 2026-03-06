@@ -32,6 +32,11 @@ export interface Schedule {
  * スケジュールのステータスを計算するドメインロジック
  */
 export class ScheduleEntity {
+  private static readonly TIME_PERIOD_MORNING_START = 5;
+  private static readonly TIME_PERIOD_AFTERNOON_START = 12;
+  private static readonly TIME_PERIOD_EVENING_START = 17;
+  private static readonly TIME_PERIOD_NIGHT_START = 21;
+
   constructor(private readonly schedule: Schedule) {}
 
   private getScheduledDateTime(baseTime: Date): Date {
@@ -147,9 +152,9 @@ export class ScheduleEntity {
    */
   static getTimePeriod(time: string): TimePeriod {
     const hour = parseInt(time.split(':')[0], 10);
-    if (hour >= 5 && hour < 12) return 'morning';
-    if (hour >= 12 && hour < 17) return 'afternoon';
-    if (hour >= 17 && hour < 21) return 'evening';
+    if (hour >= ScheduleEntity.TIME_PERIOD_MORNING_START && hour < ScheduleEntity.TIME_PERIOD_AFTERNOON_START) return 'morning';
+    if (hour >= ScheduleEntity.TIME_PERIOD_AFTERNOON_START && hour < ScheduleEntity.TIME_PERIOD_EVENING_START) return 'afternoon';
+    if (hour >= ScheduleEntity.TIME_PERIOD_EVENING_START && hour < ScheduleEntity.TIME_PERIOD_NIGHT_START) return 'evening';
     return 'night';
   }
 
