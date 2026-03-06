@@ -295,4 +295,40 @@ export class AdherenceStatsEntity {
     };
     return colors[grade];
   }
+
+  /**
+   * 今週と先週の遵守率を比較し詳細情報を返す
+   */
+  static getWeeklyComparisonDetail(
+    currentRate: number,
+    previousRate: number,
+  ): { direction: 'up' | 'down' | 'stable'; diff: number; message: string } {
+    const diff = Math.abs(currentRate - previousRate);
+    if (diff <= 5) {
+      return { direction: 'stable', diff, message: '先週と同水準を維持しています' };
+    }
+    if (currentRate > previousRate) {
+      return { direction: 'up', diff, message: `先週より${diff}%改善しました` };
+    }
+    return { direction: 'down', diff, message: `先週より${diff}%低下しています` };
+  }
+
+  /**
+   * 遵守率の変化量をラベルで返す
+   */
+  static getRateChangeLabel(change: number): string {
+    if (change === 0) return '変化なし';
+    if (change > 0) return `+${change}%`;
+    return `${change}%`;
+  }
+
+  /**
+   * 遵守率に基づいた動機付けメッセージを返す
+   */
+  static getMotivationMessage(rate: number): string {
+    if (rate >= 90) return 'この調子で続けましょう';
+    if (rate >= 70) return '良いペースです。あと少しで最高評価です';
+    if (rate >= 50) return '少しずつ習慣にしていきましょう';
+    return '一回でも記録をつけることが大切です';
+  }
 }
