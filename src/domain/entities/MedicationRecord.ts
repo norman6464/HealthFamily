@@ -697,4 +697,29 @@ export class MedicationRecordEntity {
     if (score >= MedicationRecordEntity.TIMING_MODERATE_THRESHOLD) return 'やや不安定';
     return '不安定';
   }
+
+  /**
+   * 末尾からの連続達成日数を算出する
+   */
+  static getAdherenceStreak(dailyResults: boolean[]): number {
+    let streak = 0;
+    for (let i = dailyResults.length - 1; i >= 0; i--) {
+      if (dailyResults[i]) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  /**
+   * 連続達成日数に応じたラベルを返す
+   */
+  static getAdherenceStreakLabel(days: number): string {
+    if (days === 0) return '未達成';
+    if (days < 7) return '継続中';
+    if (days < 30) return '好調';
+    return '素晴らしい';
+  }
 }

@@ -1,114 +1,55 @@
-import { describe, it, expect } from 'vitest';
-import { AdherenceStatsEntity } from '@/domain/entities/AdherenceStats';
+import { MedicationRecordEntity } from '@/domain/entities/MedicationRecord';
 
-describe('AdherenceStatsEntity - Streak', () => {
-  describe('calculateStreak', () => {
-    it('毎日記録がある場合、連続日数を正しく算出する', () => {
-      const today = new Date('2026-03-05');
-      const recordDates = [
-        new Date('2026-03-05'),
-        new Date('2026-03-04'),
-        new Date('2026-03-03'),
-        new Date('2026-03-02'),
-      ];
-      expect(AdherenceStatsEntity.calculateStreak(recordDates, today)).toBe(4);
+describe('MedicationRecordEntity - Adherence Streak', () => {
+  describe('getAdherenceStreak', () => {
+    it('空配列は0', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([])).toBe(0);
     });
 
-    it('今日の記録がない場合は0を返す', () => {
-      const today = new Date('2026-03-05');
-      const recordDates = [
-        new Date('2026-03-04'),
-        new Date('2026-03-03'),
-      ];
-      expect(AdherenceStatsEntity.calculateStreak(recordDates, today)).toBe(0);
+    it('全て達成', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([true, true, true, true])).toBe(4);
     });
 
-    it('途中で途切れた場合、途切れるまでの日数を返す', () => {
-      const today = new Date('2026-03-05');
-      const recordDates = [
-        new Date('2026-03-05'),
-        new Date('2026-03-04'),
-        // 3/3はスキップ
-        new Date('2026-03-02'),
-        new Date('2026-03-01'),
-      ];
-      expect(AdherenceStatsEntity.calculateStreak(recordDates, today)).toBe(2);
+    it('全て未達成は0', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([false, false, false])).toBe(0);
     });
 
-    it('記録がない場合は0を返す', () => {
-      const today = new Date('2026-03-05');
-      expect(AdherenceStatsEntity.calculateStreak([], today)).toBe(0);
+    it('末尾から連続達成をカウント', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([false, true, true, true])).toBe(3);
     });
 
-    it('同じ日に複数記録があっても1日としてカウントする', () => {
-      const today = new Date('2026-03-05');
-      const recordDates = [
-        new Date('2026-03-05T08:00:00'),
-        new Date('2026-03-05T12:00:00'),
-        new Date('2026-03-05T20:00:00'),
-        new Date('2026-03-04T09:00:00'),
-        new Date('2026-03-04T21:00:00'),
-      ];
-      expect(AdherenceStatsEntity.calculateStreak(recordDates, today)).toBe(2);
+    it('途中で途切れた場合', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([true, true, false, true, true])).toBe(2);
+    });
+
+    it('1件のみ達成', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([true])).toBe(1);
+    });
+
+    it('1件のみ未達成', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([false])).toBe(0);
+    });
+
+    it('末尾が未達成', () => {
+      expect(MedicationRecordEntity.getAdherenceStreak([true, true, false])).toBe(0);
     });
   });
 
-  describe('calculateLongestStreak', () => {
-    it('最長連続日数を正しく算出する', () => {
-      const recordDates = [
-        new Date('2026-03-05'),
-        new Date('2026-03-04'),
-        // gap
-        new Date('2026-03-01'),
-        new Date('2026-02-28'),
-        new Date('2026-02-27'),
-        new Date('2026-02-26'),
-      ];
-      expect(AdherenceStatsEntity.calculateLongestStreak(recordDates)).toBe(4);
+  describe('getAdherenceStreakLabel', () => {
+    it('0日は未達成', () => {
+      expect(MedicationRecordEntity.getAdherenceStreakLabel(0)).toBe('未達成');
     });
 
-    it('記録がない場合は0を返す', () => {
-      expect(AdherenceStatsEntity.calculateLongestStreak([])).toBe(0);
+    it('3日は継続中', () => {
+      expect(MedicationRecordEntity.getAdherenceStreakLabel(3)).toBe('継続中');
     });
 
-    it('全て連続している場合はその日数を返す', () => {
-      const recordDates = [
-        new Date('2026-03-05'),
-        new Date('2026-03-04'),
-        new Date('2026-03-03'),
-      ];
-      expect(AdherenceStatsEntity.calculateLongestStreak(recordDates)).toBe(3);
+    it('7日は好調', () => {
+      expect(MedicationRecordEntity.getAdherenceStreakLabel(7)).toBe('好調');
     });
 
-    it('全て離れている場合は1を返す', () => {
-      const recordDates = [
-        new Date('2026-03-05'),
-        new Date('2026-03-03'),
-        new Date('2026-03-01'),
-      ];
-      expect(AdherenceStatsEntity.calculateLongestStreak(recordDates)).toBe(1);
-    });
-  });
-
-  describe('getStreakMessage', () => {
-    it('0日の場合は応援メッセージを返す', () => {
-      const message = AdherenceStatsEntity.getStreakMessage(0);
-      expect(message).toBe('今日から始めよう');
-    });
-
-    it('1-6日の場合は継続メッセージを返す', () => {
-      expect(AdherenceStatsEntity.getStreakMessage(1)).toBe('良いスタート');
-      expect(AdherenceStatsEntity.getStreakMessage(6)).toBe('良いスタート');
-    });
-
-    it('7-29日の場合は称賛メッセージを返す', () => {
-      expect(AdherenceStatsEntity.getStreakMessage(7)).toBe('素晴らしい習慣');
-      expect(AdherenceStatsEntity.getStreakMessage(29)).toBe('素晴らしい習慣');
-    });
-
-    it('30日以上の場合は最高評価メッセージを返す', () => {
-      expect(AdherenceStatsEntity.getStreakMessage(30)).toBe('完璧な継続');
-      expect(AdherenceStatsEntity.getStreakMessage(100)).toBe('完璧な継続');
+    it('30日は素晴らしい', () => {
+      expect(MedicationRecordEntity.getAdherenceStreakLabel(30)).toBe('素晴らしい');
     });
   });
 });

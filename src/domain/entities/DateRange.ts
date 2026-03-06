@@ -318,4 +318,25 @@ export class DateRangeHelper {
     if (score >= DateRangeHelper.CLUSTER_MODERATE_THRESHOLD) return '中程度';
     return '疎ら';
   }
+
+  /**
+   * 日付キー配列の最初と最後の日付間の日数を算出する
+   */
+  static getDateSpanDays(dateKeys: string[]): number {
+    if (dateKeys.length <= 1) return 0;
+    const sorted = [...dateKeys].sort();
+    const first = new Date(sorted[0] + 'T00:00:00');
+    const last = new Date(sorted[sorted.length - 1] + 'T00:00:00');
+    return Math.round((last.getTime() - first.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * 日付範囲日数に応じたラベルを返す
+   */
+  static getDateSpanLabel(days: number): string {
+    if (days === 0) return '当日';
+    if (days < 14) return '短期間';
+    if (days < 90) return '中期間';
+    return '長期間';
+  }
 }
