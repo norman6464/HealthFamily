@@ -679,4 +679,24 @@ export class MathHelper {
     if (value >= MathHelper.WMEDIAN_MEDIUM_THRESHOLD) return '中程度';
     return '低い';
   }
+
+  /**
+   * 累積最小値配列を算出する
+   */
+  static getRunningMin(values: number[]): number[] {
+    if (values.length === 0) return [];
+    const result: number[] = [values[0]];
+    for (let i = 1; i < values.length; i++) {
+      result.push(Math.min(result[i - 1], values[i]));
+    }
+    return result;
+  }
+
+  /**
+   * 現在値と累積最小値を比較しラベルを返す
+   */
+  static getRunningMinLabel(currentValue: number, minValue: number): string {
+    if (currentValue <= minValue) return '最低値';
+    return '最低値以上';
+  }
 }
