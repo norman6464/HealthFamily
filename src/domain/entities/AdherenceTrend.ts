@@ -28,6 +28,8 @@ export class AdherenceTrendEntity {
   private static readonly RATE_HIGH_THRESHOLD = 80;
   private static readonly RATE_MEDIUM_THRESHOLD = 50;
   private static readonly DISTRIBUTION_DOMINANT_THRESHOLD = 50;
+  private static readonly FAILURES_WARNING_THRESHOLD = 3;
+  private static readonly FAILURES_DANGER_THRESHOLD = 7;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -296,8 +298,8 @@ export class AdherenceTrendEntity {
    */
   static getConsecutiveFailuresLabel(count: number): string {
     if (count === 0) return '良好';
-    if (count < 3) return '注意';
-    if (count < 7) return '警告';
+    if (count < AdherenceTrendEntity.FAILURES_WARNING_THRESHOLD) return '注意';
+    if (count < AdherenceTrendEntity.FAILURES_DANGER_THRESHOLD) return '警告';
     return '危険';
   }
 

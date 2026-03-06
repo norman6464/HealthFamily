@@ -26,6 +26,8 @@ export class StockAlertEntity {
   private static readonly DAYS_PER_MONTH = 30;
   private static readonly DEPLETION_COMFORT_THRESHOLD = 14;
   private static readonly STOCK_TREND_THRESHOLD = 2;
+  private static readonly ROTATION_HIGH_THRESHOLD = 2;
+  private static readonly ROTATION_NORMAL_THRESHOLD = 1;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -466,8 +468,8 @@ export class StockAlertEntity {
    */
   static getStockRotationLabel(rate: number | null): string {
     if (rate === null) return 'データなし';
-    if (rate >= 2) return '高回転';
-    if (rate >= 1) return '適正';
+    if (rate >= StockAlertEntity.ROTATION_HIGH_THRESHOLD) return '高回転';
+    if (rate >= StockAlertEntity.ROTATION_NORMAL_THRESHOLD) return '適正';
     return '低回転';
   }
 
