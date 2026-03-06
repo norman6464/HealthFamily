@@ -719,4 +719,32 @@ export class ScheduleEntity {
     }
     return '均等';
   }
+
+  /**
+   * スケジュール時刻の均等性スコア(0-100)を算出する
+   */
+  static getScheduleSpacingScore(times: string[]): number {
+    if (times.length === 0) return 0;
+    if (times.length === 1) return 100;
+    const minutes = times.map((t) => ScheduleEntity.timeToMinutes(t)).sort((a, b) => a - b);
+    const intervals: number[] = [];
+    for (let i = 1; i < minutes.length; i++) {
+      intervals.push(minutes[i] - minutes[i - 1]);
+    }
+    const idealInterval = (minutes[minutes.length - 1] - minutes[0]) / (minutes.length - 1);
+    if (idealInterval === 0) return 100;
+    const deviations = intervals.map((iv) => Math.abs(iv - idealInterval));
+    const avgDeviation = deviations.reduce((a, b) => a + b, 0) / deviations.length;
+    const score = Math.max(0, Math.round(100 - (avgDeviation / idealInterval) * 100));
+    return score;
+  }
+
+  /**
+   * 均等性スコアに応じたラベルを返す
+   */
+  static getSpacingLabel(score: number): string {
+    if (score >= 80) return '均等';
+    if (score >= 50) return 'やや偏り';
+    return '偏りあり';
+  }
 }

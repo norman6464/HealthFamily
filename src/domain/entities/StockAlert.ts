@@ -365,4 +365,23 @@ export class StockAlertEntity {
     if (rate <= 25) return '要改善';
     return '非効率';
   }
+
+  /**
+   * 在庫と日別消費量から枯渇までの日数を算出する
+   */
+  static getDepletionDays(stock: number, dailyConsumption: number): number | null {
+    if (dailyConsumption <= 0) return null;
+    return Math.floor(stock / dailyConsumption);
+  }
+
+  /**
+   * 枯渇日数に応じた緊急度ラベルを返す
+   */
+  static getDepletionUrgencyLabel(days: number | null): string {
+    if (days === null) return 'データなし';
+    if (days <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD) return '緊急';
+    if (days <= StockAlertEntity.WARNING_DAYS_THRESHOLD) return '注意';
+    if (days <= 14) return 'やや余裕';
+    return '余裕あり';
+  }
 }

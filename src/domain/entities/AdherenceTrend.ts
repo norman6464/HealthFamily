@@ -205,4 +205,22 @@ export class AdherenceTrendEntity {
     if (rate >= 50) return '要改善';
     return '不十分';
   }
+
+  /**
+   * 目標達成率を算出する(0-100)
+   */
+  static getGoalProgress(current: number, goal: number): number {
+    if (goal <= 0) return 100;
+    return Math.min(100, Math.round((current / goal) * 100));
+  }
+
+  /**
+   * 目標達成率に応じたラベルを返す
+   */
+  static getGoalProgressLabel(progress: number): string {
+    if (progress >= 100) return '達成';
+    if (progress >= 70) return 'あと少し';
+    if (progress >= 40) return '半分';
+    return '頑張りましょう';
+  }
 }
