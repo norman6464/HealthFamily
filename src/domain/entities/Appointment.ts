@@ -334,4 +334,29 @@ export class AppointmentEntity {
       isValid: !!label,
     };
   }
+
+  /**
+   * 2つの予約日が同日かどうかを判定する
+   */
+  static hasConflict(date1: Date, date2: Date): boolean {
+    return DateRangeHelper.toDateKey(date1) === DateRangeHelper.toDateKey(date2);
+  }
+
+  /**
+   * 予約リストから指定日と重複する予約を検出する
+   */
+  static findConflicts<T extends { appointmentDate: Date }>(
+    appointments: T[],
+    targetDate: Date,
+  ): T[] {
+    return appointments.filter((a) => AppointmentEntity.hasConflict(a.appointmentDate, targetDate));
+  }
+
+  /**
+   * 重複件数に応じた警告メッセージを返す(0件はnull)
+   */
+  static getConflictMessage(conflictCount: number): string | null {
+    if (conflictCount === 0) return null;
+    return `同日に${conflictCount}件の予約があります`;
+  }
 }
