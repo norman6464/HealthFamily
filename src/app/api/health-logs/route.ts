@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { createHealthLogSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations } from '@/lib/api-helpers';
+import { checkRateLimit } from '@/lib/security';
 import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
@@ -24,6 +25,11 @@ export async function POST(request: Request) {
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
+    const rateLimit = checkRateLimit(`health-logs:${userId}`, { maxAttempts: 20, windowMs: 60 * 1000 });
+    if (!rateLimit.allowed) {
+      return errorResponse('記録回数の上限に達しました。しばらくしてから再試行してください。', 429);
+    }
+
     const body = await request.json();
     const parsed = createHealthLogSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
