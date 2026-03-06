@@ -60,6 +60,9 @@ export class MedicationRecordEntity {
   private static readonly DOSE_CONSECUTIVE_GOOD_THRESHOLD = 50;
   private static readonly DOSE_COMPLETION_PERFECT_THRESHOLD = 90;
   private static readonly DOSE_COMPLETION_GOOD_THRESHOLD = 70;
+  private static readonly DOSE_TIMING_MAX_DELAY = 60;
+  private static readonly DOSE_TIMING_ACCURATE_THRESHOLD = 80;
+  private static readonly DOSE_TIMING_MODERATE_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -884,5 +887,33 @@ export class MedicationRecordEntity {
     if (rate >= MedicationRecordEntity.DOSE_COMPLETION_PERFECT_THRESHOLD) return '完璧';
     if (rate >= MedicationRecordEntity.DOSE_COMPLETION_GOOD_THRESHOLD) return '良好';
     return '要改善';
+  }
+
+  /**
+   * 服薬タイミングのずれ（分）からスコアを算出する（0-100）
+   * ずれが小さいほどスコアが高い
+   */
+  static getDoseTimingScore(delayMinutes: number[]): number {
+    if (delayMinutes.length === 0) return 0;
+    const avgDelay =
+      delayMinutes.reduce((sum, d) => sum + Math.abs(d), 0) / delayMinutes.length;
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(
+          100 - (avgDelay / MedicationRecordEntity.DOSE_TIMING_MAX_DELAY) * 100
+        )
+      )
+    );
+  }
+
+  /**
+   * 服薬タイミングスコアに応じたラベルを返す
+   */
+  static getDoseTimingScoreLabel(score: number): string {
+    if (score >= MedicationRecordEntity.DOSE_TIMING_ACCURATE_THRESHOLD) return '正確';
+    if (score >= MedicationRecordEntity.DOSE_TIMING_MODERATE_THRESHOLD) return 'やや遅れ';
+    return '遅れがち';
   }
 }
