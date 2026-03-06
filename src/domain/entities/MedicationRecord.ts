@@ -341,4 +341,34 @@ export class MedicationRecordEntity {
     const label = hours > 0 ? (mins > 0 ? `${hours}時間${mins}分` : `${hours}時間`) : `${mins}分`;
     return `前回の服薬から${label}以上空けてください`;
   }
+
+  /**
+   * 複数記録のバッチサマリーテキストを返す
+   */
+  static getBatchSummary(completed: number, total: number): string {
+    if (total === 0) return '記録はありません';
+    if (completed === total) return `全${total}件の服薬が完了しました`;
+    return `${total}件中${completed}件が完了しています`;
+  }
+
+  /**
+   * メンバー別の記録件数を集計する
+   */
+  static getMemberRecordCounts(records: MedicationRecord[]): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const r of records) {
+      counts[r.memberName] = (counts[r.memberName] || 0) + 1;
+    }
+    return counts;
+  }
+
+  /**
+   * 完了率に応じたメッセージを返す
+   */
+  static getCompletionRateMessage(rate: number): string {
+    if (rate >= 100) return '完璧です';
+    if (rate >= 80) return '良い調子です';
+    if (rate >= 50) return 'もう少しで達成です';
+    return '少しずつ頑張りましょう';
+  }
 }
