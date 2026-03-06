@@ -7,7 +7,7 @@ import { DateRangeHelper } from '@/domain/entities/DateRange';
 import { QUERY_LIMITS } from '@/lib/constants';
 
 export const GET = withAuth(async (userId) => {
-  const { allowed } = checkRateLimit(`records-stats-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+  const { allowed } = checkRateLimit(`records-stats-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
   const now = new Date();
   const sevenDaysAgo = DateRangeHelper.daysAgo(7, now);

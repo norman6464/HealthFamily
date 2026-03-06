@@ -11,7 +11,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ sche
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`schedules-put:${userId}`, { maxRequests: 20, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`schedules-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
 
     const { scheduleId } = await params;
@@ -37,7 +37,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ sche
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ scheduleId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`schedules-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`schedules-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { scheduleId } = await params;
     return withOwnershipCheck({

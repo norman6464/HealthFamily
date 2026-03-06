@@ -13,7 +13,7 @@ const USER_SELECT = {
 } as const;
 
 export const GET = withAuth(async (userId) => {
-  const { allowed } = checkRateLimit(`users-me-get:${userId}`, { maxRequests: 30, windowMs: 60000 });
+  const { allowed } = checkRateLimit(`users-me-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
   const user = await prisma.user.findUnique({
     where: { id: userId },

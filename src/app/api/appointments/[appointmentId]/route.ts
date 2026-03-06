@@ -11,7 +11,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ appo
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`appointments-put:${userId}`, { maxRequests: 20, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`appointments-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
 
     const { appointmentId } = await params;
@@ -43,7 +43,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ appo
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ appointmentId: string }> }) {
   return withAuth(async (userId) => {
-    const { allowed } = checkRateLimit(`appointments-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    const { allowed } = checkRateLimit(`appointments-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { appointmentId } = await params;
     return withOwnershipCheck({
