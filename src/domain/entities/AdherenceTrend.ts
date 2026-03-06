@@ -86,4 +86,42 @@ export class AdherenceTrendEntity {
     };
     return messages[direction];
   }
+
+  /**
+   * 2期間の遵守率を比較し、変化量と方向を返す
+   */
+  static comparePeriods(previousRate: number, currentRate: number): {
+    change: number;
+    changePercentage: number;
+    direction: 'up' | 'down' | 'stable';
+  } {
+    const change = currentRate - previousRate;
+    return {
+      change,
+      changePercentage: Math.abs(change),
+      direction: AdherenceTrendEntity.calculateTrendDirection([previousRate, currentRate]),
+    };
+  }
+
+  /**
+   * 変化量に応じた改善メッセージを返す
+   */
+  static getImprovementMessage(change: number): string {
+    if (change >= 15) return '大幅に改善しています。素晴らしいです';
+    if (change > 0) return '少しずつ改善しています';
+    if (change === 0) return '現状を維持できています';
+    return '少し服薬率が下がっています。一緒に頑張りましょう';
+  }
+
+  /**
+   * 複数期間の遵守率から安定度スコア(0-100)を算出する
+   */
+  static calculateConsistencyScore(rates: number[]): number {
+    if (rates.length <= 1) return rates.length === 0 ? 0 : 100;
+    const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
+    const variance = rates.reduce((sum, r) => sum + (r - avg) ** 2, 0) / rates.length;
+    const stdDev = Math.sqrt(variance);
+    const maxStdDev = 50;
+    return Math.round(Math.max(0, Math.min(100, 100 - (stdDev / maxStdDev) * 100)));
+  }
 }
