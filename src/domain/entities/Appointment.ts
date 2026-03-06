@@ -31,6 +31,8 @@ export class AppointmentEntity {
   private static readonly REGULARITY_MEDIUM_THRESHOLD = 50;
   private static readonly DENSITY_FREQUENT_THRESHOLD = 4;
   private static readonly DENSITY_REGULAR_THRESHOLD = 2;
+  private static readonly CYCLE_REGULAR_THRESHOLD = 70;
+  private static readonly CYCLE_MODERATE_THRESHOLD = 40;
 
   constructor(private readonly appointment: Appointment) {}
 
@@ -504,8 +506,8 @@ export class AppointmentEntity {
    * サイクル安定度スコアに応じたラベルを返す
    */
   static getCycleScoreLabel(score: number): string {
-    if (score >= 70) return '規則的';
-    if (score >= 40) return 'やや不規則';
+    if (score >= AppointmentEntity.CYCLE_REGULAR_THRESHOLD) return '規則的';
+    if (score >= AppointmentEntity.CYCLE_MODERATE_THRESHOLD) return 'やや不規則';
     return '不規則';
   }
 }

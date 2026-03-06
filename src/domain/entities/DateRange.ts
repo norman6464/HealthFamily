@@ -97,6 +97,9 @@ export class DateRangeHelper {
   private static readonly DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
   private static readonly DAYS_IN_WEEK = 7;
   private static readonly MS_PER_DAY = 1000 * 60 * 60 * 24;
+  private static readonly CLUSTER_MAX_INTERVAL = 30;
+  private static readonly CLUSTER_DENSE_THRESHOLD = 70;
+  private static readonly CLUSTER_MODERATE_THRESHOLD = 40;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -304,16 +307,15 @@ export class DateRangeHelper {
     if (intervals.length === 0) return 0;
     if (intervals.length === 1 && intervals[0] <= 1) return 100;
     const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-    const maxInterval = 30;
-    return Math.max(0, Math.min(100, Math.round(100 - (avg / maxInterval) * 100)));
+    return Math.max(0, Math.min(100, Math.round(100 - (avg / DateRangeHelper.CLUSTER_MAX_INTERVAL) * 100)));
   }
 
   /**
    * 密集度スコアに応じたラベルを返す
    */
   static getClusterLabel(score: number): string {
-    if (score >= 70) return '密集';
-    if (score >= 40) return '中程度';
+    if (score >= DateRangeHelper.CLUSTER_DENSE_THRESHOLD) return '密集';
+    if (score >= DateRangeHelper.CLUSTER_MODERATE_THRESHOLD) return '中程度';
     return '疎ら';
   }
 }

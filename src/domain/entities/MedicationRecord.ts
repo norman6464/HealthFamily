@@ -36,6 +36,9 @@ export class MedicationRecordEntity {
   private static readonly ADHERENCE_EXCELLENT_THRESHOLD = 90;
   private static readonly ADHERENCE_GOOD_THRESHOLD = 70;
   private static readonly ADHERENCE_WARNING_THRESHOLD = 50;
+  private static readonly TIMING_MAX_STDDEV = 60;
+  private static readonly TIMING_STABLE_THRESHOLD = 70;
+  private static readonly TIMING_MODERATE_THRESHOLD = 40;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -683,16 +686,15 @@ export class MedicationRecordEntity {
     const avg = absGaps.reduce((a, b) => a + b, 0) / absGaps.length;
     const variance = absGaps.reduce((sum, v) => sum + (v - avg) ** 2, 0) / absGaps.length;
     const stdDev = Math.sqrt(variance);
-    const maxStdDev = 60;
-    return Math.max(0, Math.min(100, Math.round(100 - (stdDev / maxStdDev) * 100)));
+    return Math.max(0, Math.min(100, Math.round(100 - (stdDev / MedicationRecordEntity.TIMING_MAX_STDDEV) * 100)));
   }
 
   /**
    * 服薬時間一貫性スコアに応じたラベルを返す
    */
   static getDoseTimingLabel(score: number): string {
-    if (score >= 70) return '安定';
-    if (score >= 40) return 'やや不安定';
+    if (score >= MedicationRecordEntity.TIMING_STABLE_THRESHOLD) return '安定';
+    if (score >= MedicationRecordEntity.TIMING_MODERATE_THRESHOLD) return 'やや不安定';
     return '不安定';
   }
 }
