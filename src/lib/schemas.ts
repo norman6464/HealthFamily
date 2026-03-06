@@ -72,7 +72,7 @@ const dayOfWeekEnum = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
 export const createScheduleSchema = z.object({
   medicationId: idField,
   memberId: idField,
-  scheduledTime: z.string().min(1, '予定時刻は必須です').max(10),
+  scheduledTime: z.string().trim().min(1, '予定時刻は必須です').max(10),
   daysOfWeek: z.array(dayOfWeekEnum).optional(),
   isEnabled: z.boolean().optional(),
   reminderMinutesBefore: z.number().int().min(0).max(1440).optional(),
