@@ -576,4 +576,42 @@ export class HealthLogEntity {
     if (diff <= -1) return '体調がやや低下しています';
     return '体調は安定しています';
   }
+
+  /**
+   * 症状の共起ペアを集計する
+   */
+  static getSymptomCooccurrence(logs: { symptoms: string[] }[]): Array<{ pair: string[]; count: number }> {
+    const pairCounts = new Map<string, number>();
+    for (const log of logs) {
+      const symptoms = log.symptoms;
+      for (let i = 0; i < symptoms.length; i++) {
+        for (let j = i + 1; j < symptoms.length; j++) {
+          const pair = [symptoms[i], symptoms[j]].sort();
+          const key = pair.join('|');
+          pairCounts.set(key, (pairCounts.get(key) ?? 0) + 1);
+        }
+      }
+    }
+    return Array.from(pairCounts.entries())
+      .map(([key, count]) => ({ pair: key.split('|'), count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * 最も多い症状共起ペアを返す
+   */
+  static getMostCommonSymptomPair(logs: { symptoms: string[] }[]): { pair: string[]; count: number } | null {
+    const cooccurrences = HealthLogEntity.getSymptomCooccurrence(logs);
+    return cooccurrences.length > 0 ? cooccurrences[0] : null;
+  }
+
+  /**
+   * 共起回数に応じた相関ラベルを返す
+   */
+  static getSymptomCorrelationLabel(count: number): string {
+    if (count >= 5) return '強い相関';
+    if (count >= 3) return '中程度の相関';
+    if (count >= 1) return '弱い相関';
+    return '相関なし';
+  }
 }

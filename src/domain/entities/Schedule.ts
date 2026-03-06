@@ -617,4 +617,40 @@ export class ScheduleEntity {
     if (count < 20) return '多い';
     return '非常に多い';
   }
+
+  /**
+   * スケジュール状態と残り時間から通知優先度を算出する(0-10)
+   */
+  static getNotificationPriority(status: ScheduleStatus, minutesUntil: number): number {
+    if (status === 'completed') return 0;
+    if (status === 'overdue') return 10;
+    if (minutesUntil <= 15) return 8;
+    if (minutesUntil <= 30) return 6;
+    if (minutesUntil <= 60) return 4;
+    return 2;
+  }
+
+  /**
+   * 通知優先度に応じたラベルを返す
+   */
+  static getNotificationPriorityLabel(priority: number): string {
+    if (priority >= 10) return '緊急';
+    if (priority >= 7) return '高';
+    if (priority >= 4) return '中';
+    if (priority >= 1) return '低';
+    return 'なし';
+  }
+
+  /**
+   * 通知優先度の高い順にソートする
+   */
+  static sortByNotificationPriority<T extends { status: ScheduleStatus; minutesUntil: number }>(
+    items: T[],
+  ): T[] {
+    return [...items].sort((a, b) => {
+      const priorityA = ScheduleEntity.getNotificationPriority(a.status, a.minutesUntil);
+      const priorityB = ScheduleEntity.getNotificationPriority(b.status, b.minutesUntil);
+      return priorityB - priorityA;
+    });
+  }
 }
