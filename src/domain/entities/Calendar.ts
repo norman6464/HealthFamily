@@ -491,4 +491,30 @@ export class CalendarEntity {
     if (weekendRate >= CalendarEntity.WEEKEND_BIAS_THRESHOLD) return '休日に偏り';
     return 'バランス良好';
   }
+
+  /**
+   * 日付キー配列から最大の空白日数（ギャップ）を算出する
+   */
+  static getRecordGapDays(dateKeys: string[]): number {
+    if (dateKeys.length <= 1) return 0;
+    const unique = [...new Set(dateKeys)].sort();
+    let maxGap = 0;
+    for (let i = 1; i < unique.length; i++) {
+      const prev = new Date(unique[i - 1] + 'T00:00:00');
+      const curr = new Date(unique[i] + 'T00:00:00');
+      const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24)) - 1;
+      if (diffDays > maxGap) maxGap = diffDays;
+    }
+    return maxGap;
+  }
+
+  /**
+   * 空白日数に応じたラベルを返す
+   */
+  static getRecordGapLabel(gapDays: number): string {
+    if (gapDays === 0) return '連続記録';
+    if (gapDays < 3) return '短い空白';
+    if (gapDays < 14) return '長い空白';
+    return '記録途絶';
+  }
 }
