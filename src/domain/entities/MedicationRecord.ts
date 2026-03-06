@@ -505,4 +505,23 @@ export class MedicationRecordEntity {
     if (averageGapMinutes <= 30) return 'やや遅れ';
     return '大幅な遅れ';
   }
+
+  /**
+   * 日別の服薬遵守スコアを算出する(0-100)
+   */
+  static getDailyComplianceScore(taken: number, scheduled: number): number {
+    if (scheduled <= 0) return 100;
+    return Math.min(100, Math.round((taken / scheduled) * 100));
+  }
+
+  /**
+   * 遵守スコアに応じたラベルを返す
+   */
+  static getComplianceScoreLabel(score: number): string {
+    if (score >= 100) return '完璧';
+    if (score >= 90) return '優秀';
+    if (score >= 70) return '良好';
+    if (score >= 50) return '要改善';
+    return '不十分';
+  }
 }
