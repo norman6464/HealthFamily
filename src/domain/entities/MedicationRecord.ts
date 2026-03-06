@@ -197,4 +197,49 @@ export class MedicationRecordEntity {
     }
     return maxHour;
   }
+
+  /**
+   * 曜日別の記録数を集計する
+   * 返り値: [日, 月, 火, 水, 木, 金, 土]
+   */
+  static getRecordsByDayOfWeek(records: MedicationRecord[]): number[] {
+    const counts = new Array(7).fill(0);
+    for (const record of records) {
+      counts[new Date(record.takenAt).getDay()]++;
+    }
+    return counts;
+  }
+
+  /**
+   * 最も記録が多い薬を返す
+   */
+  static getMostRecordedMedication(records: MedicationRecord[]): { medicationName: string; count: number } | null {
+    if (records.length === 0) return null;
+    const frequency = MedicationRecordEntity.getMedicationFrequency(records);
+    return frequency[0];
+  }
+
+  /**
+   * 記録間の空白期間（閾値以上）を検出する
+   */
+  static getRecordGaps(
+    records: MedicationRecord[],
+    thresholdDays: number = 3,
+  ): { from: string; to: string; days: number }[] {
+    if (records.length <= 1) return [];
+    const sorted = [...records].sort(
+      (a, b) => new Date(a.takenAt).getTime() - new Date(b.takenAt).getTime(),
+    );
+    const uniqueDates = [...new Set(sorted.map((r) => DateRangeHelper.toDateKey(new Date(r.takenAt))))];
+    const gaps: { from: string; to: string; days: number }[] = [];
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const from = new Date(uniqueDates[i - 1] + 'T00:00:00');
+      const to = new Date(uniqueDates[i] + 'T00:00:00');
+      const days = DateRangeHelper.diffDays(from, to);
+      if (days >= thresholdDays) {
+        gaps.push({ from: uniqueDates[i - 1], to: uniqueDates[i], days });
+      }
+    }
+    return gaps;
+  }
 }
