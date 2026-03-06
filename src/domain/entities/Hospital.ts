@@ -2,6 +2,8 @@
  * 病院エンティティ
  */
 
+import { DateRangeHelper } from './DateRange';
+
 export interface Hospital {
   readonly id: string;
   readonly userId: string;
@@ -81,10 +83,7 @@ export class HospitalEntity {
    * 最終通院日からのラベルを生成する
    */
   static getLastVisitLabel(lastVisit: Date, today: Date): string {
-    const lastStart = new Date(lastVisit.getFullYear(), lastVisit.getMonth(), lastVisit.getDate());
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const diffMs = todayStart.getTime() - lastStart.getTime();
-    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    const diffDays = DateRangeHelper.diffDays(lastVisit, today);
     if (diffDays === 0) return '今日';
     if (diffDays === 1) return '昨日';
     if (diffDays === 7) return '1週間前';
