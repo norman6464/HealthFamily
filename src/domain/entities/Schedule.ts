@@ -519,4 +519,56 @@ export class ScheduleEntity {
 
     return sorted.map((d) => ScheduleEntity.DAY_LABELS[d]).join(', ');
   }
+
+  /**
+   * 1日のスケジュール数から密度レベルを返す
+   */
+  static getScheduleDensity(count: number): 'none' | 'low' | 'medium' | 'high' {
+    if (count === 0) return 'none';
+    if (count <= 3) return 'low';
+    if (count <= 6) return 'medium';
+    return 'high';
+  }
+
+  /**
+   * 2つの時刻が指定分数以内に近いか判定する
+   */
+  static hasTimeOverlap(time1: string, time2: string, thresholdMinutes: number): boolean {
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const diff = Math.abs(toMinutes(time1) - toMinutes(time2));
+    return diff <= thresholdMinutes;
+  }
+
+  /**
+   * 既存時刻から最も離れた時刻帯を提案する(08:00-20:00の範囲)
+   */
+  static getOptimalTimeSuggestion(existingTimes: string[]): string {
+    if (existingTimes.length === 0) return '08:00';
+
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    const existing = existingTimes.map(toMinutes).sort((a, b) => a - b);
+    const candidates = [480, 720, 840, 960, 1080, 1200]; // 08,12,14,16,18,20
+
+    let bestTime = candidates[0];
+    let maxMinDist = -1;
+
+    for (const candidate of candidates) {
+      const minDist = Math.min(...existing.map((e) => Math.abs(candidate - e)));
+      if (minDist > maxMinDist) {
+        maxMinDist = minDist;
+        bestTime = candidate;
+      }
+    }
+
+    const h = Math.floor(bestTime / 60).toString().padStart(2, '0');
+    const m = (bestTime % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+  }
 }
