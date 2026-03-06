@@ -113,4 +113,43 @@ export class MathHelper {
     if (changeRate <= -10) return '下降';
     return '横ばい';
   }
+
+  /**
+   * パーセンタイルを算出する
+   */
+  static calculatePercentile(values: number[], percentile: number): number {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    if (percentile <= 0) return sorted[0];
+    if (percentile >= 100) return sorted[sorted.length - 1];
+    const index = (percentile / 100) * (sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    if (lower === upper) return sorted[lower];
+    return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
+  }
+
+  /**
+   * 四分位数（Q1/Q2/Q3）を算出する
+   */
+  static getQuartiles(values: number[]): { q1: number; q2: number; q3: number } {
+    return {
+      q1: MathHelper.calculatePercentile(values, 25),
+      q2: MathHelper.calculatePercentile(values, 50),
+      q3: MathHelper.calculatePercentile(values, 75),
+    };
+  }
+
+  /**
+   * IQRに基づく外れ値判定の境界を返す
+   */
+  static getOutlierBounds(values: number[]): { lower: number; upper: number } {
+    if (values.length === 0) return { lower: 0, upper: 0 };
+    const { q1, q3 } = MathHelper.getQuartiles(values);
+    const iqr = q3 - q1;
+    return {
+      lower: q1 - 1.5 * iqr,
+      upper: q3 + 1.5 * iqr,
+    };
+  }
 }
