@@ -1,40 +1,45 @@
-import { describe, it, expect } from 'vitest';
-import { MedicationRecordEntity } from '@/domain/entities/MedicationRecord';
+import { MedicationEntity } from '@/domain/entities/Medication';
 
-describe('MedicationRecordEntity 服薬間隔 エッジケース', () => {
-  describe('getTimeBetweenDoses', () => {
-    it('数日離れた時刻の差を正しく算出する', () => {
-      const t1 = new Date('2026-03-01T08:00:00');
-      const t2 = new Date('2026-03-03T08:00:00');
-      expect(MedicationRecordEntity.getTimeBetweenDoses(t1, t2)).toBe(2880);
+describe('MedicationEntity - Interval Check Edge Cases', () => {
+  describe('getMinimumInterval', () => {
+    it('6回/日で4時間', () => {
+      expect(MedicationEntity.getMinimumInterval(6)).toBe(4);
     });
 
-    it('秒単位の差は切り捨てされない（分に変換）', () => {
-      const t1 = new Date('2026-03-05T08:00:00');
-      const t2 = new Date('2026-03-05T08:30:30');
-      expect(MedicationRecordEntity.getTimeBetweenDoses(t1, t2)).toBe(30.5);
+    it('負の値でnull', () => {
+      expect(MedicationEntity.getMinimumInterval(-1)).toBeNull();
     });
-  });
 
-  describe('isMinIntervalMet', () => {
-    it('小数の間隔で正しく判定する', () => {
-      expect(MedicationRecordEntity.isMinIntervalMet(30.5, 30)).toBe(true);
-      expect(MedicationRecordEntity.isMinIntervalMet(29.9, 30)).toBe(false);
+    it('24回/日で1時間', () => {
+      expect(MedicationEntity.getMinimumInterval(24)).toBe(1);
     });
   });
 
-  describe('getIntervalWarning', () => {
-    it('90分は1時間30分の警告を返す', () => {
-      const msg = MedicationRecordEntity.getIntervalWarning(10, 90);
-      expect(msg).toContain('1時間30分');
+  describe('isIntervalSafe', () => {
+    it('0時間経過で1回/日は危険', () => {
+      expect(MedicationEntity.isIntervalSafe(0, 1)).toBe(false);
     });
 
-    it('ちょうど間隔を満たす場合はnullを返す', () => {
-      expect(MedicationRecordEntity.getIntervalWarning(240, 240)).toBeNull();
+    it('23.9時間で1回/日は危険', () => {
+      expect(MedicationEntity.isIntervalSafe(23.9, 1)).toBe(false);
     });
 
-    it('1分差でも不足なら警告を返す', () => {
-      const msg = MedicationRecordEntity.getIntervalWarning(239, 240);
+    it('24時間で1回/日は安全', () => {
+      expect(MedicationEntity.isIntervalSafe(24, 1)).toBe(true);
+    });
+
+    it('負の経過時間で危険', () => {
+      expect(MedicationEntity.isIntervalSafe(-1, 2)).toBe(false);
+    });
+  });
+
+  describe('getIntervalWarningMessage', () => {
+    it('ちょうど間隔でnull', () => {
+      expect(MedicationEntity.getIntervalWarningMessage(24, 1)).toBeNull();
+    });
+
+    it('間隔の1分前で警告', () => {
+      const msg = MedicationEntity.getIntervalWarningMessage(7.99, 3);
       expect(msg).not.toBeNull();
     });
   });
