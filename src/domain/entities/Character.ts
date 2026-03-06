@@ -57,6 +57,49 @@ export class CharacterEntity {
   static getAllCharacterTypes(): CharacterType[] {
     return [...VALID_TYPES];
   }
+
+  /**
+   * 服薬遵守率に応じたムードを判定する
+   */
+  static getMoodByAdherence(rate: number): CharacterMood {
+    if (rate >= 90) return 'happy';
+    if (rate >= 70) return 'normal';
+    if (rate >= 50) return 'reminding';
+    if (rate >= 30) return 'worried';
+    return 'sad';
+  }
+
+  /**
+   * ムードの日本語ラベルを返す
+   */
+  static getMoodLabel(mood: CharacterMood): string {
+    const labels: Record<CharacterMood, string> = {
+      happy: '喜び',
+      excited: '興奮',
+      normal: '通常',
+      reminding: 'お知らせ',
+      worried: '心配',
+      sad: '悲しみ',
+      cheering: '応援',
+    };
+    return labels[mood];
+  }
+
+  /**
+   * ムードに応じたメッセージを返す
+   */
+  static getMoodMessage(mood: CharacterMood): string {
+    const messages: Record<CharacterMood, string> = {
+      happy: 'とても良い調子です',
+      excited: '素晴らしい成果です',
+      normal: 'いつも通りです',
+      reminding: 'お薬を忘れずに',
+      worried: '少し心配しています',
+      sad: '一緒に頑張りましょう',
+      cheering: '応援しています',
+    };
+    return messages[mood];
+  }
 }
 
 export const CHARACTER_CONFIGS: Record<CharacterType, CharacterConfig> = {
