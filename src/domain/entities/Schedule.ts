@@ -71,17 +71,7 @@ export class ScheduleEntity {
       return true;
     }
 
-    const dayMap: Record<number, DayOfWeek> = {
-      0: 'sun',
-      1: 'mon',
-      2: 'tue',
-      3: 'wed',
-      4: 'thu',
-      5: 'fri',
-      6: 'sat',
-    };
-
-    const dayOfWeek = dayMap[date.getDay()];
+    const dayOfWeek = ScheduleEntity.DAY_MAP[date.getDay()];
     return this.schedule.daysOfWeek.includes(dayOfWeek);
   }
 
