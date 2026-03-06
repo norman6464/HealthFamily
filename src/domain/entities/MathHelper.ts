@@ -43,4 +43,43 @@ export class MathHelper {
   static clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
   }
+
+  /**
+   * 標準偏差を算出する（母集団標準偏差）
+   */
+  static calculateStdDev(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + (v - avg) ** 2, 0) / values.length;
+    return Math.round(Math.sqrt(variance) * 100) / 100;
+  }
+
+  /**
+   * 最頻値を算出する（同頻度の場合は最初の値）
+   */
+  static calculateMode(values: number[]): number | null {
+    if (values.length === 0) return null;
+    const counts = new Map<number, number>();
+    for (const v of values) {
+      counts.set(v, (counts.get(v) || 0) + 1);
+    }
+    let maxCount = 0;
+    let mode = values[0];
+    for (const [value, count] of counts) {
+      if (count > maxCount) {
+        maxCount = count;
+        mode = value;
+      }
+    }
+    return mode;
+  }
+
+  /**
+   * ばらつき度合いのラベルを返す
+   */
+  static getVariabilityLabel(stdDev: number): string {
+    if (stdDev <= 1) return '安定';
+    if (stdDev < 3) return 'やや不安定';
+    return '不安定';
+  }
 }
