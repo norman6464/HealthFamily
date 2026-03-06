@@ -406,4 +406,42 @@ export class MemberEntity {
     if (score >= 50) return 'text-orange-600';
     return 'text-red-600';
   }
+
+  /**
+   * 記録日数と期間から活動レベルを判定する
+   */
+  static getActivityLevel(recordDays: number, totalDays: number): 'high' | 'medium' | 'low' | 'inactive' {
+    if (totalDays <= 0 || recordDays <= 0) return 'inactive';
+    const rate = recordDays / totalDays;
+    if (rate >= 0.8) return 'high';
+    if (rate >= 0.5) return 'medium';
+    return 'low';
+  }
+
+  private static readonly activityLevelLabels: Record<string, string> = {
+    high: '活発',
+    medium: '普通',
+    low: '少なめ',
+    inactive: '記録なし',
+  };
+
+  /**
+   * 活動レベルの日本語ラベルを返す
+   */
+  static getActivityLevelLabel(level: 'high' | 'medium' | 'low' | 'inactive'): string {
+    return MemberEntity.activityLevelLabels[level];
+  }
+
+  /**
+   * メンバーの状態サマリーメッセージを返す
+   */
+  static getMemberSummaryMessage(
+    name: string,
+    activityLevel: 'high' | 'medium' | 'low' | 'inactive',
+    adherenceRate: number,
+  ): string {
+    if (activityLevel === 'inactive') return `${name}さんの記録がありません`;
+    if (activityLevel === 'high') return `${name}さんは活発に記録中（服薬率${adherenceRate}%）`;
+    return `${name}さんの服薬率は${adherenceRate}%です`;
+  }
 }

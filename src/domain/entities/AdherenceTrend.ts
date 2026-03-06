@@ -167,4 +167,42 @@ export class AdherenceTrendEntity {
     if (days === 7) return '1週間連続';
     return `${days}日連続`;
   }
+
+  /**
+   * 日別完了率から週別平均完了率を算出する
+   */
+  static getWeeklyCompletionRates(dailyRates: number[]): number[] {
+    if (dailyRates.length === 0) return [];
+    const weeks: number[] = [];
+    for (let i = 0; i < dailyRates.length; i += 7) {
+      const chunk = dailyRates.slice(i, i + 7);
+      const avg = chunk.reduce((sum, r) => sum + r, 0) / chunk.length;
+      weeks.push(Math.round(avg * 10) / 10);
+    }
+    return weeks;
+  }
+
+  /**
+   * 週別完了率から推移傾向を判定する
+   */
+  static getCompletionTrend(weeklyRates: number[]): 'improving' | 'declining' | 'stable' {
+    if (weeklyRates.length < 2) return 'stable';
+    const first = weeklyRates[0];
+    const last = weeklyRates[weeklyRates.length - 1];
+    const diff = last - first;
+    if (diff > 5) return 'improving';
+    if (diff < -5) return 'declining';
+    return 'stable';
+  }
+
+  /**
+   * 完了率に応じたラベルを返す
+   */
+  static getCompletionRateLabel(rate: number): string {
+    if (rate >= 100) return '完璧';
+    if (rate >= 90) return '優秀';
+    if (rate >= 70) return '良好';
+    if (rate >= 50) return '要改善';
+    return '不十分';
+  }
 }
