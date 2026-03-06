@@ -796,6 +796,33 @@ export class ScheduleEntity {
   /**
    * スケジュール効率に応じたラベルを返す
    */
+  /**
+   * スケジュール群の曜日カバー率(0-100%)を算出する
+   * 空の曜日配列は毎日(7日)としてカウント
+   */
+  static getScheduleCoverage(schedules: { daysOfWeek: string[] }[]): number {
+    if (schedules.length === 0) return 0;
+    const coveredDays = new Set<string>();
+    const allDays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    for (const s of schedules) {
+      if (s.daysOfWeek.length === 0) {
+        for (const d of allDays) coveredDays.add(d);
+      } else {
+        for (const d of s.daysOfWeek) coveredDays.add(d);
+      }
+    }
+    return Math.round((coveredDays.size / 7) * 100);
+  }
+
+  /**
+   * 曜日カバー率に応じたラベルを返す
+   */
+  static getScheduleCoverageLabel(coverage: number): string {
+    if (coverage >= 80) return '完全';
+    if (coverage >= 50) return '普通';
+    return '不足';
+  }
+
   static getScheduleEfficiencyLabel(score: number): string {
     if (score >= ScheduleEntity.EFFICIENCY_EXCELLENT_THRESHOLD) return '優秀';
     if (score >= ScheduleEntity.EFFICIENCY_GOOD_THRESHOLD) return '良好';

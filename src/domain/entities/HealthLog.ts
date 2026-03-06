@@ -765,6 +765,34 @@ export class HealthLogEntity {
   /**
    * 症状多様性スコアに応じたラベルを返す
    */
+  /**
+   * 体調レベル配列から回復速度スコア(0-100)を算出する
+   * 上昇ステップの割合をスコア化（横ばいは中立=50基準）
+   */
+  static getConditionRecoveryRate(conditions: number[]): number {
+    if (conditions.length <= 1) return 0;
+    let upSteps = 0;
+    let downSteps = 0;
+    for (let i = 1; i < conditions.length; i++) {
+      const diff = conditions[i] - conditions[i - 1];
+      if (diff > 0) upSteps++;
+      else if (diff < 0) downSteps++;
+    }
+    const totalSteps = conditions.length - 1;
+    const neutralSteps = totalSteps - upSteps - downSteps;
+    const score = ((upSteps + neutralSteps * 0.5) / totalSteps) * 100;
+    return Math.min(100, Math.max(0, Math.round(score)));
+  }
+
+  /**
+   * 回復速度スコアに応じたラベルを返す
+   */
+  static getRecoveryRateLabel(score: number): string {
+    if (score >= 70) return '良好な回復';
+    if (score >= 40) return '緩やかな回復';
+    return '回復が遅い';
+  }
+
   static getSymptomDiversityLabel(score: number): string {
     if (score >= HealthLogEntity.DIVERSITY_HIGH_THRESHOLD) return '多様';
     if (score >= HealthLogEntity.DIVERSITY_MEDIUM_THRESHOLD) return '中程度';
