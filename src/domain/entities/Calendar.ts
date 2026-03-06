@@ -143,9 +143,9 @@ export class CalendarEntity {
     const daysWithRecords = days.filter((d) => d.recordCount > 0).length;
     const averageCondition =
       daysWithCondition.length > 0
-        ? Math.round(
-            daysWithCondition.reduce((sum, d) => sum + (d.averageCondition as number), 0) /
-              daysWithCondition.length,
+        ? MathHelper.calculateAverage(
+            daysWithCondition.map((d) => d.averageCondition as number),
+            0,
           )
         : null;
     return { totalRecords, averageCondition, daysWithRecords };
