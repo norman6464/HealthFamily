@@ -124,4 +124,39 @@ export class StockAlertEntity {
     if (rate >= 40) return 'やや不足';
     return '不足';
   }
+
+  /**
+   * 期間内の1日あたりの消費量を算出する
+   */
+  static getConsumptionRate(consumed: number, days: number): number | null {
+    if (days <= 0) return null;
+    return Math.round((consumed / days) * 100) / 100;
+  }
+
+  /**
+   * 消費量の増減傾向を判定する（10%以内はstable）
+   */
+  static getConsumptionTrend(
+    currentRate: number,
+    previousRate: number,
+  ): 'increasing' | 'decreasing' | 'stable' {
+    if (previousRate === 0 && currentRate === 0) return 'stable';
+    if (previousRate === 0) return 'increasing';
+    const changeRate = Math.abs(currentRate - previousRate) / previousRate;
+    if (changeRate <= 0.1) return 'stable';
+    return currentRate > previousRate ? 'increasing' : 'decreasing';
+  }
+
+  /**
+   * 目標日数に対する最適発注量を算出する
+   */
+  static getOptimalOrderQuantity(
+    dailyConsumption: number,
+    targetDays: number,
+    currentStock: number,
+  ): number {
+    if (dailyConsumption <= 0) return 0;
+    const needed = Math.ceil(dailyConsumption * targetDays);
+    return Math.max(0, needed - currentStock);
+  }
 }
