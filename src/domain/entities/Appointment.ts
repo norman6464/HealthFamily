@@ -431,4 +431,26 @@ export class AppointmentEntity {
     if (countPerMonth >= 1) return '少なめ';
     return 'なし';
   }
+
+  /**
+   * 通院間隔の規則性スコア(0-100)を算出する
+   */
+  static getIntervalRegularity(intervals: number[]): number {
+    if (intervals.length === 0) return 0;
+    if (intervals.length === 1) return 100;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    if (avg === 0) return 100;
+    const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.max(0, Math.round(100 - cv * 100));
+  }
+
+  /**
+   * 規則性スコアに応じたラベルを返す
+   */
+  static getIntervalRegularityLabel(score: number): string {
+    if (score >= 80) return '規則的';
+    if (score >= 50) return 'やや不規則';
+    return '不規則';
+  }
 }

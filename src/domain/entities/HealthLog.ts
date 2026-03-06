@@ -684,6 +684,38 @@ export class HealthLogEntity {
   /**
    * 体調予測トレンドに応じたメッセージを返す
    */
+  /**
+   * 今日から遡って連続記録日数を算出する
+   */
+  static getLogStreak(dateKeys: string[], todayKey: string): number {
+    if (dateKeys.length === 0) return 0;
+    const sorted = [...new Set(dateKeys)].sort((a, b) => b.localeCompare(a));
+    if (sorted[0] !== todayKey) return 0;
+    let streak = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1] + 'T00:00:00');
+      const curr = new Date(sorted[i] + 'T00:00:00');
+      const diffMs = prev.getTime() - curr.getTime();
+      if (Math.round(diffMs / (1000 * 60 * 60 * 24)) === 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  /**
+   * 連続記録日数のラベルを返す
+   */
+  static getLogStreakLabel(days: number): string {
+    if (days === 0) return '記録なし';
+    if (days === 1) return '記録開始';
+    if (days % 30 === 0) return `${days / 30}ヶ月連続`;
+    if (days % 7 === 0) return `${days / 7}週間連続`;
+    return `${days}日連続`;
+  }
+
   static getConditionPredictionMessage(trend: 'improving' | 'declining' | 'stable'): string {
     const messages: Record<string, string> = {
       improving: '体調が改善傾向にあります',
