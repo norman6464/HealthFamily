@@ -542,4 +542,35 @@ export class HealthLogEntity {
     const freq = HealthLogEntity.getSymptomFrequency(symptoms);
     return freq[0].symptom;
   }
+
+  /**
+   * 期間別平均体調スコアを返す（小数点第1位）
+   */
+  static getPeriodAverageCondition(logs: { condition: number }[]): number {
+    if (logs.length === 0) return 0;
+    const sum = logs.reduce((a, b) => a + b.condition, 0);
+    return Math.round((sum / logs.length) * 10) / 10;
+  }
+
+  /**
+   * 体調値の安定度スコア(0-100)を返す
+   */
+  static getConditionStabilityScore(conditions: number[]): number {
+    if (conditions.length <= 1) return conditions.length === 0 ? 0 : 100;
+    const avg = conditions.reduce((a, b) => a + b, 0) / conditions.length;
+    const variance = conditions.reduce((sum, c) => sum + (c - avg) ** 2, 0) / conditions.length;
+    const stdDev = Math.sqrt(variance);
+    const maxStdDev = 2;
+    return Math.round(Math.max(0, Math.min(100, 100 - (stdDev / maxStdDev) * 100)));
+  }
+
+  /**
+   * 2期間の平均体調を比較しラベルを返す
+   */
+  static getConditionComparisonLabel(previousAvg: number, currentAvg: number): string {
+    const diff = currentAvg - previousAvg;
+    if (diff >= 1) return '体調が改善しています';
+    if (diff <= -1) return '体調がやや低下しています';
+    return '体調は安定しています';
+  }
 }
