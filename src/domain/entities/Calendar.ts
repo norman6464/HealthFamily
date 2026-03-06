@@ -259,4 +259,33 @@ export class CalendarEntity {
     if (recordDays === totalDays) return '毎日記録がつけられています';
     return `${totalDays}日中${recordDays}日記録がつけられています`;
   }
+
+  /**
+   * 日付が今日・過去・未来のいずれかを判定する
+   */
+  static getDateAttribute(date: Date, today: Date): 'today' | 'past' | 'future' {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (d.getTime() === t.getTime()) return 'today';
+    return d.getTime() < t.getTime() ? 'past' : 'future';
+  }
+
+  /**
+   * 日付が指定月内かチェックする（monthは0-indexed）
+   */
+  static isDateInCurrentMonth(date: Date, year: number, month: number): boolean {
+    return date.getFullYear() === year && date.getMonth() === month;
+  }
+
+  /**
+   * 日付属性の日本語ラベルを返す
+   */
+  static getDateStatusLabel(attribute: 'today' | 'past' | 'future'): string {
+    const labels: Record<string, string> = {
+      today: '今日',
+      past: '過去',
+      future: '未来',
+    };
+    return labels[attribute];
+  }
 }
