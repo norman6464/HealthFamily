@@ -510,4 +510,36 @@ export class HealthLogEntity {
     if (recordDays >= totalDays / 2) return '順調に記録できています';
     return 'もう少し記録をつけてみましょう';
   }
+
+  /**
+   * 症状別の出現頻度を降順で返す
+   */
+  static getSymptomFrequency(symptoms: string[]): Array<{ symptom: string; count: number }> {
+    const counts: Record<string, number> = {};
+    for (const s of symptoms) {
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([symptom, count]) => ({ symptom, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * 症状数に応じたラベルを返す
+   */
+  static getSymptomCountLabel(count: number): string {
+    if (count === 0) return '症状なし';
+    if (count <= 2) return '軽度';
+    if (count <= 4) return '中度';
+    return '重度';
+  }
+
+  /**
+   * 最も頻度が高い症状を返す
+   */
+  static getMostCommonSymptom(symptoms: string[]): string | null {
+    if (symptoms.length === 0) return null;
+    const freq = HealthLogEntity.getSymptomFrequency(symptoms);
+    return freq[0].symptom;
+  }
 }
