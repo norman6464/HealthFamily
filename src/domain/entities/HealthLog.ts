@@ -67,6 +67,8 @@ export class HealthLogEntity {
   private static readonly RECOVERY_MODERATE_THRESHOLD = 40;
   private static readonly VARIANCE_STABLE_THRESHOLD = 1;
   private static readonly VARIANCE_UNSTABLE_THRESHOLD = 3;
+  private static readonly PERSISTENCE_HIGH_THRESHOLD = 70;
+  private static readonly PERSISTENCE_MODERATE_THRESHOLD = 40;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -843,8 +845,8 @@ export class HealthLogEntity {
    * 症状持続率に応じたラベルを返す
    */
   static getSymptomPersistenceLabel(rate: number): string {
-    if (rate >= 70) return '持続的';
-    if (rate >= 40) return '断続的';
+    if (rate >= HealthLogEntity.PERSISTENCE_HIGH_THRESHOLD) return '持続的';
+    if (rate >= HealthLogEntity.PERSISTENCE_MODERATE_THRESHOLD) return '断続的';
     return '一時的';
   }
 
