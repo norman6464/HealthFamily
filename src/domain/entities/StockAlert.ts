@@ -38,6 +38,8 @@ export class StockAlertEntity {
   private static readonly BURN_RATE_MAX_DAYS = 90;
   private static readonly BURN_RATE_HIGH_THRESHOLD = 70;
   private static readonly BURN_RATE_MODERATE_THRESHOLD = 40;
+  private static readonly TURNOVER_HIGH_THRESHOLD = 2;
+  private static readonly TURNOVER_MODERATE_THRESHOLD = 0.5;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -566,5 +568,22 @@ export class StockAlertEntity {
     if (score >= StockAlertEntity.BURN_RATE_HIGH_THRESHOLD) return '余裕あり';
     if (score >= StockAlertEntity.BURN_RATE_MODERATE_THRESHOLD) return 'やや不足';
     return '不足';
+  }
+
+  /**
+   * 在庫回転率を算出する(消費量/平均在庫)
+   */
+  static getStockTurnoverRate(consumed: number, averageStock: number): number {
+    if (consumed <= 0 || averageStock <= 0) return 0;
+    return Math.round((consumed / averageStock) * 100) / 100;
+  }
+
+  /**
+   * 在庫回転率に応じたラベルを返す
+   */
+  static getStockTurnoverRateLabel(rate: number): string {
+    if (rate >= StockAlertEntity.TURNOVER_HIGH_THRESHOLD) return '高回転';
+    if (rate >= StockAlertEntity.TURNOVER_MODERATE_THRESHOLD) return '普通';
+    return '低回転';
   }
 }
