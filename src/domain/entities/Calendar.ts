@@ -200,4 +200,35 @@ export class CalendarEntity {
     }
     return weeks.size;
   }
+
+  /**
+   * カレンダーデータを週単位に分割する
+   */
+  static getWeeksInMonth(days: CalendarDay[]): CalendarDay[][] {
+    if (days.length === 0) return [];
+    const weeks: CalendarDay[][] = [];
+    for (let i = 0; i < days.length; i += 7) {
+      weeks.push(days.slice(i, i + 7));
+    }
+    return weeks;
+  }
+
+  /**
+   * 週の日付範囲ラベルを生成する
+   */
+  static getWeekLabel(days: CalendarDay[]): string {
+    if (days.length === 0) return '';
+    const first = days[0].date;
+    if (days.length === 1) return `${first.getMonth() + 1}/${first.getDate()}`;
+    const last = days[days.length - 1].date;
+    return `${first.getMonth() + 1}/${first.getDate()} - ${last.getMonth() + 1}/${last.getDate()}`;
+  }
+
+  /**
+   * 週ごとの合計記録数を返す
+   */
+  static getMonthlyTrend(days: CalendarDay[]): number[] {
+    const weeks = CalendarEntity.getWeeksInMonth(days);
+    return weeks.map((week) => week.reduce((sum, d) => sum + d.recordCount, 0));
+  }
 }
