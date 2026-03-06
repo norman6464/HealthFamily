@@ -24,6 +24,10 @@ export interface Appointment {
  * 通院予約のビジネスロジック
  */
 export class AppointmentEntity {
+  private static readonly REMINDER_URGENT_DAYS = 1;
+  private static readonly REMINDER_SOON_DAYS = 3;
+  private static readonly REMINDER_NORMAL_DAYS = 7;
+
   constructor(private readonly appointment: Appointment) {}
 
   /**
@@ -126,9 +130,9 @@ export class AppointmentEntity {
    * 残り日数に応じたリマインダー緊急度を返す
    */
   static getReminderUrgency(daysUntil: number): 'urgent' | 'soon' | 'normal' | 'none' {
-    if (daysUntil <= 1) return 'urgent';
-    if (daysUntil <= 3) return 'soon';
-    if (daysUntil <= 7) return 'normal';
+    if (daysUntil <= AppointmentEntity.REMINDER_URGENT_DAYS) return 'urgent';
+    if (daysUntil <= AppointmentEntity.REMINDER_SOON_DAYS) return 'soon';
+    if (daysUntil <= AppointmentEntity.REMINDER_NORMAL_DAYS) return 'normal';
     return 'none';
   }
 
@@ -139,7 +143,7 @@ export class AppointmentEntity {
     if (this.isPast()) return '完了';
     if (this.isToday()) return '本日';
     const days = this.daysUntil();
-    if (days <= 3) return 'もうすぐ';
+    if (days <= AppointmentEntity.REMINDER_SOON_DAYS) return 'もうすぐ';
     return '予定';
   }
 
@@ -378,8 +382,8 @@ export class AppointmentEntity {
    * 残り日数に応じたリマインダー優先度を返す
    */
   static getReminderPriority(daysUntil: number): 'high' | 'medium' | 'low' {
-    if (daysUntil <= 1) return 'high';
-    if (daysUntil <= 3) return 'medium';
+    if (daysUntil <= AppointmentEntity.REMINDER_URGENT_DAYS) return 'high';
+    if (daysUntil <= AppointmentEntity.REMINDER_SOON_DAYS) return 'medium';
     return 'low';
   }
 
