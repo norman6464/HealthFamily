@@ -426,4 +426,52 @@ export class MedicationRecordEntity {
     const lastTime = new Date(sorted[sorted.length - 1].takenAt).getTime();
     return new Date(lastTime + stats.averageMinutes * 60 * 1000);
   }
+
+  /**
+   * 時間帯別（0-23時）の服薬回数分布を返す
+   */
+  static getHourlyDistribution(records: { takenAt: Date }[]): number[] {
+    const dist = new Array(24).fill(0);
+    for (const r of records) {
+      dist[new Date(r.takenAt).getHours()]++;
+    }
+    return dist;
+  }
+
+  /**
+   * 最終記録日からの未服薬日数を返す（記録なしは-1）
+   */
+  static getConsecutiveMissedDays(recordDateKeys: string[], todayKey: string): number {
+    if (recordDateKeys.length === 0) return -1;
+    const sorted = [...recordDateKeys].sort();
+    const lastDate = sorted[sorted.length - 1];
+    if (lastDate >= todayKey) return 0;
+    const last = new Date(lastDate);
+    const today = new Date(todayKey);
+    const diffMs = today.getTime() - last.getTime();
+    return Math.round(diffMs / (1000 * 60 * 60 * 24));
+  }
+
+  /**
+   * 服薬率に応じたコンプライアンスレベルを判定する
+   */
+  static getComplianceLevel(rate: number): 'excellent' | 'good' | 'fair' | 'poor' {
+    if (rate >= 90) return 'excellent';
+    if (rate >= 70) return 'good';
+    if (rate >= 50) return 'fair';
+    return 'poor';
+  }
+
+  /**
+   * コンプライアンスレベルの日本語ラベルを返す
+   */
+  static getComplianceLevelLabel(level: 'excellent' | 'good' | 'fair' | 'poor'): string {
+    const labels: Record<string, string> = {
+      excellent: '優秀',
+      good: '良好',
+      fair: '普通',
+      poor: '要改善',
+    };
+    return labels[level];
+  }
 }
