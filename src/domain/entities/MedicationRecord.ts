@@ -2,6 +2,7 @@
  * 服薬記録エンティティ
  */
 
+import { AdherenceStatsEntity } from './AdherenceStats';
 import { DateRangeHelper } from './DateRange';
 import { ScheduleEntity } from './Schedule';
 
@@ -270,23 +271,9 @@ export class MedicationRecordEntity {
    * 最長の連続記録日数を返す
    */
   static getLongestStreak(records: MedicationRecord[]): number {
-    if (records.length === 0) return 0;
-    const uniqueDates = [
-      ...new Set(records.map((r) => DateRangeHelper.toDateKey(new Date(r.takenAt)))),
-    ].sort();
-    let longest = 1;
-    let current = 1;
-    for (let i = 1; i < uniqueDates.length; i++) {
-      const prev = new Date(uniqueDates[i - 1] + 'T00:00:00');
-      const curr = new Date(uniqueDates[i] + 'T00:00:00');
-      if (DateRangeHelper.diffDays(prev, curr) === 1) {
-        current++;
-        longest = Math.max(longest, current);
-      } else {
-        current = 1;
-      }
-    }
-    return longest;
+    return AdherenceStatsEntity.calculateLongestStreak(
+      records.map((r) => new Date(r.takenAt)),
+    );
   }
 
   /**
