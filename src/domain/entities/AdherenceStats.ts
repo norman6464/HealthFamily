@@ -220,8 +220,7 @@ export class AdherenceStatsEntity {
    * マイルストーン日数かどうかを判定
    */
   static isStreakMilestone(streak: number): boolean {
-    const milestones = [7, 14, 30, 60, 90, 100, 180, 365];
-    return milestones.includes(streak);
+    return AdherenceStatsEntity.MILESTONES.includes(streak);
   }
 
   /**
