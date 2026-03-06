@@ -489,4 +489,24 @@ export class MemberEntity {
     if (diff >= 20) return 'メンバー間で差があります';
     return 'メンバー全体で安定しています';
   }
+
+  /**
+   * 日別記録件数から活動スコア(0-100)を算出する
+   * 記録がある日の割合をスコアとする
+   */
+  static getMemberActivityScore(dailyRecordCounts: number[]): number {
+    if (dailyRecordCounts.length === 0) return 0;
+    const activeDays = dailyRecordCounts.filter((c) => c > 0).length;
+    return Math.round((activeDays / dailyRecordCounts.length) * 100);
+  }
+
+  /**
+   * 活動スコアに応じたラベルを返す
+   */
+  static getActivityScoreLabel(score: number): string {
+    if (score >= 80) return '活発';
+    if (score >= 50) return '普通';
+    if (score >= 20) return '低調';
+    return '非活動';
+  }
 }

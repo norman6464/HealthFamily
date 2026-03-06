@@ -774,4 +774,29 @@ export class ScheduleEntity {
     if (days >= ScheduleEntity.STREAK_WEEK_THRESHOLD && days % ScheduleEntity.STREAK_WEEK_THRESHOLD === 0) return `${days / ScheduleEntity.STREAK_WEEK_THRESHOLD}週間連続`;
     return `${days}日連続`;
   }
+
+  private static readonly EFFICIENCY_MAX_DELAY = 120;
+
+  /**
+   * 遅延分数配列からスケジュール効率(0-100)を算出する
+   */
+  static getScheduleEfficiency(delayMinutes: number[]): number {
+    if (delayMinutes.length === 0) return 100;
+    const totalPenalty = delayMinutes.reduce((sum, delay) => {
+      const penalty = Math.min(delay, ScheduleEntity.EFFICIENCY_MAX_DELAY) / ScheduleEntity.EFFICIENCY_MAX_DELAY;
+      return sum + penalty;
+    }, 0);
+    const avgPenalty = totalPenalty / delayMinutes.length;
+    return Math.max(0, Math.round((1 - avgPenalty) * 100));
+  }
+
+  /**
+   * スケジュール効率に応じたラベルを返す
+   */
+  static getScheduleEfficiencyLabel(score: number): string {
+    if (score >= 90) return '優秀';
+    if (score >= 70) return '良好';
+    if (score >= 50) return '普通';
+    return '要改善';
+  }
 }

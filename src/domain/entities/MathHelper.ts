@@ -182,4 +182,23 @@ export class MathHelper {
     if (value >= MathHelper.WEIGHTED_AVG_NORMAL_THRESHOLD) return '普通';
     return '低い';
   }
+
+  /**
+   * 任意の値を0-100の範囲に正規化する
+   */
+  static normalizeToRange(value: number, min: number, max: number): number {
+    if (min >= max) return 100;
+    const clamped = Math.max(min, Math.min(max, value));
+    return Math.round(((clamped - min) / (max - min)) * 100);
+  }
+
+  /**
+   * 正規化された値に応じたラベルを返す
+   */
+  static getNormalizedRangeLabel(value: number): string {
+    if (value >= 80) return '高い';
+    if (value >= 50) return '中程度';
+    if (value >= 20) return '低い';
+    return '非常に低い';
+  }
 }
