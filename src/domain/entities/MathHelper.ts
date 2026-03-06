@@ -14,6 +14,8 @@ export class MathHelper {
   private static readonly OUTLIER_MINOR_RATE = 0.05;
   private static readonly GEOMETRIC_HIGH_THRESHOLD = 70;
   private static readonly GEOMETRIC_LOW_THRESHOLD = 30;
+  private static readonly ENTROPY_HIGH_THRESHOLD = 70;
+  private static readonly ENTROPY_LOW_THRESHOLD = 30;
 
   /**
    * パーセントを算出(0-100%)
@@ -327,5 +329,36 @@ export class MathHelper {
     if (mean >= MathHelper.GEOMETRIC_HIGH_THRESHOLD) return '高い';
     if (mean >= MathHelper.GEOMETRIC_LOW_THRESHOLD) return '中程度';
     return '低い';
+  }
+
+  /**
+   * 値配列のエントロピー(多様性)スコア(0-100)を算出する
+   * シャノンエントロピーを最大エントロピーで正規化
+   */
+  static getEntropyScore(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const counts = new Map<number, number>();
+    for (const v of values) {
+      counts.set(v, (counts.get(v) || 0) + 1);
+    }
+    if (counts.size <= 1) return 0;
+    const total = values.length;
+    let entropy = 0;
+    for (const count of counts.values()) {
+      const p = count / total;
+      if (p > 0) entropy -= p * Math.log2(p);
+    }
+    const maxEntropy = Math.log2(counts.size);
+    if (maxEntropy === 0) return 0;
+    return Math.round((entropy / maxEntropy) * 100);
+  }
+
+  /**
+   * エントロピースコアに応じたラベルを返す
+   */
+  static getEntropyLabel(score: number): string {
+    if (score >= MathHelper.ENTROPY_HIGH_THRESHOLD) return '多様';
+    if (score >= MathHelper.ENTROPY_LOW_THRESHOLD) return '普通';
+    return '均一';
   }
 }

@@ -34,6 +34,8 @@ export class AdherenceTrendEntity {
   private static readonly ADHERENCE_VOLATILITY_MAX_DIFF = 50;
   private static readonly ADHERENCE_VOLATILITY_STABLE_THRESHOLD = 30;
   private static readonly ADHERENCE_VOLATILITY_MODERATE_THRESHOLD = 60;
+  private static readonly RECOVERY_GOOD_THRESHOLD = 70;
+  private static readonly RECOVERY_MODERATE_THRESHOLD = 40;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -355,5 +357,52 @@ export class AdherenceTrendEntity {
     if (change >= AdherenceTrendEntity.WOW_CHANGE_THRESHOLD) return '改善';
     if (change <= -AdherenceTrendEntity.WOW_CHANGE_THRESHOLD) return '悪化';
     return '横ばい';
+  }
+
+  /**
+   * 遵守率配列から回復率(0-100)を算出する
+   * 低下後の最大回復割合を返す（低下がない場合は0）
+   */
+  static getAdherenceRecoveryRate(rates: number[]): number {
+    if (rates.length <= 1) return 0;
+    let maxRecoveryRate = 0;
+    let i = 0;
+    while (i < rates.length - 1) {
+      // 低下を検出
+      if (rates[i + 1] < rates[i]) {
+        const peakValue = rates[i];
+        let troughValue = rates[i + 1];
+        let j = i + 2;
+        // 最低値を探す
+        while (j < rates.length && rates[j] <= troughValue) {
+          troughValue = rates[j];
+          j++;
+        }
+        const drop = peakValue - troughValue;
+        if (drop > 0 && j < rates.length) {
+          // 回復を探す
+          let maxRecovery = 0;
+          for (let k = j; k < rates.length; k++) {
+            const recovery = rates[k] - troughValue;
+            if (recovery > maxRecovery) maxRecovery = recovery;
+          }
+          const recoveryRate = Math.min(100, Math.round((maxRecovery / drop) * 100));
+          if (recoveryRate > maxRecoveryRate) maxRecoveryRate = recoveryRate;
+        }
+        i = j;
+      } else {
+        i++;
+      }
+    }
+    return maxRecoveryRate;
+  }
+
+  /**
+   * 回復率に応じたラベルを返す
+   */
+  static getAdherenceRecoveryLabel(rate: number): string {
+    if (rate >= AdherenceTrendEntity.RECOVERY_GOOD_THRESHOLD) return '良好';
+    if (rate >= AdherenceTrendEntity.RECOVERY_MODERATE_THRESHOLD) return 'やや遅い';
+    return '低回復';
   }
 }
