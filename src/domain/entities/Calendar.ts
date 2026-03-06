@@ -381,4 +381,31 @@ export class CalendarEntity {
     if (cv >= 0.5) return 'やや偏り';
     return '均等';
   }
+
+  /**
+   * 記録件数配列から最長連続記録日数を算出する
+   */
+  static getConsecutiveRecordDays(recordCounts: number[]): number {
+    let maxStreak = 0;
+    let current = 0;
+    for (const count of recordCounts) {
+      if (count > 0) {
+        current++;
+        maxStreak = Math.max(maxStreak, current);
+      } else {
+        current = 0;
+      }
+    }
+    return maxStreak;
+  }
+
+  /**
+   * 連続記録日数のラベルを返す
+   */
+  static getConsecutiveRecordLabel(days: number): string {
+    if (days === 0) return '記録なし';
+    if (days % 30 === 0) return `${days / 30}ヶ月連続`;
+    if (days % 7 === 0) return `${days / 7}週間連続`;
+    return `${days}日連続`;
+  }
 }

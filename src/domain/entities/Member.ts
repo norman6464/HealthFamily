@@ -444,4 +444,24 @@ export class MemberEntity {
     if (activityLevel === 'high') return `${name}さんは活発に記録中（服薬率${adherenceRate}%）`;
     return `${name}さんの服薬率は${adherenceRate}%です`;
   }
+
+  /**
+   * 2つのスコアを比較する
+   */
+  static compareMemberScores(
+    score1: number,
+    score2: number,
+  ): { difference: number; higherLabel: string } {
+    const difference = score1 - score2;
+    const higherLabel = difference > 0 ? '高い' : difference < 0 ? '低い' : '同じ';
+    return { difference, higherLabel };
+  }
+
+  /**
+   * 順位のラベルを返す
+   */
+  static getMemberRankingLabel(rank: number): string {
+    if (rank <= 0) return 'ランク外';
+    return `${rank}位`;
+  }
 }
