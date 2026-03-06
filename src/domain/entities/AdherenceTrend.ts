@@ -211,7 +211,7 @@ export class AdherenceTrendEntity {
    */
   static getGoalProgress(current: number, goal: number): number {
     if (goal <= 0) return 100;
-    return Math.min(100, Math.round((current / goal) * 100));
+    return Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
   }
 
   /**
