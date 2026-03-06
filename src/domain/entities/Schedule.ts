@@ -794,6 +794,7 @@ export class ScheduleEntity {
   private static readonly BALANCE_NOON_BOUNDARY = 720;
   private static readonly BALANCE_HIGH_THRESHOLD = 70;
   private static readonly BALANCE_MODERATE_THRESHOLD = 40;
+  private static readonly COMPLETION_TREND_THRESHOLD = 0;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -966,5 +967,36 @@ export class ScheduleEntity {
     if (score >= ScheduleEntity.BALANCE_HIGH_THRESHOLD) return '均衡';
     if (score >= ScheduleEntity.BALANCE_MODERATE_THRESHOLD) return 'やや偏り';
     return '偏り';
+  }
+
+  /**
+   * 完了率配列から線形回帰の傾きを算出する
+   */
+  static getScheduleCompletionTrend(rates: number[]): number {
+    if (rates.length <= 1) return 0;
+    const n = rates.length;
+    let sumX = 0;
+    let sumY = 0;
+    let sumXY = 0;
+    let sumX2 = 0;
+    for (let i = 0; i < n; i++) {
+      sumX += i;
+      sumY += rates[i];
+      sumXY += i * rates[i];
+      sumX2 += i * i;
+    }
+    const denominator = n * sumX2 - sumX * sumX;
+    if (denominator === 0) return 0;
+    const slope = (n * sumXY - sumX * sumY) / denominator;
+    return Math.round(slope * 100) / 100;
+  }
+
+  /**
+   * 完了率推移方向に応じたラベルを返す
+   */
+  static getScheduleCompletionTrendLabel(slope: number): string {
+    if (slope > ScheduleEntity.COMPLETION_TREND_THRESHOLD) return '上昇';
+    if (slope < ScheduleEntity.COMPLETION_TREND_THRESHOLD) return '下降';
+    return '横ばい';
   }
 }

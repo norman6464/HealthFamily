@@ -50,6 +50,9 @@ export class MedicationRecordEntity {
   private static readonly DOSE_TIME_MAX_STDDEV = 180;
   private static readonly DOSE_TIME_ACCURATE_THRESHOLD = 20;
   private static readonly DOSE_TIME_SOMEWHAT_THRESHOLD = 50;
+  private static readonly DOSE_ACCURACY_MAX_DELAY = 120;
+  private static readonly DOSE_ACCURACY_HIGH_THRESHOLD = 80;
+  private static readonly DOSE_ACCURACY_MODERATE_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -797,5 +800,24 @@ export class MedicationRecordEntity {
     if (score < MedicationRecordEntity.DOSE_TIME_ACCURATE_THRESHOLD) return '正確';
     if (score < MedicationRecordEntity.DOSE_TIME_SOMEWHAT_THRESHOLD) return 'やや不規則';
     return '不規則';
+  }
+
+  /**
+   * 予定時刻との差分(分)配列から服薬正確度(0-100)を算出する
+   * 差分が小さいほど高スコア
+   */
+  static getDoseAccuracy(delayMinutes: number[]): number {
+    if (delayMinutes.length === 0) return 0;
+    const avgDelay = delayMinutes.reduce((a, b) => a + b, 0) / delayMinutes.length;
+    return Math.max(0, Math.round(100 - (avgDelay / MedicationRecordEntity.DOSE_ACCURACY_MAX_DELAY) * 100));
+  }
+
+  /**
+   * 服薬正確度に応じたラベルを返す
+   */
+  static getDoseAccuracyLabel(score: number): string {
+    if (score >= MedicationRecordEntity.DOSE_ACCURACY_HIGH_THRESHOLD) return '正確';
+    if (score >= MedicationRecordEntity.DOSE_ACCURACY_MODERATE_THRESHOLD) return 'やや遅れ';
+    return '不正確';
   }
 }
