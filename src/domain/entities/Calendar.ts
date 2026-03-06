@@ -231,4 +231,32 @@ export class CalendarEntity {
     const weeks = CalendarEntity.getWeeksInMonth(days);
     return weeks.map((week) => week.reduce((sum, d) => sum + d.recordCount, 0));
   }
+
+  /**
+   * 今月と先月の記録率を比較しメッセージを返す
+   */
+  static getMonthComparisonMessage(currentRate: number, previousRate: number): string {
+    const diff = currentRate - previousRate;
+    if (Math.abs(diff) <= 5) return '先月と同水準を維持しています';
+    if (diff > 0) return `先月より${diff}%改善しました`;
+    return `先月より${Math.abs(diff)}%低下しています`;
+  }
+
+  /**
+   * 記録密度のラベルを返す
+   */
+  static getRecordDensity(rate: number): string {
+    if (rate >= 80) return '高';
+    if (rate >= 50) return '中';
+    return '低';
+  }
+
+  /**
+   * 月間の記録サマリーテキストを生成する
+   */
+  static getMonthlyRecordSummary(recordDays: number, totalDays: number): string {
+    if (recordDays === 0 || totalDays === 0) return '今月の記録はありません';
+    if (recordDays === totalDays) return '毎日記録がつけられています';
+    return `${totalDays}日中${recordDays}日記録がつけられています`;
+  }
 }
