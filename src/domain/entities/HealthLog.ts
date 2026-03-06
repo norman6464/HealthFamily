@@ -298,8 +298,7 @@ export class HealthLogEntity {
    * 前週との体調変化率を算出(%)
    */
   static getConditionChangeRate(currentAvg: number, previousAvg: number): number {
-    if (previousAvg === 0) return 0;
-    return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
+    return MathHelper.calculateChangeRate(previousAvg, currentAvg);
   }
 
   /**
