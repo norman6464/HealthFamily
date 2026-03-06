@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { updateHospitalSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
+import { checkRateLimit } from '@/lib/security';
 
 const findHospital = (id: string) => prisma.hospital.findUnique({ where: { id } });
 
@@ -10,6 +11,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ hosp
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`hospitals-put:${userId}`, { maxRequests: 20, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+
     const { hospitalId } = await params;
     return withOwnershipCheck({
       userId,
@@ -39,6 +43,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ hosp
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ hospitalId: string }> }) {
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`hospitals-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { hospitalId } = await params;
     return withOwnershipCheck({
       userId,
