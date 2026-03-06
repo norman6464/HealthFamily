@@ -204,4 +204,37 @@ export class MathHelper {
     if (value >= MathHelper.NORMALIZED_LOW_THRESHOLD) return '低い';
     return '非常に低い';
   }
+
+  /**
+   * 2配列間のピアソン相関係数(-1〜1)を算出する
+   */
+  static getCorrelationCoefficient(x: number[], y: number[]): number {
+    const len = Math.min(x.length, y.length);
+    if (len <= 1) return 0;
+    const avgX = x.slice(0, len).reduce((a, b) => a + b, 0) / len;
+    const avgY = y.slice(0, len).reduce((a, b) => a + b, 0) / len;
+    let sumXY = 0;
+    let sumX2 = 0;
+    let sumY2 = 0;
+    for (let i = 0; i < len; i++) {
+      const dx = x[i] - avgX;
+      const dy = y[i] - avgY;
+      sumXY += dx * dy;
+      sumX2 += dx * dx;
+      sumY2 += dy * dy;
+    }
+    const denominator = Math.sqrt(sumX2 * sumY2);
+    if (denominator === 0) return 0;
+    return Math.round((sumXY / denominator) * 100) / 100;
+  }
+
+  /**
+   * 相関係数に応じたラベルを返す
+   */
+  static getCorrelationLabel(r: number): string {
+    const abs = Math.abs(r);
+    if (abs >= 0.7) return r > 0 ? '強い正相関' : '強い負相関';
+    if (abs >= 0.3) return r > 0 ? '弱い正相関' : '弱い負相関';
+    return '相関なし';
+  }
 }

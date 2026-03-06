@@ -461,4 +461,32 @@ export class CalendarEntity {
     if (rate >= CalendarEntity.COMPLETION_FAIR_THRESHOLD) return 'まずまず';
     return '要改善';
   }
+
+  /**
+   * 曜日番号配列(0=日〜6=土)から平日/休日の記録割合を算出する
+   */
+  static getWeekdayRecordBalance(dayOfWeeks: number[]): { weekdayRate: number; weekendRate: number } {
+    if (dayOfWeeks.length === 0) return { weekdayRate: 0, weekendRate: 0 };
+    let weekday = 0;
+    let weekend = 0;
+    for (const d of dayOfWeeks) {
+      if (d >= 1 && d <= 5) weekday++;
+      else weekend++;
+    }
+    const total = dayOfWeeks.length;
+    return {
+      weekdayRate: Math.round((weekday / total) * 100),
+      weekendRate: Math.round((weekend / total) * 100),
+    };
+  }
+
+  /**
+   * 平日/休日バランスに応じたラベルを返す
+   */
+  static getWeekdayBalanceLabel(weekdayRate: number, weekendRate: number): string {
+    if (weekdayRate === 0 && weekendRate === 0) return 'データ不足';
+    if (weekdayRate >= 80) return '平日に偏り';
+    if (weekendRate >= 60) return '休日に偏り';
+    return 'バランス良好';
+  }
 }
