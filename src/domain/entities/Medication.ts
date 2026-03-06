@@ -156,4 +156,38 @@ export class MedicationEntity {
     };
     return labels[status];
   }
+
+  private static readonly frequencyLabels: Record<string, string> = {
+    daily: '毎日',
+    twice_daily: '1日2回',
+    three_times_daily: '1日3回',
+    weekly: '週1回',
+    as_needed: '必要時',
+  };
+
+  /**
+   * 服薬頻度コードを日本語ラベルに変換する
+   */
+  static getFrequencyLabel(frequency: string): string {
+    return MedicationEntity.frequencyLabels[frequency] ?? frequency;
+  }
+
+  /**
+   * 在庫が補充推奨レベルかどうかを判定する
+   */
+  static isExpiringSoon(quantity: number | null, threshold: number = 5): boolean {
+    if (quantity === null) return false;
+    return quantity <= threshold;
+  }
+
+  /**
+   * 在庫数に応じた補充推奨メッセージを返す
+   */
+  static getRefillRecommendation(quantity: number | null): string {
+    if (quantity === null) return '在庫数が未設定です';
+    if (quantity === 0) return '今すぐ補充が必要です';
+    if (quantity <= 5) return '早めの補充をおすすめします';
+    if (quantity <= 10) return 'そろそろ補充を検討してください';
+    return '十分な在庫があります';
+  }
 }
