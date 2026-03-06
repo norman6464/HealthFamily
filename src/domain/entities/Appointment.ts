@@ -516,6 +516,7 @@ export class AppointmentEntity {
   private static readonly COMPLETION_FAIR_THRESHOLD = 50;
   private static readonly SPACING_EVEN_THRESHOLD = 80;
   private static readonly SPACING_MODERATE_THRESHOLD = 50;
+  private static readonly PUNCTUALITY_MAX_DELAY = 30;
 
   /**
    * 通院完了/未完了配列から完了率(0-100)を算出する
@@ -557,5 +558,25 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.SPACING_EVEN_THRESHOLD) return '均等';
     if (score >= AppointmentEntity.SPACING_MODERATE_THRESHOLD) return 'やや不均等';
     return '不均等';
+  }
+
+  /**
+   * 遅刻分数配列(絶対値)から時間厳守度スコア(0-100)を算出する
+   * 平均遅刻分数が少ないほど高スコア（最大30分基準）
+   */
+  static getAppointmentPunctuality(delayMinutes: number[]): number {
+    if (delayMinutes.length === 0) return 0;
+    const absDelays = delayMinutes.map(Math.abs);
+    const avg = absDelays.reduce((a, b) => a + b, 0) / absDelays.length;
+    return Math.max(0, Math.min(100, Math.round(100 - (avg / AppointmentEntity.PUNCTUALITY_MAX_DELAY) * 100)));
+  }
+
+  /**
+   * 時間厳守度スコアに応じたラベルを返す
+   */
+  static getAppointmentPunctualityLabel(score: number): string {
+    if (score >= 80) return '時間厳守';
+    if (score >= 50) return 'やや遅れ';
+    return '遅刻傾向';
   }
 }

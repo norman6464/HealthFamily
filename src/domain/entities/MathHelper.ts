@@ -276,6 +276,26 @@ export class MathHelper {
   }
 
   /**
+   * 調和平均を算出する（0以下の値を含む場合は0）
+   */
+  static getHarmonicMean(values: number[]): number {
+    if (values.length === 0) return 0;
+    if (values.some((v) => v <= 0)) return 0;
+    const sumReciprocals = values.reduce((sum, v) => sum + 1 / v, 0);
+    const mean = values.length / sumReciprocals;
+    return Math.round(mean * 100) / 100;
+  }
+
+  /**
+   * 調和平均に応じたラベルを返す
+   */
+  static getHarmonicMeanLabel(mean: number): string {
+    if (mean >= MathHelper.GEOMETRIC_HIGH_THRESHOLD) return '高い';
+    if (mean >= MathHelper.GEOMETRIC_LOW_THRESHOLD) return '中程度';
+    return '低い';
+  }
+
+  /**
    * 幾何平均に応じたラベルを返す
    */
   static getGeometricMeanLabel(mean: number): string {
