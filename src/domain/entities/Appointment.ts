@@ -38,6 +38,8 @@ export class AppointmentEntity {
   private static readonly CLUSTER_SCORE_HIGH_THRESHOLD = 60;
   private static readonly CLUSTER_SCORE_MODERATE_THRESHOLD = 30;
   private static readonly CLUSTER_MAX_CV = 2;
+  private static readonly DENSITY_HIGH_THRESHOLD = 70;
+  private static readonly DENSITY_MODERATE_THRESHOLD = 30;
 
   constructor(private readonly appointment: Appointment) {}
 
@@ -651,5 +653,23 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.CLUSTER_SCORE_HIGH_THRESHOLD) return '集中';
     if (score >= AppointmentEntity.CLUSTER_SCORE_MODERATE_THRESHOLD) return 'やや集中';
     return '分散';
+  }
+
+  /**
+   * 予約密度スコア(0-100)を算出する
+   * 予約件数/日数の割合（1件/日を100%基準）
+   */
+  static getAppointmentDensityScore(appointmentCount: number, totalDays: number): number {
+    if (totalDays <= 0 || appointmentCount <= 0) return 0;
+    return Math.min(100, Math.round((appointmentCount / totalDays) * 100));
+  }
+
+  /**
+   * 予約密度スコアに応じたラベルを返す
+   */
+  static getAppointmentDensityScoreLabel(score: number): string {
+    if (score >= AppointmentEntity.DENSITY_HIGH_THRESHOLD) return '密';
+    if (score >= AppointmentEntity.DENSITY_MODERATE_THRESHOLD) return '適度';
+    return '疎';
   }
 }

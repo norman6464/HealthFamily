@@ -43,6 +43,8 @@ export class MathHelper {
   private static readonly RMS_MEDIUM_THRESHOLD = 30;
   private static readonly RANGE_NARROW_THRESHOLD = 10;
   private static readonly RANGE_MODERATE_THRESHOLD = 25;
+  private static readonly PMEAN_HIGH_THRESHOLD = 70;
+  private static readonly PMEAN_MEDIUM_THRESHOLD = 30;
 
   /**
    * パーセントを算出(0-100%)
@@ -758,5 +760,24 @@ export class MathHelper {
     if (range < MathHelper.RANGE_NARROW_THRESHOLD) return '狭い';
     if (range < MathHelper.RANGE_MODERATE_THRESHOLD) return 'やや広い';
     return '広い';
+  }
+
+  /**
+   * べき平均（一般化平均）を算出する
+   * p=0の場合は0を返す
+   */
+  static getPowerMean(values: number[], p: number): number {
+    if (values.length === 0 || p === 0) return 0;
+    const sumPow = values.reduce((sum, v) => sum + Math.pow(Math.abs(v), p), 0);
+    return Math.round(Math.pow(sumPow / values.length, 1 / p) * 100) / 100;
+  }
+
+  /**
+   * べき平均に応じたラベルを返す
+   */
+  static getPowerMeanLabel(value: number): string {
+    if (value >= MathHelper.PMEAN_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.PMEAN_MEDIUM_THRESHOLD) return '中程度';
+    return '低い';
   }
 }
