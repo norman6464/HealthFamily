@@ -747,4 +747,29 @@ export class ScheduleEntity {
     if (score >= 50) return 'やや偏り';
     return '偏りあり';
   }
+
+  /**
+   * 完了履歴から末尾の連続完了日数を算出する
+   */
+  static getScheduleCompletionStreak(completionHistory: boolean[]): number {
+    let streak = 0;
+    for (let i = completionHistory.length - 1; i >= 0; i--) {
+      if (completionHistory[i]) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  /**
+   * 連続完了日数に応じたラベルを返す
+   */
+  static getCompletionStreakLabel(days: number): string {
+    if (days === 0) return '記録なし';
+    if (days >= 30) return '1ヶ月連続';
+    if (days >= 7 && days % 7 === 0) return `${days / 7}週間連続`;
+    return `${days}日連続`;
+  }
 }

@@ -264,4 +264,33 @@ export class DateRangeHelper {
   static getBusinessDayLabel(date: Date): string {
     return DateRangeHelper.isWeekend(date) ? '休日' : '営業日';
   }
+
+  /**
+   * 相対日付ラベルを返す（今日、昨日、明日、N日前、N日後、N週間前）
+   */
+  static getRelativeDateLabel(date: Date, today: Date): string {
+    const diff = DateRangeHelper.diffDays(today, date);
+    if (diff === 0) return '今日';
+    if (diff === 1) return '明日';
+    if (diff === -1) return '昨日';
+    if (diff < 0 && diff % 7 === 0) return `${Math.abs(diff) / 7}週間前`;
+    if (diff < 0) return `${Math.abs(diff)}日前`;
+    if (diff > 0 && diff % 7 === 0) return `${diff / 7}週間後`;
+    return `${diff}日後`;
+  }
+
+  /**
+   * 日付文字列配列が全て連続しているかチェックする
+   */
+  static isConsecutiveDates(dateKeys: string[]): boolean {
+    if (dateKeys.length <= 1) return true;
+    for (let i = 1; i < dateKeys.length; i++) {
+      const prev = new Date(dateKeys[i - 1]);
+      const curr = new Date(dateKeys[i]);
+      const diffMs = curr.getTime() - prev.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays !== 1) return false;
+    }
+    return true;
+  }
 }

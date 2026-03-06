@@ -385,4 +385,29 @@ export class StockAlertEntity {
     if (days <= StockAlertEntity.DEPLETION_COMFORT_THRESHOLD) return 'やや余裕';
     return '余裕あり';
   }
+
+  /**
+   * 複数薬の残日数から一括在庫ステータスを判定する
+   */
+  static getBulkStockStatus(items: { remainingDays: number }[]): string {
+    if (items.length === 0) return 'データなし';
+    const hasUrgent = items.some((i) => i.remainingDays <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD);
+    if (hasUrgent) return '緊急';
+    const hasWarning = items.some((i) => i.remainingDays <= StockAlertEntity.WARNING_DAYS_THRESHOLD);
+    if (hasWarning) return '注意';
+    return '安心';
+  }
+
+  /**
+   * 一括在庫ステータスに応じたメッセージを返す
+   */
+  static getBulkStockLabel(status: string): string {
+    const labels: Record<string, string> = {
+      '緊急': '早急に補充が必要です',
+      '注意': 'そろそろ補充を検討してください',
+      '安心': '在庫に余裕があります',
+      'データなし': '在庫データがありません',
+    };
+    return labels[status] ?? '在庫データがありません';
+  }
 }
