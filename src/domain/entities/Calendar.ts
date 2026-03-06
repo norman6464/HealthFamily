@@ -176,4 +176,27 @@ export class CalendarEntity {
   static formatDateKey(date: Date): string {
     return DateRangeHelper.toDateKey(date);
   }
+
+  /**
+   * 月間の記録日数率(0-100)を返す（当月の日のみ対象）
+   */
+  static getMonthlyRecordRate(days: CalendarDay[]): number {
+    const currentMonthDays = days.filter((d) => d.isCurrentMonth);
+    if (currentMonthDays.length === 0) return 0;
+    const daysWithRecords = currentMonthDays.filter((d) => d.recordCount > 0).length;
+    return Math.round((daysWithRecords / currentMonthDays.length) * 100);
+  }
+
+  /**
+   * 記録がある週の数を返す
+   */
+  static getActiveWeeks(days: CalendarDay[]): number {
+    const weeks = new Set<number>();
+    for (const day of days) {
+      if (day.recordCount > 0) {
+        weeks.add(DateRangeHelper.getWeekNumber(day.date));
+      }
+    }
+    return weeks.size;
+  }
 }
