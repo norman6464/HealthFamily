@@ -775,6 +775,8 @@ export class ScheduleEntity {
     return `${days}日連続`;
   }
 
+  private static readonly COVERAGE_HIGH_THRESHOLD = 80;
+  private static readonly COVERAGE_NORMAL_THRESHOLD = 50;
   private static readonly EFFICIENCY_MAX_DELAY = 120;
   private static readonly EFFICIENCY_EXCELLENT_THRESHOLD = 90;
   private static readonly EFFICIENCY_GOOD_THRESHOLD = 70;
@@ -818,8 +820,8 @@ export class ScheduleEntity {
    * 曜日カバー率に応じたラベルを返す
    */
   static getScheduleCoverageLabel(coverage: number): string {
-    if (coverage >= 80) return '完全';
-    if (coverage >= 50) return '普通';
+    if (coverage >= ScheduleEntity.COVERAGE_HIGH_THRESHOLD) return '完全';
+    if (coverage >= ScheduleEntity.COVERAGE_NORMAL_THRESHOLD) return '普通';
     return '不足';
   }
 
