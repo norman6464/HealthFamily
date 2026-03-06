@@ -64,4 +64,35 @@ export class MemberSummaryEntity {
     };
     return labels[memberType] ?? memberType;
   }
+
+  /**
+   * 薬の登録数で降順ソートする
+   */
+  static rankByMedicationCount(members: MemberSummary[]): MemberSummary[] {
+    return [...members].sort((a, b) => b.medicationCount - a.medicationCount);
+  }
+
+  /**
+   * メンバー種別でフィルタする
+   */
+  static filterByType(members: MemberSummary[], type: string): MemberSummary[] {
+    return members.filter((m) => m.memberType === type);
+  }
+
+  /**
+   * グループ全体のアクティビティ集計を返す
+   */
+  static getGroupActivitySummary(members: MemberSummary[]): {
+    totalMembers: number;
+    withMedications: number;
+    withAppointments: number;
+    totalMedications: number;
+  } {
+    return {
+      totalMembers: members.length,
+      withMedications: members.filter((m) => m.medicationCount > 0).length,
+      withAppointments: members.filter((m) => m.nextAppointmentDate !== null).length,
+      totalMedications: members.reduce((sum, m) => sum + m.medicationCount, 0),
+    };
+  }
 }
