@@ -4,6 +4,7 @@ import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize } from '@/lib/api-helpers';
 import { ScheduleEntity, Schedule } from '@/domain/entities/Schedule';
 import { QUERY_LIMITS } from '@/lib/constants';
+import { checkRateLimit } from '@/lib/security';
 
 export const GET = withAuth(async (userId) => {
   const schedules = await prisma.schedule.findMany({ where: { userId }, take: QUERY_LIMITS.SCHEDULES });
@@ -15,6 +16,9 @@ export async function POST(request: Request) {
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
+    const rateLimitError = checkRateLimit(userId, 'schedules-post', 15);
+    if (rateLimitError) return rateLimitError;
+
     const body = await request.json();
     const parsed = createScheduleSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
