@@ -3,6 +3,7 @@
  */
 
 import { DateRangeHelper } from './DateRange';
+import { MathHelper } from './MathHelper';
 
 export interface CalendarDay {
   date: Date;
@@ -184,7 +185,7 @@ export class CalendarEntity {
     const currentMonthDays = days.filter((d) => d.isCurrentMonth);
     if (currentMonthDays.length === 0) return 0;
     const daysWithRecords = currentMonthDays.filter((d) => d.recordCount > 0).length;
-    return Math.round((daysWithRecords / currentMonthDays.length) * 100);
+    return MathHelper.calculatePercentage(daysWithRecords, currentMonthDays.length);
   }
 
   /**
