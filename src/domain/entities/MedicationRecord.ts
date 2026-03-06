@@ -524,4 +524,47 @@ export class MedicationRecordEntity {
     if (score >= 50) return '要改善';
     return '不十分';
   }
+
+  /**
+   * 時間帯別の服薬回数を集計する
+   */
+  static getMedicationPatternByTimeOfDay(times: string[]): {
+    morning: number;
+    afternoon: number;
+    evening: number;
+    night: number;
+  } {
+    const result = { morning: 0, afternoon: 0, evening: 0, night: 0 };
+    for (const time of times) {
+      const hour = parseInt(time.split(':')[0], 10);
+      if (hour >= 5 && hour < 12) {
+        result.morning++;
+      } else if (hour >= 12 && hour < 17) {
+        result.afternoon++;
+      } else if (hour >= 17 && hour < 21) {
+        result.evening++;
+      } else {
+        result.night++;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * 服薬パターンのラベルを返す
+   */
+  static getMedicationPatternLabel(pattern: {
+    morning: number;
+    afternoon: number;
+    evening: number;
+    night: number;
+  }): string {
+    const total = pattern.morning + pattern.afternoon + pattern.evening + pattern.night;
+    if (total === 0) return '均等';
+    if (pattern.morning / total > 0.5) return '朝型';
+    if (pattern.night / total > 0.5) return '夜型';
+    if (pattern.afternoon / total > 0.5) return '午後型';
+    if (pattern.evening / total > 0.5) return '夕方型';
+    return '均等';
+  }
 }
