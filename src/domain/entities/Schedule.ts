@@ -36,6 +36,9 @@ export class ScheduleEntity {
   private static readonly TIME_PERIOD_AFTERNOON_START = 12;
   private static readonly TIME_PERIOD_EVENING_START = 17;
   private static readonly TIME_PERIOD_NIGHT_START = 21;
+  private static readonly PROXIMITY_IMMINENT_MINUTES = 15;
+  private static readonly PROXIMITY_SOON_MINUTES = 30;
+  private static readonly PROXIMITY_NEAR_MINUTES = 60;
 
   constructor(private readonly schedule: Schedule) {}
 
@@ -117,8 +120,8 @@ export class ScheduleEntity {
     if (diffMs <= 0) return 'none';
 
     const diffMinutes = diffMs / (1000 * 60);
-    if (diffMinutes >= 60) return 'danger';
-    if (diffMinutes >= 30) return 'warning';
+    if (diffMinutes >= ScheduleEntity.PROXIMITY_NEAR_MINUTES) return 'danger';
+    if (diffMinutes >= ScheduleEntity.PROXIMITY_SOON_MINUTES) return 'warning';
     return 'none';
   }
 
@@ -251,8 +254,8 @@ export class ScheduleEntity {
    * 時間差(分)に応じた近接レベルを返す
    */
   static getTimeProximityLevel(diffMinutes: number): 'warning' | 'info' | 'none' {
-    if (diffMinutes <= 15) return 'warning';
-    if (diffMinutes <= 30) return 'info';
+    if (diffMinutes <= ScheduleEntity.PROXIMITY_IMMINENT_MINUTES) return 'warning';
+    if (diffMinutes <= ScheduleEntity.PROXIMITY_SOON_MINUTES) return 'info';
     return 'none';
   }
 
@@ -624,9 +627,9 @@ export class ScheduleEntity {
   static getNotificationPriority(status: ScheduleStatus, minutesUntil: number): number {
     if (status === 'completed') return 0;
     if (status === 'overdue') return 10;
-    if (minutesUntil <= 15) return 8;
-    if (minutesUntil <= 30) return 6;
-    if (minutesUntil <= 60) return 4;
+    if (minutesUntil <= ScheduleEntity.PROXIMITY_IMMINENT_MINUTES) return 8;
+    if (minutesUntil <= ScheduleEntity.PROXIMITY_SOON_MINUTES) return 6;
+    if (minutesUntil <= ScheduleEntity.PROXIMITY_NEAR_MINUTES) return 4;
     return 2;
   }
 
