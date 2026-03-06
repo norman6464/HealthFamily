@@ -40,6 +40,9 @@ export class StockAlertEntity {
   private static readonly BURN_RATE_MODERATE_THRESHOLD = 40;
   private static readonly TURNOVER_HIGH_THRESHOLD = 2;
   private static readonly TURNOVER_MODERATE_THRESHOLD = 0.5;
+  private static readonly VOLATILITY_MAX_DIFF = 50;
+  private static readonly VOLATILITY_STABLE_THRESHOLD = 30;
+  private static readonly VOLATILITY_MODERATE_THRESHOLD = 60;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -585,5 +588,28 @@ export class StockAlertEntity {
     if (rate >= StockAlertEntity.TURNOVER_HIGH_THRESHOLD) return '高回転';
     if (rate >= StockAlertEntity.TURNOVER_MODERATE_THRESHOLD) return '普通';
     return '低回転';
+  }
+
+  /**
+   * 在庫量配列から変動性スコア(0-100)を算出する
+   * 隣接値の差分の平均をスコア化（最大差50基準）
+   */
+  static getStockVolatility(stockLevels: number[]): number {
+    if (stockLevels.length <= 1) return 0;
+    let totalDiff = 0;
+    for (let i = 1; i < stockLevels.length; i++) {
+      totalDiff += Math.abs(stockLevels[i] - stockLevels[i - 1]);
+    }
+    const avgDiff = totalDiff / (stockLevels.length - 1);
+    return Math.min(100, Math.round((avgDiff / StockAlertEntity.VOLATILITY_MAX_DIFF) * 100));
+  }
+
+  /**
+   * 在庫変動性スコアに応じたラベルを返す
+   */
+  static getStockVolatilityLabel(score: number): string {
+    if (score <= StockAlertEntity.VOLATILITY_STABLE_THRESHOLD) return '安定';
+    if (score <= StockAlertEntity.VOLATILITY_MODERATE_THRESHOLD) return 'やや変動';
+    return '変動大';
   }
 }
