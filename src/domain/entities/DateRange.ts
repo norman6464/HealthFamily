@@ -100,6 +100,8 @@ export class DateRangeHelper {
   private static readonly CLUSTER_MAX_INTERVAL = 30;
   private static readonly CLUSTER_DENSE_THRESHOLD = 70;
   private static readonly CLUSTER_MODERATE_THRESHOLD = 40;
+  private static readonly SPAN_SHORT_THRESHOLD = 14;
+  private static readonly SPAN_LONG_THRESHOLD = 90;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -335,8 +337,8 @@ export class DateRangeHelper {
    */
   static getDateSpanLabel(days: number): string {
     if (days === 0) return '当日';
-    if (days < 14) return '短期間';
-    if (days < 90) return '中期間';
+    if (days < DateRangeHelper.SPAN_SHORT_THRESHOLD) return '短期間';
+    if (days < DateRangeHelper.SPAN_LONG_THRESHOLD) return '中期間';
     return '長期間';
   }
 }

@@ -39,6 +39,8 @@ export class MedicationRecordEntity {
   private static readonly TIMING_MAX_STDDEV = 60;
   private static readonly TIMING_STABLE_THRESHOLD = 70;
   private static readonly TIMING_MODERATE_THRESHOLD = 40;
+  private static readonly STREAK_GOOD_THRESHOLD = 7;
+  private static readonly STREAK_EXCELLENT_THRESHOLD = 30;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -718,8 +720,8 @@ export class MedicationRecordEntity {
    */
   static getAdherenceStreakLabel(days: number): string {
     if (days === 0) return '未達成';
-    if (days < 7) return '継続中';
-    if (days < 30) return '好調';
+    if (days < MedicationRecordEntity.STREAK_GOOD_THRESHOLD) return '継続中';
+    if (days < MedicationRecordEntity.STREAK_EXCELLENT_THRESHOLD) return '好調';
     return '素晴らしい';
   }
 }
