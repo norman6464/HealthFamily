@@ -438,4 +438,44 @@ export class ScheduleEntity {
   static hasAnyOverlap(overlaps: { scheduleIds: string[]; time: string; day: string }[]): boolean {
     return overlaps.length > 0;
   }
+
+  private static readonly VALID_DAYS: readonly DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+  /**
+   * 曜日配列のバリデーション
+   */
+  static validateDaysOfWeek(days: string[]): { valid: boolean; error?: string } {
+    for (const day of days) {
+      if (!ScheduleEntity.VALID_DAYS.includes(day as DayOfWeek)) {
+        return { valid: false, error: `無効な曜日が含まれています: ${day}` };
+      }
+    }
+    return { valid: true };
+  }
+
+  /**
+   * 曜日配列の正規化（重複除去・曜日順ソート）
+   */
+  static normalizeDaysOfWeek(days: DayOfWeek[]): DayOfWeek[] {
+    const unique = [...new Set(days)];
+    return unique.sort((a, b) =>
+      ScheduleEntity.VALID_DAYS.indexOf(a) - ScheduleEntity.VALID_DAYS.indexOf(b),
+    );
+  }
+
+  /**
+   * 曜日配列をサマリーテキストにフォーマットする
+   */
+  static formatDaysOfWeekSummary(days: DayOfWeek[]): string {
+    if (days.length === 0 || days.length === 7) return '毎日';
+
+    const sorted = ScheduleEntity.normalizeDaysOfWeek(days);
+    const weekdays: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri'];
+    const weekend: DayOfWeek[] = ['sat', 'sun'];
+
+    if (sorted.length === 5 && weekdays.every((d) => sorted.includes(d))) return '平日';
+    if (sorted.length === 2 && weekend.every((d) => sorted.includes(d))) return '週末';
+
+    return sorted.map((d) => ScheduleEntity.DAY_LABELS[d]).join(', ');
+  }
 }
