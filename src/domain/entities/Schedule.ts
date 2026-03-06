@@ -776,6 +776,9 @@ export class ScheduleEntity {
   }
 
   private static readonly EFFICIENCY_MAX_DELAY = 120;
+  private static readonly EFFICIENCY_EXCELLENT_THRESHOLD = 90;
+  private static readonly EFFICIENCY_GOOD_THRESHOLD = 70;
+  private static readonly EFFICIENCY_NORMAL_THRESHOLD = 50;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -794,9 +797,9 @@ export class ScheduleEntity {
    * スケジュール効率に応じたラベルを返す
    */
   static getScheduleEfficiencyLabel(score: number): string {
-    if (score >= 90) return '優秀';
-    if (score >= 70) return '良好';
-    if (score >= 50) return '普通';
+    if (score >= ScheduleEntity.EFFICIENCY_EXCELLENT_THRESHOLD) return '優秀';
+    if (score >= ScheduleEntity.EFFICIENCY_GOOD_THRESHOLD) return '良好';
+    if (score >= ScheduleEntity.EFFICIENCY_NORMAL_THRESHOLD) return '普通';
     return '要改善';
   }
 }
