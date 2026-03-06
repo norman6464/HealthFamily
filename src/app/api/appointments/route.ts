@@ -26,8 +26,8 @@ export async function POST(request: Request) {
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
-    const rateLimitError = checkRateLimit(userId, 'appointments-post', 10);
-    if (rateLimitError) return rateLimitError;
+    const { allowed } = checkRateLimit(`appointments-post:${userId}`, { maxAttempts: 10, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
 
     const body = await request.json();
     const parsed = createAppointmentSchema.safeParse(body);
