@@ -196,4 +196,34 @@ export class StockAlertEntity {
     if (days % 7 === 0 && days >= 7) return `あと${days / 7}週間`;
     return `あと${days}日`;
   }
+
+  /**
+   * 残日数に応じた在庫予測メッセージを返す
+   */
+  static getStockForecastMessage(remainingDays: number | null): string {
+    if (remainingDays === null) return '在庫数が不明です';
+    if (remainingDays === 0) return '在庫がありません';
+    if (remainingDays <= 3) return `あと${remainingDays}日分の在庫です。早急に補充してください`;
+    if (remainingDays <= 7) return `あと${remainingDays}日分の在庫です。補充を検討してください`;
+    return `あと${remainingDays}日分の在庫があります`;
+  }
+
+  /**
+   * 補充の緊急度を判定する
+   */
+  static getRefillUrgency(remainingDays: number | null): 'critical' | 'urgent' | 'warning' | 'normal' | 'unknown' {
+    if (remainingDays === null) return 'unknown';
+    if (remainingDays === 0) return 'critical';
+    if (remainingDays <= 3) return 'urgent';
+    if (remainingDays <= 7) return 'warning';
+    return 'normal';
+  }
+
+  /**
+   * 在庫切れまでの日数を算出する（切り捨て）
+   */
+  static getDaysUntilStockout(stockQuantity: number | null, dailyConsumption: number): number | null {
+    if (stockQuantity === null || dailyConsumption <= 0) return null;
+    return Math.floor(stockQuantity / dailyConsumption);
+  }
 }
