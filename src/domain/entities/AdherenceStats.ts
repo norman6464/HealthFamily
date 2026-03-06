@@ -366,4 +366,38 @@ export class AdherenceStatsEntity {
   static getMilestoneAchievementMessage(streak: number): string | null {
     return AdherenceStatsEntity.milestoneMessages[streak] ?? null;
   }
+
+  /**
+   * 今週と先週の服薬率を比較する
+   */
+  static getWeeklyComparison(
+    currentRate: number,
+    previousRate: number,
+  ): { diff: number; direction: 'up' | 'down' | 'stable' } {
+    const diff = currentRate - previousRate;
+    if (Math.abs(diff) <= 5) return { diff, direction: 'stable' };
+    return { diff, direction: diff > 0 ? 'up' : 'down' };
+  }
+
+  /**
+   * 週間トレンドのラベルを返す
+   */
+  static getWeeklyTrendLabel(direction: 'up' | 'down' | 'stable'): string {
+    const labels: Record<string, string> = {
+      up: '改善',
+      down: '低下',
+      stable: '維持',
+    };
+    return labels[direction];
+  }
+
+  /**
+   * 服薬率に応じた改善提案メッセージを返す
+   */
+  static getImprovementSuggestion(rate: number): string {
+    if (rate >= 90) return 'この調子を維持しましょう';
+    if (rate >= 70) return 'あと少しで目標達成です';
+    if (rate >= 50) return '服薬を習慣化していきましょう';
+    return 'リマインダーを活用してみましょう';
+  }
 }
