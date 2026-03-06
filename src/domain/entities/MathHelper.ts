@@ -49,6 +49,7 @@ export class MathHelper {
   private static readonly MSE_MODERATE_THRESHOLD = 25;
   private static readonly JACCARD_HIGH_THRESHOLD = 70;
   private static readonly JACCARD_MODERATE_THRESHOLD = 40;
+  private static readonly LR_SLOPE_THRESHOLD = 0.1;
 
   /**
    * パーセントを算出(0-100%)
@@ -827,5 +828,37 @@ export class MathHelper {
     if (similarity >= MathHelper.JACCARD_HIGH_THRESHOLD) return '類似';
     if (similarity >= MathHelper.JACCARD_MODERATE_THRESHOLD) return 'やや類似';
     return '異なる';
+  }
+
+  /**
+   * 単純線形回帰の傾きと切片を算出する
+   * x軸はインデックス（0, 1, 2, ...）
+   */
+  static getSimpleLinearRegression(values: number[]): {
+    slope: number;
+    intercept: number;
+  } {
+    if (values.length === 0) return { slope: 0, intercept: 0 };
+    if (values.length === 1) return { slope: 0, intercept: values[0] };
+    const n = values.length;
+    const sumX = (n * (n - 1)) / 2;
+    const sumY = values.reduce((a, b) => a + b, 0);
+    const sumXY = values.reduce((sum, y, x) => sum + x * y, 0);
+    const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    return {
+      slope: Math.round(slope * 100) / 100,
+      intercept: Math.round(intercept * 100) / 100,
+    };
+  }
+
+  /**
+   * 線形回帰の傾きに応じたラベルを返す
+   */
+  static getSimpleLinearRegressionLabel(slope: number): string {
+    if (slope > MathHelper.LR_SLOPE_THRESHOLD) return '上昇';
+    if (slope < -MathHelper.LR_SLOPE_THRESHOLD) return '下降';
+    return '横ばい';
   }
 }

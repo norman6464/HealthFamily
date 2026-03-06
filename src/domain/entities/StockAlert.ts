@@ -49,6 +49,9 @@ export class StockAlertEntity {
   private static readonly SAFETY_MARGIN_MAX_DAYS = 30;
   private static readonly SAFETY_MARGIN_SAFE_THRESHOLD = 70;
   private static readonly SAFETY_MARGIN_CAUTION_THRESHOLD = 30;
+  private static readonly CONSISTENCY_MAX_STDDEV = 50;
+  private static readonly CONSISTENCY_HIGH_THRESHOLD = 80;
+  private static readonly CONSISTENCY_MODERATE_THRESHOLD = 50;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -657,5 +660,34 @@ export class StockAlertEntity {
     if (score >= StockAlertEntity.SAFETY_MARGIN_SAFE_THRESHOLD) return '安全';
     if (score >= StockAlertEntity.SAFETY_MARGIN_CAUTION_THRESHOLD) return '注意';
     return '危険';
+  }
+
+  /**
+   * 在庫レベルの一貫性スコアを算出する（0-100）
+   * 標準偏差が小さいほどスコアが高い
+   */
+  static getStockConsistencyScore(stockLevels: number[]): number {
+    if (stockLevels.length <= 1) return stockLevels.length === 0 ? 0 : 100;
+    const avg = stockLevels.reduce((a, b) => a + b, 0) / stockLevels.length;
+    if (avg === 0) return 0;
+    const variance =
+      stockLevels.reduce((sum, v) => sum + (v - avg) ** 2, 0) / stockLevels.length;
+    const stdDev = Math.sqrt(variance);
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(100 - (stdDev / StockAlertEntity.CONSISTENCY_MAX_STDDEV) * 100)
+      )
+    );
+  }
+
+  /**
+   * 在庫一貫性スコアに応じたラベルを返す
+   */
+  static getStockConsistencyScoreLabel(score: number): string {
+    if (score >= StockAlertEntity.CONSISTENCY_HIGH_THRESHOLD) return '安定';
+    if (score >= StockAlertEntity.CONSISTENCY_MODERATE_THRESHOLD) return 'やや不安定';
+    return '不安定';
   }
 }
