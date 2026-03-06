@@ -301,4 +301,41 @@ export class ScheduleEntity {
   get data(): Schedule {
     return this.schedule;
   }
+
+  /**
+   * 同じ時間・同じ曜日の重複スケジュールを検知する
+   */
+  static findOverlappingSchedules(
+    schedules: { id: string; time: string; daysOfWeek: string[]; medicationName: string }[],
+  ): { scheduleIds: string[]; time: string; day: string }[] {
+    const overlaps: { scheduleIds: string[]; time: string; day: string }[] = [];
+    for (let i = 0; i < schedules.length; i++) {
+      for (let j = i + 1; j < schedules.length; j++) {
+        const a = schedules[i];
+        const b = schedules[j];
+        if (a.time !== b.time) continue;
+        const aDays = a.daysOfWeek.length === 0 ? ['every'] : a.daysOfWeek;
+        const bDays = b.daysOfWeek.length === 0 ? ['every'] : b.daysOfWeek;
+        const commonDays = aDays.filter((d) => bDays.includes(d) || d === 'every' || bDays.includes('every'));
+        if (commonDays.length > 0) {
+          overlaps.push({ scheduleIds: [a.id, b.id], time: a.time, day: commonDays[0] });
+        }
+      }
+    }
+    return overlaps;
+  }
+
+  /**
+   * 2つの時間が近すぎないかチェック（デフォルト15分以内）
+   */
+  static hasTimeConflict(time1: string, time2: string, thresholdMinutes: number = 15): boolean {
+    return ScheduleEntity.getTimeDiffMinutes(time1, time2) <= thresholdMinutes;
+  }
+
+  /**
+   * 重複検知時のメッセージを生成
+   */
+  static getConflictMessage(medicationNameA: string, medicationNameB: string, time: string): string {
+    return `${medicationNameA}と${medicationNameB}が${time}に重複しています`;
+  }
 }
