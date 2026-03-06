@@ -218,4 +218,43 @@ export class DateRangeHelper {
     if (days % 7 === 0 && days <= 28) return `${days / 7}週間`;
     return `${days}日間`;
   }
+
+  /**
+   * 期間内の曜日別日数分布を返す（[日,月,火,水,木,金,土]）
+   */
+  static getWeekdayDistribution(from: Date, to: Date): number[] {
+    const dist = new Array(7).fill(0);
+    const current = DateRangeHelper.toStartOfDay(from);
+    const end = DateRangeHelper.toStartOfDay(to);
+    while (current <= end) {
+      dist[current.getDay()]++;
+      current.setDate(current.getDate() + 1);
+    }
+    return dist;
+  }
+
+  /**
+   * 2つの日付が同じ週（日曜始まり）に属するか判定する
+   */
+  static isSameWeek(date1: Date, date2: Date): boolean {
+    const d1 = DateRangeHelper.toStartOfDay(date1);
+    const d2 = DateRangeHelper.toStartOfDay(date2);
+    const startOfWeek1 = new Date(d1);
+    startOfWeek1.setDate(d1.getDate() - d1.getDay());
+    const startOfWeek2 = new Date(d2);
+    startOfWeek2.setDate(d2.getDate() - d2.getDay());
+    return startOfWeek1.getTime() === startOfWeek2.getTime();
+  }
+
+  /**
+   * 指定日の週の開始日（日曜）と終了日（土曜）を返す
+   */
+  static getWeekRange(date: Date): { start: Date; end: Date } {
+    const d = DateRangeHelper.toStartOfDay(date);
+    const start = new Date(d);
+    start.setDate(d.getDate() - d.getDay());
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return { start, end };
+  }
 }
