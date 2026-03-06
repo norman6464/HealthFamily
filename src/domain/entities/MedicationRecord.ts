@@ -287,4 +287,33 @@ export class MedicationRecordEntity {
     if (days < 30) return '順調に継続しています';
     return '素晴らしい継続力です';
   }
+
+  /**
+   * 日別の服薬サマリーテキストを生成する
+   */
+  static getDailySummaryText(completed: number, total: number): string {
+    if (total === 0) return '今日の服薬はありません';
+    if (completed === total) return `全${total}件の服薬が完了しました`;
+    return `${total}件中${completed}件の服薬が完了しています`;
+  }
+
+  /**
+   * 過去7日間の記録数を算出する
+   */
+  static getWeeklyRecordCount(records: MedicationRecord[], today: Date): number {
+    const weekAgo = DateRangeHelper.daysAgo(7, today);
+    return records.filter((r) => {
+      const takenDate = DateRangeHelper.toStartOfDay(new Date(r.takenAt));
+      return takenDate.getTime() >= weekAgo.getTime();
+    }).length;
+  }
+
+  /**
+   * 記録の増減傾向ラベルを返す（差が1以内は横ばい）
+   */
+  static getRecordTrendLabel(currentCount: number, previousCount: number): string {
+    const diff = currentCount - previousCount;
+    if (Math.abs(diff) <= 1) return '横ばい';
+    return diff > 0 ? '増加傾向' : '減少傾向';
+  }
 }
