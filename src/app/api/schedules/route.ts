@@ -7,6 +7,8 @@ import { QUERY_LIMITS } from '@/lib/constants';
 import { checkRateLimit } from '@/lib/security';
 
 export const GET = withAuth(async (userId) => {
+  const { allowed } = checkRateLimit(`schedules-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
+  if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
   const schedules = await prisma.schedule.findMany({ where: { userId }, take: QUERY_LIMITS.SCHEDULES });
   return success(schedules);
 });
