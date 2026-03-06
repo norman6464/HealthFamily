@@ -287,4 +287,35 @@ export class StockAlertEntity {
     if (monthlyCost < 10000) return 'やや高額';
     return '高額';
   }
+
+  /**
+   * 消費率から最適な補充日を算出する
+   */
+  static getOptimalRefillDate(
+    currentStock: number,
+    dailyConsumption: number,
+    today: Date,
+    bufferDays: number,
+  ): Date | null {
+    if (dailyConsumption <= 0) return null;
+    const daysUntilEmpty = Math.floor(currentStock / dailyConsumption);
+    const refillDays = Math.max(0, daysUntilEmpty - bufferDays);
+    const refillDate = new Date(today);
+    refillDate.setDate(refillDate.getDate() + refillDays);
+    return refillDate;
+  }
+
+  /**
+   * 推奨補充量を算出する
+   */
+  static getRefillQuantitySuggestion(dailyConsumption: number, targetDays: number): number {
+    return Math.ceil(dailyConsumption * targetDays);
+  }
+
+  /**
+   * 補充コスト見積もりを算出する
+   */
+  static getRefillCostEstimate(quantity: number, unitPrice: number): number {
+    return Math.round(quantity * unitPrice);
+  }
 }

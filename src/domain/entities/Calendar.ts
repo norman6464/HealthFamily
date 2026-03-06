@@ -335,4 +335,44 @@ export class CalendarEntity {
     };
     return labels[attribute];
   }
+
+  private static readonly DAY_NAMES = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+
+  /**
+   * イベント密度を算出する(イベント数/日数)
+   */
+  static getEventDensity(eventCount: number, totalDays: number): number {
+    if (totalDays <= 0) return 0;
+    return Math.round((eventCount / totalDays) * 100) / 100;
+  }
+
+  /**
+   * 最もイベントの多い曜日を返す
+   */
+  static getBusiestWeekday(weekdayCounts: number[]): string {
+    if (weekdayCounts.length === 0) return CalendarEntity.DAY_NAMES[0];
+    let maxIndex = 0;
+    let maxCount = weekdayCounts[0] ?? 0;
+    for (let i = 1; i < weekdayCounts.length; i++) {
+      if ((weekdayCounts[i] ?? 0) > maxCount) {
+        maxCount = weekdayCounts[i];
+        maxIndex = i;
+      }
+    }
+    return CalendarEntity.DAY_NAMES[maxIndex] ?? CalendarEntity.DAY_NAMES[0];
+  }
+
+  /**
+   * イベント分布の偏りラベルを返す
+   */
+  static getEventDistributionLabel(weekdayCounts: number[]): string {
+    const total = weekdayCounts.reduce((sum, c) => sum + c, 0);
+    if (total === 0) return '均等';
+    const mean = total / weekdayCounts.length;
+    const variance = weekdayCounts.reduce((sum, c) => sum + Math.pow(c - mean, 2), 0) / weekdayCounts.length;
+    const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
+    if (cv >= 1) return '偏りあり';
+    if (cv >= 0.5) return 'やや偏り';
+    return '均等';
+  }
 }

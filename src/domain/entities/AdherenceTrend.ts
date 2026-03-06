@@ -124,4 +124,47 @@ export class AdherenceTrendEntity {
     const maxStdDev = 50;
     return Math.round(Math.max(0, Math.min(100, 100 - (stdDev / maxStdDev) * 100)));
   }
+
+  /**
+   * 連続達成日数の最長記録を算出する
+   */
+  static getLongestStreak(dailyResults: boolean[]): number {
+    let longest = 0;
+    let current = 0;
+    for (const achieved of dailyResults) {
+      if (achieved) {
+        current++;
+        if (current > longest) longest = current;
+      } else {
+        current = 0;
+      }
+    }
+    return longest;
+  }
+
+  /**
+   * 現在の連続達成日数を算出する(末尾から)
+   */
+  static getCurrentStreak(dailyResults: boolean[]): number {
+    let streak = 0;
+    for (let i = dailyResults.length - 1; i >= 0; i--) {
+      if (dailyResults[i]) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  /**
+   * ストリークに応じたラベルを返す
+   */
+  static getStreakLabel(days: number): string {
+    if (days === 0) return '記録なし';
+    if (days >= 30) return '1ヶ月連続';
+    if (days >= 14 && days % 7 === 0) return `${days / 7}週間連続`;
+    if (days === 7) return '1週間連続';
+    return `${days}日連続`;
+  }
 }
