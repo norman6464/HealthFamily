@@ -280,6 +280,53 @@ export class CalendarEntity {
   /**
    * 日付属性の日本語ラベルを返す
    */
+  /**
+   * 月間の統計情報を集計する（当月の日のみ）
+   */
+  static getMonthlyStats(days: CalendarDay[]): {
+    totalRecords: number;
+    recordDays: number;
+    totalDays: number;
+    maxRecordsInDay: number;
+  } {
+    const currentMonthDays = days.filter((d) => d.isCurrentMonth);
+    if (currentMonthDays.length === 0) {
+      return { totalRecords: 0, recordDays: 0, totalDays: 0, maxRecordsInDay: 0 };
+    }
+    const totalRecords = currentMonthDays.reduce((sum, d) => sum + d.recordCount, 0);
+    const recordDays = currentMonthDays.filter((d) => d.recordCount > 0).length;
+    const maxRecordsInDay = Math.max(...currentMonthDays.map((d) => d.recordCount));
+    return { totalRecords, recordDays, totalDays: currentMonthDays.length, maxRecordsInDay };
+  }
+
+  /**
+   * 記録件数配列から最長連続記録日数を算出する
+   */
+  static getStreakDays(recordCounts: number[]): number {
+    let maxStreak = 0;
+    let current = 0;
+    for (const count of recordCounts) {
+      if (count > 0) {
+        current++;
+        maxStreak = Math.max(maxStreak, current);
+      } else {
+        current = 0;
+      }
+    }
+    return maxStreak;
+  }
+
+  /**
+   * 月間統計のサマリーメッセージを返す
+   */
+  static getMonthlyStatsMessage(recordDays: number, totalDays: number): string {
+    if (recordDays === 0) return '記録を始めましょう';
+    const rate = totalDays > 0 ? (recordDays / totalDays) * 100 : 0;
+    if (rate >= 80) return '素晴らしい記録率です';
+    if (rate >= 50) return '順調に記録できています';
+    return 'もう少し記録をつけてみましょう';
+  }
+
   static getDateStatusLabel(attribute: 'today' | 'past' | 'future'): string {
     const labels: Record<string, string> = {
       today: '今日',
