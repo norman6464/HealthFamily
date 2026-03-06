@@ -10,6 +10,8 @@ export class MathHelper {
   private static readonly NORMALIZED_LOW_THRESHOLD = 20;
   private static readonly CORRELATION_STRONG_THRESHOLD = 0.7;
   private static readonly CORRELATION_WEAK_THRESHOLD = 0.3;
+  private static readonly OUTLIER_SEVERE_RATE = 0.2;
+  private static readonly OUTLIER_MINOR_RATE = 0.05;
 
   /**
    * パーセントを算出(0-100%)
@@ -255,8 +257,8 @@ export class MathHelper {
   static getOutlierSeverityLabel(outlierCount: number, total: number): string {
     if (total === 0 || outlierCount === 0) return '正常';
     const rate = outlierCount / total;
-    if (rate >= 0.2) return '深刻';
-    if (rate >= 0.05) return '軽微';
+    if (rate >= MathHelper.OUTLIER_SEVERE_RATE) return '深刻';
+    if (rate >= MathHelper.OUTLIER_MINOR_RATE) return '軽微';
     return '正常';
   }
 }

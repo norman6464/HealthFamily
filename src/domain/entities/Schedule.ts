@@ -777,6 +777,9 @@ export class ScheduleEntity {
 
   private static readonly COVERAGE_HIGH_THRESHOLD = 80;
   private static readonly COVERAGE_NORMAL_THRESHOLD = 50;
+  private static readonly ADHERENCE_EXCELLENT_THRESHOLD = 90;
+  private static readonly ADHERENCE_GOOD_THRESHOLD = 70;
+  private static readonly ADHERENCE_FAIR_THRESHOLD = 50;
   private static readonly EFFICIENCY_MAX_DELAY = 120;
   private static readonly EFFICIENCY_EXCELLENT_THRESHOLD = 90;
   private static readonly EFFICIENCY_GOOD_THRESHOLD = 70;
@@ -845,9 +848,9 @@ export class ScheduleEntity {
    * 遵守率に応じたラベルを返す
    */
   static getAdherenceRateLabel(rate: number): string {
-    if (rate >= 90) return '優秀';
-    if (rate >= 70) return '良好';
-    if (rate >= 50) return '要改善';
+    if (rate >= ScheduleEntity.ADHERENCE_EXCELLENT_THRESHOLD) return '優秀';
+    if (rate >= ScheduleEntity.ADHERENCE_GOOD_THRESHOLD) return '良好';
+    if (rate >= ScheduleEntity.ADHERENCE_FAIR_THRESHOLD) return '要改善';
     return '不十分';
   }
 }
