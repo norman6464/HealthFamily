@@ -301,4 +301,47 @@ export class HealthLogEntity {
     if (previousAvg === 0) return 0;
     return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
   }
+
+  /**
+   * 連続記録間で体調レベルが大きく変化した箇所を検知する
+   * logsは新しい順に並んでいる前提
+   */
+  static detectConditionChange(
+    logs: HealthLog[],
+    threshold: number = 2,
+  ): { from: ConditionLevel; to: ConditionLevel; date: Date }[] {
+    const changes: { from: ConditionLevel; to: ConditionLevel; date: Date }[] = [];
+    for (let i = 0; i < logs.length - 1; i++) {
+      const diff = Math.abs(logs[i].conditionLevel - logs[i + 1].conditionLevel);
+      if (diff >= threshold) {
+        changes.push({
+          from: logs[i + 1].conditionLevel,
+          to: logs[i].conditionLevel,
+          date: logs[i].recordedAt,
+        });
+      }
+    }
+    return changes;
+  }
+
+  /**
+   * 直近の記録から体調の傾向を判定する
+   * logsは新しい順に並んでいる前提
+   */
+  static getConditionTrend(logs: HealthLog[]): 'improving' | 'declining' | 'stable' {
+    if (logs.length <= 1) return 'stable';
+    const recent = logs[0].conditionLevel;
+    const oldest = logs[logs.length - 1].conditionLevel;
+    if (recent > oldest) return 'improving';
+    if (recent < oldest) return 'declining';
+    return 'stable';
+  }
+
+  /**
+   * 最も体調が悪かった記録を返す
+   */
+  static getWorstDay(logs: HealthLog[]): HealthLog | null {
+    if (logs.length === 0) return null;
+    return logs.reduce((worst, log) => (log.conditionLevel < worst.conditionLevel ? log : worst));
+  }
 }
