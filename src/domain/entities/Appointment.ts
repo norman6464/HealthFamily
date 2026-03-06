@@ -200,4 +200,46 @@ export class AppointmentEntity {
       to: DateRangeHelper.toDateKey(new Date(maxTo.appointmentDate)),
     };
   }
+
+  /**
+   * 予約種別ごとの件数と割合を算出する（多い順）
+   */
+  static getTypeDistribution(
+    appointments: Appointment[],
+  ): { type: string; label: string; count: number; percentage: number }[] {
+    if (appointments.length === 0) return [];
+    const counts: Record<string, number> = {};
+    for (const apt of appointments) {
+      const type = apt.appointmentType || 'other';
+      counts[type] = (counts[type] || 0) + 1;
+    }
+    return Object.entries(counts)
+      .map(([type, count]) => ({
+        type,
+        label: AppointmentEntity.typeLabels[type] || type,
+        count,
+        percentage: Math.round((count / appointments.length) * 100),
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * 最も多い予約種別を返す
+   */
+  static getMostFrequentType(
+    appointments: Appointment[],
+  ): { type: string; label: string; count: number } | null {
+    const dist = AppointmentEntity.getTypeDistribution(appointments);
+    if (dist.length === 0) return null;
+    return { type: dist[0].type, label: dist[0].label, count: dist[0].count };
+  }
+
+  /**
+   * 特定種別の割合を算出する
+   */
+  static getTypePercentage(appointments: Appointment[], type: string): number {
+    if (appointments.length === 0) return 0;
+    const count = appointments.filter((a) => (a.appointmentType || 'other') === type).length;
+    return Math.round((count / appointments.length) * 100);
+  }
 }
