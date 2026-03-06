@@ -662,4 +662,29 @@ export class HealthLogEntity {
     if (averageCondition >= 3) return 'やや不調';
     return '注意が必要';
   }
+
+  /**
+   * 直近の体調データから次の体調を予測する(1-5)
+   */
+  static predictNextCondition(conditions: number[]): number | null {
+    if (conditions.length === 0) return null;
+    if (conditions.length === 1) return conditions[0];
+    const last = conditions[conditions.length - 1];
+    const prev = conditions[conditions.length - 2];
+    const trend = last - prev;
+    const predicted = last + trend;
+    return Math.max(1, Math.min(5, Math.round(predicted)));
+  }
+
+  /**
+   * 体調予測トレンドに応じたメッセージを返す
+   */
+  static getConditionPredictionMessage(trend: 'improving' | 'declining' | 'stable'): string {
+    const messages: Record<string, string> = {
+      improving: '体調が改善傾向にあります',
+      declining: '体調の変化に注意してください',
+      stable: '体調は安定しています',
+    };
+    return messages[trend];
+  }
 }

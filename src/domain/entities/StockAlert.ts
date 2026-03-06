@@ -345,4 +345,24 @@ export class StockAlertEntity {
     const totalValue = items.reduce((sum, item) => sum + item.stockQuantity * item.unitPrice, 0);
     return { totalValue, itemCount: items.length };
   }
+
+  /**
+   * 消費量と購入量から廃棄率を算出する(0-100)
+   */
+  static getWastageRate(consumed: number, purchased: number): number | null {
+    if (purchased <= 0) return null;
+    if (consumed >= purchased) return 0;
+    return Math.round(((purchased - consumed) / purchased) * 100);
+  }
+
+  /**
+   * 廃棄率に応じたラベルを返す
+   */
+  static getWastageLabel(rate: number | null): string {
+    if (rate === null) return 'データなし';
+    if (rate <= 5) return '効率的';
+    if (rate <= 15) return '許容範囲';
+    if (rate <= 25) return '要改善';
+    return '非効率';
+  }
 }
