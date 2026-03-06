@@ -39,6 +39,8 @@ export class MathHelper {
   private static readonly WMEDIAN_MEDIUM_THRESHOLD = 40;
   private static readonly MAD_STABLE_THRESHOLD = 5;
   private static readonly MAD_MODERATE_THRESHOLD = 15;
+  private static readonly RMS_HIGH_THRESHOLD = 70;
+  private static readonly RMS_MEDIUM_THRESHOLD = 30;
 
   /**
    * パーセントを算出(0-100%)
@@ -719,5 +721,23 @@ export class MathHelper {
     if (mad <= MathHelper.MAD_STABLE_THRESHOLD) return '安定';
     if (mad <= MathHelper.MAD_MODERATE_THRESHOLD) return 'やや散布';
     return '散布';
+  }
+
+  /**
+   * 二乗平均平方根(RMS)を算出する
+   */
+  static getRootMeanSquare(values: number[]): number {
+    if (values.length === 0) return 0;
+    const sumSquares = values.reduce((sum, v) => sum + v * v, 0);
+    return Math.round(Math.sqrt(sumSquares / values.length) * 100) / 100;
+  }
+
+  /**
+   * RMSに応じたラベルを返す
+   */
+  static getRootMeanSquareLabel(rms: number): string {
+    if (rms >= MathHelper.RMS_HIGH_THRESHOLD) return '高い';
+    if (rms >= MathHelper.RMS_MEDIUM_THRESHOLD) return '中程度';
+    return '低い';
   }
 }

@@ -46,6 +46,9 @@ export class StockAlertEntity {
   private static readonly DEPLETION_MAX_DAYS = 30;
   private static readonly DEPLETION_HIGH_THRESHOLD = 70;
   private static readonly DEPLETION_MODERATE_THRESHOLD = 30;
+  private static readonly SAFETY_MARGIN_MAX_DAYS = 30;
+  private static readonly SAFETY_MARGIN_SAFE_THRESHOLD = 70;
+  private static readonly SAFETY_MARGIN_CAUTION_THRESHOLD = 30;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -634,5 +637,25 @@ export class StockAlertEntity {
     if (score >= StockAlertEntity.DEPLETION_HIGH_THRESHOLD) return '高リスク';
     if (score >= StockAlertEntity.DEPLETION_MODERATE_THRESHOLD) return '中リスク';
     return '低リスク';
+  }
+
+  /**
+   * 在庫安全余裕度(0-100)を算出する
+   * 在庫量/日消費量の日数カバー率（30日基準）
+   */
+  static getStockSafetyMargin(stock: number, dailyConsumption: number): number {
+    if (dailyConsumption <= 0) return 100;
+    if (stock <= 0) return 0;
+    const coverageDays = stock / dailyConsumption;
+    return Math.max(0, Math.min(100, Math.round((coverageDays / StockAlertEntity.SAFETY_MARGIN_MAX_DAYS) * 100)));
+  }
+
+  /**
+   * 在庫安全余裕度に応じたラベルを返す
+   */
+  static getStockSafetyMarginLabel(score: number): string {
+    if (score >= StockAlertEntity.SAFETY_MARGIN_SAFE_THRESHOLD) return '安全';
+    if (score >= StockAlertEntity.SAFETY_MARGIN_CAUTION_THRESHOLD) return '注意';
+    return '危険';
   }
 }

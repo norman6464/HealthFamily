@@ -82,6 +82,9 @@ export class HealthLogEntity {
   private static readonly CONDITION_MAX_LEVEL = 5;
   private static readonly PEAK_EXCELLENT_THRESHOLD = 80;
   private static readonly PEAK_GOOD_THRESHOLD = 50;
+  private static readonly IMPROVEMENT_IMPROVED_THRESHOLD = 70;
+  private static readonly IMPROVEMENT_DECLINED_THRESHOLD = 30;
+  private static readonly IMPROVEMENT_MAX_DIFF = 4;
 
   private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
     1: 'とても悪い',
@@ -967,5 +970,27 @@ export class HealthLogEntity {
     if (score >= HealthLogEntity.PEAK_EXCELLENT_THRESHOLD) return '絶好調';
     if (score >= HealthLogEntity.PEAK_GOOD_THRESHOLD) return '好調';
     return '不調';
+  }
+
+  /**
+   * 体調改善スコア(0-100)を算出する
+   * 最初と最後の体調値の差をスコア化（改善=高、悪化=低、変化なし=50）
+   */
+  static getConditionImprovementScore(conditions: number[]): number {
+    if (conditions.length <= 1) return 0;
+    const first = conditions[0];
+    const last = conditions[conditions.length - 1];
+    const diff = last - first;
+    const normalized = (diff / HealthLogEntity.IMPROVEMENT_MAX_DIFF + 1) / 2;
+    return Math.max(0, Math.min(100, Math.round(normalized * 100)));
+  }
+
+  /**
+   * 体調改善スコアに応じたラベルを返す
+   */
+  static getConditionImprovementScoreLabel(score: number): string {
+    if (score >= HealthLogEntity.IMPROVEMENT_IMPROVED_THRESHOLD) return '改善';
+    if (score >= HealthLogEntity.IMPROVEMENT_DECLINED_THRESHOLD) return '横ばい';
+    return '悪化';
   }
 }
