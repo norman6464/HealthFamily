@@ -32,6 +32,7 @@ export class MathHelper {
   private static readonly IQR_STABLE_THRESHOLD = 5;
   private static readonly IQR_MODERATE_THRESHOLD = 20;
   private static readonly SKEWNESS_THRESHOLD = 0.5;
+  private static readonly KURTOSIS_THRESHOLD = 1;
 
   /**
    * パーセントを算出(0-100%)
@@ -600,5 +601,29 @@ export class MathHelper {
     if (skewness > MathHelper.SKEWNESS_THRESHOLD) return '右偏り';
     if (skewness < -MathHelper.SKEWNESS_THRESHOLD) return '左偏り';
     return '対称';
+  }
+
+  /**
+   * データ分布の尖度(excess kurtosis)を算出する
+   * 正規分布を基準(0)とした超過尖度を返す
+   */
+  static getKurtosis(values: number[]): number {
+    if (values.length < 3) return 0;
+    const n = values.length;
+    const avg = values.reduce((a, b) => a + b, 0) / n;
+    const variance = values.reduce((sum, v) => sum + (v - avg) ** 2, 0) / n;
+    if (variance === 0) return 0;
+    const m4 = values.reduce((sum, v) => sum + ((v - avg) ** 4), 0) / n;
+    const kurtosis = m4 / (variance ** 2) - 3;
+    return Math.round(kurtosis * 100) / 100;
+  }
+
+  /**
+   * 尖度に応じたラベルを返す
+   */
+  static getKurtosisLabel(kurtosis: number): string {
+    if (kurtosis > MathHelper.KURTOSIS_THRESHOLD) return '尖った分布';
+    if (kurtosis < -MathHelper.KURTOSIS_THRESHOLD) return '平坦な分布';
+    return '正規分布';
   }
 }

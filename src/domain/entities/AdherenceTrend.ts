@@ -40,6 +40,8 @@ export class AdherenceTrendEntity {
   private static readonly PEAK_GOOD_THRESHOLD = 70;
   private static readonly PEAK_MODERATE_THRESHOLD = 50;
   private static readonly MOMENTUM_THRESHOLD = 5;
+  private static readonly RESILIENCE_HIGH_THRESHOLD = 70;
+  private static readonly RESILIENCE_MODERATE_THRESHOLD = 40;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -456,5 +458,41 @@ export class AdherenceTrendEntity {
     if (momentum >= AdherenceTrendEntity.MOMENTUM_THRESHOLD) return '加速改善';
     if (momentum <= -AdherenceTrendEntity.MOMENTUM_THRESHOLD) return '加速悪化';
     return '安定';
+  }
+
+  /**
+   * 遵守率配列から回復力スコア(0-100)を算出する
+   * 低下が発生しない場合は100、低下後の回復度合いを評価
+   */
+  static getAdherenceResilience(rates: number[]): number {
+    if (rates.length <= 1) return 0;
+    let hasDip = false;
+    let totalRecoveryRatio = 0;
+    let dipCount = 0;
+    for (let i = 1; i < rates.length; i++) {
+      if (rates[i] < rates[i - 1]) {
+        hasDip = true;
+        const drop = rates[i - 1] - rates[i];
+        // 低下後の最大回復量を探す
+        let maxRecovery = 0;
+        for (let j = i + 1; j < rates.length; j++) {
+          const recovery = rates[j] - rates[i];
+          if (recovery > maxRecovery) maxRecovery = recovery;
+        }
+        totalRecoveryRatio += drop > 0 ? Math.min(1, maxRecovery / drop) : 0;
+        dipCount++;
+      }
+    }
+    if (!hasDip) return 100;
+    return Math.round((totalRecoveryRatio / dipCount) * 100);
+  }
+
+  /**
+   * 回復力スコアに応じたラベルを返す
+   */
+  static getAdherenceResilienceLabel(score: number): string {
+    if (score >= AdherenceTrendEntity.RESILIENCE_HIGH_THRESHOLD) return '回復力高';
+    if (score >= AdherenceTrendEntity.RESILIENCE_MODERATE_THRESHOLD) return 'やや回復';
+    return '回復力低';
   }
 }
