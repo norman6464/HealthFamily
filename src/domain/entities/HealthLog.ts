@@ -65,6 +65,8 @@ export class HealthLogEntity {
   private static readonly DIVERSITY_MEDIUM_THRESHOLD = 30;
   private static readonly RECOVERY_GOOD_THRESHOLD = 70;
   private static readonly RECOVERY_MODERATE_THRESHOLD = 40;
+  private static readonly VARIANCE_STABLE_THRESHOLD = 1;
+  private static readonly VARIANCE_UNSTABLE_THRESHOLD = 3;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -841,8 +843,8 @@ export class HealthLogEntity {
    * 分散値に応じたラベルを返す
    */
   static getConditionVarianceLabel(variance: number): string {
-    if (variance < 1) return '安定';
-    if (variance < 3) return 'やや不安定';
+    if (variance < HealthLogEntity.VARIANCE_STABLE_THRESHOLD) return '安定';
+    if (variance < HealthLogEntity.VARIANCE_UNSTABLE_THRESHOLD) return 'やや不安定';
     return '不安定';
   }
 }
