@@ -98,6 +98,9 @@ export class MedicationEntity {
     return this.medication;
   }
 
+  private static readonly LOW_STOCK_THRESHOLD = 5;
+  private static readonly MEDIUM_STOCK_THRESHOLD = 10;
+
   private static readonly categoryLabels: Record<MedicationCategory, string> = {
     regular: '常用薬',
     supplement: 'サプリメント',
@@ -140,7 +143,7 @@ export class MedicationEntity {
   getStockStatus(): 'safe' | 'low' | 'critical' | 'unknown' {
     if (this.medication.stockQuantity === undefined) return 'unknown';
     if (this.medication.stockQuantity === 0) return 'critical';
-    if (this.medication.stockQuantity <= 5) return 'low';
+    if (this.medication.stockQuantity <= MedicationEntity.LOW_STOCK_THRESHOLD) return 'low';
     return 'safe';
   }
 
@@ -175,7 +178,7 @@ export class MedicationEntity {
   /**
    * 在庫が補充推奨レベルかどうかを判定する
    */
-  static isExpiringSoon(quantity: number | null, threshold: number = 5): boolean {
+  static isExpiringSoon(quantity: number | null, threshold: number = MedicationEntity.LOW_STOCK_THRESHOLD): boolean {
     if (quantity === null) return false;
     return quantity <= threshold;
   }
@@ -186,8 +189,8 @@ export class MedicationEntity {
   static getRefillRecommendation(quantity: number | null): string {
     if (quantity === null) return '在庫数が未設定です';
     if (quantity === 0) return '今すぐ補充が必要です';
-    if (quantity <= 5) return '早めの補充をおすすめします';
-    if (quantity <= 10) return 'そろそろ補充を検討してください';
+    if (quantity <= MedicationEntity.LOW_STOCK_THRESHOLD) return '早めの補充をおすすめします';
+    if (quantity <= MedicationEntity.MEDIUM_STOCK_THRESHOLD) return 'そろそろ補充を検討してください';
     return '十分な在庫があります';
   }
 
