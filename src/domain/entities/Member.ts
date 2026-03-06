@@ -243,4 +243,44 @@ export class MemberEntity {
     }
     return `${typeLabel}${ageLabel}`;
   }
+
+  /**
+   * ペットの年齢を人間年齢に換算する（犬・猫のみ対応）
+   */
+  static getHumanEquivalentAge(petAge: number | null, petType: PetType): number | null {
+    if (petAge === null) return null;
+    if (petType !== 'dog' && petType !== 'cat') return null;
+    if (petAge <= 0) return 0;
+    if (petAge === 1) return 15;
+    if (petAge === 2) return 24;
+    return 24 + (petAge - 2) * 4;
+  }
+
+  /**
+   * ペットの年齢表示ラベルを返す
+   */
+  static getPetAgeLabel(age: number | null, petType: PetType): string {
+    if (age === null) return '年齢不明';
+    const humanAge = MemberEntity.getHumanEquivalentAge(age, petType);
+    if (humanAge === null) return `${age}歳`;
+    return `${age}歳 (人間換算: 約${humanAge}歳)`;
+  }
+
+  /**
+   * ペットのライフステージを判定する
+   */
+  static getPetLifeStage(age: number | null, petType: PetType): string {
+    if (age === null) return '不明';
+    if (petType === 'dog') {
+      if (age < 1) return '子犬';
+      if (age < 7) return '成犬';
+      return 'シニア犬';
+    }
+    if (petType === 'cat') {
+      if (age < 1) return '子猫';
+      if (age < 7) return '成猫';
+      return 'シニア猫';
+    }
+    return 'ペット';
+  }
 }
