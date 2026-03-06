@@ -32,6 +32,8 @@ export class CalendarEntity {
   private static readonly COMPLETION_PERFECT_THRESHOLD = 90;
   private static readonly COMPLETION_GOOD_THRESHOLD = 70;
   private static readonly COMPLETION_FAIR_THRESHOLD = 50;
+  private static readonly WEEKDAY_BIAS_THRESHOLD = 80;
+  private static readonly WEEKEND_BIAS_THRESHOLD = 60;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -485,8 +487,8 @@ export class CalendarEntity {
    */
   static getWeekdayBalanceLabel(weekdayRate: number, weekendRate: number): string {
     if (weekdayRate === 0 && weekendRate === 0) return 'データ不足';
-    if (weekdayRate >= 80) return '平日に偏り';
-    if (weekendRate >= 60) return '休日に偏り';
+    if (weekdayRate >= CalendarEntity.WEEKDAY_BIAS_THRESHOLD) return '平日に偏り';
+    if (weekendRate >= CalendarEntity.WEEKEND_BIAS_THRESHOLD) return '休日に偏り';
     return 'バランス良好';
   }
 }
