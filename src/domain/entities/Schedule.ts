@@ -786,6 +786,8 @@ export class ScheduleEntity {
   private static readonly EFFICIENCY_NORMAL_THRESHOLD = 50;
   private static readonly SCHEDULE_GAP_SHORT_THRESHOLD = 180;
   private static readonly SCHEDULE_GAP_LONG_THRESHOLD = 480;
+  private static readonly OVERLAP_MINOR_THRESHOLD = 30;
+  private static readonly OVERLAP_WARNING_THRESHOLD = 60;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -905,8 +907,8 @@ export class ScheduleEntity {
    */
   static getScheduleOverlapLabel(score: number): string {
     if (score === 0) return '重複なし';
-    if (score < 30) return '軽微';
-    if (score < 60) return '注意';
+    if (score < ScheduleEntity.OVERLAP_MINOR_THRESHOLD) return '軽微';
+    if (score < ScheduleEntity.OVERLAP_WARNING_THRESHOLD) return '注意';
     return '要調整';
   }
 }
