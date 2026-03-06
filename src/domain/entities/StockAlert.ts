@@ -159,4 +159,41 @@ export class StockAlertEntity {
     const needed = Math.ceil(dailyConsumption * targetDays);
     return Math.max(0, needed - currentStock);
   }
+
+  /**
+   * 緊急度別のアラート件数を集計する
+   */
+  static getAlertSummary(alerts: StockAlert[]): { urgent: number; warning: number; normal: number } {
+    const summary = { urgent: 0, warning: 0, normal: 0 };
+    for (const alert of alerts) {
+      if (alert.isOverdue || alert.daysUntilAlert <= 3) {
+        summary.urgent++;
+      } else if (alert.daysUntilAlert <= 7) {
+        summary.warning++;
+      } else {
+        summary.normal++;
+      }
+    }
+    return summary;
+  }
+
+  /**
+   * 最も近いアラート日を返す
+   */
+  static getNextAlertDate(alerts: StockAlert[]): string | null {
+    if (alerts.length === 0) return null;
+    const sorted = [...alerts].sort((a, b) => a.stockAlertDate.localeCompare(b.stockAlertDate));
+    return sorted[0].stockAlertDate;
+  }
+
+  /**
+   * 残日数の日本語表示を返す
+   */
+  static formatRemainingDays(days: number): string {
+    if (days < 0) return `${Math.abs(days)}日超過`;
+    if (days === 0) return '今日';
+    if (days % 30 === 0 && days >= 30) return `あと${days / 30}ヶ月`;
+    if (days % 7 === 0 && days >= 7) return `あと${days / 7}週間`;
+    return `あと${days}日`;
+  }
 }
