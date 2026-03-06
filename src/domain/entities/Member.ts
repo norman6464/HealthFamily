@@ -88,7 +88,7 @@ export class MemberEntity {
       memberType: this.member.memberType,
       petType: this.member.petType,
       name: this.member.name,
-      typeLabel: this.isPet() ? 'ペット' : '家族',
+      typeLabel: MemberEntity.getMemberTypeLabel(this.member.memberType),
     };
   }
 
