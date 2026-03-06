@@ -264,9 +264,9 @@ export class CalendarEntity {
    * 日付が今日・過去・未来のいずれかを判定する
    */
   static getDateAttribute(date: Date, today: Date): 'today' | 'past' | 'future' {
+    if (CalendarEntity.isSameDay(date, today)) return 'today';
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    if (d.getTime() === t.getTime()) return 'today';
     return d.getTime() < t.getTime() ? 'past' : 'future';
   }
 
