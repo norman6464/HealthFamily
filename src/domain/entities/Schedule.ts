@@ -462,6 +462,60 @@ export class ScheduleEntity {
   /**
    * 曜日配列をサマリーテキストにフォーマットする
    */
+  private static readonly DAY_MAP: Record<number, DayOfWeek> = {
+    0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
+  };
+
+  /**
+   * 次に有効な曜日を返す（今日の翌日から探索）
+   */
+  static getNextScheduledDay(today: Date, daysOfWeek: DayOfWeek[]): DayOfWeek {
+    for (let offset = 1; offset <= 7; offset++) {
+      const nextDate = new Date(today);
+      nextDate.setDate(nextDate.getDate() + offset);
+      const dayCode = ScheduleEntity.DAY_MAP[nextDate.getDay()];
+      if (daysOfWeek.length === 0 || daysOfWeek.includes(dayCode)) {
+        return dayCode;
+      }
+    }
+    return ScheduleEntity.DAY_MAP[((today.getDay() + 1) % 7)];
+  }
+
+  /**
+   * 次回のスケジュール日時を算出する
+   */
+  static getNextScheduledDateTime(today: Date, time: string, daysOfWeek: DayOfWeek[]): Date {
+    const [hours, minutes] = time.split(':').map(Number);
+    for (let offset = 1; offset <= 7; offset++) {
+      const nextDate = new Date(today);
+      nextDate.setDate(nextDate.getDate() + offset);
+      const dayCode = ScheduleEntity.DAY_MAP[nextDate.getDay()];
+      if (daysOfWeek.length === 0 || daysOfWeek.includes(dayCode)) {
+        nextDate.setHours(hours, minutes, 0, 0);
+        return nextDate;
+      }
+    }
+    const fallback = new Date(today);
+    fallback.setDate(fallback.getDate() + 1);
+    fallback.setHours(hours, minutes, 0, 0);
+    return fallback;
+  }
+
+  /**
+   * 次回スケジュールまでの日数を返す
+   */
+  static getDaysUntilNextSchedule(today: Date, daysOfWeek: DayOfWeek[]): number {
+    for (let offset = 1; offset <= 7; offset++) {
+      const nextDate = new Date(today);
+      nextDate.setDate(nextDate.getDate() + offset);
+      const dayCode = ScheduleEntity.DAY_MAP[nextDate.getDay()];
+      if (daysOfWeek.length === 0 || daysOfWeek.includes(dayCode)) {
+        return offset;
+      }
+    }
+    return 1;
+  }
+
   static formatDaysOfWeekSummary(days: DayOfWeek[]): string {
     if (days.length === 0 || days.length === 7) return '毎日';
 
