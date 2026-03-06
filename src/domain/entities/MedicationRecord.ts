@@ -28,6 +28,12 @@ export interface DailyRecordGroup {
  * 服薬記録のビジネスロジック
  */
 export class MedicationRecordEntity {
+  private static readonly MORNING_START_HOUR = 5;
+  private static readonly AFTERNOON_START_HOUR = 12;
+  private static readonly EVENING_START_HOUR = 17;
+  private static readonly NIGHT_START_HOUR = 21;
+  private static readonly PATTERN_DOMINANCE_THRESHOLD = 0.5;
+
   /**
    * 記録を日付ごとにグループ化（新しい順）
    */
@@ -537,11 +543,11 @@ export class MedicationRecordEntity {
     const result = { morning: 0, afternoon: 0, evening: 0, night: 0 };
     for (const time of times) {
       const hour = parseInt(time.split(':')[0], 10);
-      if (hour >= 5 && hour < 12) {
+      if (hour >= MedicationRecordEntity.MORNING_START_HOUR && hour < MedicationRecordEntity.AFTERNOON_START_HOUR) {
         result.morning++;
-      } else if (hour >= 12 && hour < 17) {
+      } else if (hour >= MedicationRecordEntity.AFTERNOON_START_HOUR && hour < MedicationRecordEntity.EVENING_START_HOUR) {
         result.afternoon++;
-      } else if (hour >= 17 && hour < 21) {
+      } else if (hour >= MedicationRecordEntity.EVENING_START_HOUR && hour < MedicationRecordEntity.NIGHT_START_HOUR) {
         result.evening++;
       } else {
         result.night++;
@@ -561,10 +567,10 @@ export class MedicationRecordEntity {
   }): string {
     const total = pattern.morning + pattern.afternoon + pattern.evening + pattern.night;
     if (total === 0) return '均等';
-    if (pattern.morning / total > 0.5) return '朝型';
-    if (pattern.night / total > 0.5) return '夜型';
-    if (pattern.afternoon / total > 0.5) return '午後型';
-    if (pattern.evening / total > 0.5) return '夕方型';
+    if (pattern.morning / total > MedicationRecordEntity.PATTERN_DOMINANCE_THRESHOLD) return '朝型';
+    if (pattern.night / total > MedicationRecordEntity.PATTERN_DOMINANCE_THRESHOLD) return '夜型';
+    if (pattern.afternoon / total > MedicationRecordEntity.PATTERN_DOMINANCE_THRESHOLD) return '午後型';
+    if (pattern.evening / total > MedicationRecordEntity.PATTERN_DOMINANCE_THRESHOLD) return '夕方型';
     return '均等';
   }
 }
