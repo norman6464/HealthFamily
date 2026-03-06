@@ -53,6 +53,9 @@ export class MedicationRecordEntity {
   private static readonly DOSE_ACCURACY_MAX_DELAY = 120;
   private static readonly DOSE_ACCURACY_HIGH_THRESHOLD = 80;
   private static readonly DOSE_ACCURACY_MODERATE_THRESHOLD = 50;
+  private static readonly DOSE_VARIABILITY_MAX_STDDEV = 120;
+  private static readonly DOSE_VARIABILITY_STABLE_THRESHOLD = 20;
+  private static readonly DOSE_VARIABILITY_MODERATE_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -819,5 +822,26 @@ export class MedicationRecordEntity {
     if (score >= MedicationRecordEntity.DOSE_ACCURACY_HIGH_THRESHOLD) return '正確';
     if (score >= MedicationRecordEntity.DOSE_ACCURACY_MODERATE_THRESHOLD) return 'やや遅れ';
     return '不正確';
+  }
+
+  /**
+   * 服用時刻(分単位)配列から変動性スコア(0-100)を算出する
+   * 標準偏差ベースで変動性を数値化（最大120分基準）
+   */
+  static getDoseVariability(timesInMinutes: number[]): number {
+    if (timesInMinutes.length <= 1) return 0;
+    const avg = timesInMinutes.reduce((a, b) => a + b, 0) / timesInMinutes.length;
+    const variance = timesInMinutes.reduce((sum, v) => sum + (v - avg) ** 2, 0) / timesInMinutes.length;
+    const stdDev = Math.sqrt(variance);
+    return Math.min(100, Math.round((stdDev / MedicationRecordEntity.DOSE_VARIABILITY_MAX_STDDEV) * 100));
+  }
+
+  /**
+   * 服用変動性スコアに応じたラベルを返す
+   */
+  static getDoseVariabilityLabel(score: number): string {
+    if (score < MedicationRecordEntity.DOSE_VARIABILITY_STABLE_THRESHOLD) return '安定';
+    if (score < MedicationRecordEntity.DOSE_VARIABILITY_MODERATE_THRESHOLD) return 'やや不安定';
+    return '不安定';
   }
 }
