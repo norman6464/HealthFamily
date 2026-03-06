@@ -66,4 +66,39 @@ export class HospitalEntity {
     }
     return phone;
   }
+
+  /**
+   * 月間通院回数から通院頻度ラベルを返す
+   */
+  static formatVisitFrequency(timesPerMonth: number): string {
+    if (timesPerMonth === 0) return '不定期';
+    if (timesPerMonth === 1) return '毎月';
+    if (timesPerMonth === 4) return '週1回';
+    return `月${timesPerMonth}回`;
+  }
+
+  /**
+   * 最終通院日からのラベルを生成する
+   */
+  static getLastVisitLabel(lastVisit: Date, today: Date): string {
+    const lastStart = new Date(lastVisit.getFullYear(), lastVisit.getMonth(), lastVisit.getDate());
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const diffMs = todayStart.getTime() - lastStart.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return '今日';
+    if (diffDays === 1) return '昨日';
+    if (diffDays === 7) return '1週間前';
+    if (diffDays >= 28 && diffDays <= 31) return '1ヶ月前';
+    if (diffDays > 31) return `${Math.round(diffDays / 30)}ヶ月前`;
+    return `${diffDays}日前`;
+  }
+
+  /**
+   * 最終通院からの日数に応じたステータスレベルを返す
+   */
+  static getVisitStatusLevel(daysSinceLastVisit: number): 'good' | 'warning' | 'alert' {
+    if (daysSinceLastVisit <= 30) return 'good';
+    if (daysSinceLastVisit <= 90) return 'warning';
+    return 'alert';
+  }
 }
