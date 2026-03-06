@@ -510,4 +510,27 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.CYCLE_MODERATE_THRESHOLD) return 'やや不規則';
     return '不規則';
   }
+
+  private static readonly COMPLETION_EXCELLENT_THRESHOLD = 90;
+  private static readonly COMPLETION_GOOD_THRESHOLD = 70;
+  private static readonly COMPLETION_FAIR_THRESHOLD = 50;
+
+  /**
+   * 通院完了/未完了配列から完了率(0-100)を算出する
+   */
+  static getAppointmentCompletionRate(completions: boolean[]): number {
+    if (completions.length === 0) return 0;
+    const completed = completions.filter(Boolean).length;
+    return Math.round((completed / completions.length) * 100);
+  }
+
+  /**
+   * 通院完了率に応じたラベルを返す
+   */
+  static getAppointmentCompletionLabel(rate: number): string {
+    if (rate >= AppointmentEntity.COMPLETION_EXCELLENT_THRESHOLD) return '優秀';
+    if (rate >= AppointmentEntity.COMPLETION_GOOD_THRESHOLD) return '良好';
+    if (rate >= AppointmentEntity.COMPLETION_FAIR_THRESHOLD) return '要改善';
+    return '不十分';
+  }
 }
