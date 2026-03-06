@@ -365,4 +365,30 @@ export class AppointmentEntity {
     if (conflictCount === 0) return null;
     return `同日に${conflictCount}件の予約があります`;
   }
+
+  /**
+   * 指定日数前にリマインダーを送るべきか判定する
+   */
+  static shouldSendReminder(appointmentDate: Date, today: Date, daysBefore: number): boolean {
+    const diff = DateRangeHelper.diffDays(today, appointmentDate);
+    return diff === daysBefore;
+  }
+
+  /**
+   * 残り日数に応じたリマインダー優先度を返す
+   */
+  static getReminderPriority(daysUntil: number): 'high' | 'medium' | 'low' {
+    if (daysUntil <= 1) return 'high';
+    if (daysUntil <= 3) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * リマインダースケジュールのテキストを生成する
+   */
+  static formatReminderSchedule(daysBefore: number): string {
+    if (daysBefore === 0) return '当日にお知らせ';
+    if (daysBefore % 7 === 0) return `${daysBefore / 7}週間前にお知らせ`;
+    return `${daysBefore}日前にお知らせ`;
+  }
 }
