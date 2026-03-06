@@ -36,4 +36,33 @@ export class GreetingMessageEntity {
       default: return '今日も頑張りましょう';
     }
   }
+
+  /**
+   * 月に基づく季節の挨拶を返す
+   */
+  static getSeasonalGreeting(month: number): string {
+    if (month >= 3 && month <= 5) return '春の陽気が気持ちいい季節ですね';
+    if (month >= 6 && month <= 8) return '暑い日が続きますが体調にお気をつけて';
+    if (month >= 9 && month <= 11) return '過ごしやすい季節になりましたね';
+    return '寒い日が続きますがお体ご自愛ください';
+  }
+
+  /**
+   * 連続日数に応じた励ましメッセージを返す
+   */
+  static getStreakEncouragement(streak: number): string {
+    if (streak === 0) return '今日から記録を始めましょう';
+    if (streak === 7) return '1週間達成です。習慣になってきましたね';
+    if (streak < 7) return `${streak}日連続です。良い調子です`;
+    if (streak < 30) return `${streak}日連続です。素晴らしい継続力です`;
+    return `${streak}日連続達成です。立派な習慣です`;
+  }
+
+  /**
+   * 名前付きの挨拶文を生成する
+   */
+  static formatGreetingWithName(greeting: string, name: string | null): string {
+    if (!name || name === '') return greeting;
+    return `${name}さん、${greeting}`;
+  }
 }
