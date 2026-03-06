@@ -278,4 +278,33 @@ export class AppointmentEntity {
       })
       .sort((a, b) => new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime());
   }
+
+  /**
+   * 予約種別が有効か検証する
+   */
+  static validateAppointmentType(type: string): boolean {
+    return type in AppointmentEntity.typeLabels;
+  }
+
+  /**
+   * 全予約種別の一覧を返す
+   */
+  static getAllAppointmentTypes(): Array<{ id: string; label: string }> {
+    return Object.entries(AppointmentEntity.typeLabels).map(([id, label]) => ({
+      id,
+      label,
+    }));
+  }
+
+  /**
+   * 予約種別の表示情報を返す
+   */
+  static getTypeDisplayInfo(type?: string): { label: string; isValid: boolean } {
+    if (!type) return { label: '', isValid: true };
+    const label = AppointmentEntity.typeLabels[type];
+    return {
+      label: label || type,
+      isValid: !!label,
+    };
+  }
 }
