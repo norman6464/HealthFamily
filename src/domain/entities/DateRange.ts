@@ -110,6 +110,8 @@ export class DateRangeHelper {
   private static readonly DATE_GAP_MODERATE_THRESHOLD = 50;
   private static readonly WEEKEND_RATIO_HIGH_THRESHOLD = 40;
   private static readonly WEEKEND_RATIO_LOW_THRESHOLD = 20;
+  private static readonly DATE_SPAN_SUFFICIENT_THRESHOLD = 80;
+  private static readonly DATE_SPAN_MODERATE_THRESHOLD = 50;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -439,5 +441,23 @@ export class DateRangeHelper {
     if (ratio >= DateRangeHelper.WEEKEND_RATIO_HIGH_THRESHOLD) return '休日中心';
     if (ratio >= DateRangeHelper.WEEKEND_RATIO_LOW_THRESHOLD) return '均等';
     return '平日中心';
+  }
+
+  /**
+   * 日付スパンスコア(0-100)を算出する
+   * 実日数/目標日数の割合（上限100）
+   */
+  static getDateSpanScore(actualDays: number, targetDays: number): number {
+    if (targetDays <= 0 || actualDays <= 0) return 0;
+    return Math.min(100, Math.round((actualDays / targetDays) * 100));
+  }
+
+  /**
+   * 日付スパンスコアに応じたラベルを返す
+   */
+  static getDateSpanScoreLabel(score: number): string {
+    if (score >= DateRangeHelper.DATE_SPAN_SUFFICIENT_THRESHOLD) return '十分';
+    if (score >= DateRangeHelper.DATE_SPAN_MODERATE_THRESHOLD) return 'やや不足';
+    return '不足';
   }
 }
