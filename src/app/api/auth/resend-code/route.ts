@@ -7,7 +7,7 @@ import { validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 const resendSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
+  email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email(),
 });
 
 export async function POST(request: NextRequest) {
