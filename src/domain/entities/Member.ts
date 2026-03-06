@@ -179,6 +179,54 @@ export class MemberEntity {
   }
 
   /**
+   * 年齢からグループを判定する
+   */
+  static getAgeGroup(age: number | null): 'infant' | 'child' | 'adult' | 'senior' | 'unknown' {
+    if (age === null) return 'unknown';
+    if (age < 6) return 'infant';
+    if (age < 18) return 'child';
+    if (age < 65) return 'adult';
+    return 'senior';
+  }
+
+  private static readonly ageGroupLabels: Record<string, string> = {
+    infant: '乳幼児',
+    child: '子供',
+    adult: '大人',
+    senior: 'シニア',
+    unknown: '不明',
+  };
+
+  /**
+   * 年齢グループの日本語ラベルを返す
+   */
+  static getAgeGroupLabel(group: 'infant' | 'child' | 'adult' | 'senior' | 'unknown'): string {
+    return MemberEntity.ageGroupLabels[group];
+  }
+
+  /**
+   * 年齢の表示用ラベルを返す
+   */
+  static getAgeDisplayLabel(age: number | null): string {
+    if (age === null) return '年齢不明';
+    return `${age}歳`;
+  }
+
+  /**
+   * 生年月日のバリデーション
+   */
+  static validateBirthDate(
+    birthDate: Date | null,
+    today: Date,
+  ): { valid: boolean; error?: string } {
+    if (birthDate === null) return { valid: true };
+    if (birthDate.getTime() > today.getTime()) {
+      return { valid: false, error: '生年月日は今日以前の日付を入力してください' };
+    }
+    return { valid: true };
+  }
+
+  /**
    * プロフィール要約テキストを返す
    */
   static getProfileSummary(
