@@ -242,4 +242,62 @@ export class MedicationRecordEntity {
     }
     return gaps;
   }
+
+  /**
+   * 現在の連続記録日数を返す（今日から遡って連続する日数）
+   */
+  static getCurrentStreak(records: MedicationRecord[], today: Date): number {
+    if (records.length === 0) return 0;
+    const uniqueDates = [
+      ...new Set(records.map((r) => DateRangeHelper.toDateKey(new Date(r.takenAt)))),
+    ].sort((a, b) => b.localeCompare(a));
+    const todayKey = DateRangeHelper.toDateKey(today);
+    if (uniqueDates[0] !== todayKey) return 0;
+    let streak = 1;
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const prev = new Date(uniqueDates[i - 1] + 'T00:00:00');
+      const curr = new Date(uniqueDates[i] + 'T00:00:00');
+      if (DateRangeHelper.diffDays(curr, prev) === 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  /**
+   * 最長の連続記録日数を返す
+   */
+  static getLongestStreak(records: MedicationRecord[]): number {
+    if (records.length === 0) return 0;
+    const uniqueDates = [
+      ...new Set(records.map((r) => DateRangeHelper.toDateKey(new Date(r.takenAt)))),
+    ].sort();
+    let longest = 1;
+    let current = 1;
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const prev = new Date(uniqueDates[i - 1] + 'T00:00:00');
+      const curr = new Date(uniqueDates[i] + 'T00:00:00');
+      if (DateRangeHelper.diffDays(prev, curr) === 1) {
+        current++;
+        longest = Math.max(longest, current);
+      } else {
+        current = 1;
+      }
+    }
+    return longest;
+  }
+
+  /**
+   * 連続日数に応じた励ましメッセージを返す
+   */
+  static getStreakMessage(days: number): string {
+    if (days === 0) return '今日から始めましょう';
+    if (days === 1) return '記録を始めました';
+    if (days < 7) return `${days}日連続です`;
+    if (days < 14) return '1週間継続中です';
+    if (days < 30) return '順調に継続しています';
+    return '素晴らしい継続力です';
+  }
 }
