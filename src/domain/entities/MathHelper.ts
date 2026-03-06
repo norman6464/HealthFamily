@@ -33,6 +33,8 @@ export class MathHelper {
   private static readonly IQR_MODERATE_THRESHOLD = 20;
   private static readonly SKEWNESS_THRESHOLD = 0.5;
   private static readonly KURTOSIS_THRESHOLD = 1;
+  private static readonly CV_STABLE_THRESHOLD = 20;
+  private static readonly CV_MODERATE_THRESHOLD = 50;
 
   /**
    * パーセントを算出(0-100%)
@@ -625,5 +627,27 @@ export class MathHelper {
     if (kurtosis > MathHelper.KURTOSIS_THRESHOLD) return '尖った分布';
     if (kurtosis < -MathHelper.KURTOSIS_THRESHOLD) return '平坦な分布';
     return '正規分布';
+  }
+
+  /**
+   * 変動係数(CV = stdDev/mean * 100)を算出する
+   * 平均0または1件以下は0を返す
+   */
+  static getCoeffOfVariation(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    if (avg === 0) return 0;
+    const variance = values.reduce((sum, v) => sum + (v - avg) ** 2, 0) / values.length;
+    const stdDev = Math.sqrt(variance);
+    return Math.round((stdDev / Math.abs(avg)) * 100 * 100) / 100;
+  }
+
+  /**
+   * 変動係数に応じたラベルを返す
+   */
+  static getCoeffOfVariationLabel(cv: number): string {
+    if (cv < MathHelper.CV_STABLE_THRESHOLD) return '安定';
+    if (cv < MathHelper.CV_MODERATE_THRESHOLD) return 'やや変動';
+    return '変動大';
   }
 }

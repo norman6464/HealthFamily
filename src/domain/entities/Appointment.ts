@@ -35,6 +35,9 @@ export class AppointmentEntity {
   private static readonly CYCLE_MODERATE_THRESHOLD = 40;
   private static readonly APPT_REGULARITY_HIGH_THRESHOLD = 80;
   private static readonly APPT_REGULARITY_MODERATE_THRESHOLD = 50;
+  private static readonly CLUSTER_SCORE_HIGH_THRESHOLD = 60;
+  private static readonly CLUSTER_SCORE_MODERATE_THRESHOLD = 30;
+  private static readonly CLUSTER_MAX_CV = 2;
 
   constructor(private readonly appointment: Appointment) {}
 
@@ -626,5 +629,27 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.APPT_REGULARITY_HIGH_THRESHOLD) return '規則的';
     if (score >= AppointmentEntity.APPT_REGULARITY_MODERATE_THRESHOLD) return 'やや不規則';
     return '不規則';
+  }
+
+  /**
+   * 通院間隔配列から集中度スコア(0-100)を算出する
+   * 変動係数ベースで間隔のばらつきを評価（ばらつきが大きいほど高スコア）
+   */
+  static getAppointmentClusterScore(intervals: number[]): number {
+    if (intervals.length <= 1) return 0;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    if (avg === 0) return 0;
+    const variance = intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
+    const cv = Math.sqrt(variance) / avg;
+    return Math.min(100, Math.round((cv / AppointmentEntity.CLUSTER_MAX_CV) * 100));
+  }
+
+  /**
+   * 集中度スコアに応じたラベルを返す
+   */
+  static getAppointmentClusterScoreLabel(score: number): string {
+    if (score >= AppointmentEntity.CLUSTER_SCORE_HIGH_THRESHOLD) return '集中';
+    if (score >= AppointmentEntity.CLUSTER_SCORE_MODERATE_THRESHOLD) return 'やや集中';
+    return '分散';
   }
 }
