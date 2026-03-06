@@ -316,4 +316,29 @@ export class MedicationRecordEntity {
     if (Math.abs(diff) <= 1) return '横ばい';
     return diff > 0 ? '増加傾向' : '減少傾向';
   }
+
+  /**
+   * 2つの服薬時刻間の時間差（分）を算出する
+   */
+  static getTimeBetweenDoses(time1: Date, time2: Date): number {
+    return Math.abs(time1.getTime() - time2.getTime()) / (1000 * 60);
+  }
+
+  /**
+   * 最小服用間隔を満たしているかチェックする
+   */
+  static isMinIntervalMet(actualMinutes: number, minIntervalMinutes: number): boolean {
+    return actualMinutes >= minIntervalMinutes;
+  }
+
+  /**
+   * 間隔が短い場合の警告メッセージを返す
+   */
+  static getIntervalWarning(actualMinutes: number, minIntervalMinutes: number): string | null {
+    if (actualMinutes >= minIntervalMinutes) return null;
+    const hours = Math.floor(minIntervalMinutes / 60);
+    const mins = minIntervalMinutes % 60;
+    const label = hours > 0 ? (mins > 0 ? `${hours}時間${mins}分` : `${hours}時間`) : `${mins}分`;
+    return `前回の服薬から${label}以上空けてください`;
+  }
 }
