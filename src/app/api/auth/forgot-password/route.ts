@@ -18,8 +18,12 @@ export async function POST(request: NextRequest) {
     const email = parsed.data.email;
 
     const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
-    const rateLimit = checkRateLimit(`forgot:${ip}`, { maxAttempts: 5, windowMs: 60 * 1000 });
-    if (!rateLimit.allowed) {
+    const ipLimit = checkRateLimit(`forgot:${ip}`, { maxAttempts: 5, windowMs: 60 * 1000 });
+    if (!ipLimit.allowed) {
+      return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    }
+    const emailLimit = checkRateLimit(`forgot-email:${email}`, { maxAttempts: 3, windowMs: 60 * 1000 });
+    if (!emailLimit.allowed) {
       return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     }
 
