@@ -24,6 +24,7 @@ export class StockAlertEntity {
   private static readonly COST_STANDARD_THRESHOLD = 5000;
   private static readonly COST_MODERATE_THRESHOLD = 10000;
   private static readonly DAYS_PER_MONTH = 30;
+  private static readonly DEPLETION_COMFORT_THRESHOLD = 14;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -381,7 +382,7 @@ export class StockAlertEntity {
     if (days === null) return 'データなし';
     if (days <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD) return '緊急';
     if (days <= StockAlertEntity.WARNING_DAYS_THRESHOLD) return '注意';
-    if (days <= 14) return 'やや余裕';
+    if (days <= StockAlertEntity.DEPLETION_COMFORT_THRESHOLD) return 'やや余裕';
     return '余裕あり';
   }
 }
