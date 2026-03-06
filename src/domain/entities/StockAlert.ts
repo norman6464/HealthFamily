@@ -18,13 +18,16 @@ export interface StockAlert {
 }
 
 export class StockAlertEntity {
+  private static readonly CRITICAL_DAYS_THRESHOLD = 3;
+  private static readonly WARNING_DAYS_THRESHOLD = 7;
+
   constructor(private readonly alert: StockAlert) {}
 
   /**
    * 緊急度を返す（3日以内 or 期限超過）
    */
   isUrgent(): boolean {
-    return this.alert.isOverdue || this.alert.daysUntilAlert <= 3;
+    return this.alert.isOverdue || this.alert.daysUntilAlert <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD;
   }
 
   /**
@@ -72,8 +75,8 @@ export class StockAlertEntity {
    */
   static getUrgencyLabel(daysUntilAlert: number): string {
     if (daysUntilAlert <= 0) return '期限超過';
-    if (daysUntilAlert <= 3) return '残りわずか';
-    if (daysUntilAlert <= 7) return '注意';
+    if (daysUntilAlert <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD) return '残りわずか';
+    if (daysUntilAlert <= StockAlertEntity.WARNING_DAYS_THRESHOLD) return '注意';
     return '余裕あり';
   }
 
@@ -82,8 +85,8 @@ export class StockAlertEntity {
    */
   static getUrgencyStyle(daysUntilAlert: number): { bg: string; text: string } {
     if (daysUntilAlert <= 0) return { bg: 'bg-red-50', text: 'text-red-600' };
-    if (daysUntilAlert <= 3) return { bg: 'bg-orange-50', text: 'text-orange-600' };
-    if (daysUntilAlert <= 7) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
+    if (daysUntilAlert <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD) return { bg: 'bg-orange-50', text: 'text-orange-600' };
+    if (daysUntilAlert <= StockAlertEntity.WARNING_DAYS_THRESHOLD) return { bg: 'bg-yellow-50', text: 'text-yellow-600' };
     return { bg: 'bg-green-50', text: 'text-green-600' };
   }
 
@@ -166,9 +169,9 @@ export class StockAlertEntity {
   static getAlertSummary(alerts: StockAlert[]): { urgent: number; warning: number; normal: number } {
     const summary = { urgent: 0, warning: 0, normal: 0 };
     for (const alert of alerts) {
-      if (alert.isOverdue || alert.daysUntilAlert <= 3) {
+      if (alert.isOverdue || alert.daysUntilAlert <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD) {
         summary.urgent++;
-      } else if (alert.daysUntilAlert <= 7) {
+      } else if (alert.daysUntilAlert <= StockAlertEntity.WARNING_DAYS_THRESHOLD) {
         summary.warning++;
       } else {
         summary.normal++;
@@ -203,8 +206,8 @@ export class StockAlertEntity {
   static getStockForecastMessage(remainingDays: number | null): string {
     if (remainingDays === null) return '在庫数が不明です';
     if (remainingDays === 0) return '在庫がありません';
-    if (remainingDays <= 3) return `あと${remainingDays}日分の在庫です。早急に補充してください`;
-    if (remainingDays <= 7) return `あと${remainingDays}日分の在庫です。補充を検討してください`;
+    if (remainingDays <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD) return `あと${remainingDays}日分の在庫です。早急に補充してください`;
+    if (remainingDays <= StockAlertEntity.WARNING_DAYS_THRESHOLD) return `あと${remainingDays}日分の在庫です。補充を検討してください`;
     return `あと${remainingDays}日分の在庫があります`;
   }
 
@@ -214,8 +217,8 @@ export class StockAlertEntity {
   static getRefillUrgency(remainingDays: number | null): 'critical' | 'urgent' | 'warning' | 'normal' | 'unknown' {
     if (remainingDays === null) return 'unknown';
     if (remainingDays === 0) return 'critical';
-    if (remainingDays <= 3) return 'urgent';
-    if (remainingDays <= 7) return 'warning';
+    if (remainingDays <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD) return 'urgent';
+    if (remainingDays <= StockAlertEntity.WARNING_DAYS_THRESHOLD) return 'warning';
     return 'normal';
   }
 
@@ -246,7 +249,7 @@ export class StockAlertEntity {
    * 残り日数配列から緊急アラート件数を取得する（3日以下）
    */
   static getCriticalAlertCount(remainingDays: (number | null)[]): number {
-    return remainingDays.filter((d) => d !== null && d <= 3).length;
+    return remainingDays.filter((d) => d !== null && d <= StockAlertEntity.CRITICAL_DAYS_THRESHOLD).length;
   }
 
   /**
