@@ -283,4 +283,53 @@ export class MemberEntity {
     }
     return 'ペット';
   }
+
+  /**
+   * プロフィールの完成度(0-100%)を算出する
+   */
+  static getProfileCompleteness(member: {
+    name: string;
+    memberType: string;
+    birthDate?: Date | null;
+    photoUrl?: string | null;
+    notes?: string | null;
+    petType?: string | null;
+  }): number {
+    const fields = [
+      !!member.name,
+      !!member.memberType,
+      !!member.birthDate,
+      !!member.photoUrl,
+      !!member.notes,
+    ];
+    const filled = fields.filter(Boolean).length;
+    return Math.round((filled / fields.length) * 100);
+  }
+
+  /**
+   * 未入力フィールドのリストを返す
+   */
+  static getMissingFields(member: {
+    name: string;
+    memberType: string;
+    birthDate?: Date | null;
+    photoUrl?: string | null;
+    notes?: string | null;
+  }): string[] {
+    const missing: string[] = [];
+    if (!member.birthDate) missing.push('生年月日');
+    if (!member.photoUrl) missing.push('写真');
+    if (!member.notes) missing.push('メモ');
+    return missing;
+  }
+
+  /**
+   * 完成度に応じたラベルを返す
+   */
+  static getProfileCompletenessLabel(percentage: number): string {
+    if (percentage >= 100) return '完了';
+    if (percentage >= 80) return 'ほぼ完了';
+    if (percentage >= 50) return '半分入力済み';
+    return '入力が必要';
+  }
 }
