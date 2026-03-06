@@ -142,4 +142,62 @@ export class AppointmentEntity {
   get data(): Appointment {
     return this.appointment;
   }
+
+  /**
+   * 予約間の平均間隔（日数）を算出する
+   */
+  static getAverageInterval(appointments: Appointment[]): number | null {
+    if (appointments.length <= 1) return null;
+    const sorted = [...appointments].sort(
+      (a, b) => new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime(),
+    );
+    let totalDays = 0;
+    for (let i = 1; i < sorted.length; i++) {
+      totalDays += DateRangeHelper.diffDays(
+        new Date(sorted[i - 1].appointmentDate),
+        new Date(sorted[i].appointmentDate),
+      );
+    }
+    return Math.round(totalDays / (sorted.length - 1));
+  }
+
+  /**
+   * 最終予約日と平均間隔から次回推奨日をYYYY-MM-DD形式で返す
+   */
+  static getNextRecommendedDate(lastDate: Date, intervalDays: number): string {
+    const date = new Date(lastDate);
+    date.setDate(date.getDate() + intervalDays);
+    return DateRangeHelper.toDateKey(date);
+  }
+
+  /**
+   * 最も長い通院間隔を特定する
+   */
+  static getLongestGap(
+    appointments: Appointment[],
+  ): { days: number; from: string; to: string } | null {
+    if (appointments.length <= 1) return null;
+    const sorted = [...appointments].sort(
+      (a, b) => new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime(),
+    );
+    let maxDays = 0;
+    let maxFrom = sorted[0];
+    let maxTo = sorted[1];
+    for (let i = 1; i < sorted.length; i++) {
+      const days = DateRangeHelper.diffDays(
+        new Date(sorted[i - 1].appointmentDate),
+        new Date(sorted[i].appointmentDate),
+      );
+      if (days > maxDays) {
+        maxDays = days;
+        maxFrom = sorted[i - 1];
+        maxTo = sorted[i];
+      }
+    }
+    return {
+      days: maxDays,
+      from: DateRangeHelper.toDateKey(new Date(maxFrom.appointmentDate)),
+      to: DateRangeHelper.toDateKey(new Date(maxTo.appointmentDate)),
+    };
+  }
 }
