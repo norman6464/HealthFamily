@@ -239,4 +239,24 @@ export class MathHelper {
     if (abs >= MathHelper.CORRELATION_WEAK_THRESHOLD) return r > 0 ? '弱い正相関' : '弱い負相関';
     return '相関なし';
   }
+
+  /**
+   * IQRに基づいて外れ値の件数を返す
+   */
+  static getOutlierCount(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const { lower, upper } = MathHelper.getOutlierBounds(values);
+    return values.filter((v) => v < lower || v > upper).length;
+  }
+
+  /**
+   * 外れ値の件数と全体数から深刻度ラベルを返す
+   */
+  static getOutlierSeverityLabel(outlierCount: number, total: number): string {
+    if (total === 0 || outlierCount === 0) return '正常';
+    const rate = outlierCount / total;
+    if (rate >= 0.2) return '深刻';
+    if (rate >= 0.05) return '軽微';
+    return '正常';
+  }
 }
