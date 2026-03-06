@@ -19,6 +19,7 @@ export const SYMPTOM_OPTIONS = [
   'runny_nose',
   'joint_pain',
   'insomnia',
+  'menstrual_pain',
 ] as const;
 export type SymptomType = (typeof SYMPTOM_OPTIONS)[number];
 
@@ -33,6 +34,7 @@ export const SYMPTOM_LABELS: Record<SymptomType, string> = {
   runny_nose: '鼻水',
   joint_pain: '関節痛',
   insomnia: '不眠',
+  menstrual_pain: '生理痛',
 };
 
 export interface HealthLog {
