@@ -1,4 +1,5 @@
 import React from 'react';
+import { MathHelper } from '@/domain/entities/MathHelper';
 
 interface AdherenceProgressRingProps {
   percentage: number;
@@ -10,7 +11,7 @@ export const AdherenceProgressRing: React.FC<AdherenceProgressRingProps> = ({ pe
   const strokeWidth = 6;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (Math.min(Math.max(percentage, 0), 100) / 100) * circumference;
+  const offset = circumference - (MathHelper.clamp(percentage, 0, 100) / 100) * circumference;
 
   const getColor = (pct: number): string => {
     if (pct >= 80) return '#22c55e';
