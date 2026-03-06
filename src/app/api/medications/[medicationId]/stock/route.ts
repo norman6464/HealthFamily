@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
                 daysUntilAlert,
               });
               sendEmail({ to: user.email, ...template }).catch((err) => {
-                console.error('Low stock email failed:', err);
+                console.error('在庫不足メール送信エラー:', err);
               });
             }
           }

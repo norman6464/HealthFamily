@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return success({ message: 'リセットコードを送信しました' });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error('パスワード再設定エラー:', error);
     return errorResponse('送信に失敗しました', 500);
   }
 }
