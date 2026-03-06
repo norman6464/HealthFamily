@@ -257,4 +257,11 @@ export class DateRangeHelper {
     end.setDate(start.getDate() + 6);
     return { start, end };
   }
+
+  /**
+   * 営業日/休日ラベルを返す
+   */
+  static getBusinessDayLabel(date: Date): string {
+    return DateRangeHelper.isWeekend(date) ? '休日' : '営業日';
+  }
 }

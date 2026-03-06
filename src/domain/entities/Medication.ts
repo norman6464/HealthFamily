@@ -314,4 +314,30 @@ export class MedicationEntity {
       count: meds.length,
     }));
   }
+
+  /**
+   * 服用頻度(回/日)から最小服用間隔(時間)を算出する
+   */
+  static getMinimumInterval(timesPerDay: number): number | null {
+    if (timesPerDay <= 0) return null;
+    return Math.floor(24 / timesPerDay);
+  }
+
+  /**
+   * 前回服用からの経過時間が安全かチェックする
+   */
+  static isIntervalSafe(hoursSinceLastDose: number, timesPerDay: number): boolean {
+    const minInterval = MedicationEntity.getMinimumInterval(timesPerDay);
+    if (minInterval === null) return true;
+    return hoursSinceLastDose >= minInterval;
+  }
+
+  /**
+   * 間隔が不安全な場合に警告メッセージを返す
+   */
+  static getIntervalWarningMessage(hoursSinceLastDose: number, timesPerDay: number): string | null {
+    if (MedicationEntity.isIntervalSafe(hoursSinceLastDose, timesPerDay)) return null;
+    const minInterval = MedicationEntity.getMinimumInterval(timesPerDay);
+    return `前回の服用から十分な時間が経っていません。最低${minInterval}時間の間隔をあけてください`;
+  }
 }

@@ -142,4 +142,37 @@ export class HospitalEntity {
       }))
       .sort((a, b) => b.count - a.count);
   }
+
+  /**
+   * 通院日リストから月別通院回数を集計する
+   */
+  static getVisitCountByMonth(visits: { date: Date }[]): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const visit of visits) {
+      const d = new Date(visit.date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  /**
+   * 月別通院回数から月平均を算出する
+   */
+  static getAverageVisitsPerMonth(monthlyCounts: Record<string, number>): number {
+    const months = Object.keys(monthlyCounts);
+    if (months.length === 0) return 0;
+    const total = Object.values(monthlyCounts).reduce((sum, c) => sum + c, 0);
+    return Math.round((total / months.length) * 10) / 10;
+  }
+
+  /**
+   * 月平均通院回数に応じた傾向ラベルを返す
+   */
+  static getVisitTrendLabel(avgPerMonth: number): string {
+    if (avgPerMonth >= 4) return '頻繁';
+    if (avgPerMonth >= 2) return '定期的';
+    if (avgPerMonth > 0) return '少ない';
+    return '通院なし';
+  }
 }
