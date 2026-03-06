@@ -274,4 +274,39 @@ export class MedicationEntity {
     }
     return parts.join(' / ');
   }
+
+  /**
+   * 2つの薬が同カテゴリかチェックする
+   */
+  static isSameCategory(cat1: string, cat2: string): boolean {
+    return cat1 === cat2;
+  }
+
+  /**
+   * 薬リストをカテゴリ別にグループ化する
+   */
+  static groupByCategory<T extends { category: string }>(medications: T[]): Record<string, T[]> {
+    const groups: Record<string, T[]> = {};
+    for (const med of medications) {
+      if (!groups[med.category]) {
+        groups[med.category] = [];
+      }
+      groups[med.category].push(med);
+    }
+    return groups;
+  }
+
+  /**
+   * カテゴリ別の件数サマリーを返す
+   */
+  static getCategoryCountSummary<T extends { category: MedicationCategory }>(
+    medications: T[],
+  ): Array<{ category: MedicationCategory; label: string; count: number }> {
+    const groups = MedicationEntity.groupByCategory(medications);
+    return Object.entries(groups).map(([category, meds]) => ({
+      category: category as MedicationCategory,
+      label: MedicationEntity.getCategoryLabel(category as MedicationCategory),
+      count: meds.length,
+    }));
+  }
 }
