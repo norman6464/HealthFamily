@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    console.error('エラーバウンダリーが例外をキャッチしました:', error, errorInfo);
   }
 
   handleReload = (): void => {
