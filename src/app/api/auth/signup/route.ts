@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { signUpSchema } from '@/lib/schemas';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { created, errorResponse } from '@/lib/auth-helpers';
-import { validateBodySize } from '@/lib/api-helpers';
+import { validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
@@ -18,8 +18,9 @@ export async function POST(request: NextRequest) {
       return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     }
 
-    const body = await request.json();
-    const parsed = signUpSchema.safeParse(body);
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const parsed = signUpSchema.safeParse(jsonResult.data);
     if (!parsed.success) {
       return errorResponse(parsed.error.errors[0].message);
     }

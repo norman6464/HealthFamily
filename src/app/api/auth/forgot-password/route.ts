@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { forgotPasswordSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { validateBodySize } from '@/lib/api-helpers';
+import { validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
   if (sizeError) return sizeError;
 
   try {
-    const body = await request.json();
-    const parsed = forgotPasswordSchema.safeParse(body);
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const parsed = forgotPasswordSchema.safeParse(jsonResult.data);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
     const email = parsed.data.email;

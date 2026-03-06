@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { validateBodySize } from '@/lib/api-helpers';
+import { validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
 const verifySchema = z.object({
@@ -17,8 +17,9 @@ export async function POST(request: NextRequest) {
   if (sizeError) return sizeError;
 
   try {
-    const body = await request.json();
-    const parsed = verifySchema.safeParse(body);
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const parsed = verifySchema.safeParse(jsonResult.data);
     if (!parsed.success) {
       return errorResponse('確認コードは6桁の数字です');
     }

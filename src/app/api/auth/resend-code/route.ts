@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { sendEmail, emailTemplates, generateVerificationCode } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { validateBodySize } from '@/lib/api-helpers';
+import { validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 
 const resendSchema = z.object({
@@ -15,8 +15,9 @@ export async function POST(request: NextRequest) {
   if (sizeError) return sizeError;
 
   try {
-    const body = await request.json();
-    const parsed = resendSchema.safeParse(body);
+    const jsonResult = await safeParseJson(request);
+    if ('error' in jsonResult) return jsonResult.error;
+    const parsed = resendSchema.safeParse(jsonResult.data);
     if (!parsed.success) {
       return errorResponse('有効なメールアドレスを入力してください');
     }
