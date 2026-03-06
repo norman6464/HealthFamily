@@ -225,4 +225,40 @@ export class StockAlertEntity {
   static getDaysUntilStockout(stockQuantity: number | null, dailyConsumption: number): number | null {
     return StockAlertEntity.calculateRemainingDays(stockQuantity, dailyConsumption);
   }
+
+  /**
+   * 全体の在庫状況メッセージを生成する
+   */
+  static getOverallStockMessage(criticalCount: number, warningCount: number, cautionCount: number): string {
+    if (criticalCount === 0 && warningCount === 0 && cautionCount === 0) {
+      return '全ての在庫が十分です';
+    }
+    if (criticalCount > 0) {
+      return `${criticalCount}件の緊急の在庫補充が必要です`;
+    }
+    if (warningCount > 0) {
+      return `${warningCount}件の注意が必要な在庫があります`;
+    }
+    return `${cautionCount}件の在庫を確認してください`;
+  }
+
+  /**
+   * 残り日数配列から緊急アラート件数を取得する（3日以下）
+   */
+  static getCriticalAlertCount(remainingDays: (number | null)[]): number {
+    return remainingDays.filter((d) => d !== null && d <= 3).length;
+  }
+
+  /**
+   * 優先度に応じた対応メッセージを返す
+   */
+  static getAlertPriorityMessage(urgency: 'critical' | 'urgent' | 'warning' | 'normal'): string {
+    const messages: Record<string, string> = {
+      critical: '今すぐ補充してください',
+      urgent: '早めに補充してください',
+      warning: '計画的に補充を検討してください',
+      normal: '在庫は十分です',
+    };
+    return messages[urgency];
+  }
 }
