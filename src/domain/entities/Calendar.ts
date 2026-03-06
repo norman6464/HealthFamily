@@ -36,6 +36,9 @@ export class CalendarEntity {
   private static readonly WEEKEND_BIAS_THRESHOLD = 60;
   private static readonly GAP_SHORT_THRESHOLD = 3;
   private static readonly GAP_LONG_THRESHOLD = 14;
+  private static readonly COMPLETENESS_PERFECT_THRESHOLD = 90;
+  private static readonly COMPLETENESS_GOOD_THRESHOLD = 70;
+  private static readonly COMPLETENESS_FAIR_THRESHOLD = 50;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -507,9 +510,9 @@ export class CalendarEntity {
    * 記録網羅度スコアに応じたラベルを返す
    */
   static getRecordCompletenessLabel(score: number): string {
-    if (score >= 90) return '完璧';
-    if (score >= 70) return '良好';
-    if (score >= 50) return 'まずまず';
+    if (score >= CalendarEntity.COMPLETENESS_PERFECT_THRESHOLD) return '完璧';
+    if (score >= CalendarEntity.COMPLETENESS_GOOD_THRESHOLD) return '良好';
+    if (score >= CalendarEntity.COMPLETENESS_FAIR_THRESHOLD) return 'まずまず';
     return '不足';
   }
 

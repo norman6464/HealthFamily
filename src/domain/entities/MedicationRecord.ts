@@ -41,6 +41,9 @@ export class MedicationRecordEntity {
   private static readonly TIMING_MODERATE_THRESHOLD = 40;
   private static readonly STREAK_GOOD_THRESHOLD = 7;
   private static readonly STREAK_EXCELLENT_THRESHOLD = 30;
+  private static readonly REGULARITY_MAX_STDDEV = 120;
+  private static readonly REGULARITY_HIGH_THRESHOLD = 80;
+  private static readonly REGULARITY_MODERATE_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -710,16 +713,15 @@ export class MedicationRecordEntity {
     const avg = timesInMinutes.reduce((a, b) => a + b, 0) / timesInMinutes.length;
     const variance = timesInMinutes.reduce((sum, v) => sum + (v - avg) ** 2, 0) / timesInMinutes.length;
     const stdDev = Math.sqrt(variance);
-    const maxStdDev = 120;
-    return Math.max(0, Math.min(100, Math.round(100 - (stdDev / maxStdDev) * 100)));
+    return Math.max(0, Math.min(100, Math.round(100 - (stdDev / MedicationRecordEntity.REGULARITY_MAX_STDDEV) * 100)));
   }
 
   /**
    * 服薬時刻規則性スコアに応じたラベルを返す
    */
   static getDoseRegularityLabel(score: number): string {
-    if (score >= 80) return '規則的';
-    if (score >= 50) return 'やや不規則';
+    if (score >= MedicationRecordEntity.REGULARITY_HIGH_THRESHOLD) return '規則的';
+    if (score >= MedicationRecordEntity.REGULARITY_MODERATE_THRESHOLD) return 'やや不規則';
     return '不規則';
   }
 
