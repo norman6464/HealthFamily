@@ -701,6 +701,29 @@ export class MedicationRecordEntity {
   }
 
   /**
+   * 服薬時刻（分単位）配列から規則性スコア(0-100)を算出する
+   * 標準偏差が小さいほど高スコア（最大標準偏差120分基準）
+   */
+  static getDoseRegularity(timesInMinutes: number[]): number {
+    if (timesInMinutes.length === 0) return 0;
+    if (timesInMinutes.length === 1) return 100;
+    const avg = timesInMinutes.reduce((a, b) => a + b, 0) / timesInMinutes.length;
+    const variance = timesInMinutes.reduce((sum, v) => sum + (v - avg) ** 2, 0) / timesInMinutes.length;
+    const stdDev = Math.sqrt(variance);
+    const maxStdDev = 120;
+    return Math.max(0, Math.min(100, Math.round(100 - (stdDev / maxStdDev) * 100)));
+  }
+
+  /**
+   * 服薬時刻規則性スコアに応じたラベルを返す
+   */
+  static getDoseRegularityLabel(score: number): string {
+    if (score >= 80) return '規則的';
+    if (score >= 50) return 'やや不規則';
+    return '不規則';
+  }
+
+  /**
    * 末尾からの連続達成日数を算出する
    */
   static getAdherenceStreak(dailyResults: boolean[]): number {

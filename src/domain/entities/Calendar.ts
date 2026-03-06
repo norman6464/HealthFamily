@@ -495,6 +495,25 @@ export class CalendarEntity {
   }
 
   /**
+   * 記録の網羅度スコア(0-100)を算出する
+   * 記録日数/期待日数の割合、100を上限
+   */
+  static getRecordCompleteness(recordDays: number, expectedDays: number): number {
+    if (expectedDays <= 0) return 0;
+    return Math.min(100, Math.round((recordDays / expectedDays) * 100));
+  }
+
+  /**
+   * 記録網羅度スコアに応じたラベルを返す
+   */
+  static getRecordCompletenessLabel(score: number): string {
+    if (score >= 90) return '完璧';
+    if (score >= 70) return '良好';
+    if (score >= 50) return 'まずまず';
+    return '不足';
+  }
+
+  /**
    * 日付キー配列から最大の空白日数（ギャップ）を算出する
    */
   static getRecordGapDays(dateKeys: string[]): number {
