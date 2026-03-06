@@ -298,6 +298,31 @@ export class MathHelper {
   /**
    * 幾何平均に応じたラベルを返す
    */
+  /**
+   * トリム平均を算出する（上下指定%を除外した平均）
+   * @param values 数値配列
+   * @param trimPercent 上下から除外する割合(0-49)
+   */
+  static getTrimmedMean(values: number[], trimPercent: number): number {
+    if (values.length === 0) return 0;
+    if (values.length === 1) return values[0];
+    const sorted = [...values].sort((a, b) => a - b);
+    const trimCount = Math.floor(sorted.length * (trimPercent / 100));
+    const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+    if (trimmed.length === 0) return sorted[Math.floor(sorted.length / 2)];
+    const sum = trimmed.reduce((a, b) => a + b, 0);
+    return Math.round((sum / trimmed.length) * 10) / 10;
+  }
+
+  /**
+   * トリム平均値に応じたラベルを返す
+   */
+  static getTrimmedMeanLabel(mean: number): string {
+    if (mean >= MathHelper.GEOMETRIC_HIGH_THRESHOLD) return '高い';
+    if (mean >= MathHelper.GEOMETRIC_LOW_THRESHOLD) return '中程度';
+    return '低い';
+  }
+
   static getGeometricMeanLabel(mean: number): string {
     if (mean >= MathHelper.GEOMETRIC_HIGH_THRESHOLD) return '高い';
     if (mean >= MathHelper.GEOMETRIC_LOW_THRESHOLD) return '中程度';

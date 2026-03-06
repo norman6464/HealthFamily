@@ -69,6 +69,9 @@ export class HealthLogEntity {
   private static readonly VARIANCE_UNSTABLE_THRESHOLD = 3;
   private static readonly PERSISTENCE_HIGH_THRESHOLD = 70;
   private static readonly PERSISTENCE_MODERATE_THRESHOLD = 40;
+  private static readonly CONSISTENCY_MAX_AVG_DIFF = 4;
+  private static readonly CONSISTENCY_HIGH_THRESHOLD = 80;
+  private static readonly CONSISTENCY_MODERATE_THRESHOLD = 50;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -866,6 +869,29 @@ export class HealthLogEntity {
   static getConditionVarianceLabel(variance: number): string {
     if (variance < HealthLogEntity.VARIANCE_STABLE_THRESHOLD) return '安定';
     if (variance < HealthLogEntity.VARIANCE_UNSTABLE_THRESHOLD) return 'やや不安定';
+    return '不安定';
+  }
+
+  /**
+   * 体調値配列から一貫性スコア(0-100)を算出する
+   * 連続する値の差の平均が小さいほど高スコア
+   */
+  static getConditionConsistency(conditions: number[]): number {
+    if (conditions.length <= 1) return conditions.length === 0 ? 0 : 100;
+    let totalDiff = 0;
+    for (let i = 1; i < conditions.length; i++) {
+      totalDiff += Math.abs(conditions[i] - conditions[i - 1]);
+    }
+    const avgDiff = totalDiff / (conditions.length - 1);
+    return Math.max(0, Math.min(100, Math.round(100 - (avgDiff / HealthLogEntity.CONSISTENCY_MAX_AVG_DIFF) * 100)));
+  }
+
+  /**
+   * 一貫性スコアに応じたラベルを返す
+   */
+  static getConditionConsistencyLabel(score: number): string {
+    if (score >= HealthLogEntity.CONSISTENCY_HIGH_THRESHOLD) return '安定';
+    if (score >= HealthLogEntity.CONSISTENCY_MODERATE_THRESHOLD) return '変動あり';
     return '不安定';
   }
 }
