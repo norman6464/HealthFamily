@@ -24,6 +24,8 @@ export class MathHelper {
   private static readonly RANK_HIGH_THRESHOLD = 80;
   private static readonly RANK_MEDIUM_THRESHOLD = 50;
   private static readonly RUNNING_MAX_NEAR_RATIO = 0.9;
+  private static readonly MOVING_STDDEV_STABLE_THRESHOLD = 5;
+  private static readonly MOVING_STDDEV_MODERATE_THRESHOLD = 15;
 
   /**
    * パーセントを算出(0-100%)
@@ -484,5 +486,29 @@ export class MathHelper {
     if (currentValue >= maxValue) return '最高値';
     if (currentValue >= maxValue * MathHelper.RUNNING_MAX_NEAR_RATIO) return '最高値付近';
     return '最高値以下';
+  }
+
+  /**
+   * 移動標準偏差を算出する
+   */
+  static getMovingStdDev(values: number[], window: number): number[] {
+    if (values.length < window || window <= 0) return [];
+    const result: number[] = [];
+    for (let i = 0; i <= values.length - window; i++) {
+      const slice = values.slice(i, i + window);
+      const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
+      const variance = slice.reduce((sum, v) => sum + (v - avg) ** 2, 0) / slice.length;
+      result.push(Math.round(Math.sqrt(variance) * 100) / 100);
+    }
+    return result;
+  }
+
+  /**
+   * 移動標準偏差に応じたラベルを返す
+   */
+  static getMovingStdDevLabel(stdDev: number): string {
+    if (stdDev < MathHelper.MOVING_STDDEV_STABLE_THRESHOLD) return '安定';
+    if (stdDev < MathHelper.MOVING_STDDEV_MODERATE_THRESHOLD) return 'やや変動';
+    return '大きな変動';
   }
 }

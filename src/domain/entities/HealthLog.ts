@@ -73,6 +73,8 @@ export class HealthLogEntity {
   private static readonly CONSISTENCY_HIGH_THRESHOLD = 80;
   private static readonly CONSISTENCY_MODERATE_THRESHOLD = 50;
   private static readonly TREND_SLOPE_THRESHOLD = 0.3;
+  private static readonly CONDITION_RANGE_STABLE_THRESHOLD = 1;
+  private static readonly CONDITION_RANGE_MODERATE_THRESHOLD = 3;
   private static readonly TEMP_HYPOTHERMIA = 35.0;
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
@@ -926,5 +928,22 @@ export class HealthLogEntity {
     if (slope >= HealthLogEntity.TREND_SLOPE_THRESHOLD) return '改善傾向';
     if (slope <= -HealthLogEntity.TREND_SLOPE_THRESHOLD) return '悪化傾向';
     return '横ばい';
+  }
+
+  /**
+   * 体調値配列のレンジ(最大値-最小値)を返す
+   */
+  static getConditionRange(conditions: number[]): number {
+    if (conditions.length <= 1) return 0;
+    return Math.max(...conditions) - Math.min(...conditions);
+  }
+
+  /**
+   * 体調レンジに応じたラベルを返す
+   */
+  static getConditionRangeLabel(range: number): string {
+    if (range <= HealthLogEntity.CONDITION_RANGE_STABLE_THRESHOLD) return '安定';
+    if (range <= HealthLogEntity.CONDITION_RANGE_MODERATE_THRESHOLD) return 'やや変動';
+    return '大きな変動';
   }
 }
