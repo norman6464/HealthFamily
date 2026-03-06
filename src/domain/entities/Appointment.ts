@@ -239,4 +239,43 @@ export class AppointmentEntity {
     const count = appointments.filter((a) => (a.appointmentType || 'other') === type).length;
     return MathHelper.calculatePercentage(count, appointments.length);
   }
+
+  /**
+   * 残り日数に応じたリマインダーメッセージを返す
+   */
+  static getReminderMessage(daysUntil: number): string {
+    if (daysUntil < 0) return '予約日を過ぎています';
+    if (daysUntil === 0) return '本日の予約があります';
+    if (daysUntil === 1) return '明日の予約があります';
+    if (daysUntil === 7) return '1週間後に予約があります';
+    return `${daysUntil}日後に予約があります`;
+  }
+
+  /**
+   * 予約情報のサマリーテキストを生成する
+   */
+  static formatAppointmentSummary(appointment: Appointment): string {
+    const parts: string[] = [];
+    if (appointment.memberName) parts.push(appointment.memberName);
+    if (appointment.appointmentType) {
+      const label = AppointmentEntity.typeLabels[appointment.appointmentType] || appointment.appointmentType;
+      parts.push(label);
+    }
+    if (appointment.hospitalName) parts.push(appointment.hospitalName);
+    return parts.join(' / ');
+  }
+
+  /**
+   * 指定日数以内の予約を日付順で返す
+   */
+  static getUpcomingAppointments(appointments: Appointment[], today: Date, withinDays: number): Appointment[] {
+    const todayStart = DateRangeHelper.toStartOfDay(today);
+    return appointments
+      .filter((apt) => {
+        const aptDate = DateRangeHelper.toStartOfDay(new Date(apt.appointmentDate));
+        const diff = DateRangeHelper.diffDays(todayStart, aptDate);
+        return diff >= 0 && diff <= withinDays;
+      })
+      .sort((a, b) => new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime());
+  }
 }
