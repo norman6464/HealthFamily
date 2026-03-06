@@ -279,8 +279,9 @@ export class ScheduleEntity {
    */
   static getProgressMessage(completed: number, total: number): string {
     if (total === 0) return '予定がありません';
-    if (completed === total) return '全ての予定を達成しました';
-    if (completed >= total / 2) return 'もう少しで全て完了です';
+    const rate = ScheduleEntity.calculateCompletionRate(completed, total);
+    if (rate >= 100) return '全ての予定を達成しました';
+    if (rate >= 50) return 'もう少しで全て完了です';
     return '少しずつ進めていきましょう';
   }
 
