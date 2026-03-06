@@ -35,6 +35,9 @@ export class StockAlertEntity {
   private static readonly STABILITY_MAX_CV = 1;
   private static readonly STABILITY_HIGH_THRESHOLD = 80;
   private static readonly STABILITY_MODERATE_THRESHOLD = 50;
+  private static readonly BURN_RATE_MAX_DAYS = 90;
+  private static readonly BURN_RATE_HIGH_THRESHOLD = 70;
+  private static readonly BURN_RATE_MODERATE_THRESHOLD = 40;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -544,5 +547,24 @@ export class StockAlertEntity {
     if (score >= StockAlertEntity.STABILITY_HIGH_THRESHOLD) return '安定';
     if (score >= StockAlertEntity.STABILITY_MODERATE_THRESHOLD) return 'やや不安定';
     return '不安定';
+  }
+
+  /**
+   * 在庫量と日次消費量から消費速度スコア(0-100)を算出する
+   * 在庫日数が多いほど高スコア（最大90日基準）
+   */
+  static getStockBurnRate(stock: number, dailyConsumption: number): number {
+    if (stock <= 0 || dailyConsumption <= 0) return 0;
+    const coverageDays = stock / dailyConsumption;
+    return Math.min(100, Math.round((coverageDays / StockAlertEntity.BURN_RATE_MAX_DAYS) * 100));
+  }
+
+  /**
+   * 消費速度スコアに応じたラベルを返す
+   */
+  static getStockBurnRateLabel(score: number): string {
+    if (score >= StockAlertEntity.BURN_RATE_HIGH_THRESHOLD) return '余裕あり';
+    if (score >= StockAlertEntity.BURN_RATE_MODERATE_THRESHOLD) return 'やや不足';
+    return '不足';
   }
 }
