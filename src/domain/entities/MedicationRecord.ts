@@ -511,7 +511,7 @@ export class MedicationRecordEntity {
    */
   static getDailyComplianceScore(taken: number, scheduled: number): number {
     if (scheduled <= 0) return 100;
-    return Math.min(100, Math.round((taken / scheduled) * 100));
+    return Math.max(0, Math.min(100, Math.round((taken / scheduled) * 100)));
   }
 
   /**
