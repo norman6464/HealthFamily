@@ -43,6 +43,9 @@ export class StockAlertEntity {
   private static readonly VOLATILITY_MAX_DIFF = 50;
   private static readonly VOLATILITY_STABLE_THRESHOLD = 30;
   private static readonly VOLATILITY_MODERATE_THRESHOLD = 60;
+  private static readonly DEPLETION_MAX_DAYS = 30;
+  private static readonly DEPLETION_HIGH_THRESHOLD = 70;
+  private static readonly DEPLETION_MODERATE_THRESHOLD = 30;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -611,5 +614,25 @@ export class StockAlertEntity {
     if (score <= StockAlertEntity.VOLATILITY_STABLE_THRESHOLD) return '安定';
     if (score <= StockAlertEntity.VOLATILITY_MODERATE_THRESHOLD) return 'やや変動';
     return '変動大';
+  }
+
+  /**
+   * 在庫枯渇リスクスコア(0-100)を算出する
+   * 在庫量/日消費量が少ないほど高リスク（30日基準）
+   */
+  static getStockDepletionRisk(stock: number, dailyConsumption: number): number {
+    if (dailyConsumption <= 0) return 0;
+    if (stock <= 0) return 100;
+    const coverageDays = stock / dailyConsumption;
+    return Math.max(0, Math.min(100, Math.round(100 - (coverageDays / StockAlertEntity.DEPLETION_MAX_DAYS) * 100)));
+  }
+
+  /**
+   * 枯渇リスクスコアに応じたラベルを返す
+   */
+  static getStockDepletionRiskLabel(score: number): string {
+    if (score >= StockAlertEntity.DEPLETION_HIGH_THRESHOLD) return '高リスク';
+    if (score >= StockAlertEntity.DEPLETION_MODERATE_THRESHOLD) return '中リスク';
+    return '低リスク';
   }
 }

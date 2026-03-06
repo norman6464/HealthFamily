@@ -79,6 +79,9 @@ export class HealthLogEntity {
   private static readonly TEMP_LOW_FEVER = 37.5;
   private static readonly TEMP_FEVER = 38.0;
   private static readonly TEMP_HIGH_FEVER = 39.0;
+  private static readonly CONDITION_MAX_LEVEL = 5;
+  private static readonly PEAK_EXCELLENT_THRESHOLD = 80;
+  private static readonly PEAK_GOOD_THRESHOLD = 50;
 
   private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
     1: 'とても悪い',
@@ -945,5 +948,24 @@ export class HealthLogEntity {
     if (range <= HealthLogEntity.CONDITION_RANGE_STABLE_THRESHOLD) return '安定';
     if (range <= HealthLogEntity.CONDITION_RANGE_MODERATE_THRESHOLD) return 'やや変動';
     return '大きな変動';
+  }
+
+  /**
+   * 体調スコア配列からピークスコア(0-100)を算出する
+   * 最大体調値を5段階中の割合で算出
+   */
+  static getConditionPeakScore(conditions: number[]): number {
+    if (conditions.length === 0) return 0;
+    const peak = Math.max(...conditions);
+    return Math.round((peak / HealthLogEntity.CONDITION_MAX_LEVEL) * 100);
+  }
+
+  /**
+   * ピークスコアに応じたラベルを返す
+   */
+  static getConditionPeakScoreLabel(score: number): string {
+    if (score >= HealthLogEntity.PEAK_EXCELLENT_THRESHOLD) return '絶好調';
+    if (score >= HealthLogEntity.PEAK_GOOD_THRESHOLD) return '好調';
+    return '不調';
   }
 }
