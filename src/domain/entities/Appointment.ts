@@ -298,6 +298,34 @@ export class AppointmentEntity {
   /**
    * 予約種別の表示情報を返す
    */
+  /**
+   * リマインダー送信日を算出する
+   */
+  static getReminderDate(appointmentDate: Date, daysBefore: number): Date {
+    const date = new Date(appointmentDate);
+    date.setDate(date.getDate() - daysBefore);
+    return date;
+  }
+
+  /**
+   * リマインダータイミングを日本語で表示する
+   */
+  static formatReminderTiming(daysBefore: number): string {
+    if (daysBefore === 0) return '当日';
+    if (daysBefore === 1) return '前日';
+    if (daysBefore % 7 === 0) return `${daysBefore / 7}週間前`;
+    return `${daysBefore}日前`;
+  }
+
+  /**
+   * リマインダーが遅延しているか判定する
+   */
+  static isReminderOverdue(reminderDate: Date, today: Date): boolean {
+    const reminderStart = DateRangeHelper.toStartOfDay(reminderDate);
+    const todayStart = DateRangeHelper.toStartOfDay(today);
+    return reminderStart.getTime() < todayStart.getTime();
+  }
+
   static getTypeDisplayInfo(type?: string): { label: string; isValid: boolean } {
     if (!type) return { label: '', isValid: true };
     const label = AppointmentEntity.typeLabels[type];
