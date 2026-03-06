@@ -78,7 +78,15 @@ export class AppointmentEntity {
   };
 
   getTypeLabel(): string {
-    return AppointmentEntity.getTypeDisplayInfo(this.appointment.appointmentType).label;
+    return AppointmentEntity.getTypeLabelByCode(this.appointment.appointmentType);
+  }
+
+  /**
+   * 種別コードからラベルを取得する(未知の場合はコードをそのまま返す)
+   */
+  static getTypeLabelByCode(type?: string): string {
+    if (!type) return '';
+    return AppointmentEntity.typeLabels[type] || type;
   }
 
   /**
@@ -212,7 +220,7 @@ export class AppointmentEntity {
     return Object.entries(counts)
       .map(([type, count]) => ({
         type,
-        label: AppointmentEntity.typeLabels[type] || type,
+        label: AppointmentEntity.getTypeLabelByCode(type),
         count,
         percentage: MathHelper.calculatePercentage(count, appointments.length),
       }))
@@ -257,8 +265,7 @@ export class AppointmentEntity {
     const parts: string[] = [];
     if (appointment.memberName) parts.push(appointment.memberName);
     if (appointment.appointmentType) {
-      const label = AppointmentEntity.typeLabels[appointment.appointmentType] || appointment.appointmentType;
-      parts.push(label);
+      parts.push(AppointmentEntity.getTypeLabelByCode(appointment.appointmentType));
     }
     if (appointment.hospitalName) parts.push(appointment.hospitalName);
     return parts.join(' / ');
@@ -328,10 +335,9 @@ export class AppointmentEntity {
 
   static getTypeDisplayInfo(type?: string): { label: string; isValid: boolean } {
     if (!type) return { label: '', isValid: true };
-    const label = AppointmentEntity.typeLabels[type];
     return {
-      label: label || type,
-      isValid: !!label,
+      label: AppointmentEntity.getTypeLabelByCode(type),
+      isValid: type in AppointmentEntity.typeLabels,
     };
   }
 
