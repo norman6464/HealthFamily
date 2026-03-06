@@ -150,6 +150,10 @@ export class MemberEntity {
     return age;
   }
 
+  private static readonly ACTIVITY_HIGH_THRESHOLD = 80;
+  private static readonly ACTIVITY_NORMAL_THRESHOLD = 50;
+  private static readonly ACTIVITY_LOW_THRESHOLD = 20;
+
   private static readonly memberTypeLabels: Record<MemberType, string> = {
     human: '家族',
     pet: 'ペット',
@@ -504,9 +508,9 @@ export class MemberEntity {
    * 活動スコアに応じたラベルを返す
    */
   static getActivityScoreLabel(score: number): string {
-    if (score >= 80) return '活発';
-    if (score >= 50) return '普通';
-    if (score >= 20) return '低調';
+    if (score >= MemberEntity.ACTIVITY_HIGH_THRESHOLD) return '活発';
+    if (score >= MemberEntity.ACTIVITY_NORMAL_THRESHOLD) return '普通';
+    if (score >= MemberEntity.ACTIVITY_LOW_THRESHOLD) return '低調';
     return '非活動';
   }
 }

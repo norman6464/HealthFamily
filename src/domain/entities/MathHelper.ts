@@ -5,6 +5,9 @@ export class MathHelper {
   private static readonly WEIGHTED_AVG_VERY_HIGH_THRESHOLD = 90;
   private static readonly WEIGHTED_AVG_HIGH_THRESHOLD = 70;
   private static readonly WEIGHTED_AVG_NORMAL_THRESHOLD = 40;
+  private static readonly NORMALIZED_HIGH_THRESHOLD = 80;
+  private static readonly NORMALIZED_MEDIUM_THRESHOLD = 50;
+  private static readonly NORMALIZED_LOW_THRESHOLD = 20;
 
   /**
    * パーセントを算出(0-100%)
@@ -196,9 +199,9 @@ export class MathHelper {
    * 正規化された値に応じたラベルを返す
    */
   static getNormalizedRangeLabel(value: number): string {
-    if (value >= 80) return '高い';
-    if (value >= 50) return '中程度';
-    if (value >= 20) return '低い';
+    if (value >= MathHelper.NORMALIZED_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.NORMALIZED_MEDIUM_THRESHOLD) return '中程度';
+    if (value >= MathHelper.NORMALIZED_LOW_THRESHOLD) return '低い';
     return '非常に低い';
   }
 }
