@@ -600,4 +600,40 @@ export class MedicationRecordEntity {
     if (count <= 6) return '多め';
     return '非常に多い';
   }
+
+  private static readonly WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+
+  /**
+   * 曜日別の服薬記録パターンを算出する
+   */
+  static getWeekdayAdherencePattern(
+    records: { dayOfWeek: number }[],
+    _totalDays: number,
+  ): { label: string; count: number }[] {
+    const counts = new Array(7).fill(0);
+    for (const record of records) {
+      if (record.dayOfWeek >= 0 && record.dayOfWeek <= 6) {
+        counts[record.dayOfWeek]++;
+      }
+    }
+    return counts.map((count, i) => ({
+      label: MedicationRecordEntity.WEEKDAY_LABELS[i],
+      count,
+    }));
+  }
+
+  /**
+   * 曜日別パターンから平日/休日/均等のラベルを返す
+   */
+  static getWeekdayPatternLabel(pattern: { label: string; count: number }[]): string {
+    if (pattern.length < 7) return '均等';
+    const weekdayTotal = pattern[1].count + pattern[2].count + pattern[3].count + pattern[4].count + pattern[5].count;
+    const weekendTotal = pattern[0].count + pattern[6].count;
+    const total = weekdayTotal + weekendTotal;
+    if (total === 0) return '均等';
+    const weekdayRatio = weekdayTotal / total;
+    if (weekdayRatio > 0.8) return '平日中心';
+    if (weekdayRatio < 0.3) return '休日中心';
+    return '均等';
+  }
 }
