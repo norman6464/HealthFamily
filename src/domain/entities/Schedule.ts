@@ -788,6 +788,9 @@ export class ScheduleEntity {
   private static readonly SCHEDULE_GAP_LONG_THRESHOLD = 480;
   private static readonly OVERLAP_MINOR_THRESHOLD = 30;
   private static readonly OVERLAP_WARNING_THRESHOLD = 60;
+  private static readonly FRAGMENTATION_MAX_STDDEV = 720;
+  private static readonly FRAGMENTATION_HIGH_THRESHOLD = 60;
+  private static readonly FRAGMENTATION_MODERATE_THRESHOLD = 30;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -910,5 +913,26 @@ export class ScheduleEntity {
     if (score < ScheduleEntity.OVERLAP_MINOR_THRESHOLD) return '軽微';
     if (score < ScheduleEntity.OVERLAP_WARNING_THRESHOLD) return '注意';
     return '要調整';
+  }
+
+  /**
+   * スケジュール時刻(分単位)配列から断片化スコア(0-100)を算出する
+   * 標準偏差ベースで時間帯の分散度を数値化
+   */
+  static getScheduleFragmentation(timesInMinutes: number[]): number {
+    if (timesInMinutes.length <= 1) return 0;
+    const avg = timesInMinutes.reduce((a, b) => a + b, 0) / timesInMinutes.length;
+    const variance = timesInMinutes.reduce((sum, v) => sum + (v - avg) ** 2, 0) / timesInMinutes.length;
+    const stdDev = Math.sqrt(variance);
+    return Math.min(100, Math.round((stdDev / ScheduleEntity.FRAGMENTATION_MAX_STDDEV) * 100));
+  }
+
+  /**
+   * 断片化スコアに応じたラベルを返す
+   */
+  static getScheduleFragmentationLabel(score: number): string {
+    if (score >= ScheduleEntity.FRAGMENTATION_HIGH_THRESHOLD) return '分散';
+    if (score >= ScheduleEntity.FRAGMENTATION_MODERATE_THRESHOLD) return 'やや分散';
+    return '集中';
   }
 }
