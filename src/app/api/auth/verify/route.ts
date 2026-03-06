@@ -7,7 +7,7 @@ import { timingSafeEqual, checkRateLimit } from '@/lib/security';
 
 const verifySchema = z.object({
   email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email(),
-  code: z.string().length(6),
+  code: z.string().trim().length(6),
 });
 
 const MAX_ATTEMPTS = 5;
