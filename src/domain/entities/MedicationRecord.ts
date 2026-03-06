@@ -47,6 +47,9 @@ export class MedicationRecordEntity {
   private static readonly GAP_VARIABILITY_MAX_CV = 1;
   private static readonly GAP_VARIABILITY_HIGH_THRESHOLD = 60;
   private static readonly GAP_VARIABILITY_MODERATE_THRESHOLD = 30;
+  private static readonly DOSE_TIME_MAX_STDDEV = 180;
+  private static readonly DOSE_TIME_ACCURATE_THRESHOLD = 20;
+  private static readonly DOSE_TIME_SOMEWHAT_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -773,5 +776,26 @@ export class MedicationRecordEntity {
     if (score >= MedicationRecordEntity.GAP_VARIABILITY_HIGH_THRESHOLD) return '不規則';
     if (score >= MedicationRecordEntity.GAP_VARIABILITY_MODERATE_THRESHOLD) return 'やや不規則';
     return '規則的';
+  }
+
+  /**
+   * 服薬時刻(分単位)の偏差スコア(0-100)を算出する
+   * 標準偏差ベースで時刻のばらつきを数値化
+   */
+  static getDoseTimeDeviation(timesInMinutes: number[]): number {
+    if (timesInMinutes.length <= 1) return 0;
+    const avg = timesInMinutes.reduce((a, b) => a + b, 0) / timesInMinutes.length;
+    const variance = timesInMinutes.reduce((sum, v) => sum + (v - avg) ** 2, 0) / timesInMinutes.length;
+    const stdDev = Math.sqrt(variance);
+    return Math.min(100, Math.round((stdDev / MedicationRecordEntity.DOSE_TIME_MAX_STDDEV) * 100));
+  }
+
+  /**
+   * 服薬時刻偏差スコアに応じたラベルを返す
+   */
+  static getDoseTimeDeviationLabel(score: number): string {
+    if (score < MedicationRecordEntity.DOSE_TIME_ACCURATE_THRESHOLD) return '正確';
+    if (score < MedicationRecordEntity.DOSE_TIME_SOMEWHAT_THRESHOLD) return 'やや不規則';
+    return '不規則';
   }
 }

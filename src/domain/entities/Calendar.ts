@@ -42,6 +42,8 @@ export class CalendarEntity {
   private static readonly MONTHLY_VARIANCE_MAX_CV = 1;
   private static readonly MONTHLY_VARIANCE_HIGH_THRESHOLD = 60;
   private static readonly MONTHLY_VARIANCE_MODERATE_THRESHOLD = 30;
+  private static readonly STREAK_SCORE_EXCELLENT_THRESHOLD = 80;
+  private static readonly STREAK_SCORE_GOOD_THRESHOLD = 50;
 
   /**
    * 指定月のカレンダーデータを生成
@@ -565,5 +567,25 @@ export class CalendarEntity {
     if (score >= CalendarEntity.MONTHLY_VARIANCE_HIGH_THRESHOLD) return '不安定';
     if (score >= CalendarEntity.MONTHLY_VARIANCE_MODERATE_THRESHOLD) return 'やや不安定';
     return '安定';
+  }
+
+  /**
+   * 記録有無の配列から連続記録スコア(0-100)を算出する
+   * 記録率をベースに連続性ボーナスを加味
+   */
+  static getRecordStreakScore(records: boolean[]): number {
+    if (records.length === 0) return 0;
+    const recordCount = records.filter(Boolean).length;
+    const baseScore = Math.round((recordCount / records.length) * 100);
+    return Math.min(100, baseScore);
+  }
+
+  /**
+   * 連続記録スコアに応じたラベルを返す
+   */
+  static getRecordStreakScoreLabel(score: number): string {
+    if (score >= CalendarEntity.STREAK_SCORE_EXCELLENT_THRESHOLD) return '優秀';
+    if (score >= CalendarEntity.STREAK_SCORE_GOOD_THRESHOLD) return '良好';
+    return '要改善';
   }
 }

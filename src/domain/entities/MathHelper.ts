@@ -23,6 +23,7 @@ export class MathHelper {
   private static readonly COSINE_OPPOSITE_THRESHOLD = -0.7;
   private static readonly RANK_HIGH_THRESHOLD = 80;
   private static readonly RANK_MEDIUM_THRESHOLD = 50;
+  private static readonly RUNNING_MAX_NEAR_RATIO = 0.9;
 
   /**
    * パーセントを算出(0-100%)
@@ -460,5 +461,28 @@ export class MathHelper {
     if (currentValue > emaValue) return '上昇基調';
     if (currentValue < emaValue) return '下降基調';
     return '横ばい';
+  }
+
+  /**
+   * 累積最大値配列を算出する
+   * 各位置でのそれまでの最大値を返す
+   */
+  static getRunningMax(values: number[]): number[] {
+    if (values.length === 0) return [];
+    const result: number[] = [values[0]];
+    for (let i = 1; i < values.length; i++) {
+      result.push(Math.max(result[i - 1], values[i]));
+    }
+    return result;
+  }
+
+  /**
+   * 現在値と累積最大値の比較でラベルを返す
+   */
+  static getRunningMaxLabel(currentValue: number, maxValue: number): string {
+    if (maxValue === 0) return '最高値以下';
+    if (currentValue >= maxValue) return '最高値';
+    if (currentValue >= maxValue * MathHelper.RUNNING_MAX_NEAR_RATIO) return '最高値付近';
+    return '最高値以下';
   }
 }
