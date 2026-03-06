@@ -425,4 +425,26 @@ export class HealthLogEntity {
     const symptomLabels = HealthLogEntity.getSymptomLabels(symptoms);
     return `体調: ${condLabel} / ${symptomLabels.join(', ')}`;
   }
+
+  /**
+   * 体調レベル別の分布を返す
+   */
+  static getConditionDistribution(logs: HealthLog[]): Record<ConditionLevel, number> {
+    const dist: Record<ConditionLevel, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const log of logs) {
+      dist[log.conditionLevel]++;
+    }
+    return dist;
+  }
+
+  /**
+   * 期間の体調サマリーメッセージを返す
+   */
+  static getPeriodSummaryMessage(logs: HealthLog[]): string {
+    if (logs.length === 0) return 'この期間の記録はありません';
+    const avg = HealthLogEntity.getAverageCondition(logs);
+    if (avg >= 4) return `${logs.length}件の記録があり、体調は良好です`;
+    if (avg >= 3) return `${logs.length}件の記録があり、体調は普通です`;
+    return `${logs.length}件の記録があり、体調に注意が必要です`;
+  }
 }
