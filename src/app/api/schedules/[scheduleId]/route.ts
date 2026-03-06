@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { updateScheduleSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize } from '@/lib/api-helpers';
+import { checkRateLimit } from '@/lib/security';
 
 const findSchedule = (id: string) => prisma.schedule.findUnique({ where: { id } });
 
@@ -10,6 +11,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ sche
   if (sizeError) return sizeError;
 
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`schedules-put:${userId}`, { maxRequests: 20, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+
     const { scheduleId } = await params;
     return withOwnershipCheck({
       userId,
@@ -33,6 +37,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ sche
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ scheduleId: string }> }) {
   return withAuth(async (userId) => {
+    const { allowed } = checkRateLimit(`schedules-delete:${userId}`, { maxRequests: 10, windowMs: 60000 });
+    if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { scheduleId } = await params;
     return withOwnershipCheck({
       userId,
