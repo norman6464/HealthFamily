@@ -75,6 +75,8 @@ export class MathHelper {
   private static readonly MCORR_WEAK_THRESHOLD = 0.3;
   private static readonly EXP_SMOOTH_REACTIVE_THRESHOLD = 0.7;
   private static readonly EXP_SMOOTH_BALANCED_THRESHOLD = 0.3;
+  private static readonly PRANK_UPPER_THRESHOLD = 75;
+  private static readonly PRANK_LOWER_THRESHOLD = 25;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1211,5 +1213,23 @@ export class MathHelper {
     if (alpha >= MathHelper.EXP_SMOOTH_REACTIVE_THRESHOLD) return '反応的';
     if (alpha >= MathHelper.EXP_SMOOTH_BALANCED_THRESHOLD) return 'バランス';
     return '安定的';
+  }
+
+  /**
+   * 値が分布の何パーセンタイルに位置するかを算出する(0-100)
+   */
+  static getPercentileRank(values: number[], target: number): number {
+    if (values.length === 0) return 0;
+    const belowCount = values.filter((v) => v < target).length;
+    return Math.round((belowCount / values.length) * 100);
+  }
+
+  /**
+   * パーセンタイル順位に応じたラベルを返す
+   */
+  static getPercentileRankLabel(rank: number): string {
+    if (rank >= MathHelper.PRANK_UPPER_THRESHOLD) return '上位';
+    if (rank >= MathHelper.PRANK_LOWER_THRESHOLD) return '中位';
+    return '下位';
   }
 }

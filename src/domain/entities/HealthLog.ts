@@ -94,6 +94,9 @@ export class HealthLogEntity {
   private static readonly HEALTH_TREND_MODERATE_THRESHOLD = 50;
   private static readonly RECOVERY_SPEED_FAST_THRESHOLD = 70;
   private static readonly RECOVERY_SPEED_MODERATE_THRESHOLD = 40;
+  private static readonly SYMPTOM_CLUSTER_MAX = 5;
+  private static readonly SYMPTOM_CLUSTER_HIGH_THRESHOLD = 70;
+  private static readonly SYMPTOM_CLUSTER_MODERATE_THRESHOLD = 40;
 
   private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
     1: 'とても悪い',
@@ -1101,5 +1104,25 @@ export class HealthLogEntity {
     if (score >= HealthLogEntity.RECOVERY_SPEED_FAST_THRESHOLD) return '回復早い';
     if (score >= HealthLogEntity.RECOVERY_SPEED_MODERATE_THRESHOLD) return '普通';
     return '回復遅い';
+  }
+
+  /**
+   * 各ログの同時出現症状数の配列から症状クラスタースコア(0-100)を算出する
+   * 同時出現が多いほど高スコア
+   */
+  static getSymptomClusterScore(symptomCounts: number[]): number {
+    if (symptomCounts.length === 0) return 0;
+    const clamped = symptomCounts.map((c) => Math.max(0, c));
+    const avg = clamped.reduce((a, b) => a + b, 0) / clamped.length;
+    return Math.min(100, Math.round((avg / HealthLogEntity.SYMPTOM_CLUSTER_MAX) * 100));
+  }
+
+  /**
+   * 症状クラスタースコアに応じたラベルを返す
+   */
+  static getSymptomClusterScoreLabel(score: number): string {
+    if (score >= HealthLogEntity.SYMPTOM_CLUSTER_HIGH_THRESHOLD) return '集中的';
+    if (score >= HealthLogEntity.SYMPTOM_CLUSTER_MODERATE_THRESHOLD) return 'やや集中';
+    return '分散的';
   }
 }
