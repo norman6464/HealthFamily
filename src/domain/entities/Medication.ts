@@ -110,6 +110,9 @@ export class MedicationEntity {
   private static readonly BURDEN_MAX_DAILY_DOSES = 10;
   private static readonly BURDEN_HIGH_THRESHOLD = 70;
   private static readonly BURDEN_MODERATE_THRESHOLD = 40;
+  private static readonly WASTAGE_MAX_RATIO = 5;
+  private static readonly WASTAGE_HIGH_THRESHOLD = 70;
+  private static readonly WASTAGE_MODERATE_THRESHOLD = 40;
 
   private static readonly categoryLabels: Record<MedicationCategory, string> = {
     regular: '常用薬',
@@ -408,5 +411,25 @@ export class MedicationEntity {
     if (score >= MedicationEntity.BURDEN_HIGH_THRESHOLD) return '負担大';
     if (score >= MedicationEntity.BURDEN_MODERATE_THRESHOLD) return '普通';
     return '負担小';
+  }
+
+  /**
+   * 在庫数と残日数から在庫廃棄リスクスコア(0-100)を算出する
+   * 在庫が多く残日数が少ないほど高スコア（廃棄リスクが高い）
+   */
+  static getStockWastageScore(stockQuantity: number, remainingDays: number): number {
+    if (stockQuantity <= 0) return 0;
+    if (remainingDays <= 0) return 100;
+    const ratio = stockQuantity / remainingDays;
+    return Math.min(100, Math.round((ratio / MedicationEntity.WASTAGE_MAX_RATIO) * 100));
+  }
+
+  /**
+   * 在庫廃棄リスクスコアに応じたラベルを返す
+   */
+  static getStockWastageScoreLabel(score: number): string {
+    if (score >= MedicationEntity.WASTAGE_HIGH_THRESHOLD) return '廃棄リスク高';
+    if (score >= MedicationEntity.WASTAGE_MODERATE_THRESHOLD) return '注意';
+    return '低リスク';
   }
 }
