@@ -105,6 +105,8 @@ export class MedicationEntity {
   private static readonly COMPLEXITY_MAX_TYPES = 5;
   private static readonly COMPLEXITY_HIGH_THRESHOLD = 70;
   private static readonly COMPLEXITY_MODERATE_THRESHOLD = 40;
+  private static readonly COST_PER_DOSE_HIGH_THRESHOLD = 500;
+  private static readonly COST_PER_DOSE_MODERATE_THRESHOLD = 100;
 
   private static readonly categoryLabels: Record<MedicationCategory, string> = {
     regular: '常用薬',
@@ -369,5 +371,22 @@ export class MedicationEntity {
     if (score >= MedicationEntity.COMPLEXITY_HIGH_THRESHOLD) return '複雑';
     if (score >= MedicationEntity.COMPLEXITY_MODERATE_THRESHOLD) return '普通';
     return 'シンプル';
+  }
+
+  /**
+   * 総額と回数から1回あたりのコストを算出する
+   */
+  static getMedicationCostPerDose(totalCost: number, doseCount: number): number {
+    if (totalCost <= 0 || doseCount <= 0) return 0;
+    return Math.round((totalCost / doseCount) * 100) / 100;
+  }
+
+  /**
+   * 1回あたりコストに応じたラベルを返す
+   */
+  static getMedicationCostPerDoseLabel(costPerDose: number): string {
+    if (costPerDose >= MedicationEntity.COST_PER_DOSE_HIGH_THRESHOLD) return '高コスト';
+    if (costPerDose >= MedicationEntity.COST_PER_DOSE_MODERATE_THRESHOLD) return '標準';
+    return '低コスト';
   }
 }
