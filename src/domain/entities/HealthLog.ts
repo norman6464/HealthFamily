@@ -89,6 +89,9 @@ export class HealthLogEntity {
   private static readonly BURDEN_MAX_CONDITION = 5;
   private static readonly BURDEN_HEAVY_THRESHOLD = 70;
   private static readonly BURDEN_MODERATE_THRESHOLD = 40;
+  private static readonly HEALTH_TREND_MAX_LEVEL = 5;
+  private static readonly HEALTH_TREND_GOOD_THRESHOLD = 80;
+  private static readonly HEALTH_TREND_MODERATE_THRESHOLD = 50;
 
   private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
     1: 'とても悪い',
@@ -1028,5 +1031,26 @@ export class HealthLogEntity {
     if (score >= HealthLogEntity.BURDEN_HEAVY_THRESHOLD) return '重い';
     if (score >= HealthLogEntity.BURDEN_MODERATE_THRESHOLD) return 'やや重い';
     return '軽い';
+  }
+
+  /**
+   * 体調レベル配列から健康トレンドスコア(0-100)を算出する
+   * 体調レベル(1-5)の平均を0-100にスケーリング
+   */
+  static getHealthTrendScore(levels: number[]): number {
+    if (levels.length === 0) return 0;
+    const avg = levels.reduce((a, b) => a + b, 0) / levels.length;
+    return Math.round(
+      (avg / HealthLogEntity.HEALTH_TREND_MAX_LEVEL) * 100,
+    );
+  }
+
+  /**
+   * 健康トレンドスコアに応じたラベルを返す
+   */
+  static getHealthTrendScoreLabel(score: number): string {
+    if (score >= HealthLogEntity.HEALTH_TREND_GOOD_THRESHOLD) return '良好';
+    if (score >= HealthLogEntity.HEALTH_TREND_MODERATE_THRESHOLD) return '普通';
+    return '注意';
   }
 }
