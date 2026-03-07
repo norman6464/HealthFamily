@@ -45,8 +45,6 @@ describe('CalendarEntity 日付選択ヘルパー', () => {
   });
 
   describe('getDateStatusLabel', () => {
-    const today = new Date('2025-06-15');
-
     it('todayは今日を返す', () => {
       expect(CalendarEntity.getDateStatusLabel('today')).toBe('今日');
     });

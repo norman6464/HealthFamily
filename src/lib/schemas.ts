@@ -92,6 +92,7 @@ export const createRecordSchema = z.object({
   scheduleId: optionalIdField,
   notes: z.string().trim().max(500).optional(),
   dosageAmount: z.string().trim().max(100).optional(),
+  takenAt: z.string().datetime().optional(),
 });
 
 // ===== Hospitals =====

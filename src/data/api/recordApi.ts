@@ -11,6 +11,7 @@ interface CreateRecordInput {
   scheduleId?: string;
   notes?: string;
   dosageAmount?: string;
+  takenAt?: string;
 }
 
 export const recordApi = {

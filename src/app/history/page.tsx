@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Calendar, List } from 'lucide-react';
+import { Calendar, List, Plus } from 'lucide-react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MedicationHistoryList } from '@/components/history/MedicationHistoryList';
 import { MedicationCalendar } from '@/components/history/MedicationCalendar';
+import { AddPastRecordForm } from '@/components/history/AddPastRecordForm';
 import { MemberFilter } from '@/components/shared/MemberFilter';
 import { useMedicationHistory } from '@/presentation/hooks/useMedicationHistory';
 import { useHealthLogs } from '@/presentation/hooks/useHealthLogs';
@@ -16,12 +17,13 @@ type ViewMode = 'list' | 'calendar';
 
 export default function HistoryPage() {
   const { userId } = useAuth();
-  const { groups, isLoading, deleteRecord } = useMedicationHistory();
+  const { groups, isLoading, deleteRecord, createRecord } = useMedicationHistory();
   const { groups: healthLogGroups } = useHealthLogs();
   const { members } = useMembers(userId);
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const memberOptions = useMemo(
     () => members.map((m) => ({ id: m.id, name: m.name })),
@@ -106,14 +108,38 @@ export default function HistoryPage() {
             <MedicationCalendar
               records={allRecords}
               healthLogs={allHealthLogs}
-              onSelectDate={(dateKey) => setSelectedDate(dateKey === selectedDate ? null : dateKey)}
+              onSelectDate={(dateKey) => {
+                setSelectedDate(dateKey === selectedDate ? null : dateKey);
+                setShowAddForm(false);
+              }}
               selectedDate={selectedDate}
             />
             {selectedDate && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-600 mb-2">
-                  {MedicationRecordEntity.formatDate(selectedDate)} の記録
-                </h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-gray-600">
+                    {MedicationRecordEntity.formatDate(selectedDate)} の記録
+                  </h3>
+                  {!showAddForm && (
+                    <button
+                      onClick={() => setShowAddForm(true)}
+                      className="flex items-center space-x-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      <Plus size={14} />
+                      <span>記録を追加</span>
+                    </button>
+                  )}
+                </div>
+                {showAddForm && (
+                  <div className="mb-3">
+                    <AddPastRecordForm
+                      selectedDate={selectedDate}
+                      members={memberOptions}
+                      onSubmit={createRecord}
+                      onClose={() => setShowAddForm(false)}
+                    />
+                  </div>
+                )}
                 <MedicationHistoryList
                   groups={filteredGroups}
                   isLoading={isLoading}
