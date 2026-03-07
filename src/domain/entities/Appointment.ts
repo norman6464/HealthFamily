@@ -45,6 +45,8 @@ export class AppointmentEntity {
   private static readonly COMPLIANCE_REGULARITY_WEIGHT = 0.2;
   private static readonly COMPLIANCE_HIGH_THRESHOLD = 80;
   private static readonly COMPLIANCE_MODERATE_THRESHOLD = 50;
+  private static readonly LEAD_TIME_LONG_THRESHOLD = 14;
+  private static readonly LEAD_TIME_SHORT_THRESHOLD = 7;
 
   constructor(private readonly appointment: Appointment) {}
 
@@ -707,5 +709,25 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.COMPLIANCE_HIGH_THRESHOLD) return '良好';
     if (score >= AppointmentEntity.COMPLIANCE_MODERATE_THRESHOLD) return '普通';
     return '要改善';
+  }
+
+  /**
+   * 予約リードタイム日数の配列から平均リードタイムを算出する
+   * 負の値は0としてクランプ
+   */
+  static getAppointmentLeadTime(leadDays: number[]): number {
+    if (leadDays.length === 0) return 0;
+    const clamped = leadDays.map((d) => Math.max(0, d));
+    const avg = clamped.reduce((a, b) => a + b, 0) / clamped.length;
+    return Math.round(avg);
+  }
+
+  /**
+   * 平均リードタイムに応じたラベルを返す
+   */
+  static getAppointmentLeadTimeLabel(days: number): string {
+    if (days >= AppointmentEntity.LEAD_TIME_LONG_THRESHOLD) return '余裕あり';
+    if (days >= AppointmentEntity.LEAD_TIME_SHORT_THRESHOLD) return '適切';
+    return '直前';
   }
 }

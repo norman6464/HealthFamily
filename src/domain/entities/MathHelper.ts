@@ -73,6 +73,8 @@ export class MathHelper {
   private static readonly GINI_MODERATE_THRESHOLD = 0.5;
   private static readonly MCORR_STRONG_THRESHOLD = 0.6;
   private static readonly MCORR_WEAK_THRESHOLD = 0.3;
+  private static readonly EXP_SMOOTH_REACTIVE_THRESHOLD = 0.7;
+  private static readonly EXP_SMOOTH_BALANCED_THRESHOLD = 0.3;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1185,5 +1187,29 @@ export class MathHelper {
     if (corr >= -MathHelper.MCORR_WEAK_THRESHOLD) return '無相関';
     if (corr >= -MathHelper.MCORR_STRONG_THRESHOLD) return 'やや負相関';
     return '強い負相関';
+  }
+
+  /**
+   * 指数平滑化を算出する
+   * alpha: 平滑化係数(0-1)、大きいほど直近の値を重視
+   */
+  static getExponentialSmoothing(values: number[], alpha: number): number[] {
+    if (values.length === 0) return [];
+    const a = Math.max(0, Math.min(1, alpha));
+    const result: number[] = [values[0]];
+    for (let i = 1; i < values.length; i++) {
+      const smoothed = a * values[i] + (1 - a) * result[i - 1];
+      result.push(Math.round(smoothed * 100) / 100);
+    }
+    return result;
+  }
+
+  /**
+   * 平滑化係数に応じたラベルを返す
+   */
+  static getExponentialSmoothingLabel(alpha: number): string {
+    if (alpha >= MathHelper.EXP_SMOOTH_REACTIVE_THRESHOLD) return '反応的';
+    if (alpha >= MathHelper.EXP_SMOOTH_BALANCED_THRESHOLD) return 'バランス';
+    return '安定的';
   }
 }
