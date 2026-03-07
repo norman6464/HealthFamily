@@ -332,6 +332,11 @@ export class AdherenceStatsEntity {
   }
 
   private static readonly MILESTONES = [7, 14, 30, 60, 90, 100, 180, 365];
+  private static readonly EFFICIENCY_MAX_STREAK = 30;
+  private static readonly EFFICIENCY_RATE_WEIGHT = 0.7;
+  private static readonly EFFICIENCY_STREAK_WEIGHT = 0.3;
+  private static readonly EFFICIENCY_HIGH_THRESHOLD = 80;
+  private static readonly EFFICIENCY_MODERATE_THRESHOLD = 50;
 
   /**
    * 現在の連続日数から次のマイルストーンを取得する
@@ -399,5 +404,35 @@ export class AdherenceStatsEntity {
     if (rate >= 70) return 'あと少しで目標達成です';
     if (rate >= 50) return '服薬を習慣化していきましょう';
     return 'リマインダーを活用してみましょう';
+  }
+
+  /**
+   * 服薬効率スコアを算出する（0-100）
+   * 達成率とストリークから加重平均
+   */
+  static getAdherenceEfficiencyScore(
+    rate: number,
+    streakDays: number
+  ): number {
+    const clampedRate = Math.max(0, Math.min(100, rate));
+    const streakNorm =
+      Math.min(streakDays, AdherenceStatsEntity.EFFICIENCY_MAX_STREAK) /
+      AdherenceStatsEntity.EFFICIENCY_MAX_STREAK;
+    return Math.min(
+      100,
+      Math.round(
+        clampedRate * AdherenceStatsEntity.EFFICIENCY_RATE_WEIGHT +
+          streakNorm * 100 * AdherenceStatsEntity.EFFICIENCY_STREAK_WEIGHT
+      )
+    );
+  }
+
+  /**
+   * 服薬効率スコアに応じたラベルを返す
+   */
+  static getAdherenceEfficiencyScoreLabel(score: number): string {
+    if (score >= AdherenceStatsEntity.EFFICIENCY_HIGH_THRESHOLD) return '高効率';
+    if (score >= AdherenceStatsEntity.EFFICIENCY_MODERATE_THRESHOLD) return '普通';
+    return '低効率';
   }
 }

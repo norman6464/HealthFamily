@@ -53,6 +53,8 @@ export class MathHelper {
   private static readonly SPEARMAN_STRONG_THRESHOLD = 0.6;
   private static readonly DECAY_HIGH_THRESHOLD = 60;
   private static readonly DECAY_MODERATE_THRESHOLD = 30;
+  private static readonly MR_STABLE_THRESHOLD = 5;
+  private static readonly MR_MODERATE_THRESHOLD = 20;
 
   /**
    * パーセントを算出(0-100%)
@@ -912,5 +914,26 @@ export class MathHelper {
     if (value >= MathHelper.DECAY_HIGH_THRESHOLD) return '有効';
     if (value >= MathHelper.DECAY_MODERATE_THRESHOLD) return 'やや減衰';
     return '減衰大';
+  }
+
+  /**
+   * 移動範囲（連続値の差の絶対値の平均）を算出する
+   */
+  static getMovingRange(values: number[]): number {
+    if (values.length <= 1) return 0;
+    let totalDiff = 0;
+    for (let i = 1; i < values.length; i++) {
+      totalDiff += Math.abs(values[i] - values[i - 1]);
+    }
+    return Math.round((totalDiff / (values.length - 1)) * 100) / 100;
+  }
+
+  /**
+   * 移動範囲に応じたラベルを返す
+   */
+  static getMovingRangeLabel(mr: number): string {
+    if (mr <= MathHelper.MR_STABLE_THRESHOLD) return '安定';
+    if (mr <= MathHelper.MR_MODERATE_THRESHOLD) return 'やや変動';
+    return '変動大';
   }
 }
