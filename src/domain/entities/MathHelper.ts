@@ -59,6 +59,8 @@ export class MathHelper {
   private static readonly TRIMMED_MODERATE_THRESHOLD = 30;
   private static readonly WHMEAN_HIGH_THRESHOLD = 70;
   private static readonly WHMEAN_MODERATE_THRESHOLD = 30;
+  private static readonly GSD_UNIFORM_THRESHOLD = 0.5;
+  private static readonly GSD_MODERATE_THRESHOLD = 2;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -990,5 +992,28 @@ export class MathHelper {
     if (value >= MathHelper.WHMEAN_HIGH_THRESHOLD) return '高い';
     if (value >= MathHelper.WHMEAN_MODERATE_THRESHOLD) return '中程度';
     return '低い';
+  }
+
+  /**
+   * 幾何標準偏差を算出する
+   * 0以下の値を含む場合は0を返す
+   */
+  static getGeometricStandardDeviation(values: number[]): number {
+    if (values.length <= 1) return 0;
+    if (values.some((v) => v <= 0)) return 0;
+    const logValues = values.map((v) => Math.log(v));
+    const avg = logValues.reduce((a, b) => a + b, 0) / logValues.length;
+    const variance =
+      logValues.reduce((sum, v) => sum + (v - avg) ** 2, 0) / logValues.length;
+    return Math.round(Math.sqrt(variance) * 100) / 100;
+  }
+
+  /**
+   * 幾何標準偏差に応じたラベルを返す
+   */
+  static getGeometricStandardDeviationLabel(gsd: number): string {
+    if (gsd <= MathHelper.GSD_UNIFORM_THRESHOLD) return '均一';
+    if (gsd <= MathHelper.GSD_MODERATE_THRESHOLD) return 'やや散布';
+    return '散布';
   }
 }

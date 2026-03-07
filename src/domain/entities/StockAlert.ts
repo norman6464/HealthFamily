@@ -52,6 +52,8 @@ export class StockAlertEntity {
   private static readonly CONSISTENCY_MAX_STDDEV = 50;
   private static readonly CONSISTENCY_HIGH_THRESHOLD = 80;
   private static readonly CONSISTENCY_MODERATE_THRESHOLD = 50;
+  private static readonly DEPLETION_RATE_HIGH_THRESHOLD = 70;
+  private static readonly DEPLETION_RATE_MODERATE_THRESHOLD = 40;
 
   constructor(private readonly alert: StockAlert) {}
 
@@ -689,5 +691,28 @@ export class StockAlertEntity {
     if (score >= StockAlertEntity.CONSISTENCY_HIGH_THRESHOLD) return '安定';
     if (score >= StockAlertEntity.CONSISTENCY_MODERATE_THRESHOLD) return 'やや不安定';
     return '不安定';
+  }
+
+  /**
+   * 在庫減少率(0-100)を算出する
+   * (初期在庫 - 残在庫) / 初期在庫
+   */
+  static getStockDepletionRate(
+    initialStock: number,
+    currentStock: number,
+  ): number {
+    if (initialStock <= 0) return 0;
+    const depleted = initialStock - currentStock;
+    if (depleted <= 0) return 0;
+    return Math.min(100, Math.round((depleted / initialStock) * 100));
+  }
+
+  /**
+   * 在庫減少率に応じたラベルを返す
+   */
+  static getStockDepletionRateLabel(rate: number): string {
+    if (rate >= StockAlertEntity.DEPLETION_RATE_HIGH_THRESHOLD) return '急速消費';
+    if (rate >= StockAlertEntity.DEPLETION_RATE_MODERATE_THRESHOLD) return '通常消費';
+    return '低消費';
   }
 }

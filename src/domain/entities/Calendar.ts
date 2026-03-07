@@ -22,6 +22,8 @@ export interface CalendarMonth {
 export class CalendarEntity {
   private static readonly WEEKLY_RECORD_DAILY_THRESHOLD = 80;
   private static readonly WEEKLY_RECORD_MODERATE_THRESHOLD = 50;
+  private static readonly DENSITY_HIGH_THRESHOLD = 80;
+  private static readonly DENSITY_MODERATE_THRESHOLD = 50;
   private static readonly RECORD_COUNT_LOW_THRESHOLD = 2;
   private static readonly RECORD_COUNT_MEDIUM_THRESHOLD = 5;
   private static readonly CONDITION_GOOD_THRESHOLD = 4;
@@ -670,5 +672,23 @@ export class CalendarEntity {
     if (rate >= CalendarEntity.WEEKLY_RECORD_DAILY_THRESHOLD) return '毎日記録';
     if (rate >= CalendarEntity.WEEKLY_RECORD_MODERATE_THRESHOLD) return 'まずまず';
     return '記録不足';
+  }
+
+  /**
+   * カレンダー密度(0-100)を算出する
+   * 記録日数/全日数の割合
+   */
+  static getCalendarDensity(recordDays: number, totalDays: number): number {
+    if (totalDays <= 0) return 0;
+    return Math.min(100, Math.round((recordDays / totalDays) * 100));
+  }
+
+  /**
+   * カレンダー密度に応じたラベルを返す
+   */
+  static getCalendarDensityLabel(density: number): string {
+    if (density >= CalendarEntity.DENSITY_HIGH_THRESHOLD) return '高密度';
+    if (density >= CalendarEntity.DENSITY_MODERATE_THRESHOLD) return '中密度';
+    return '低密度';
   }
 }
