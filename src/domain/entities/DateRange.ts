@@ -115,6 +115,9 @@ export class DateRangeHelper {
   private static readonly DATE_REGULARITY_MAX_CV = 100;
   private static readonly DATE_REGULARITY_HIGH_THRESHOLD = 80;
   private static readonly DATE_REGULARITY_MODERATE_THRESHOLD = 50;
+  private static readonly REGULARITY_INDEX_MAX_CV = 100;
+  private static readonly REGULARITY_INDEX_HIGH_THRESHOLD = 80;
+  private static readonly REGULARITY_INDEX_MODERATE_THRESHOLD = 50;
 
   static getDayOfWeekLabel(date: Date): string {
     return DateRangeHelper.DAY_LABELS[date.getDay()];
@@ -487,6 +490,35 @@ export class DateRangeHelper {
   static getDateRegularityScoreLabel(score: number): string {
     if (score >= DateRangeHelper.DATE_REGULARITY_HIGH_THRESHOLD) return '規則的';
     if (score >= DateRangeHelper.DATE_REGULARITY_MODERATE_THRESHOLD) return 'やや不規則';
+    return '不規則';
+  }
+
+  /**
+   * 間隔日数配列から規則性指数を算出する（0-100）
+   * 変動係数(CV)が小さいほどスコアが高い
+   */
+  static getDateRegularityIndex(intervals: number[]): number {
+    if (intervals.length <= 1) return intervals.length === 0 ? 0 : 100;
+    const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    if (avg === 0) return 0;
+    const variance =
+      intervals.reduce((sum, v) => sum + (v - avg) ** 2, 0) / intervals.length;
+    const cv = (Math.sqrt(variance) / avg) * 100;
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(100 - (cv / DateRangeHelper.REGULARITY_INDEX_MAX_CV) * 100)
+      )
+    );
+  }
+
+  /**
+   * 規則性指数に応じたラベルを返す
+   */
+  static getDateRegularityIndexLabel(score: number): string {
+    if (score >= DateRangeHelper.REGULARITY_INDEX_HIGH_THRESHOLD) return '規則的';
+    if (score >= DateRangeHelper.REGULARITY_INDEX_MODERATE_THRESHOLD) return 'やや不規則';
     return '不規則';
   }
 }
