@@ -162,6 +162,7 @@ export class MemberEntity {
   private static readonly ENGAGEMENT_ADHERENCE_WEIGHT = 0.3;
   private static readonly ENGAGEMENT_HIGH_THRESHOLD = 80;
   private static readonly ENGAGEMENT_MODERATE_THRESHOLD = 50;
+  private static readonly ENGAGEMENT_TREND_THRESHOLD = 0;
 
   private static readonly memberTypeLabels: Record<MemberType, string> = {
     human: '家族',
@@ -576,5 +577,31 @@ export class MemberEntity {
     if (score >= MemberEntity.ENGAGEMENT_HIGH_THRESHOLD) return '積極的';
     if (score >= MemberEntity.ENGAGEMENT_MODERATE_THRESHOLD) return '普通';
     return '消極的';
+  }
+
+  /**
+   * 記録数の配列から前半/後半の変化率でエンゲージメント傾向(-100〜100)を算出する
+   * 正は増加傾向、負は減少傾向
+   */
+  static getMemberEngagementTrend(recordCounts: number[]): number {
+    if (recordCounts.length <= 1) return 0;
+    const mid = Math.floor(recordCounts.length / 2);
+    const firstHalf = recordCounts.slice(0, mid);
+    const secondHalf = recordCounts.slice(mid);
+    const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+    const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+    if (avgFirst === 0 && avgSecond === 0) return 0;
+    const maxAvg = Math.max(avgFirst, avgSecond, 1);
+    const diff = avgSecond - avgFirst;
+    return Math.max(-100, Math.min(100, Math.round((diff / maxAvg) * 100)));
+  }
+
+  /**
+   * エンゲージメント傾向に応じたラベルを返す
+   */
+  static getMemberEngagementTrendLabel(trend: number): string {
+    if (trend > MemberEntity.ENGAGEMENT_TREND_THRESHOLD) return '上昇';
+    if (trend < MemberEntity.ENGAGEMENT_TREND_THRESHOLD) return '下降';
+    return '横ばい';
   }
 }

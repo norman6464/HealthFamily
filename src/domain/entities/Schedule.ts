@@ -41,6 +41,9 @@ export class ScheduleEntity {
   private static readonly PROXIMITY_NEAR_MINUTES = 60;
   private static readonly STREAK_MONTH_THRESHOLD = 30;
   private static readonly STREAK_WEEK_THRESHOLD = 7;
+  private static readonly SCHED_PUNCTUALITY_MAX_DELAY = 60;
+  private static readonly SCHED_PUNCTUALITY_HIGH_THRESHOLD = 80;
+  private static readonly SCHED_PUNCTUALITY_MODERATE_THRESHOLD = 50;
 
   constructor(private readonly schedule: Schedule) {}
 
@@ -1110,5 +1113,33 @@ export class ScheduleEntity {
     if (score >= ScheduleEntity.LOAD_BALANCE_HIGH_THRESHOLD) return '均等';
     if (score >= ScheduleEntity.LOAD_BALANCE_MODERATE_THRESHOLD) return 'やや偏り';
     return '偏り大';
+  }
+
+  /**
+   * 遅延分数の配列からスケジュール遵守スコア(0-100)を算出する
+   * 遅延が小さいほど高スコア
+   */
+  static getSchedulePunctualityScore(delayMinutes: number[]): number {
+    if (delayMinutes.length === 0) return 0;
+    const avgDelay =
+      delayMinutes.reduce((sum, d) => sum + Math.abs(d), 0) / delayMinutes.length;
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(
+          100 - (avgDelay / ScheduleEntity.SCHED_PUNCTUALITY_MAX_DELAY) * 100,
+        ),
+      ),
+    );
+  }
+
+  /**
+   * スケジュール遵守スコアに応じたラベルを返す
+   */
+  static getSchedulePunctualityScoreLabel(score: number): string {
+    if (score >= ScheduleEntity.SCHED_PUNCTUALITY_HIGH_THRESHOLD) return '正確';
+    if (score >= ScheduleEntity.SCHED_PUNCTUALITY_MODERATE_THRESHOLD) return 'やや遅延';
+    return '遅延多い';
   }
 }
