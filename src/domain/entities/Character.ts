@@ -35,6 +35,9 @@ export interface CharacterConfig {
 const VALID_TYPES: CharacterType[] = ['dog', 'cat', 'rabbit', 'bird'];
 
 export class CharacterEntity {
+  private static readonly LOYALTY_HIGH_THRESHOLD = 80;
+  private static readonly LOYALTY_MODERATE_THRESHOLD = 40;
+
   /**
    * 文字列がCharacterTypeか検証する
    */
@@ -142,6 +145,23 @@ export class CharacterEntity {
     const greeting = CharacterEntity.getTimeBasedGreeting(hour);
     const context = CharacterEntity.getGreetingContext(info);
     return `${greeting}、${info.memberName}さん。${context}`;
+  }
+
+  /**
+   * キャラクター使用日数から忠誠度スコアを算出する（0-100）
+   */
+  static getCharacterLoyaltyScore(usageDays: number, totalDays: number): number {
+    if (totalDays <= 0 || usageDays <= 0) return 0;
+    return Math.min(100, Math.round((usageDays / totalDays) * 100));
+  }
+
+  /**
+   * 忠誠度スコアに応じたラベルを返す
+   */
+  static getCharacterLoyaltyScoreLabel(score: number): string {
+    if (score >= CharacterEntity.LOYALTY_HIGH_THRESHOLD) return '忠実';
+    if (score >= CharacterEntity.LOYALTY_MODERATE_THRESHOLD) return '普通';
+    return '浮気性';
   }
 }
 

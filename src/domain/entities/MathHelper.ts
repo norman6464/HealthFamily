@@ -67,6 +67,8 @@ export class MathHelper {
   private static readonly ENTROPY_NORM_MODERATE_THRESHOLD = 40;
   private static readonly QD_UNIFORM_THRESHOLD = 5;
   private static readonly QD_MODERATE_THRESHOLD = 20;
+  private static readonly MAPE_HIGH_THRESHOLD = 10;
+  private static readonly MAPE_MODERATE_THRESHOLD = 25;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1083,5 +1085,31 @@ export class MathHelper {
     if (qd <= MathHelper.QD_UNIFORM_THRESHOLD) return '均一';
     if (qd <= MathHelper.QD_MODERATE_THRESHOLD) return 'やや散布';
     return '散布';
+  }
+
+  /**
+   * 平均絶対パーセント誤差（MAPE）を算出する
+   * 実測値が0の要素はスキップする
+   */
+  static getMeanAbsolutePercentageError(actual: number[], predicted: number[]): number {
+    if (actual.length === 0 || actual.length !== predicted.length) return 0;
+    const validPairs = actual
+      .map((a, i) => ({ a, p: predicted[i] }))
+      .filter(({ a }) => a !== 0);
+    if (validPairs.length === 0) return 0;
+    const sum = validPairs.reduce(
+      (acc, { a, p }) => acc + Math.abs((a - p) / a),
+      0,
+    );
+    return Math.round((sum / validPairs.length) * 100 * 100) / 100;
+  }
+
+  /**
+   * MAPEに応じたラベルを返す
+   */
+  static getMeanAbsolutePercentageErrorLabel(mape: number): string {
+    if (mape <= MathHelper.MAPE_HIGH_THRESHOLD) return '精度高';
+    if (mape <= MathHelper.MAPE_MODERATE_THRESHOLD) return 'やや誤差';
+    return '誤差大';
   }
 }
