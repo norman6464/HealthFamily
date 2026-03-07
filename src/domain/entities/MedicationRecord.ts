@@ -63,6 +63,8 @@ export class MedicationRecordEntity {
   private static readonly DOSE_TIMING_MAX_DELAY = 60;
   private static readonly DOSE_TIMING_ACCURATE_THRESHOLD = 80;
   private static readonly DOSE_TIMING_MODERATE_THRESHOLD = 50;
+  private static readonly RECORD_CONSECUTIVE_EXCELLENT_THRESHOLD = 80;
+  private static readonly RECORD_CONSECUTIVE_GOOD_THRESHOLD = 50;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -915,5 +917,24 @@ export class MedicationRecordEntity {
     if (score >= MedicationRecordEntity.DOSE_TIMING_ACCURATE_THRESHOLD) return '正確';
     if (score >= MedicationRecordEntity.DOSE_TIMING_MODERATE_THRESHOLD) return 'やや遅れ';
     return '遅れがち';
+  }
+
+  /**
+   * 記録日の連続率(0-100)を算出する
+   * 記録がある日数/全日数の割合
+   */
+  static getRecordConsecutiveRate(dailyResults: boolean[]): number {
+    if (dailyResults.length === 0) return 0;
+    const recorded = dailyResults.filter(Boolean).length;
+    return Math.round((recorded / dailyResults.length) * 100);
+  }
+
+  /**
+   * 連続記録率に応じたラベルを返す
+   */
+  static getRecordConsecutiveRateLabel(rate: number): string {
+    if (rate >= MedicationRecordEntity.RECORD_CONSECUTIVE_EXCELLENT_THRESHOLD) return '優秀';
+    if (rate >= MedicationRecordEntity.RECORD_CONSECUTIVE_GOOD_THRESHOLD) return '良好';
+    return '要改善';
   }
 }
