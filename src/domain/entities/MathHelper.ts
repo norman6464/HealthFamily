@@ -71,6 +71,8 @@ export class MathHelper {
   private static readonly MAPE_MODERATE_THRESHOLD = 25;
   private static readonly GINI_EQUAL_THRESHOLD = 0.2;
   private static readonly GINI_MODERATE_THRESHOLD = 0.5;
+  private static readonly MCORR_STRONG_THRESHOLD = 0.6;
+  private static readonly MCORR_WEAK_THRESHOLD = 0.3;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1140,5 +1142,48 @@ export class MathHelper {
     if (gini <= MathHelper.GINI_EQUAL_THRESHOLD) return '均等';
     if (gini <= MathHelper.GINI_MODERATE_THRESHOLD) return 'やや偏り';
     return '偏り大';
+  }
+
+  /**
+   * 2つの系列の移動相関係数を算出する
+   * ウィンドウサイズごとにピアソン相関係数を計算
+   */
+  static getMovingCorrelation(xs: number[], ys: number[], windowSize: number): number[] {
+    if (xs.length !== ys.length || xs.length < windowSize || windowSize <= 0) return [];
+    const results: number[] = [];
+    for (let i = 0; i <= xs.length - windowSize; i++) {
+      const wx = xs.slice(i, i + windowSize);
+      const wy = ys.slice(i, i + windowSize);
+      const avgX = wx.reduce((a, b) => a + b, 0) / windowSize;
+      const avgY = wy.reduce((a, b) => a + b, 0) / windowSize;
+      let sumXY = 0;
+      let sumX2 = 0;
+      let sumY2 = 0;
+      for (let j = 0; j < windowSize; j++) {
+        const dx = wx[j] - avgX;
+        const dy = wy[j] - avgY;
+        sumXY += dx * dy;
+        sumX2 += dx * dx;
+        sumY2 += dy * dy;
+      }
+      if (sumX2 === 0 || sumY2 === 0) {
+        results.push(0);
+      } else {
+        const corr = sumXY / Math.sqrt(sumX2 * sumY2);
+        results.push(Math.round(Math.max(-1, Math.min(1, corr)) * 100) / 100);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * 移動相関係数に応じたラベルを返す
+   */
+  static getMovingCorrelationLabel(corr: number): string {
+    if (corr >= MathHelper.MCORR_STRONG_THRESHOLD) return '強い正相関';
+    if (corr >= MathHelper.MCORR_WEAK_THRESHOLD) return 'やや正相関';
+    if (corr >= -MathHelper.MCORR_WEAK_THRESHOLD) return '無相関';
+    if (corr >= -MathHelper.MCORR_STRONG_THRESHOLD) return 'やや負相関';
+    return '強い負相関';
   }
 }
