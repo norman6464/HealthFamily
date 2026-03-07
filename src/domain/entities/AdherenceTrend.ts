@@ -48,6 +48,8 @@ export class AdherenceTrendEntity {
   private static readonly STREAK_BONUS_MAX_DAYS = 30;
   private static readonly STREAK_BONUS_HIGH_THRESHOLD = 70;
   private static readonly STREAK_BONUS_MODERATE_THRESHOLD = 30;
+  private static readonly DECAY_RAPID_THRESHOLD = 60;
+  private static readonly DECAY_MODERATE_THRESHOLD = 20;
 
   constructor(private readonly trend: AdherenceTrend) {}
 
@@ -546,5 +548,28 @@ export class AdherenceTrendEntity {
     if (bonus >= AdherenceTrendEntity.STREAK_BONUS_HIGH_THRESHOLD) return 'ボーナス大';
     if (bonus >= AdherenceTrendEntity.STREAK_BONUS_MODERATE_THRESHOLD) return 'ボーナス中';
     return 'ボーナス小';
+  }
+
+  /**
+   * 服薬遵守度の減衰率(0-100)を算出する
+   * 最初の値から最後の値への減少割合
+   */
+  static getAdherenceDecayRate(rates: number[]): number {
+    if (rates.length <= 1) return 0;
+    const first = rates[0];
+    const last = rates[rates.length - 1];
+    if (first <= 0) return 0;
+    const decay = first - last;
+    if (decay <= 0) return 0;
+    return Math.min(100, Math.round((decay / first) * 100));
+  }
+
+  /**
+   * 減衰率に応じたラベルを返す
+   */
+  static getAdherenceDecayRateLabel(rate: number): string {
+    if (rate >= AdherenceTrendEntity.DECAY_RAPID_THRESHOLD) return '急減';
+    if (rate >= AdherenceTrendEntity.DECAY_MODERATE_THRESHOLD) return 'やや減少';
+    return '安定';
   }
 }

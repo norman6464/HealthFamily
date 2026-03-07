@@ -61,6 +61,8 @@ export class MathHelper {
   private static readonly WHMEAN_MODERATE_THRESHOLD = 30;
   private static readonly GSD_UNIFORM_THRESHOLD = 0.5;
   private static readonly GSD_MODERATE_THRESHOLD = 2;
+  private static readonly WINSORIZED_HIGH_THRESHOLD = 70;
+  private static readonly WINSORIZED_MODERATE_THRESHOLD = 30;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1015,5 +1017,36 @@ export class MathHelper {
     if (gsd <= MathHelper.GSD_UNIFORM_THRESHOLD) return '均一';
     if (gsd <= MathHelper.GSD_MODERATE_THRESHOLD) return 'やや散布';
     return '散布';
+  }
+
+  /**
+   * ウィンソライズド平均を算出する
+   * 上下winsorPercent%のデータを端の値に置換して平均を取る
+   */
+  static getWinsorizedMean(values: number[], winsorPercent: number): number {
+    if (values.length === 0) return 0;
+    if (values.length === 1) return values[0];
+    const sorted = [...values].sort((a, b) => a - b);
+    const count = Math.floor(sorted.length * (winsorPercent / 100));
+    if (count * 2 >= sorted.length) {
+      const sum = sorted.reduce((a, b) => a + b, 0);
+      return Math.round((sum / sorted.length) * 100) / 100;
+    }
+    const winsorized = sorted.map((v, i) => {
+      if (i < count) return sorted[count];
+      if (i >= sorted.length - count) return sorted[sorted.length - 1 - count];
+      return v;
+    });
+    const sum = winsorized.reduce((a, b) => a + b, 0);
+    return Math.round((sum / winsorized.length) * 100) / 100;
+  }
+
+  /**
+   * ウィンソライズド平均に応じたラベルを返す
+   */
+  static getWinsorizedMeanLabel(value: number): string {
+    if (value >= MathHelper.WINSORIZED_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.WINSORIZED_MODERATE_THRESHOLD) return '中程度';
+    return '低い';
   }
 }

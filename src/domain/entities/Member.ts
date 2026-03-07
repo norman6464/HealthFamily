@@ -157,6 +157,11 @@ export class MemberEntity {
   private static readonly CARE_SCORE_MODERATE_THRESHOLD = 50;
   private static readonly CARE_SCORE_ADHERENCE_WEIGHT = 0.6;
   private static readonly CARE_SCORE_RECORD_WEIGHT = 0.4;
+  private static readonly ENGAGEMENT_LOGIN_WEIGHT = 0.3;
+  private static readonly ENGAGEMENT_RECORD_WEIGHT = 0.4;
+  private static readonly ENGAGEMENT_ADHERENCE_WEIGHT = 0.3;
+  private static readonly ENGAGEMENT_HIGH_THRESHOLD = 80;
+  private static readonly ENGAGEMENT_MODERATE_THRESHOLD = 50;
 
   private static readonly memberTypeLabels: Record<MemberType, string> = {
     human: '家族',
@@ -540,5 +545,36 @@ export class MemberEntity {
     if (score >= MemberEntity.CARE_SCORE_GOOD_THRESHOLD) return '良好';
     if (score >= MemberEntity.CARE_SCORE_MODERATE_THRESHOLD) return '普通';
     return '要注意';
+  }
+
+  /**
+   * メンバー関与度スコア(0-100)を算出する
+   * ログイン率・記録率・遵守率の加重平均
+   */
+  static getMemberEngagementScore(
+    loginRate: number,
+    recordRate: number,
+    adherenceRate: number,
+  ): number {
+    const clampedLogin = Math.max(0, Math.min(100, loginRate));
+    const clampedRecord = Math.max(0, Math.min(100, recordRate));
+    const clampedAdherence = Math.max(0, Math.min(100, adherenceRate));
+    return Math.min(
+      100,
+      Math.round(
+        clampedLogin * MemberEntity.ENGAGEMENT_LOGIN_WEIGHT +
+          clampedRecord * MemberEntity.ENGAGEMENT_RECORD_WEIGHT +
+          clampedAdherence * MemberEntity.ENGAGEMENT_ADHERENCE_WEIGHT,
+      ),
+    );
+  }
+
+  /**
+   * 関与度スコアに応じたラベルを返す
+   */
+  static getMemberEngagementScoreLabel(score: number): string {
+    if (score >= MemberEntity.ENGAGEMENT_HIGH_THRESHOLD) return '積極的';
+    if (score >= MemberEntity.ENGAGEMENT_MODERATE_THRESHOLD) return '普通';
+    return '消極的';
   }
 }
