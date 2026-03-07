@@ -5,7 +5,8 @@
 
 import { useCallback, useMemo } from 'react';
 import { DailyRecordGroup } from '../../domain/entities/MedicationRecord';
-import { GetMedicationHistory, DeleteMedicationRecord } from '../../domain/usecases/ManageMedicationRecords';
+import { GetMedicationHistory, DeleteMedicationRecord, CreateMedicationRecord } from '../../domain/usecases/ManageMedicationRecords';
+import { CreateRecordInput } from '../../domain/repositories/MedicationRecordRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 import { useFetcher } from './useFetcher';
 
@@ -14,6 +15,7 @@ export interface UseMedicationHistoryResult {
   isLoading: boolean;
   error: Error | null;
   deleteRecord: (recordId: string) => Promise<void>;
+  createRecord: (input: CreateRecordInput) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -23,6 +25,7 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     return {
       getHistory: new GetMedicationHistory(medicationRecordRepository),
       deleteRecord: new DeleteMedicationRecord(medicationRecordRepository),
+      createRecord: new CreateMedicationRecord(medicationRecordRepository),
     };
   }, []);
 
@@ -38,11 +41,17 @@ export const useMedicationHistory = (): UseMedicationHistoryResult => {
     await refetch();
   }, [useCases, refetch]);
 
+  const handleCreateRecord = useCallback(async (input: CreateRecordInput) => {
+    await useCases.createRecord.execute(input);
+    await refetch();
+  }, [useCases, refetch]);
+
   return {
     groups,
     isLoading,
     error,
     deleteRecord: handleDeleteRecord,
+    createRecord: handleCreateRecord,
     refetch,
   };
 };

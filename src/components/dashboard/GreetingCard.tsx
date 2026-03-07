@@ -22,7 +22,7 @@ export const GreetingCard: React.FC<GreetingCardProps> = ({ displayName, weeklyR
         <p className="text-sm font-medium text-primary-800">
           {greeting}、{displayName}さん
         </p>
-        <p className="text-xs text-primary-600 mt-0.5">{summaryMessage}</p>
+        <p className="text-xs text-primary-600 mt-0.5">{summaryMessage}{config.suffix}</p>
         <p className="text-xs text-primary-400 mt-0.5">{config.name}より</p>
       </div>
     </div>

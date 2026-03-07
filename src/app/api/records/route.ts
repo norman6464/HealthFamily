@@ -55,6 +55,7 @@ export async function POST(request: Request) {
         scheduleId: parsed.data.scheduleId,
         notes: parsed.data.notes,
         dosageAmount: parsed.data.dosageAmount,
+        ...(parsed.data.takenAt ? { takenAt: new Date(parsed.data.takenAt) } : {}),
       },
     });
     return created(record);
