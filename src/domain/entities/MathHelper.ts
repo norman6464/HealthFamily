@@ -57,6 +57,8 @@ export class MathHelper {
   private static readonly MR_MODERATE_THRESHOLD = 20;
   private static readonly TRIMMED_HIGH_THRESHOLD = 70;
   private static readonly TRIMMED_MODERATE_THRESHOLD = 30;
+  private static readonly WHMEAN_HIGH_THRESHOLD = 70;
+  private static readonly WHMEAN_MODERATE_THRESHOLD = 30;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -962,6 +964,31 @@ export class MathHelper {
   static getTrimmedMeanLabel(value: number): string {
     if (value >= MathHelper.TRIMMED_HIGH_THRESHOLD) return '高い';
     if (value >= MathHelper.TRIMMED_MODERATE_THRESHOLD) return '中程度';
+    return '低い';
+  }
+
+  /**
+   * 加重調和平均を算出する
+   * 0以下の値を含む場合や配列長不一致の場合は0を返す
+   */
+  static getWeightedHarmonicMean(values: number[], weights: number[]): number {
+    if (values.length === 0 || values.length !== weights.length) return 0;
+    if (values.some((v) => v <= 0)) return 0;
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    if (totalWeight === 0) return 0;
+    const weightedReciprocalSum = values.reduce(
+      (sum, v, i) => sum + weights[i] / v,
+      0,
+    );
+    return Math.round((totalWeight / weightedReciprocalSum) * 100) / 100;
+  }
+
+  /**
+   * 加重調和平均に応じたラベルを返す
+   */
+  static getWeightedHarmonicMeanLabel(value: number): string {
+    if (value >= MathHelper.WHMEAN_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.WHMEAN_MODERATE_THRESHOLD) return '中程度';
     return '低い';
   }
 }

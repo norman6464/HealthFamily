@@ -803,6 +803,9 @@ export class ScheduleEntity {
   private static readonly LOAD_MODERATE_THRESHOLD = 30;
   private static readonly UTILIZATION_HIGH_THRESHOLD = 80;
   private static readonly UTILIZATION_MODERATE_THRESHOLD = 50;
+  private static readonly LOAD_BALANCE_MAX_CV = 100;
+  private static readonly LOAD_BALANCE_HIGH_THRESHOLD = 80;
+  private static readonly LOAD_BALANCE_MODERATE_THRESHOLD = 50;
 
   /**
    * 遅延分数配列からスケジュール効率(0-100)を算出する
@@ -1075,5 +1078,37 @@ export class ScheduleEntity {
     if (rate >= ScheduleEntity.UTILIZATION_HIGH_THRESHOLD) return '高稼働';
     if (rate >= ScheduleEntity.UTILIZATION_MODERATE_THRESHOLD) return '普通';
     return '低稼働';
+  }
+
+  /**
+   * 時間帯別スケジュール件数から負荷分散スコア(0-100)を算出する
+   * 変動係数が小さいほど均等で高スコア
+   */
+  static getScheduleLoadBalance(countsPerPeriod: number[]): number {
+    if (countsPerPeriod.length <= 1) {
+      return countsPerPeriod.length === 0 ? 0 : (countsPerPeriod[0] > 0 ? 100 : 0);
+    }
+    const avg = countsPerPeriod.reduce((a, b) => a + b, 0) / countsPerPeriod.length;
+    if (avg === 0) return 0;
+    const variance =
+      countsPerPeriod.reduce((sum, v) => sum + (v - avg) ** 2, 0) /
+      countsPerPeriod.length;
+    const cv = (Math.sqrt(variance) / avg) * 100;
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(100 - (cv / ScheduleEntity.LOAD_BALANCE_MAX_CV) * 100),
+      ),
+    );
+  }
+
+  /**
+   * 負荷分散スコアに応じたラベルを返す
+   */
+  static getScheduleLoadBalanceLabel(score: number): string {
+    if (score >= ScheduleEntity.LOAD_BALANCE_HIGH_THRESHOLD) return '均等';
+    if (score >= ScheduleEntity.LOAD_BALANCE_MODERATE_THRESHOLD) return 'やや偏り';
+    return '偏り大';
   }
 }
