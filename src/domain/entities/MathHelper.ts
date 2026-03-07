@@ -77,6 +77,8 @@ export class MathHelper {
   private static readonly EXP_SMOOTH_BALANCED_THRESHOLD = 0.3;
   private static readonly PRANK_UPPER_THRESHOLD = 75;
   private static readonly PRANK_LOWER_THRESHOLD = 25;
+  private static readonly LERP_UPPER_THRESHOLD = 0.7;
+  private static readonly LERP_LOWER_THRESHOLD = 0.3;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1230,6 +1232,25 @@ export class MathHelper {
   static getPercentileRankLabel(rank: number): string {
     if (rank >= MathHelper.PRANK_UPPER_THRESHOLD) return '上位';
     if (rank >= MathHelper.PRANK_LOWER_THRESHOLD) return '中位';
+    return '下位';
+  }
+
+  /**
+   * 2点間の線形補間値を算出する
+   * t: 補間パラメータ(0-1)、0ならy1、1ならy2
+   */
+  static getLinearInterpolation(y1: number, y2: number, t: number): number {
+    const clampedT = Math.max(0, Math.min(1, t));
+    const result = y1 + (y2 - y1) * clampedT;
+    return Math.round(result * 100) / 100;
+  }
+
+  /**
+   * 補間パラメータに応じたラベルを返す
+   */
+  static getLinearInterpolationLabel(t: number): string {
+    if (t >= MathHelper.LERP_UPPER_THRESHOLD) return '上位';
+    if (t >= MathHelper.LERP_LOWER_THRESHOLD) return '中位';
     return '下位';
   }
 }
