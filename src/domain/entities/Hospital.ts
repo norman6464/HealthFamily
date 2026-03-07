@@ -22,6 +22,9 @@ export class HospitalEntity {
   private static readonly VISIT_REGULARITY_HIGH_THRESHOLD = 80;
   private static readonly VISIT_REGULARITY_MODERATE_THRESHOLD = 50;
   private static readonly VISIT_REGULARITY_MAX_CV = 100;
+  private static readonly VISIT_COST_MAX = 100000;
+  private static readonly VISIT_COST_HIGH_THRESHOLD = 70;
+  private static readonly VISIT_COST_MODERATE_THRESHOLD = 40;
 
   private static readonly typeLabels: Record<string, string> = {
     general: '総合病院',
@@ -204,5 +207,22 @@ export class HospitalEntity {
     if (score >= HospitalEntity.VISIT_REGULARITY_HIGH_THRESHOLD) return '規則的';
     if (score >= HospitalEntity.VISIT_REGULARITY_MODERATE_THRESHOLD) return 'やや不規則';
     return '不規則';
+  }
+
+  /**
+   * 通院費用から費用負担スコアを算出する（0-100）
+   */
+  static getHospitalVisitCostScore(cost: number): number {
+    if (cost <= 0) return 0;
+    return Math.min(100, Math.round((cost / HospitalEntity.VISIT_COST_MAX) * 100));
+  }
+
+  /**
+   * 費用負担スコアに応じたラベルを返す
+   */
+  static getHospitalVisitCostScoreLabel(score: number): string {
+    if (score >= HospitalEntity.VISIT_COST_HIGH_THRESHOLD) return '高額';
+    if (score >= HospitalEntity.VISIT_COST_MODERATE_THRESHOLD) return '標準';
+    return '安価';
   }
 }
