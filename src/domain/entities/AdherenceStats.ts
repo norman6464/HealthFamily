@@ -337,6 +337,9 @@ export class AdherenceStatsEntity {
   private static readonly EFFICIENCY_STREAK_WEIGHT = 0.3;
   private static readonly EFFICIENCY_HIGH_THRESHOLD = 80;
   private static readonly EFFICIENCY_MODERATE_THRESHOLD = 50;
+  private static readonly CONSISTENCY_HIGH_THRESHOLD = 80;
+  private static readonly CONSISTENCY_MODERATE_THRESHOLD = 50;
+  private static readonly CONSISTENCY_MAX_STDDEV = 50;
 
   /**
    * 現在の連続日数から次のマイルストーンを取得する
@@ -434,5 +437,36 @@ export class AdherenceStatsEntity {
     if (score >= AdherenceStatsEntity.EFFICIENCY_HIGH_THRESHOLD) return '高効率';
     if (score >= AdherenceStatsEntity.EFFICIENCY_MODERATE_THRESHOLD) return '普通';
     return '低効率';
+  }
+
+  /**
+   * 服薬率の一貫性指数を算出する（0-100）
+   * 標準偏差が小さいほどスコアが高い
+   */
+  static getAdherenceConsistencyIndex(rates: number[]): number {
+    if (rates.length <= 1) return rates.length === 0 ? 0 : 100;
+    const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
+    const variance =
+      rates.reduce((sum, v) => sum + (v - avg) ** 2, 0) / rates.length;
+    const stddev = Math.sqrt(variance);
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(
+          100 -
+            (stddev / AdherenceStatsEntity.CONSISTENCY_MAX_STDDEV) * 100
+        )
+      )
+    );
+  }
+
+  /**
+   * 一貫性指数に応じたラベルを返す
+   */
+  static getAdherenceConsistencyIndexLabel(score: number): string {
+    if (score >= AdherenceStatsEntity.CONSISTENCY_HIGH_THRESHOLD) return '安定';
+    if (score >= AdherenceStatsEntity.CONSISTENCY_MODERATE_THRESHOLD) return 'やや不安定';
+    return '不安定';
   }
 }

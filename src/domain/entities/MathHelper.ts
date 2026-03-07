@@ -65,6 +65,8 @@ export class MathHelper {
   private static readonly WINSORIZED_MODERATE_THRESHOLD = 30;
   private static readonly ENTROPY_NORM_HIGH_THRESHOLD = 80;
   private static readonly ENTROPY_NORM_MODERATE_THRESHOLD = 40;
+  private static readonly QD_UNIFORM_THRESHOLD = 5;
+  private static readonly QD_MODERATE_THRESHOLD = 20;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1078,5 +1080,33 @@ export class MathHelper {
     if (score >= MathHelper.ENTROPY_NORM_HIGH_THRESHOLD) return '均一';
     if (score >= MathHelper.ENTROPY_NORM_MODERATE_THRESHOLD) return 'やや偏り';
     return '偏り大';
+  }
+
+  /**
+   * 四分位偏差を算出する（(Q3-Q1)/2）
+   */
+  static getQuartileDeviation(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const q1Index = (sorted.length - 1) * 0.25;
+    const q3Index = (sorted.length - 1) * 0.75;
+    const q1 =
+      sorted[Math.floor(q1Index)] +
+      (sorted[Math.ceil(q1Index)] - sorted[Math.floor(q1Index)]) *
+        (q1Index - Math.floor(q1Index));
+    const q3 =
+      sorted[Math.floor(q3Index)] +
+      (sorted[Math.ceil(q3Index)] - sorted[Math.floor(q3Index)]) *
+        (q3Index - Math.floor(q3Index));
+    return Math.round(((q3 - q1) / 2) * 100) / 100;
+  }
+
+  /**
+   * 四分位偏差に応じたラベルを返す
+   */
+  static getQuartileDeviationLabel(qd: number): string {
+    if (qd <= MathHelper.QD_UNIFORM_THRESHOLD) return '均一';
+    if (qd <= MathHelper.QD_MODERATE_THRESHOLD) return 'やや散布';
+    return '散布';
   }
 }
