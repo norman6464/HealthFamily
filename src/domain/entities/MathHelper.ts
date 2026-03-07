@@ -55,7 +55,8 @@ export class MathHelper {
   private static readonly DECAY_MODERATE_THRESHOLD = 30;
   private static readonly MR_STABLE_THRESHOLD = 5;
   private static readonly MR_MODERATE_THRESHOLD = 20;
-
+  private static readonly TRIMMED_HIGH_THRESHOLD = 70;
+  private static readonly TRIMMED_MODERATE_THRESHOLD = 30;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -935,5 +936,32 @@ export class MathHelper {
     if (mr <= MathHelper.MR_STABLE_THRESHOLD) return '安定';
     if (mr <= MathHelper.MR_MODERATE_THRESHOLD) return 'やや変動';
     return '変動大';
+  }
+
+  /**
+   * トリム平均を算出する
+   * 上下trimPercent%のデータを除外して平均を取る
+   */
+  static getTrimmedMean(values: number[], trimPercent: number): number {
+    if (values.length === 0) return 0;
+    if (values.length === 1) return values[0];
+    const sorted = [...values].sort((a, b) => a - b);
+    const trimCount = Math.floor(sorted.length * (trimPercent / 100));
+    if (trimCount * 2 >= sorted.length) {
+      const sum = sorted.reduce((a, b) => a + b, 0);
+      return Math.round((sum / sorted.length) * 100) / 100;
+    }
+    const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+    const sum = trimmed.reduce((a, b) => a + b, 0);
+    return Math.round((sum / trimmed.length) * 100) / 100;
+  }
+
+  /**
+   * トリム平均に応じたラベルを返す
+   */
+  static getTrimmedMeanLabel(value: number): string {
+    if (value >= MathHelper.TRIMMED_HIGH_THRESHOLD) return '高い';
+    if (value >= MathHelper.TRIMMED_MODERATE_THRESHOLD) return '中程度';
+    return '低い';
   }
 }

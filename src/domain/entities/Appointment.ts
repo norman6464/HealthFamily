@@ -40,6 +40,11 @@ export class AppointmentEntity {
   private static readonly CLUSTER_MAX_CV = 2;
   private static readonly DENSITY_HIGH_THRESHOLD = 70;
   private static readonly DENSITY_MODERATE_THRESHOLD = 30;
+  private static readonly COMPLIANCE_COMPLETION_WEIGHT = 0.5;
+  private static readonly COMPLIANCE_PUNCTUALITY_WEIGHT = 0.3;
+  private static readonly COMPLIANCE_REGULARITY_WEIGHT = 0.2;
+  private static readonly COMPLIANCE_HIGH_THRESHOLD = 80;
+  private static readonly COMPLIANCE_MODERATE_THRESHOLD = 50;
 
   constructor(private readonly appointment: Appointment) {}
 
@@ -671,5 +676,36 @@ export class AppointmentEntity {
     if (score >= AppointmentEntity.DENSITY_HIGH_THRESHOLD) return '密';
     if (score >= AppointmentEntity.DENSITY_MODERATE_THRESHOLD) return '適度';
     return '疎';
+  }
+
+  /**
+   * 通院コンプライアンススコア(0-100)を算出する
+   * 完了率・時間厳守度・規則性の加重平均
+   */
+  static getAppointmentComplianceScore(
+    completionRate: number,
+    punctualityScore: number,
+    regularityScore: number,
+  ): number {
+    const clampedCompletion = Math.max(0, Math.min(100, completionRate));
+    const clampedPunctuality = Math.max(0, Math.min(100, punctualityScore));
+    const clampedRegularity = Math.max(0, Math.min(100, regularityScore));
+    return Math.min(
+      100,
+      Math.round(
+        clampedCompletion * AppointmentEntity.COMPLIANCE_COMPLETION_WEIGHT +
+          clampedPunctuality * AppointmentEntity.COMPLIANCE_PUNCTUALITY_WEIGHT +
+          clampedRegularity * AppointmentEntity.COMPLIANCE_REGULARITY_WEIGHT,
+      ),
+    );
+  }
+
+  /**
+   * 通院コンプライアンススコアに応じたラベルを返す
+   */
+  static getAppointmentComplianceScoreLabel(score: number): string {
+    if (score >= AppointmentEntity.COMPLIANCE_HIGH_THRESHOLD) return '良好';
+    if (score >= AppointmentEntity.COMPLIANCE_MODERATE_THRESHOLD) return '普通';
+    return '要改善';
   }
 }
