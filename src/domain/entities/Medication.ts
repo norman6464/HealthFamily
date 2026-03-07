@@ -113,6 +113,9 @@ export class MedicationEntity {
   private static readonly WASTAGE_MAX_RATIO = 5;
   private static readonly WASTAGE_HIGH_THRESHOLD = 70;
   private static readonly WASTAGE_MODERATE_THRESHOLD = 40;
+  private static readonly OVERLAP_MAX_MEDS = 8;
+  private static readonly OVERLAP_HIGH_THRESHOLD = 70;
+  private static readonly OVERLAP_MODERATE_THRESHOLD = 40;
 
   private static readonly categoryLabels: Record<MedicationCategory, string> = {
     regular: '常用薬',
@@ -431,5 +434,22 @@ export class MedicationEntity {
     if (score >= MedicationEntity.WASTAGE_HIGH_THRESHOLD) return '廃棄リスク高';
     if (score >= MedicationEntity.WASTAGE_MODERATE_THRESHOLD) return '注意';
     return '低リスク';
+  }
+
+  /**
+   * 同時服用薬数から相互作用リスクスコア(0-100)を算出する
+   */
+  static getMedicationOverlapCount(concurrentMeds: number): number {
+    if (concurrentMeds <= 0) return 0;
+    return Math.min(100, Math.round((concurrentMeds / MedicationEntity.OVERLAP_MAX_MEDS) * 100));
+  }
+
+  /**
+   * 同時服用薬数リスクスコアに応じたラベルを返す
+   */
+  static getMedicationOverlapCountLabel(score: number): string {
+    if (score >= MedicationEntity.OVERLAP_HIGH_THRESHOLD) return 'リスク高';
+    if (score >= MedicationEntity.OVERLAP_MODERATE_THRESHOLD) return '注意';
+    return '安全';
   }
 }
