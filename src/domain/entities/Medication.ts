@@ -107,6 +107,9 @@ export class MedicationEntity {
   private static readonly COMPLEXITY_MODERATE_THRESHOLD = 40;
   private static readonly COST_PER_DOSE_HIGH_THRESHOLD = 500;
   private static readonly COST_PER_DOSE_MODERATE_THRESHOLD = 100;
+  private static readonly BURDEN_MAX_DAILY_DOSES = 10;
+  private static readonly BURDEN_HIGH_THRESHOLD = 70;
+  private static readonly BURDEN_MODERATE_THRESHOLD = 40;
 
   private static readonly categoryLabels: Record<MedicationCategory, string> = {
     regular: '常用薬',
@@ -388,5 +391,22 @@ export class MedicationEntity {
     if (costPerDose >= MedicationEntity.COST_PER_DOSE_HIGH_THRESHOLD) return '高コスト';
     if (costPerDose >= MedicationEntity.COST_PER_DOSE_MODERATE_THRESHOLD) return '標準';
     return '低コスト';
+  }
+
+  /**
+   * 1日の服薬回数から負担スコア(0-100)を算出する
+   */
+  static getMedicationBurdenScore(dailyDoses: number): number {
+    if (dailyDoses <= 0) return 0;
+    return Math.min(100, Math.round((dailyDoses / MedicationEntity.BURDEN_MAX_DAILY_DOSES) * 100));
+  }
+
+  /**
+   * 服薬負担スコアに応じたラベルを返す
+   */
+  static getMedicationBurdenScoreLabel(score: number): string {
+    if (score >= MedicationEntity.BURDEN_HIGH_THRESHOLD) return '負担大';
+    if (score >= MedicationEntity.BURDEN_MODERATE_THRESHOLD) return '普通';
+    return '負担小';
   }
 }

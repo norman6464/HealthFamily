@@ -69,6 +69,8 @@ export class MathHelper {
   private static readonly QD_MODERATE_THRESHOLD = 20;
   private static readonly MAPE_HIGH_THRESHOLD = 10;
   private static readonly MAPE_MODERATE_THRESHOLD = 25;
+  private static readonly GINI_EQUAL_THRESHOLD = 0.2;
+  private static readonly GINI_MODERATE_THRESHOLD = 0.5;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1111,5 +1113,32 @@ export class MathHelper {
     if (mape <= MathHelper.MAPE_HIGH_THRESHOLD) return '精度高';
     if (mape <= MathHelper.MAPE_MODERATE_THRESHOLD) return 'やや誤差';
     return '誤差大';
+  }
+
+  /**
+   * ジニ係数を算出する（0=完全平等、1=完全不平等）
+   */
+  static getGiniCoefficient(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const total = values.reduce((a, b) => a + b, 0);
+    if (total === 0) return 0;
+    const n = values.length;
+    let sumAbsDiff = 0;
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        sumAbsDiff += Math.abs(values[i] - values[j]);
+      }
+    }
+    const gini = sumAbsDiff / (2 * n * n * (total / n));
+    return Math.round(Math.min(1, Math.max(0, gini)) * 100) / 100;
+  }
+
+  /**
+   * ジニ係数に応じたラベルを返す
+   */
+  static getGiniCoefficientLabel(gini: number): string {
+    if (gini <= MathHelper.GINI_EQUAL_THRESHOLD) return '均等';
+    if (gini <= MathHelper.GINI_MODERATE_THRESHOLD) return 'やや偏り';
+    return '偏り大';
   }
 }

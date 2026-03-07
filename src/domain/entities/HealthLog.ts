@@ -92,6 +92,8 @@ export class HealthLogEntity {
   private static readonly HEALTH_TREND_MAX_LEVEL = 5;
   private static readonly HEALTH_TREND_GOOD_THRESHOLD = 80;
   private static readonly HEALTH_TREND_MODERATE_THRESHOLD = 50;
+  private static readonly RECOVERY_SPEED_FAST_THRESHOLD = 70;
+  private static readonly RECOVERY_SPEED_MODERATE_THRESHOLD = 40;
 
   private static readonly CONDITION_LABELS: Record<ConditionLevel, string> = {
     1: 'とても悪い',
@@ -1052,5 +1054,52 @@ export class HealthLogEntity {
     if (score >= HealthLogEntity.HEALTH_TREND_GOOD_THRESHOLD) return '良好';
     if (score >= HealthLogEntity.HEALTH_TREND_MODERATE_THRESHOLD) return '普通';
     return '注意';
+  }
+
+  /**
+   * 体調レベル配列から回復速度スコア(0-100)を算出する
+   * 低下後に回復するまでの速さを評価する
+   */
+  static getConditionRecoverySpeed(levels: number[]): number {
+    if (levels.length <= 1) return 0;
+    const recoveries: number[] = [];
+    let i = 0;
+    while (i < levels.length - 1) {
+      if (levels[i + 1] < levels[i]) {
+        const dipStart = levels[i];
+        const dipValue = levels[i + 1];
+        const drop = dipStart - dipValue;
+        let recoverySteps = 0;
+        let recovered = false;
+        for (let j = i + 2; j < levels.length; j++) {
+          recoverySteps++;
+          if (levels[j] >= dipStart) {
+            recovered = true;
+            break;
+          }
+        }
+        if (recovered && drop > 0) {
+          recoveries.push(drop / recoverySteps);
+        } else if (!recovered && drop > 0) {
+          recoveries.push(0);
+        }
+        i++;
+      } else {
+        i++;
+      }
+    }
+    if (recoveries.length === 0) return 0;
+    const maxSpeed = HealthLogEntity.HEALTH_TREND_MAX_LEVEL - 1;
+    const avgSpeed = recoveries.reduce((a, b) => a + b, 0) / recoveries.length;
+    return Math.min(100, Math.round((avgSpeed / maxSpeed) * 100));
+  }
+
+  /**
+   * 体調回復速度に応じたラベルを返す
+   */
+  static getConditionRecoverySpeedLabel(score: number): string {
+    if (score >= HealthLogEntity.RECOVERY_SPEED_FAST_THRESHOLD) return '回復早い';
+    if (score >= HealthLogEntity.RECOVERY_SPEED_MODERATE_THRESHOLD) return '普通';
+    return '回復遅い';
   }
 }
