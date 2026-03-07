@@ -63,6 +63,8 @@ export class MathHelper {
   private static readonly GSD_MODERATE_THRESHOLD = 2;
   private static readonly WINSORIZED_HIGH_THRESHOLD = 70;
   private static readonly WINSORIZED_MODERATE_THRESHOLD = 30;
+  private static readonly ENTROPY_NORM_HIGH_THRESHOLD = 80;
+  private static readonly ENTROPY_NORM_MODERATE_THRESHOLD = 40;
   /**
    * パーセントを算出(0-100%)
    * @param numerator 分子
@@ -1048,5 +1050,33 @@ export class MathHelper {
     if (value >= MathHelper.WINSORIZED_HIGH_THRESHOLD) return '高い';
     if (value >= MathHelper.WINSORIZED_MODERATE_THRESHOLD) return '中程度';
     return '低い';
+  }
+
+  /**
+   * 正規化エントロピー(0-100)を算出する
+   * 分布の均一性を評価（均一なら100、偏っていれば0に近い）
+   */
+  static getEntropyNormalized(values: number[]): number {
+    if (values.length <= 1) return 0;
+    const total = values.reduce((a, b) => a + b, 0);
+    if (total === 0) return 0;
+    const probs = values.map((v) => v / total);
+    const nonZeroProbs = probs.filter((p) => p > 0);
+    if (nonZeroProbs.length <= 1) return 0;
+    const entropy = -nonZeroProbs.reduce(
+      (sum, p) => sum + p * Math.log2(p),
+      0,
+    );
+    const maxEntropy = Math.log2(values.length);
+    return Math.round((entropy / maxEntropy) * 100);
+  }
+
+  /**
+   * 正規化エントロピーに応じたラベルを返す
+   */
+  static getEntropyNormalizedLabel(score: number): string {
+    if (score >= MathHelper.ENTROPY_NORM_HIGH_THRESHOLD) return '均一';
+    if (score >= MathHelper.ENTROPY_NORM_MODERATE_THRESHOLD) return 'やや偏り';
+    return '偏り大';
   }
 }

@@ -5,6 +5,8 @@
 export class GreetingMessageEntity {
   private static readonly GREETING_INTENSITY_HIGH_THRESHOLD = 70;
   private static readonly GREETING_INTENSITY_MODERATE_THRESHOLD = 40;
+  private static readonly VARIETY_HIGH_THRESHOLD = 80;
+  private static readonly VARIETY_MODERATE_THRESHOLD = 40;
   private static readonly GREETING_INTENSITY_MAX_HOURS = 72;
   private static readonly GREETING_INTENSITY_MAX_STREAK = 30;
   private static readonly GREETING_INTENSITY_HOURS_WEIGHT = 0.6;
@@ -102,5 +104,22 @@ export class GreetingMessageEntity {
     if (score >= GreetingMessageEntity.GREETING_INTENSITY_HIGH_THRESHOLD) return '熱烈';
     if (score >= GreetingMessageEntity.GREETING_INTENSITY_MODERATE_THRESHOLD) return '普通';
     return '軽め';
+  }
+
+  /**
+   * 使用した挨拶種類数から多様性スコアを算出する（0-100）
+   */
+  static getGreetingVarietyScore(usedTypes: number, totalTypes: number): number {
+    if (totalTypes <= 0 || usedTypes <= 0) return 0;
+    return Math.min(100, Math.round((usedTypes / totalTypes) * 100));
+  }
+
+  /**
+   * 挨拶多様性スコアに応じたラベルを返す
+   */
+  static getGreetingVarietyScoreLabel(score: number): string {
+    if (score >= GreetingMessageEntity.VARIETY_HIGH_THRESHOLD) return '豊富';
+    if (score >= GreetingMessageEntity.VARIETY_MODERATE_THRESHOLD) return '普通';
+    return '少ない';
   }
 }
