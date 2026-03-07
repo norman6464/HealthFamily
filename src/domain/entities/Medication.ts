@@ -116,6 +116,8 @@ export class MedicationEntity {
   private static readonly OVERLAP_MAX_MEDS = 8;
   private static readonly OVERLAP_HIGH_THRESHOLD = 70;
   private static readonly OVERLAP_MODERATE_THRESHOLD = 40;
+  private static readonly DOSAGE_EFF_GOOD_THRESHOLD = 80;
+  private static readonly DOSAGE_EFF_MODERATE_THRESHOLD = 50;
 
   private static readonly categoryLabels: Record<MedicationCategory, string> = {
     regular: '常用薬',
@@ -451,5 +453,22 @@ export class MedicationEntity {
     if (score >= MedicationEntity.OVERLAP_HIGH_THRESHOLD) return 'リスク高';
     if (score >= MedicationEntity.OVERLAP_MODERATE_THRESHOLD) return '注意';
     return '安全';
+  }
+
+  /**
+   * 実際の服薬量と処方量の比率から投薬効率(0-100)を算出する
+   */
+  static getDosageEfficiency(actualDose: number, prescribedDose: number): number {
+    if (actualDose <= 0 || prescribedDose <= 0) return 0;
+    return Math.min(100, Math.round((actualDose / prescribedDose) * 100));
+  }
+
+  /**
+   * 投薬効率に応じたラベルを返す
+   */
+  static getDosageEfficiencyLabel(efficiency: number): string {
+    if (efficiency >= MedicationEntity.DOSAGE_EFF_GOOD_THRESHOLD) return '良好';
+    if (efficiency >= MedicationEntity.DOSAGE_EFF_MODERATE_THRESHOLD) return '普通';
+    return '不足';
   }
 }

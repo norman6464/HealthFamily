@@ -65,6 +65,9 @@ export class MedicationRecordEntity {
   private static readonly DOSE_TIMING_MODERATE_THRESHOLD = 50;
   private static readonly RECORD_CONSECUTIVE_EXCELLENT_THRESHOLD = 80;
   private static readonly RECORD_CONSECUTIVE_GOOD_THRESHOLD = 50;
+  private static readonly DENSITY_MAX_PER_DAY = 5;
+  private static readonly DENSITY_HIGH_THRESHOLD = 70;
+  private static readonly DENSITY_MODERATE_THRESHOLD = 40;
 
   /**
    * 記録を日付ごとにグループ化（新しい順）
@@ -936,5 +939,23 @@ export class MedicationRecordEntity {
     if (rate >= MedicationRecordEntity.RECORD_CONSECUTIVE_EXCELLENT_THRESHOLD) return '優秀';
     if (rate >= MedicationRecordEntity.RECORD_CONSECUTIVE_GOOD_THRESHOLD) return '良好';
     return '要改善';
+  }
+
+  /**
+   * 期間あたりの記録件数から記録密度スコア(0-100)を算出する
+   */
+  static getRecordDensityByPeriod(recordCount: number, days: number): number {
+    if (recordCount <= 0 || days <= 0) return 0;
+    const dailyRate = recordCount / days;
+    return Math.min(100, Math.round((dailyRate / MedicationRecordEntity.DENSITY_MAX_PER_DAY) * 100));
+  }
+
+  /**
+   * 記録密度スコアに応じたラベルを返す
+   */
+  static getRecordDensityByPeriodLabel(score: number): string {
+    if (score >= MedicationRecordEntity.DENSITY_HIGH_THRESHOLD) return '高密度';
+    if (score >= MedicationRecordEntity.DENSITY_MODERATE_THRESHOLD) return '標準';
+    return '低密度';
   }
 }
