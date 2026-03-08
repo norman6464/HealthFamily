@@ -16,7 +16,6 @@ import { AdherenceTrendCard } from '@/components/dashboard/AdherenceTrendCard';
 import { StockAlertList } from '@/components/dashboard/StockAlertList';
 import { WeeklySummaryCard } from '@/components/dashboard/WeeklySummaryCard';
 import { GreetingCard } from '@/components/dashboard/GreetingCard';
-import { StreakCard } from '@/components/dashboard/StreakCard';
 import { MemberFilter } from '@/components/shared/MemberFilter';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 
@@ -52,19 +51,6 @@ export default function Dashboard() {
       <main className="max-w-md mx-auto px-4 py-4">
         <GreetingCard displayName={profile?.displayName || ''} weeklyRate={stats?.overall.weeklyRate} />
 
-        <StreakCard streak={stats?.streak ?? null} isLoading={statsLoading} />
-
-        <AdherenceStatsCard stats={stats} isLoading={statsLoading} />
-
-        <AdherenceTrendCard trend={trend} isLoading={trendLoading} />
-
-        <StockAlertList alerts={alerts} isLoading={alertsLoading} />
-
-        <UpcomingAppointments
-          appointments={appointments}
-          isLoading={appointmentsLoading}
-        />
-
         <WeeklySummaryCard schedules={schedules} isLoading={isLoading} />
 
         <h2 className="text-lg font-semibold text-gray-800 mb-3">今日の予定</h2>
@@ -79,6 +65,17 @@ export default function Dashboard() {
           schedules={filteredSchedules}
           isLoading={isLoading}
           onMarkCompleted={markAsCompleted}
+        />
+
+        <AdherenceStatsCard stats={stats} isLoading={statsLoading} />
+
+        <AdherenceTrendCard trend={trend} isLoading={trendLoading} />
+
+        <StockAlertList alerts={alerts} isLoading={alertsLoading} />
+
+        <UpcomingAppointments
+          appointments={appointments}
+          isLoading={appointmentsLoading}
         />
       </main>
 
