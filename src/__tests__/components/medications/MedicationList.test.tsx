@@ -53,11 +53,22 @@ describe('MedicationList', () => {
     expect(screen.getByText('在庫少')).toBeInTheDocument();
   });
 
-  it('削除ボタンでonDeleteが呼ばれる', () => {
+  it('削除ボタンで確認モーダルが表示され、確認でonDeleteが呼ばれる', () => {
     const vm = createViewModel();
     render(<MedicationList medications={[vm]} isLoading={false} onDelete={mockOnDelete} />);
     fireEvent.click(screen.getByLabelText('削除'));
+    expect(screen.getByText('薬の削除')).toBeInTheDocument();
+    expect(screen.getByText(/削除しますか/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('確認'));
     expect(mockOnDelete).toHaveBeenCalledWith('med-1');
+  });
+
+  it('削除確認モーダルでキャンセルするとonDeleteが呼ばれない', () => {
+    const vm = createViewModel();
+    render(<MedicationList medications={[vm]} isLoading={false} onDelete={mockOnDelete} />);
+    fireEvent.click(screen.getByLabelText('削除'));
+    fireEvent.click(screen.getByText('キャンセル'));
+    expect(mockOnDelete).not.toHaveBeenCalled();
   });
 
   it('飲んだボタンで記録済みに変わる', async () => {
