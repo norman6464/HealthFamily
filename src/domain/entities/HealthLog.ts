@@ -20,6 +20,13 @@ export const SYMPTOM_OPTIONS = [
   'joint_pain',
   'insomnia',
   'menstrual_pain',
+  'vomiting',
+  'diarrhea',
+  'bloody_urine',
+  'bleeding',
+  'eye_discharge',
+  'loss_of_appetite',
+  'lethargy',
 ] as const;
 export type SymptomType = (typeof SYMPTOM_OPTIONS)[number];
 
@@ -35,6 +42,13 @@ export const SYMPTOM_LABELS: Record<SymptomType, string> = {
   joint_pain: '関節痛',
   insomnia: '不眠',
   menstrual_pain: '生理痛',
+  vomiting: '嘔吐',
+  diarrhea: '下痢',
+  bloody_urine: '血尿',
+  bleeding: '出血',
+  eye_discharge: '目ヤニ',
+  loss_of_appetite: '食欲不振',
+  lethargy: '元気がない',
 };
 
 export interface HealthLog {
