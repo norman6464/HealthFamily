@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pill, Check, Pencil } from 'lucide-react';
 import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface MedicationListProps {
   medications: MedicationViewModel[];
@@ -48,6 +49,7 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
   const { medication, isLowStock, displayInfo } = viewModel;
   const [isTaken, setIsTaken] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleMarkTaken = async () => {
     if (!onMarkTaken || isSubmitting) return;
@@ -112,7 +114,7 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
             )
           )}
           <button
-            onClick={() => onDelete(medication.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
             aria-label="削除"
           >
@@ -120,6 +122,17 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="薬の削除"
+        message={`「${displayInfo.name}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(medication.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });
