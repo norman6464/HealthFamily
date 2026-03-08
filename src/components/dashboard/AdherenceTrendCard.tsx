@@ -32,7 +32,7 @@ export const AdherenceTrendCard: React.FC<AdherenceTrendCardProps> = ({ trend, i
         </div>
       </div>
 
-      <div className="flex justify-between mb-2">
+      <div className="flex justify-between items-end mb-2">
         {trend.dayOfWeekStats.map((stat) => (
           <div key={stat.day} className="flex flex-col items-center">
             <div
