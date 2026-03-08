@@ -17,7 +17,7 @@ import { Plus, ClipboardList } from 'lucide-react';
 
 function MemberMedications({ member, categoryFilter }: { member: Member; categoryFilter: MedicationCategory | null }) {
   const { medications, isLoading, updateMedication, deleteMedication } = useMedications(member.id);
-  const { markAsTaken } = useMedicationRecordActions();
+  const { markAsTaken, markAsTakenAt } = useMedicationRecordActions();
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
@@ -30,6 +30,10 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
   const handleMarkTaken = useCallback(async (medicationId: string) => {
     await markAsTaken(member.id, medicationId);
   }, [member.id, markAsTaken]);
+
+  const handleMarkPastTaken = useCallback(async (medicationId: string, takenAt: string) => {
+    await markAsTakenAt(member.id, medicationId, takenAt);
+  }, [member.id, markAsTakenAt]);
 
   const handleEdit = (medication: Medication) => {
     setEditingMed(medication);
@@ -85,6 +89,7 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
         isLoading={isLoading}
         onDelete={deleteMedication}
         onMarkTaken={handleMarkTaken}
+        onMarkPastTaken={handleMarkPastTaken}
         onEdit={handleEdit}
       />
     </section>

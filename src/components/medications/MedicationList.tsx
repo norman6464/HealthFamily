@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pill, Check, Pencil } from 'lucide-react';
+import { Pill, Check, Pencil, Clock } from 'lucide-react';
 import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
@@ -9,10 +9,11 @@ interface MedicationListProps {
   isLoading: boolean;
   onDelete: (medicationId: string) => void;
   onMarkTaken?: (medicationId: string) => Promise<void>;
+  onMarkPastTaken?: (medicationId: string, takenAt: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
 }
 
-export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onEdit }) => {
+export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onMarkPastTaken, onEdit }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -32,7 +33,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
   return (
     <div className="space-y-3">
       {medications.map((vm) => (
-        <MedicationCard key={vm.medication.id} viewModel={vm} onDelete={onDelete} onMarkTaken={onMarkTaken} onEdit={onEdit} />
+        <MedicationCard key={vm.medication.id} viewModel={vm} onDelete={onDelete} onMarkTaken={onMarkTaken} onMarkPastTaken={onMarkPastTaken} onEdit={onEdit} />
       ))}
     </div>
   );
@@ -42,14 +43,20 @@ export interface MedicationCardProps {
   viewModel: MedicationViewModel;
   onDelete: (medicationId: string) => void;
   onMarkTaken?: (medicationId: string) => Promise<void>;
+  onMarkPastTaken?: (medicationId: string, takenAt: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
 }
 
-const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, onDelete, onMarkTaken, onEdit }) => {
+const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, onDelete, onMarkTaken, onMarkPastTaken, onEdit }) => {
   const { medication, isLowStock, displayInfo } = viewModel;
   const [isTaken, setIsTaken] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isPastRecordOpen, setIsPastRecordOpen] = useState(false);
+  const [pastDate, setPastDate] = useState('');
+  const [pastTime, setPastTime] = useState('12:00');
+  const [isPastSubmitting, setIsPastSubmitting] = useState(false);
+  const [pastRecordSuccess, setPastRecordSuccess] = useState(false);
 
   const handleMarkTaken = async () => {
     if (!onMarkTaken || isSubmitting) return;
@@ -59,6 +66,24 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
       setIsTaken(true);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handlePastRecordSubmit = async () => {
+    if (!onMarkPastTaken || !pastDate || isPastSubmitting) return;
+    setIsPastSubmitting(true);
+    try {
+      const takenAt = new Date(`${pastDate}T${pastTime}:00`).toISOString();
+      await onMarkPastTaken(medication.id, takenAt);
+      setPastRecordSuccess(true);
+      setTimeout(() => {
+        setIsPastRecordOpen(false);
+        setPastRecordSuccess(false);
+        setPastDate('');
+        setPastTime('12:00');
+      }, 1500);
+    } finally {
+      setIsPastSubmitting(false);
     }
   };
 
@@ -94,6 +119,15 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
               aria-label="編集"
             >
               <Pencil size={14} />
+            </button>
+          )}
+          {onMarkPastTaken && (
+            <button
+              onClick={() => setIsPastRecordOpen(true)}
+              className="text-gray-500 hover:text-gray-700 text-sm px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
+              aria-label="過去の記録"
+            >
+              <Clock size={14} />
             </button>
           )}
           {onMarkTaken && (
@@ -133,6 +167,67 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
         onCancel={() => setIsDeleteDialogOpen(false)}
         isDangerous
       />
+      {isPastRecordOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h2 className="mb-2 text-lg font-bold">過去の服薬記録</h2>
+            <p className="mb-4 text-sm text-gray-600">
+              「{displayInfo.name}」の飲み忘れを記録します
+            </p>
+            {pastRecordSuccess ? (
+              <div className="flex items-center justify-center py-4 text-green-600">
+                <Check size={20} className="mr-2" />
+                <span className="font-medium">記録しました</span>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-3 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">日付</label>
+                    <input
+                      type="date"
+                      value={pastDate}
+                      onChange={(e) => setPastDate(e.target.value)}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">時刻</label>
+                    <input
+                      type="time"
+                      value={pastTime}
+                      onChange={(e) => setPastTime(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsPastRecordOpen(false);
+                      setPastDate('');
+                      setPastTime('12:00');
+                    }}
+                    className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePastRecordSubmit}
+                    disabled={!pastDate || isPastSubmitting}
+                    className="rounded-md bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700 disabled:opacity-50"
+                  >
+                    {isPastSubmitting ? '記録中...' : '記録する'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 });
