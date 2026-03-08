@@ -67,11 +67,11 @@ export default function Dashboard() {
           onMarkCompleted={markAsCompleted}
         />
 
+        <StockAlertList alerts={alerts} isLoading={alertsLoading} />
+
         <AdherenceStatsCard stats={stats} isLoading={statsLoading} />
 
         <AdherenceTrendCard trend={trend} isLoading={trendLoading} />
-
-        <StockAlertList alerts={alerts} isLoading={alertsLoading} />
 
         <UpcomingAppointments
           appointments={appointments}
