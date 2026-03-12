@@ -24,6 +24,7 @@ const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
 export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
   const [scheduledTime, setScheduledTime] = useState('08:00');
   const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>([]);
+  const [isEveryDay, setIsEveryDay] = useState(true);
   const [reminderMinutes, setReminderMinutes] = useState('10');
 
   const toggleDay = (day: DayOfWeek) => {
@@ -32,19 +33,30 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
     );
   };
 
+  const toggleEveryDay = () => {
+    if (isEveryDay) {
+      setIsEveryDay(false);
+      setSelectedDays([]);
+    } else {
+      setIsEveryDay(true);
+      setSelectedDays([]);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (selectedDays.length === 0) return;
+    if (!isEveryDay && selectedDays.length === 0) return;
 
     onSubmit({
       scheduledTime,
-      daysOfWeek: selectedDays,
+      daysOfWeek: isEveryDay ? [] : selectedDays,
       reminderMinutesBefore: parseInt(reminderMinutes, 10) || 0,
     });
 
     setScheduledTime('08:00');
     setSelectedDays([]);
+    setIsEveryDay(true);
     setReminderMinutes('10');
   };
 
@@ -65,27 +77,50 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
 
       <div>
         <span className="block text-sm font-medium text-gray-700 mb-2">曜日</span>
-        <div className="flex flex-wrap gap-2">
-          {DAY_OPTIONS.map(({ value, label }) => (
-            <label
-              key={value}
-              className={`flex items-center justify-center w-10 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
-                selectedDays.includes(value)
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selectedDays.includes(value)}
-                onChange={() => toggleDay(value)}
-                className="sr-only"
-                aria-label={label}
-              />
-              {label}
-            </label>
-          ))}
+        <div className="flex flex-wrap gap-2 mb-2">
+          <label
+            className={`flex items-center justify-center px-3 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
+              isEveryDay
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={isEveryDay}
+              onChange={toggleEveryDay}
+              className="sr-only"
+              aria-label="毎日"
+            />
+            毎日
+          </label>
         </div>
+        {!isEveryDay && (
+          <div className="flex flex-wrap gap-2">
+            {DAY_OPTIONS.map(({ value, label }) => (
+              <label
+                key={value}
+                className={`flex items-center justify-center w-10 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
+                  selectedDays.includes(value)
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedDays.includes(value)}
+                  onChange={() => toggleDay(value)}
+                  className="sr-only"
+                  aria-label={label}
+                />
+                {label}
+              </label>
+            ))}
+            {!isEveryDay && selectedDays.length === 0 && (
+              <p className="w-full text-sm text-red-500 mt-1">曜日を選択してください</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div>

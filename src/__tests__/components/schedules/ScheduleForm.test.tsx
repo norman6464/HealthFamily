@@ -17,8 +17,14 @@ describe('ScheduleForm', () => {
     expect(screen.getByText('スケジュールを追加')).toBeInTheDocument();
   });
 
-  it('曜日ボタンが全て表示される', () => {
+  it('毎日ボタンがデフォルトで選択されている', () => {
     render(<ScheduleForm onSubmit={mockOnSubmit} />);
+    expect(screen.getByLabelText('毎日')).toBeChecked();
+  });
+
+  it('毎日を解除すると曜日ボタンが表示される', () => {
+    render(<ScheduleForm onSubmit={mockOnSubmit} />);
+    fireEvent.click(screen.getByLabelText('毎日'));
     expect(screen.getByLabelText('月')).toBeInTheDocument();
     expect(screen.getByLabelText('火')).toBeInTheDocument();
     expect(screen.getByLabelText('水')).toBeInTheDocument();
@@ -28,14 +34,26 @@ describe('ScheduleForm', () => {
     expect(screen.getByLabelText('日')).toBeInTheDocument();
   });
 
+  it('毎日選択時に送信すると空のdaysOfWeekで呼ばれる', () => {
+    render(<ScheduleForm onSubmit={mockOnSubmit} />);
+    fireEvent.click(screen.getByText('スケジュールを追加'));
+    expect(mockOnSubmit).toHaveBeenCalledWith({
+      scheduledTime: '08:00',
+      daysOfWeek: [],
+      reminderMinutesBefore: 10,
+    });
+  });
+
   it('曜日を選択せずに送信するとonSubmitが呼ばれない', () => {
     render(<ScheduleForm onSubmit={mockOnSubmit} />);
+    fireEvent.click(screen.getByLabelText('毎日'));
     fireEvent.click(screen.getByText('スケジュールを追加'));
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
   it('曜日を選択して送信するとonSubmitが正しいデータで呼ばれる', () => {
     render(<ScheduleForm onSubmit={mockOnSubmit} />);
+    fireEvent.click(screen.getByLabelText('毎日'));
     fireEvent.click(screen.getByLabelText('月'));
     fireEvent.click(screen.getByLabelText('水'));
     fireEvent.click(screen.getByText('スケジュールを追加'));
@@ -48,6 +66,7 @@ describe('ScheduleForm', () => {
 
   it('曜日のトグルが正しく動作する', () => {
     render(<ScheduleForm onSubmit={mockOnSubmit} />);
+    fireEvent.click(screen.getByLabelText('毎日'));
     const mondayCheckbox = screen.getByLabelText('月');
     fireEvent.click(mondayCheckbox);
     expect(mondayCheckbox).toBeChecked();
@@ -65,8 +84,7 @@ describe('ScheduleForm', () => {
 
   it('送信後にフォームがリセットされる', () => {
     render(<ScheduleForm onSubmit={mockOnSubmit} />);
-    fireEvent.click(screen.getByLabelText('金'));
     fireEvent.click(screen.getByText('スケジュールを追加'));
-    expect(screen.getByLabelText('金')).not.toBeChecked();
+    expect(screen.getByLabelText('毎日')).toBeChecked();
   });
 });

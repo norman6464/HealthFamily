@@ -40,6 +40,19 @@ export async function POST(request: Request) {
         isActive: true,
       },
     });
+
+    await prisma.schedule.create({
+      data: {
+        userId,
+        medicationId: medication.id,
+        memberId: parsed.data.memberId,
+        scheduledTime: '08:00',
+        daysOfWeek: [],
+        isEnabled: true,
+        reminderMinutesBefore: 5,
+      },
+    });
+
     return created(medication);
   })();
 }
