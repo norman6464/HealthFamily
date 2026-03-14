@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useMedications } from '@/presentation/hooks/useMedications';
@@ -21,6 +21,13 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
+  const editFormRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (editingMed && editFormRef.current) {
+      editFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [editingMed]);
 
   const filteredMedications = useMemo(
     () => categoryFilter ? medications.filter((m) => m.medication.category === categoryFilter) : medications,
@@ -74,7 +81,7 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
       </div>
 
       {editingMed && (
-        <div className="mb-3 bg-white rounded-lg shadow-md p-4 border border-primary-200">
+        <div ref={editFormRef} className="mb-3 bg-white rounded-lg shadow-md p-4 border border-primary-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">薬の編集</h3>
           <MedicationForm
             onSubmit={handleUpdate}

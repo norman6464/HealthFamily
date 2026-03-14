@@ -143,7 +143,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
 
       <div>
         <label htmlFor="apt-notes" className="block text-sm font-medium text-gray-700 mb-1">
-          メモ（任意）
+          {type === 'vaccination' ? 'ワクチン名' : 'メモ'}（任意）
         </label>
         <textarea
           id="apt-notes"
@@ -151,7 +151,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
           onChange={(e) => setNotes(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           rows={2}
-          placeholder="メモを入力"
+          placeholder={type === 'vaccination' ? '例: 混合ワクチン, 狂犬病ワクチン' : 'メモを入力'}
         />
       </div>
 

@@ -9,6 +9,9 @@ export type MedicationCategory =
   | 'supplement'
   | 'prn'
   | 'inhaler'
+  | 'eye_drops'
+  | 'patch'
+  | 'topical'
   | 'flea_tick'
   | 'heartworm';
 
@@ -124,6 +127,9 @@ export class MedicationEntity {
     supplement: 'サプリメント',
     prn: '頓服薬',
     inhaler: '吸入薬',
+    eye_drops: '目薬',
+    patch: '湿布',
+    topical: '塗り薬',
     flea_tick: 'ノミ・ダニ薬',
     heartworm: 'フィラリア薬',
   };
