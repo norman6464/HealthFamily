@@ -150,6 +150,24 @@ export const createHealthLogSchema = z.object({
   notes: z.string().trim().max(500).optional(),
 });
 
+// ===== Vaccinations =====
+export const createVaccinationSchema = z.object({
+  memberId: idField,
+  vaccineName: z.string({ required_error: 'ワクチンの種類は必須です' }).trim().min(1, 'ワクチンの種類は必須です').max(200),
+  vaccinatedAt: dateString,
+  nextScheduledDate: dateString.optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const updateVaccinationSchema = z.object({
+  vaccineName: z.string().trim().min(1).max(200).optional(),
+  vaccinatedAt: dateString.optional(),
+  nextScheduledDate: dateString.optional().nullable(),
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Auth =====
 export const signUpSchema = z.object({
   email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email('有効なメールアドレスを入力してください'),

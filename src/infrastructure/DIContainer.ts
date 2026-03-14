@@ -11,6 +11,7 @@ import { HospitalRepository } from '../domain/repositories/HospitalRepository';
 import { MedicationRecordRepository } from '../domain/repositories/MedicationRecordRepository';
 import { UserProfileRepository } from '../domain/repositories/UserProfileRepository';
 import { HealthLogRepository } from '../domain/repositories/HealthLogRepository';
+import { VaccinationRepository } from '../domain/repositories/VaccinationRepository';
 import { MemberRepositoryImpl } from '../data/repositories/MemberRepositoryImpl';
 import { MedicationRepositoryImpl } from '../data/repositories/MedicationRepositoryImpl';
 import { ScheduleRepositoryImpl } from '../data/repositories/ScheduleRepositoryImpl';
@@ -19,6 +20,7 @@ import { HospitalRepositoryImpl } from '../data/repositories/HospitalRepositoryI
 import { MedicationRecordRepositoryImpl } from '../data/repositories/MedicationRecordRepositoryImpl';
 import { UserProfileRepositoryImpl } from '../data/repositories/UserProfileRepositoryImpl';
 import { HealthLogRepositoryImpl } from '../data/repositories/HealthLogRepositoryImpl';
+import { VaccinationRepositoryImpl } from '../data/repositories/VaccinationRepositoryImpl';
 
 export interface DIContainer {
   memberRepository: MemberRepository;
@@ -29,6 +31,7 @@ export interface DIContainer {
   medicationRecordRepository: MedicationRecordRepository;
   userProfileRepository: UserProfileRepository;
   healthLogRepository: HealthLogRepository;
+  vaccinationRepository: VaccinationRepository;
 }
 
 // シングルトンコンテナ（テスト時にモックに差し替え可能）
@@ -45,6 +48,7 @@ export const getDIContainer = (): DIContainer => {
       medicationRecordRepository: new MedicationRecordRepositoryImpl(),
       userProfileRepository: new UserProfileRepositoryImpl(),
       healthLogRepository: new HealthLogRepositoryImpl(),
+      vaccinationRepository: new VaccinationRepositoryImpl(),
     };
   }
   return container;
