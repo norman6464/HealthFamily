@@ -6,7 +6,8 @@ import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { HealthLog, ConditionLevel, SymptomType, SYMPTOM_OPTIONS } from '../../domain/entities/HealthLog';
 import { Vaccination } from '../../domain/entities/Vaccination';
-import { BackendAppointment, BackendHealthLog, BackendHospital, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
+import { Examination } from '../../domain/entities/Examination';
+import { BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
 
 const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
@@ -116,6 +117,20 @@ export function toVaccination(b: BackendVaccination): Vaccination {
     memberName: b.memberName,
     vaccineName: b.vaccineName,
     vaccinatedAt: new Date(b.vaccinatedAt),
+    nextScheduledDate: b.nextScheduledDate ? new Date(b.nextScheduledDate) : undefined,
+    notes: b.notes,
+    createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toExamination(b: BackendExamination): Examination {
+  return {
+    id: b.id,
+    userId: b.userId,
+    memberId: b.memberId,
+    memberName: b.memberName,
+    examinationType: b.examinationType,
+    examinedAt: new Date(b.examinedAt),
     nextScheduledDate: b.nextScheduledDate ? new Date(b.nextScheduledDate) : undefined,
     notes: b.notes,
     createdAt: new Date(b.createdAt),
