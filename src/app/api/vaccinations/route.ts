@@ -10,7 +10,7 @@ export const GET = withAuth(async (userId) => {
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
   const vaccinations = await prisma.vaccination.findMany({
     where: { userId },
-    orderBy: { vaccinatedAt: 'desc' },
+    orderBy: { nextScheduledDate: { sort: 'asc', nulls: 'last' } },
     take: QUERY_LIMITS.DEFAULT,
     include: {
       member: { select: { name: true } },
