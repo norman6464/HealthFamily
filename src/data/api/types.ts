@@ -91,6 +91,18 @@ export interface BackendVaccination {
   createdAt: string;
 }
 
+export interface BackendInsurance {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  insuranceType: string;
+  providerName?: string;
+  policyNumber?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface BackendExamination {
   id: string;
   userId: string;

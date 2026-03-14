@@ -32,6 +32,7 @@ model User {
   healthLogs   HealthLog[]
   vaccinations Vaccination[]
   examinations Examination[]
+  insurances   Insurance[]
 }
 
 model Member {
@@ -53,6 +54,7 @@ model Member {
   healthLogs   HealthLog[]
   vaccinations Vaccination[]
   examinations Examination[]
+  insurances   Insurance[]
 
   @@index([userId])
 }
@@ -196,6 +198,22 @@ model Examination {
   nextScheduledDate DateTime?
   notes             String?
   createdAt         DateTime  @default(now())
+
+  @@index([userId])
+  @@index([memberId])
+}
+
+model Insurance {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberId        String
+  member          Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  insuranceType   String
+  providerName    String?
+  policyNumber    String?
+  notes           String?
+  createdAt       DateTime @default(now())
 
   @@index([userId])
   @@index([memberId])

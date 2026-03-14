@@ -7,7 +7,8 @@ import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { HealthLog, ConditionLevel, SymptomType, SYMPTOM_OPTIONS } from '../../domain/entities/HealthLog';
 import { Vaccination } from '../../domain/entities/Vaccination';
 import { Examination } from '../../domain/entities/Examination';
-import { BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
+import { Insurance } from '../../domain/entities/Insurance';
+import { BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
 
 const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
@@ -118,6 +119,20 @@ export function toVaccination(b: BackendVaccination): Vaccination {
     vaccineName: b.vaccineName,
     vaccinatedAt: new Date(b.vaccinatedAt),
     nextScheduledDate: b.nextScheduledDate ? new Date(b.nextScheduledDate) : undefined,
+    notes: b.notes,
+    createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toInsurance(b: BackendInsurance): Insurance {
+  return {
+    id: b.id,
+    userId: b.userId,
+    memberId: b.memberId,
+    memberName: b.memberName,
+    insuranceType: b.insuranceType,
+    providerName: b.providerName,
+    policyNumber: b.policyNumber,
     notes: b.notes,
     createdAt: new Date(b.createdAt),
   };

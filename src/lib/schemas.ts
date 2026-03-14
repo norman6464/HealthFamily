@@ -186,6 +186,24 @@ export const updateExaminationSchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== Insurances =====
+export const createInsuranceSchema = z.object({
+  memberId: idField,
+  insuranceType: z.string({ required_error: '保険の種類は必須です' }).trim().min(1, '保険の種類は必須です').max(200),
+  providerName: z.string().trim().max(200).optional(),
+  policyNumber: z.string().trim().max(100).optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const updateInsuranceSchema = z.object({
+  insuranceType: z.string().trim().min(1).max(200).optional(),
+  providerName: z.string().trim().max(200).optional().nullable(),
+  policyNumber: z.string().trim().max(100).optional().nullable(),
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Auth =====
 export const signUpSchema = z.object({
   email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email('有効なメールアドレスを入力してください'),
