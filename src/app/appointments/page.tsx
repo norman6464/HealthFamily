@@ -151,7 +151,7 @@ export default function AppointmentsPage() {
           >
             <div className="flex items-center space-x-3">
               <MapPin size={18} className="text-primary-600" />
-              <span className="text-sm font-medium text-gray-700">病院管理</span>
+              <span className="text-sm font-medium text-gray-700">かかりつけ医(病院)</span>
             </div>
             <span className="text-xs text-gray-400">{hospitals.length}件</span>
           </Link>

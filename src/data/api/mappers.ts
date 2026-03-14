@@ -69,6 +69,8 @@ export function toHospital(b: BackendHospital): Hospital {
     hospitalType: b.hospitalType,
     address: b.address,
     phoneNumber: b.phoneNumber,
+    department: b.department,
+    doctorName: b.doctorName,
     notes: b.notes,
     createdAt: new Date(b.createdAt),
   };

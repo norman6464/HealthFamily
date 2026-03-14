@@ -33,6 +33,8 @@ export async function POST(request: Request) {
         hospitalType: parsed.data.type,
         address: parsed.data.address,
         phoneNumber: parsed.data.phone,
+        department: parsed.data.department,
+        doctorName: parsed.data.doctorName,
         notes: parsed.data.notes,
       },
     });

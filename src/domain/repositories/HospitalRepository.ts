@@ -9,6 +9,8 @@ export interface CreateHospitalInput {
   type?: string;
   address?: string;
   phone?: string;
+  department?: string;
+  doctorName?: string;
   notes?: string;
 }
 
@@ -17,6 +19,8 @@ export interface UpdateHospitalInput {
   type?: string;
   address?: string;
   phone?: string;
+  department?: string;
+  doctorName?: string;
   notes?: string;
 }
 

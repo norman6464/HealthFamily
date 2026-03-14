@@ -101,6 +101,8 @@ export const createHospitalSchema = z.object({
   address: z.string().trim().max(500).optional(),
   phone: z.string().trim().max(20).optional(),
   type: z.string().trim().max(100).optional(),
+  department: z.string().trim().max(100).optional(),
+  doctorName: z.string().trim().max(100).optional(),
   notes: z.string().trim().max(1000).optional(),
   memberId: optionalIdField,
 });
@@ -110,6 +112,8 @@ export const updateHospitalSchema = z.object({
   address: z.string().trim().max(500).optional(),
   phone: z.string().trim().max(20).optional(),
   type: z.string().trim().max(100).optional(),
+  department: z.string().trim().max(100).optional(),
+  doctorName: z.string().trim().max(100).optional(),
   notes: z.string().trim().max(1000).optional(),
 }).refine((data) => Object.keys(data).length > 0, {
   message: '更新するフィールドがありません',

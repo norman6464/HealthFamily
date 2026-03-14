@@ -120,6 +120,7 @@ model Hospital {
   address      String?
   phoneNumber  String?
   department   String?
+  doctorName   String?
   notes        String?
   createdAt    DateTime @default(now())
 

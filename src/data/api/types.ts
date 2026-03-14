@@ -45,6 +45,8 @@ export interface BackendHospital {
   hospitalType?: string;
   address?: string;
   phoneNumber?: string;
+  department?: string;
+  doctorName?: string;
   notes?: string;
   createdAt: string;
 }
