@@ -34,6 +34,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ hosp
             hospitalType: parsed.data.type,
             address: parsed.data.address,
             phoneNumber: parsed.data.phone,
+            department: parsed.data.department,
+            doctorName: parsed.data.doctorName,
             notes: parsed.data.notes,
           },
         });

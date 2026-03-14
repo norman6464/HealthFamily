@@ -6,6 +6,8 @@ export interface HospitalFormData {
   name: string;
   address?: string;
   phone?: string;
+  department?: string;
+  doctorName?: string;
   notes?: string;
 }
 
@@ -17,6 +19,8 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [department, setDepartment] = useState('');
+  const [doctorName, setDoctorName] = useState('');
   const [notes, setNotes] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -27,12 +31,16 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
       name: name.trim(),
       address: address.trim() || undefined,
       phone: phone.trim() || undefined,
+      department: department.trim() || undefined,
+      doctorName: doctorName.trim() || undefined,
       notes: notes.trim() || undefined,
     });
 
     setName('');
     setAddress('');
     setPhone('');
+    setDepartment('');
+    setDoctorName('');
     setNotes('');
   };
 
@@ -78,6 +86,34 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
           onChange={(e) => setPhone(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="電話番号を入力"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="hosp-department" className="block text-sm font-medium text-gray-700 mb-1">
+          診療科（任意）
+        </label>
+        <input
+          id="hosp-department"
+          type="text"
+          value={department}
+          onChange={(e) => setDepartment(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="例: 内科、外科、小児科"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="hosp-doctorName" className="block text-sm font-medium text-gray-700 mb-1">
+          担当医（任意）
+        </label>
+        <input
+          id="hosp-doctorName"
+          type="text"
+          value={doctorName}
+          onChange={(e) => setDoctorName(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="担当医の名前を入力"
         />
       </div>
 

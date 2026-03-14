@@ -49,6 +49,8 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
   const [editName, setEditName] = useState(hospital.name);
   const [editAddress, setEditAddress] = useState(hospital.address || '');
   const [editPhone, setEditPhone] = useState(hospital.phoneNumber || '');
+  const [editDepartment, setEditDepartment] = useState(hospital.department || '');
+  const [editDoctorName, setEditDoctorName] = useState(hospital.doctorName || '');
   const [editNotes, setEditNotes] = useState(hospital.notes || '');
 
   const handleSave = async () => {
@@ -57,6 +59,8 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
       name: editName.trim(),
       address: editAddress.trim() || undefined,
       phone: editPhone.trim() || undefined,
+      department: editDepartment.trim() || undefined,
+      doctorName: editDoctorName.trim() || undefined,
       notes: editNotes.trim() || undefined,
     });
     setIsEditing(false);
@@ -66,6 +70,8 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
     setEditName(hospital.name);
     setEditAddress(hospital.address || '');
     setEditPhone(hospital.phoneNumber || '');
+    setEditDepartment(hospital.department || '');
+    setEditDoctorName(hospital.doctorName || '');
     setEditNotes(hospital.notes || '');
     setIsEditing(false);
   };
@@ -101,6 +107,26 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
             onChange={(e) => setEditPhone(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
             placeholder="電話番号を入力"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">診療科</label>
+          <input
+            type="text"
+            value={editDepartment}
+            onChange={(e) => setEditDepartment(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            placeholder="例: 内科、外科、小児科"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">担当医</label>
+          <input
+            type="text"
+            value={editDoctorName}
+            onChange={(e) => setEditDoctorName(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            placeholder="担当医の名前を入力"
           />
         </div>
         <div>
@@ -151,6 +177,8 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
                   <span>{hospital.phoneNumber}</span>
                 </p>
               )}
+              {hospital.department && <p>{hospital.department}</p>}
+              {hospital.doctorName && <p>担当医: {hospital.doctorName}</p>}
               {hospital.notes && <p className="text-gray-400">{hospital.notes}</p>}
             </div>
           </div>

@@ -11,6 +11,8 @@ export interface Hospital {
   readonly hospitalType?: string;
   readonly address?: string;
   readonly phoneNumber?: string;
+  readonly department?: string;
+  readonly doctorName?: string;
   readonly notes?: string;
   readonly createdAt: Date;
 }
