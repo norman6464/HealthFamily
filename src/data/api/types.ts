@@ -79,6 +79,18 @@ export interface BackendRecord {
   dosageAmount?: string;
 }
 
+export interface BackendVaccination {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  vaccineName: string;
+  vaccinatedAt: string;
+  nextScheduledDate?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface BackendHealthLog {
   id: string;
   userId: string;

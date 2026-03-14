@@ -5,21 +5,26 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useAppointments } from '@/presentation/hooks/useAppointments';
 import { useHospitals } from '@/presentation/hooks/useHospitals';
+import { useVaccinations } from '@/presentation/hooks/useVaccinations';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { AppointmentList, AppointmentFilter, getAppointmentCounts } from '@/components/appointments/AppointmentList';
 import { AppointmentForm, AppointmentFormData } from '@/components/appointments/AppointmentForm';
+import { VaccinationForm, VaccinationFormData } from '@/components/vaccinations/VaccinationForm';
+import { VaccinationList } from '@/components/vaccinations/VaccinationList';
 import { TabSwitch } from '@/components/shared/TabSwitch';
 import { Appointment } from '@/domain/entities/Appointment';
 import { MiniCalendar } from '@/components/appointments/MiniCalendar';
 import Link from 'next/link';
-import { Plus, X, MapPin } from 'lucide-react';
+import { Plus, X, MapPin, Syringe } from 'lucide-react';
 
 export default function AppointmentsPage() {
   const { userId } = useAuth();
   const { members, isLoading: membersLoading } = useMembers(userId);
   const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment } = useAppointments();
   const { hospitals } = useHospitals();
+  const { vaccinations, isLoading: vaccinationsLoading, createVaccination, updateVaccination, deleteVaccination } = useVaccinations();
   const [showForm, setShowForm] = useState(false);
+  const [showVaccinationForm, setShowVaccinationForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<AppointmentFilter>('upcoming');
   const [updateError, setUpdateError] = useState<string | null>(null);
@@ -71,6 +76,16 @@ export default function AppointmentsPage() {
   const handleDelete = async (appointmentId: string) => {
     if (!window.confirm('この予約を削除しますか？')) return;
     await deleteAppointment(appointmentId);
+  };
+
+  const handleCreateVaccination = async (data: VaccinationFormData) => {
+    await createVaccination(data);
+    setShowVaccinationForm(false);
+  };
+
+  const handleDeleteVaccination = async (id: string) => {
+    if (!window.confirm('このワクチン記録を削除しますか？')) return;
+    await deleteVaccination(id);
   };
 
   const handleToggleForm = () => {
@@ -143,6 +158,46 @@ export default function AppointmentsPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <Syringe size={18} className="text-primary-600" />
+              <h2 className="text-base font-bold text-gray-800">ワクチンスケジュール</h2>
+            </div>
+            <button
+              onClick={() => setShowVaccinationForm(!showVaccinationForm)}
+              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
+              aria-label={showVaccinationForm ? '閉じる' : 'ワクチン記録を追加'}
+            >
+              {showVaccinationForm ? <X size={16} /> : <Plus size={16} />}
+            </button>
+          </div>
+
+          {showVaccinationForm && !membersLoading && members.length > 0 && (
+            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">ワクチン記録の追加</h3>
+              <VaccinationForm
+                members={members}
+                onSubmit={handleCreateVaccination}
+                onCancel={() => setShowVaccinationForm(false)}
+              />
+            </div>
+          )}
+
+          {showVaccinationForm && !membersLoading && members.length === 0 && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
+              先にメンバーを登録してください。
+            </div>
+          )}
+
+          <VaccinationList
+            vaccinations={vaccinations}
+            isLoading={vaccinationsLoading}
+            onUpdate={updateVaccination}
+            onDelete={handleDeleteVaccination}
+          />
+        </div>
 
         <div className="mt-6">
           <Link
