@@ -131,9 +131,9 @@ describe('MedicationEntity エッジケーステスト', () => {
   });
 
   describe('getAllCategories', () => {
-    it('6カテゴリ分のデータを返す', () => {
+    it('9カテゴリ分のデータを返す', () => {
       const categories = MedicationEntity.getAllCategories();
-      expect(categories).toHaveLength(6);
+      expect(categories).toHaveLength(9);
     });
 
     it('各カテゴリにidとlabelが含まれる', () => {

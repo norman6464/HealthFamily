@@ -89,6 +89,9 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           <option value="supplement">サプリメント</option>
           <option value="prn">頓服薬</option>
           <option value="inhaler">吸入薬</option>
+          <option value="eye_drops">目薬</option>
+          <option value="patch">湿布</option>
+          <option value="topical">塗り薬</option>
           <option value="flea_tick">ノミ・ダニ薬</option>
           <option value="heartworm">フィラリア薬</option>
         </select>

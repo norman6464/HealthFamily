@@ -10,7 +10,7 @@ import { BackendAppointment, BackendHealthLog, BackendHospital, BackendMember, B
 const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
 const VALID_MEMBER_TYPES: readonly string[] = ['human', 'pet'];
-const VALID_MEDICATION_CATEGORIES: readonly string[] = ['regular', 'supplement', 'prn', 'inhaler', 'flea_tick', 'heartworm'];
+const VALID_MEDICATION_CATEGORIES: readonly string[] = ['regular', 'supplement', 'prn', 'inhaler', 'eye_drops', 'patch', 'topical', 'flea_tick', 'heartworm'];
 const VALID_DAYS_OF_WEEK: readonly string[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const VALID_PET_TYPES: readonly string[] = ['dog', 'cat', 'rabbit', 'bird', 'other'];
 
