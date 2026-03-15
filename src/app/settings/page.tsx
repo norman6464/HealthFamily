@@ -10,12 +10,13 @@ import { EmergencyContactForm, EmergencyContactFormData } from '@/components/eme
 import { EmergencyContactList } from '@/components/emergency-contacts/EmergencyContactList';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { signOut } from 'next-auth/react';
+import Link from 'next/link';
 import { LogOut, Pencil, Check, X, Plus, Phone } from 'lucide-react';
 
 export default function Settings() {
-  const { email, userId } = useAuth();
+  const { email, userId, isLoading: authLoading } = useAuth();
   const { profile, updateProfile } = useUserProfile();
-  const { members } = useMembers(userId ?? '');
+  const { members, isLoading: membersLoading } = useMembers(userId ?? '');
   const { contacts, isLoading: contactsLoading, createContact, updateContact, deleteContact } = useEmergencyContacts();
   const [isEditingName, setIsEditingName] = useState(false);
   const [displayName, setDisplayName] = useState('');
@@ -140,7 +141,7 @@ export default function Settings() {
             </button>
           </div>
 
-          {showContactForm && members.length > 0 && (
+          {showContactForm && !authLoading && !membersLoading && members.length > 0 && (
             <div className="mb-4 bg-gray-50 rounded-lg p-4 border border-gray-100">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">緊急連絡先の追加</h3>
               <EmergencyContactForm
@@ -151,9 +152,9 @@ export default function Settings() {
             </div>
           )}
 
-          {showContactForm && members.length === 0 && (
+          {showContactForm && !authLoading && !membersLoading && members.length === 0 && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-              先にメンバーを登録してください。
+              先に<Link href="/members" className="underline font-medium text-yellow-800 hover:text-yellow-900">メンバーページ</Link>でメンバーを登録してください。
             </div>
           )}
 
