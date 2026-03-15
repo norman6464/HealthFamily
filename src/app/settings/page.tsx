@@ -3,17 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserProfile } from '@/presentation/hooks/useUserProfile';
+import { useMembers } from '@/presentation/hooks/useMembers';
+import { useEmergencyContacts } from '@/presentation/hooks/useEmergencyContacts';
 import { CharacterSelector } from '@/components/character/CharacterSelector';
+import { EmergencyContactForm, EmergencyContactFormData } from '@/components/emergency-contacts/EmergencyContactForm';
+import { EmergencyContactList } from '@/components/emergency-contacts/EmergencyContactList';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { signOut } from 'next-auth/react';
-import { LogOut, Pencil, Check, X } from 'lucide-react';
+import { LogOut, Pencil, Check, X, Plus, Phone } from 'lucide-react';
 
 export default function Settings() {
-  const { email } = useAuth();
+  const { email, userId } = useAuth();
   const { profile, updateProfile } = useUserProfile();
+  const { members } = useMembers(userId ?? '');
+  const { contacts, isLoading: contactsLoading, createContact, updateContact, deleteContact } = useEmergencyContacts();
   const [isEditingName, setIsEditingName] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -35,6 +42,16 @@ export default function Settings() {
   const handleCancelEdit = () => {
     setDisplayName(profile?.displayName || '');
     setIsEditingName(false);
+  };
+
+  const handleCreateContact = async (data: EmergencyContactFormData) => {
+    await createContact(data);
+    setShowContactForm(false);
+  };
+
+  const handleDeleteContact = async (id: string) => {
+    if (!window.confirm('この緊急連絡先を削除しますか？')) return;
+    await deleteContact(id);
   };
 
   const handleLogout = async () => {
@@ -106,6 +123,46 @@ export default function Settings() {
         <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">キャラクター選択</h2>
           <CharacterSelector />
+        </section>
+
+        <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <Phone size={18} className="text-primary-600" />
+              <h2 className="text-lg font-semibold text-gray-800">緊急連絡先</h2>
+            </div>
+            <button
+              onClick={() => setShowContactForm(!showContactForm)}
+              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
+              aria-label={showContactForm ? '閉じる' : '緊急連絡先を追加'}
+            >
+              {showContactForm ? <X size={16} /> : <Plus size={16} />}
+            </button>
+          </div>
+
+          {showContactForm && members.length > 0 && (
+            <div className="mb-4 bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">緊急連絡先の追加</h3>
+              <EmergencyContactForm
+                members={members}
+                onSubmit={handleCreateContact}
+                onCancel={() => setShowContactForm(false)}
+              />
+            </div>
+          )}
+
+          {showContactForm && members.length === 0 && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
+              先にメンバーを登録してください。
+            </div>
+          )}
+
+          <EmergencyContactList
+            contacts={contacts}
+            isLoading={contactsLoading}
+            onUpdate={updateContact}
+            onDelete={handleDeleteContact}
+          />
         </section>
 
         <button
