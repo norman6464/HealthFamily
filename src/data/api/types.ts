@@ -103,6 +103,20 @@ export interface BackendInsurance {
   createdAt: string;
 }
 
+export interface BackendPrescription {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  prescriptionName: string;
+  prescribedBy?: string;
+  prescribedAt: string;
+  expiresAt?: string;
+  pharmacyName?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface BackendEmergencyContact {
   id: string;
   userId: string;

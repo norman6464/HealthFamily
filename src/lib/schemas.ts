@@ -204,6 +204,28 @@ export const updateInsuranceSchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== Prescriptions =====
+export const createPrescriptionSchema = z.object({
+  memberId: idField,
+  prescriptionName: z.string({ required_error: '処方箋名は必須です' }).trim().min(1, '処方箋名は必須です').max(200),
+  prescribedBy: z.string().trim().max(100).optional(),
+  prescribedAt: dateString,
+  expiresAt: dateString.optional(),
+  pharmacyName: z.string().trim().max(200).optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const updatePrescriptionSchema = z.object({
+  prescriptionName: z.string().trim().min(1).max(200).optional(),
+  prescribedBy: z.string().trim().max(100).optional().nullable(),
+  prescribedAt: dateString.optional(),
+  expiresAt: dateString.optional().nullable(),
+  pharmacyName: z.string().trim().max(200).optional().nullable(),
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Emergency Contacts =====
 export const createEmergencyContactSchema = z.object({
   memberId: idField,

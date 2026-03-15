@@ -9,6 +9,7 @@ import { useVaccinations } from '@/presentation/hooks/useVaccinations';
 import { useExaminations } from '@/presentation/hooks/useExaminations';
 import { useInsurances } from '@/presentation/hooks/useInsurances';
 import { useAllergies } from '@/presentation/hooks/useAllergies';
+import { usePrescriptions } from '@/presentation/hooks/usePrescriptions';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { AppointmentList, AppointmentFilter, getAppointmentCounts } from '@/components/appointments/AppointmentList';
 import { AppointmentForm, AppointmentFormData } from '@/components/appointments/AppointmentForm';
@@ -20,11 +21,13 @@ import { InsuranceForm, InsuranceFormData } from '@/components/insurances/Insura
 import { InsuranceList } from '@/components/insurances/InsuranceList';
 import { AllergyForm, AllergyFormData } from '@/components/allergies/AllergyForm';
 import { AllergyList } from '@/components/allergies/AllergyList';
+import { PrescriptionForm, PrescriptionFormData } from '@/components/prescriptions/PrescriptionForm';
+import { PrescriptionList } from '@/components/prescriptions/PrescriptionList';
 import { TabSwitch } from '@/components/shared/TabSwitch';
 import { Appointment } from '@/domain/entities/Appointment';
 import { MiniCalendar } from '@/components/appointments/MiniCalendar';
 import Link from 'next/link';
-import { Plus, X, MapPin, Syringe, ClipboardList, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Plus, X, MapPin, Syringe, ClipboardList, ShieldCheck, AlertTriangle, FileText } from 'lucide-react';
 
 export default function AppointmentsPage() {
   const { userId } = useAuth();
@@ -35,11 +38,13 @@ export default function AppointmentsPage() {
   const { examinations, isLoading: examinationsLoading, createExamination, updateExamination, deleteExamination } = useExaminations();
   const { insurances, isLoading: insurancesLoading, createInsurance, updateInsurance, deleteInsurance } = useInsurances();
   const { allergies, isLoading: allergiesLoading, createAllergy, updateAllergy, deleteAllergy } = useAllergies();
+  const { prescriptions, isLoading: prescriptionsLoading, createPrescription, updatePrescription, deletePrescription } = usePrescriptions();
   const [showForm, setShowForm] = useState(false);
   const [showVaccinationForm, setShowVaccinationForm] = useState(false);
   const [showExaminationForm, setShowExaminationForm] = useState(false);
   const [showInsuranceForm, setShowInsuranceForm] = useState(false);
   const [showAllergyForm, setShowAllergyForm] = useState(false);
+  const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<AppointmentFilter>('upcoming');
   const [updateError, setUpdateError] = useState<string | null>(null);
@@ -121,6 +126,16 @@ export default function AppointmentsPage() {
   const handleDeleteAllergy = async (id: string) => {
     if (!window.confirm('このアレルギー情報を削除しますか？')) return;
     await deleteAllergy(id);
+  };
+
+  const handleCreatePrescription = async (data: PrescriptionFormData) => {
+    await createPrescription(data);
+    setShowPrescriptionForm(false);
+  };
+
+  const handleDeletePrescription = async (id: string) => {
+    if (!window.confirm('この処方箋を削除しますか？')) return;
+    await deletePrescription(id);
   };
 
   const handleCreateInsurance = async (data: InsuranceFormData) => {
@@ -321,6 +336,46 @@ export default function AppointmentsPage() {
             isLoading={allergiesLoading}
             onUpdate={updateAllergy}
             onDelete={handleDeleteAllergy}
+          />
+        </div>
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <FileText size={18} className="text-primary-600" />
+              <h2 className="text-base font-bold text-gray-800">処方箋管理</h2>
+            </div>
+            <button
+              onClick={() => setShowPrescriptionForm(!showPrescriptionForm)}
+              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
+              aria-label={showPrescriptionForm ? '閉じる' : '処方箋を追加'}
+            >
+              {showPrescriptionForm ? <X size={16} /> : <Plus size={16} />}
+            </button>
+          </div>
+
+          {showPrescriptionForm && !membersLoading && members.length > 0 && (
+            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">処方箋の追加</h3>
+              <PrescriptionForm
+                members={members}
+                onSubmit={handleCreatePrescription}
+                onCancel={() => setShowPrescriptionForm(false)}
+              />
+            </div>
+          )}
+
+          {showPrescriptionForm && !membersLoading && members.length === 0 && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
+              先にメンバーを登録してください。
+            </div>
+          )}
+
+          <PrescriptionList
+            prescriptions={prescriptions}
+            isLoading={prescriptionsLoading}
+            onUpdate={updatePrescription}
+            onDelete={handleDeletePrescription}
           />
         </div>
 
