@@ -166,10 +166,12 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
         </label>
         <input
           id="allergy-diagnosed"
-          type="date"
+          type="text"
+          inputMode="numeric"
           value={diagnosedAt}
           onChange={(e) => setDiagnosedAt(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="例: 2024-01-15"
         />
       </div>
 
