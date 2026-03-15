@@ -68,7 +68,6 @@ export default function Dashboard() {
 
         <AdherenceStatsCard stats={stats} isLoading={statsLoading} />
 
-
         <UpcomingAppointments
           appointments={appointments}
           isLoading={appointmentsLoading}

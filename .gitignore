@@ -10,3 +10,4 @@ coverage/
 .claude/
 CLAUDE.md
 .vercel
+.env.production

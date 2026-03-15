@@ -23,6 +23,7 @@ import { AllergyForm, AllergyFormData } from '@/components/allergies/AllergyForm
 import { AllergyList } from '@/components/allergies/AllergyList';
 import { PrescriptionForm, PrescriptionFormData } from '@/components/prescriptions/PrescriptionForm';
 import { PrescriptionList } from '@/components/prescriptions/PrescriptionList';
+import { SectionWithForm } from '@/components/shared/SectionWithForm';
 import { TabSwitch } from '@/components/shared/TabSwitch';
 import { Appointment } from '@/domain/entities/Appointment';
 import { MiniCalendar } from '@/components/appointments/MiniCalendar';
@@ -221,205 +222,130 @@ export default function AppointmentsPage() {
           onDelete={handleDelete}
         />
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <Syringe size={18} className="text-primary-600" />
-              <h2 className="text-base font-bold text-gray-800">ワクチンスケジュール</h2>
-            </div>
-            <button
-              onClick={() => setShowVaccinationForm(!showVaccinationForm)}
-              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
-              aria-label={showVaccinationForm ? '閉じる' : 'ワクチン記録を追加'}
-            >
-              {showVaccinationForm ? <X size={16} /> : <Plus size={16} />}
-            </button>
-          </div>
-
-          {showVaccinationForm && membersReady && members.length > 0 && (
-            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">ワクチン記録の追加</h3>
-              <VaccinationForm
-                members={members}
-                onSubmit={handleCreateVaccination}
-                onCancel={() => setShowVaccinationForm(false)}
-              />
-            </div>
-          )}
-
-          {showVaccinationForm && hasNoMembers && (
-            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-              先にメンバーを登録してください。
-            </div>
-          )}
-
+        <SectionWithForm
+          title="ワクチンスケジュール"
+          icon={Syringe}
+          showForm={showVaccinationForm}
+          onToggleForm={() => setShowVaccinationForm(!showVaccinationForm)}
+          membersReady={membersReady}
+          hasNoMembers={hasNoMembers}
+          addLabel="ワクチン記録を追加"
+          formTitle="ワクチン記録の追加"
+          formContent={
+            <VaccinationForm
+              members={members}
+              onSubmit={handleCreateVaccination}
+              onCancel={() => setShowVaccinationForm(false)}
+            />
+          }
+        >
           <VaccinationList
             vaccinations={vaccinations}
             isLoading={vaccinationsLoading}
             onUpdate={updateVaccination}
             onDelete={handleDeleteVaccination}
           />
-        </div>
+        </SectionWithForm>
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <ClipboardList size={18} className="text-primary-600" />
-              <h2 className="text-base font-bold text-gray-800">検査スケジュール</h2>
-            </div>
-            <button
-              onClick={() => setShowExaminationForm(!showExaminationForm)}
-              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
-              aria-label={showExaminationForm ? '閉じる' : '検査記録を追加'}
-            >
-              {showExaminationForm ? <X size={16} /> : <Plus size={16} />}
-            </button>
-          </div>
-
-          {showExaminationForm && membersReady && members.length > 0 && (
-            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">検査記録の追加</h3>
-              <ExaminationForm
-                members={members}
-                onSubmit={handleCreateExamination}
-                onCancel={() => setShowExaminationForm(false)}
-              />
-            </div>
-          )}
-
-          {showExaminationForm && hasNoMembers && (
-            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-              先にメンバーを登録してください。
-            </div>
-          )}
-
+        <SectionWithForm
+          title="検査スケジュール"
+          icon={ClipboardList}
+          showForm={showExaminationForm}
+          onToggleForm={() => setShowExaminationForm(!showExaminationForm)}
+          membersReady={membersReady}
+          hasNoMembers={hasNoMembers}
+          addLabel="検査記録を追加"
+          formTitle="検査記録の追加"
+          formContent={
+            <ExaminationForm
+              members={members}
+              onSubmit={handleCreateExamination}
+              onCancel={() => setShowExaminationForm(false)}
+            />
+          }
+        >
           <ExaminationList
             examinations={examinations}
             isLoading={examinationsLoading}
             onUpdate={updateExamination}
             onDelete={handleDeleteExamination}
           />
-        </div>
+        </SectionWithForm>
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle size={18} className="text-primary-600" />
-              <h2 className="text-base font-bold text-gray-800">アレルギー管理</h2>
-            </div>
-            <button
-              onClick={() => setShowAllergyForm(!showAllergyForm)}
-              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
-              aria-label={showAllergyForm ? '閉じる' : 'アレルギーを追加'}
-            >
-              {showAllergyForm ? <X size={16} /> : <Plus size={16} />}
-            </button>
-          </div>
-
-          {showAllergyForm && membersReady && members.length > 0 && (
-            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">アレルギーの追加</h3>
-              <AllergyForm
-                members={members}
-                onSubmit={handleCreateAllergy}
-                onCancel={() => setShowAllergyForm(false)}
-              />
-            </div>
-          )}
-
-          {showAllergyForm && hasNoMembers && (
-            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-              先にメンバーを登録してください。
-            </div>
-          )}
-
+        <SectionWithForm
+          title="アレルギー管理"
+          icon={AlertTriangle}
+          showForm={showAllergyForm}
+          onToggleForm={() => setShowAllergyForm(!showAllergyForm)}
+          membersReady={membersReady}
+          hasNoMembers={hasNoMembers}
+          addLabel="アレルギーを追加"
+          formTitle="アレルギーの追加"
+          formContent={
+            <AllergyForm
+              members={members}
+              onSubmit={handleCreateAllergy}
+              onCancel={() => setShowAllergyForm(false)}
+            />
+          }
+        >
           <AllergyList
             allergies={allergies}
             isLoading={allergiesLoading}
             onUpdate={updateAllergy}
             onDelete={handleDeleteAllergy}
           />
-        </div>
+        </SectionWithForm>
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <FileText size={18} className="text-primary-600" />
-              <h2 className="text-base font-bold text-gray-800">処方箋管理</h2>
-            </div>
-            <button
-              onClick={() => setShowPrescriptionForm(!showPrescriptionForm)}
-              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
-              aria-label={showPrescriptionForm ? '閉じる' : '処方箋を追加'}
-            >
-              {showPrescriptionForm ? <X size={16} /> : <Plus size={16} />}
-            </button>
-          </div>
-
-          {showPrescriptionForm && membersReady && members.length > 0 && (
-            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">処方箋の追加</h3>
-              <PrescriptionForm
-                members={members}
-                onSubmit={handleCreatePrescription}
-                onCancel={() => setShowPrescriptionForm(false)}
-              />
-            </div>
-          )}
-
-          {showPrescriptionForm && hasNoMembers && (
-            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-              先にメンバーを登録してください。
-            </div>
-          )}
-
+        <SectionWithForm
+          title="処方箋管理"
+          icon={FileText}
+          showForm={showPrescriptionForm}
+          onToggleForm={() => setShowPrescriptionForm(!showPrescriptionForm)}
+          membersReady={membersReady}
+          hasNoMembers={hasNoMembers}
+          addLabel="処方箋を追加"
+          formTitle="処方箋の追加"
+          formContent={
+            <PrescriptionForm
+              members={members}
+              onSubmit={handleCreatePrescription}
+              onCancel={() => setShowPrescriptionForm(false)}
+            />
+          }
+        >
           <PrescriptionList
             prescriptions={prescriptions}
             isLoading={prescriptionsLoading}
             onUpdate={updatePrescription}
             onDelete={handleDeletePrescription}
           />
-        </div>
+        </SectionWithForm>
 
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <ShieldCheck size={18} className="text-primary-600" />
-              <h2 className="text-base font-bold text-gray-800">保険管理</h2>
-            </div>
-            <button
-              onClick={() => setShowInsuranceForm(!showInsuranceForm)}
-              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
-              aria-label={showInsuranceForm ? '閉じる' : '保険を追加'}
-            >
-              {showInsuranceForm ? <X size={16} /> : <Plus size={16} />}
-            </button>
-          </div>
-
-          {showInsuranceForm && membersReady && members.length > 0 && (
-            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">保険の追加</h3>
-              <InsuranceForm
-                members={members}
-                onSubmit={handleCreateInsurance}
-                onCancel={() => setShowInsuranceForm(false)}
-              />
-            </div>
-          )}
-
-          {showInsuranceForm && hasNoMembers && (
-            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-              先にメンバーを登録してください。
-            </div>
-          )}
-
+        <SectionWithForm
+          title="保険管理"
+          icon={ShieldCheck}
+          showForm={showInsuranceForm}
+          onToggleForm={() => setShowInsuranceForm(!showInsuranceForm)}
+          membersReady={membersReady}
+          hasNoMembers={hasNoMembers}
+          addLabel="保険を追加"
+          formTitle="保険の追加"
+          formContent={
+            <InsuranceForm
+              members={members}
+              onSubmit={handleCreateInsurance}
+              onCancel={() => setShowInsuranceForm(false)}
+            />
+          }
+        >
           <InsuranceList
             insurances={insurances}
             isLoading={insurancesLoading}
             onUpdate={updateInsurance}
             onDelete={handleDeleteInsurance}
           />
-        </div>
+        </SectionWithForm>
 
         <div className="mt-6">
           <Link
