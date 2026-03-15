@@ -33,6 +33,7 @@ const ALLERGY_TYPES = [
   { value: 'medication', label: '薬物' },
   { value: 'environmental', label: '環境' },
   { value: 'pollen', label: '花粉' },
+  { value: 'atopy', label: 'アトピー' },
   { value: 'other', label: 'その他' },
 ];
 
