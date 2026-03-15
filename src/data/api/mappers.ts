@@ -10,8 +10,9 @@ import { Examination } from '../../domain/entities/Examination';
 import { Allergy } from '../../domain/entities/Allergy';
 import { BodyMeasurement } from '../../domain/entities/BodyMeasurement';
 import { EmergencyContact } from '../../domain/entities/EmergencyContact';
+import { Prescription } from '../../domain/entities/Prescription';
 import { Insurance } from '../../domain/entities/Insurance';
-import { BackendAllergy, BackendBodyMeasurement, BackendEmergencyContact, BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
+import { BackendAllergy, BackendBodyMeasurement, BackendEmergencyContact, BackendPrescription, BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
 
 const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
@@ -136,6 +137,22 @@ export function toInsurance(b: BackendInsurance): Insurance {
     insuranceType: b.insuranceType,
     providerName: b.providerName,
     policyNumber: b.policyNumber,
+    notes: b.notes,
+    createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toPrescription(b: BackendPrescription): Prescription {
+  return {
+    id: b.id,
+    userId: b.userId,
+    memberId: b.memberId,
+    memberName: b.memberName,
+    prescriptionName: b.prescriptionName,
+    prescribedBy: b.prescribedBy,
+    prescribedAt: new Date(b.prescribedAt),
+    expiresAt: b.expiresAt ? new Date(b.expiresAt) : undefined,
+    pharmacyName: b.pharmacyName,
     notes: b.notes,
     createdAt: new Date(b.createdAt),
   };
