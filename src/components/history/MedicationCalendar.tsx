@@ -19,9 +19,9 @@ export const MedicationCalendar: React.FC<MedicationCalendarProps> = ({
   onSelectDate,
   selectedDate,
 }) => {
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth());
+  const today = useMemo(() => new Date(), []);
+  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [month, setMonth] = useState(() => new Date().getMonth());
 
   const days = useMemo(() => {
     const baseDays = CalendarEntity.generateMonth(year, month, today);
