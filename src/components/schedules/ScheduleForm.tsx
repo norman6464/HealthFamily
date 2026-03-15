@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { DayOfWeek } from '../../domain/entities/Schedule';
 
+export type ScheduleMode = 'daily' | 'weekdays' | 'interval';
+
 export interface ScheduleFormData {
   scheduledTime: string;
   daysOfWeek: DayOfWeek[];
+  intervalDays?: number;
+  startDate?: string;
   reminderMinutesBefore: number;
 }
 
@@ -21,10 +25,27 @@ const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
   { value: 'sun', label: '日' },
 ];
 
+const INTERVAL_OPTIONS = [
+  { value: 2, label: '2日ごと' },
+  { value: 3, label: '3日ごと' },
+  { value: 7, label: '1週間ごと' },
+  { value: 14, label: '2週間ごと' },
+  { value: 21, label: '3週間ごと' },
+  { value: 28, label: '4週間ごと' },
+  { value: 30, label: '1ヶ月ごと' },
+  { value: 60, label: '2ヶ月ごと' },
+  { value: 90, label: '3ヶ月ごと' },
+];
+
 export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
   const [scheduledTime, setScheduledTime] = useState('08:00');
+  const [mode, setMode] = useState<ScheduleMode>('daily');
   const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>([]);
-  const [isEveryDay, setIsEveryDay] = useState(true);
+  const [intervalDays, setIntervalDays] = useState('21');
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
   const [reminderMinutes, setReminderMinutes] = useState('10');
 
   const toggleDay = (day: DayOfWeek) => {
@@ -33,32 +54,32 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
     );
   };
 
-  const toggleEveryDay = () => {
-    if (isEveryDay) {
-      setIsEveryDay(false);
-      setSelectedDays([]);
-    } else {
-      setIsEveryDay(true);
-      setSelectedDays([]);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isEveryDay && selectedDays.length === 0) return;
+    if (mode === 'weekdays' && selectedDays.length === 0) return;
+    if (mode === 'interval' && !startDate) return;
 
     onSubmit({
       scheduledTime,
-      daysOfWeek: isEveryDay ? [] : selectedDays,
+      daysOfWeek: mode === 'weekdays' ? selectedDays : [],
+      intervalDays: mode === 'interval' ? parseInt(intervalDays, 10) : undefined,
+      startDate: mode === 'interval' ? startDate : undefined,
       reminderMinutesBefore: parseInt(reminderMinutes, 10) || 0,
     });
 
     setScheduledTime('08:00');
     setSelectedDays([]);
-    setIsEveryDay(true);
+    setMode('daily');
     setReminderMinutes('10');
   };
+
+  const modeButtonClass = (m: ScheduleMode) =>
+    `flex items-center justify-center px-3 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
+      mode === m
+        ? 'bg-blue-600 text-white border-blue-600'
+        : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+    }`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,26 +97,20 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
       </div>
 
       <div>
-        <span className="block text-sm font-medium text-gray-700 mb-2">曜日</span>
+        <span className="block text-sm font-medium text-gray-700 mb-2">頻度</span>
         <div className="flex flex-wrap gap-2 mb-2">
-          <label
-            className={`flex items-center justify-center px-3 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
-              isEveryDay
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={isEveryDay}
-              onChange={toggleEveryDay}
-              className="sr-only"
-              aria-label="毎日"
-            />
+          <button type="button" className={modeButtonClass('daily')} onClick={() => setMode('daily')}>
             毎日
-          </label>
+          </button>
+          <button type="button" className={modeButtonClass('weekdays')} onClick={() => setMode('weekdays')}>
+            曜日指定
+          </button>
+          <button type="button" className={modeButtonClass('interval')} onClick={() => setMode('interval')}>
+            間隔指定
+          </button>
         </div>
-        {!isEveryDay && (
+
+        {mode === 'weekdays' && (
           <div className="flex flex-wrap gap-2">
             {DAY_OPTIONS.map(({ value, label }) => (
               <label
@@ -116,9 +131,42 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
                 {label}
               </label>
             ))}
-            {!isEveryDay && selectedDays.length === 0 && (
+            {selectedDays.length === 0 && (
               <p className="w-full text-sm text-red-500 mt-1">曜日を選択してください</p>
             )}
+          </div>
+        )}
+
+        {mode === 'interval' && (
+          <div className="space-y-3 mt-2">
+            <div>
+              <label htmlFor="interval-days" className="block text-xs text-gray-500 mb-1">
+                投与間隔
+              </label>
+              <select
+                id="interval-days"
+                value={intervalDays}
+                onChange={(e) => setIntervalDays(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                {INTERVAL_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="start-date" className="block text-xs text-gray-500 mb-1">
+                開始日（最初の投与日）
+              </label>
+              <input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                required
+              />
+            </div>
           </div>
         )}
       </div>

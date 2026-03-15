@@ -54,6 +54,8 @@ export const GET = withAuth(async (userId) => {
       memberType: member?.memberType || 'human',
       scheduledTime: s.scheduledTime,
       daysOfWeek: s.daysOfWeek,
+      intervalDays: s.intervalDays,
+      startDate: s.startDate?.toISOString(),
       isEnabled: s.isEnabled,
       reminderMinutesBefore: s.reminderMinutesBefore,
       isCompleted: completedScheduleIds.has(s.id) || completedMedicationIds.has(s.medicationId),

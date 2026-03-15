@@ -58,7 +58,12 @@ export async function POST(request: Request) {
         createdAt: new Date(),
       };
       const entity = new ScheduleEntity(newScheduleData);
-      const existingSchedule: Schedule = { ...existing, daysOfWeek: existing.daysOfWeek as Schedule['daysOfWeek'] };
+      const existingSchedule: Schedule = {
+        ...existing,
+        daysOfWeek: existing.daysOfWeek as Schedule['daysOfWeek'],
+        intervalDays: existing.intervalDays ?? undefined,
+        startDate: existing.startDate ?? undefined,
+      };
       if (entity.hasOverlap(existingSchedule)) {
         return errorResponse('同じ薬の同じ時刻に既にスケジュールが存在します');
       }
@@ -71,6 +76,8 @@ export async function POST(request: Request) {
         memberId: parsed.data.memberId,
         scheduledTime: parsed.data.scheduledTime,
         daysOfWeek,
+        intervalDays: parsed.data.intervalDays ?? null,
+        startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : null,
         isEnabled: parsed.data.isEnabled ?? true,
         reminderMinutesBefore: parsed.data.reminderMinutesBefore ?? 5,
       },

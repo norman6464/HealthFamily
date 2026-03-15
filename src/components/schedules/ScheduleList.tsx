@@ -83,11 +83,13 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
   const [editTime, setEditTime] = useState(schedule.scheduledTime);
   const [editDays, setEditDays] = useState<DayOfWeek[]>([...schedule.daysOfWeek]);
 
-  const daysLabel = schedule.daysOfWeek.length === 7
-    ? '毎日'
-    : schedule.daysOfWeek.length === 0
-      ? '曜日未設定'
-      : DAY_ORDER.filter((d) => schedule.daysOfWeek.includes(d)).map((d) => DAY_LABELS[d]).join('・');
+  const daysLabel = schedule.intervalDays
+    ? `${schedule.intervalDays}日ごと`
+    : schedule.daysOfWeek.length === 7
+      ? '毎日'
+      : schedule.daysOfWeek.length === 0
+        ? '毎日'
+        : DAY_ORDER.filter((d) => schedule.daysOfWeek.includes(d)).map((d) => DAY_LABELS[d]).join('・');
 
   const toggleDay = (day: DayOfWeek) => {
     setEditDays((prev) =>
