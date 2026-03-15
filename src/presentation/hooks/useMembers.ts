@@ -32,10 +32,13 @@ export const useMembers = (userId: string): UseMembersResult => {
   }, []);
 
   const { data: members, isLoading, error, refetch } = useFetcher(
-    () => useCases.getMembers.execute(userId),
+    async () => {
+      if (!userId) return [] as Member[];
+      return useCases.getMembers.execute(userId);
+    },
     [userId, useCases],
     [] as Member[],
-    `members-${userId}`,
+    userId ? `members-${userId}` : undefined,
   );
 
   const handleCreateMember = useCallback(async (input: CreateMemberInput) => {
