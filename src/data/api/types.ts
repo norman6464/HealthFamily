@@ -103,6 +103,18 @@ export interface BackendInsurance {
   createdAt: string;
 }
 
+export interface BackendEmergencyContact {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  contactName: string;
+  phoneNumber: string;
+  relationship?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface BackendBodyMeasurement {
   id: string;
   userId: string;

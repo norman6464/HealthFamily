@@ -204,6 +204,24 @@ export const updateInsuranceSchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== Emergency Contacts =====
+export const createEmergencyContactSchema = z.object({
+  memberId: idField,
+  contactName: z.string({ required_error: '連絡先名は必須です' }).trim().min(1, '連絡先名は必須です').max(100),
+  phoneNumber: z.string({ required_error: '電話番号は必須です' }).trim().min(1, '電話番号は必須です').max(20),
+  relationship: z.string().trim().max(50).optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const updateEmergencyContactSchema = z.object({
+  contactName: z.string().trim().min(1).max(100).optional(),
+  phoneNumber: z.string().trim().min(1).max(20).optional(),
+  relationship: z.string().trim().max(50).optional().nullable(),
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Body Measurements =====
 export const createBodyMeasurementSchema = z.object({
   memberId: idField,
