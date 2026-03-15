@@ -6,8 +6,16 @@ import {
   toHospital,
   toAppointment,
   toSchedule,
+  toVaccination,
+  toExamination,
+  toAllergy,
+  toInsurance,
+  toHealthLog,
+  toPrescription,
+  toEmergencyContact,
+  toBodyMeasurement,
 } from '@/data/api/mappers';
-import { BackendMember, BackendMedication, BackendRecord, BackendHospital, BackendAppointment, BackendSchedule } from '@/data/api/types';
+import { BackendMember, BackendMedication, BackendRecord, BackendHospital, BackendAppointment, BackendSchedule, BackendVaccination, BackendExamination, BackendAllergy, BackendInsurance, BackendHealthLog, BackendPrescription, BackendEmergencyContact, BackendBodyMeasurement } from '@/data/api/types';
 
 describe('toMember', () => {
   const validBackend: BackendMember = {
@@ -286,5 +294,218 @@ describe('toSchedule', () => {
   it('reminderMinutesBeforeがundefinedの場合10をデフォルトにする', () => {
     const result = toSchedule({ ...validBackend, reminderMinutesBefore: undefined });
     expect(result.reminderMinutesBefore).toBe(10);
+  });
+
+  it('intervalDaysとstartDateを正しく変換する', () => {
+    const result = toSchedule({ ...validBackend, intervalDays: 21, startDate: '2026-03-01' });
+    expect(result.intervalDays).toBe(21);
+    expect(result.startDate).toBeInstanceOf(Date);
+  });
+
+  it('intervalDaysがundefinedの場合undefinedを返す', () => {
+    const result = toSchedule({ ...validBackend, intervalDays: undefined, startDate: undefined });
+    expect(result.intervalDays).toBeUndefined();
+    expect(result.startDate).toBeUndefined();
+  });
+
+  it('不正な曜日をフィルタリングする', () => {
+    const result = toSchedule({ ...validBackend, daysOfWeek: ['mon', 'invalid', 'fri'] });
+    expect(result.daysOfWeek).toEqual(['mon', 'fri']);
+  });
+});
+
+describe('toVaccination', () => {
+  const validBackend: BackendVaccination = {
+    id: 'vac-1',
+    userId: 'user-1',
+    memberId: 'mem-1',
+    memberName: 'テスト太郎',
+    vaccineName: 'インフルエンザ',
+    vaccinatedAt: '2025-11-01',
+    nextScheduledDate: '2026-11-01',
+    notes: 'メモ',
+    createdAt: '2025-01-01T00:00:00Z',
+  };
+
+  it('完全なデータを正しく変換する', () => {
+    const result = toVaccination(validBackend);
+    expect(result.id).toBe('vac-1');
+    expect(result.vaccineName).toBe('インフルエンザ');
+    expect(result.vaccinatedAt).toBeInstanceOf(Date);
+    expect(result.nextScheduledDate).toBeInstanceOf(Date);
+    expect(result.memberName).toBe('テスト太郎');
+  });
+
+  it('nextScheduledDateがundefinedの場合undefinedを返す', () => {
+    const result = toVaccination({ ...validBackend, nextScheduledDate: undefined });
+    expect(result.nextScheduledDate).toBeUndefined();
+  });
+});
+
+describe('toExamination', () => {
+  const validBackend: BackendExamination = {
+    id: 'exam-1',
+    userId: 'user-1',
+    memberId: 'mem-1',
+    memberName: '太郎',
+    examinationType: '血液検査',
+    examinedAt: '2025-12-01',
+    nextScheduledDate: '2026-06-01',
+    createdAt: '2025-01-01T00:00:00Z',
+  };
+
+  it('完全なデータを正しく変換する', () => {
+    const result = toExamination(validBackend);
+    expect(result.examinationType).toBe('血液検査');
+    expect(result.examinedAt).toBeInstanceOf(Date);
+    expect(result.nextScheduledDate).toBeInstanceOf(Date);
+  });
+
+  it('nextScheduledDateがundefinedの場合undefinedを返す', () => {
+    const result = toExamination({ ...validBackend, nextScheduledDate: undefined });
+    expect(result.nextScheduledDate).toBeUndefined();
+  });
+});
+
+describe('toAllergy', () => {
+  const validBackend: BackendAllergy = {
+    id: 'alg-1',
+    userId: 'user-1',
+    memberId: 'mem-1',
+    allergenName: 'ピーナッツ',
+    allergyType: 'food',
+    severity: 'severe',
+    diagnosedAt: '2020-06-01',
+    createdAt: '2025-01-01T00:00:00Z',
+  };
+
+  it('完全なデータを正しく変換する', () => {
+    const result = toAllergy(validBackend);
+    expect(result.allergenName).toBe('ピーナッツ');
+    expect(result.allergyType).toBe('food');
+    expect(result.severity).toBe('severe');
+    expect(result.diagnosedAt).toBeInstanceOf(Date);
+  });
+
+  it('diagnosedAtがundefinedの場合undefinedを返す', () => {
+    const result = toAllergy({ ...validBackend, diagnosedAt: undefined });
+    expect(result.diagnosedAt).toBeUndefined();
+  });
+});
+
+describe('toInsurance', () => {
+  const validBackend: BackendInsurance = {
+    id: 'ins-1',
+    userId: 'user-1',
+    memberId: 'mem-1',
+    insuranceType: '健康保険',
+    providerName: '全国健康保険協会',
+    policyNumber: '12345',
+    createdAt: '2025-01-01T00:00:00Z',
+  };
+
+  it('完全なデータを正しく変換する', () => {
+    const result = toInsurance(validBackend);
+    expect(result.insuranceType).toBe('健康保険');
+    expect(result.providerName).toBe('全国健康保険協会');
+    expect(result.policyNumber).toBe('12345');
+  });
+});
+
+describe('toHealthLog', () => {
+  const validBackend: BackendHealthLog = {
+    id: 'log-1',
+    userId: 'user-1',
+    memberId: 'mem-1',
+    memberName: '太郎',
+    conditionLevel: 4,
+    symptoms: ['headache', 'fever'],
+    recordedAt: '2025-12-01T08:00:00Z',
+  };
+
+  it('完全なデータを正しく変換する', () => {
+    const result = toHealthLog(validBackend);
+    expect(result.conditionLevel).toBe(4);
+    expect(result.symptoms).toEqual(['headache', 'fever']);
+    expect(result.recordedAt).toBeInstanceOf(Date);
+    expect(result.memberName).toBe('太郎');
+  });
+
+  it('不正なconditionLevelは3にフォールバックする', () => {
+    const result = toHealthLog({ ...validBackend, conditionLevel: 10 });
+    expect(result.conditionLevel).toBe(3);
+  });
+
+  it('conditionLevel=0は3にフォールバックする', () => {
+    const result = toHealthLog({ ...validBackend, conditionLevel: 0 });
+    expect(result.conditionLevel).toBe(3);
+  });
+
+  it('不正な症状をフィルタリングする', () => {
+    const result = toHealthLog({ ...validBackend, symptoms: ['headache', 'invalid', 'fever'] });
+    expect(result.symptoms).toEqual(['headache', 'fever']);
+  });
+
+  it('memberNameがundefinedの場合空文字にフォールバックする', () => {
+    const result = toHealthLog({ ...validBackend, memberName: undefined });
+    expect(result.memberName).toBe('');
+  });
+});
+
+describe('toPrescription', () => {
+  const validBackend: BackendPrescription = {
+    id: 'pre-1',
+    userId: 'user-1',
+    memberId: 'mem-1',
+    prescriptionName: 'テスト処方',
+    prescribedAt: '2025-12-01',
+    expiresAt: '2026-06-01',
+    createdAt: '2025-01-01T00:00:00Z',
+  };
+
+  it('完全なデータを正しく変換する', () => {
+    const result = toPrescription(validBackend);
+    expect(result.prescriptionName).toBe('テスト処方');
+    expect(result.prescribedAt).toBeInstanceOf(Date);
+    expect(result.expiresAt).toBeInstanceOf(Date);
+  });
+
+  it('expiresAtがundefinedの場合undefinedを返す', () => {
+    const result = toPrescription({ ...validBackend, expiresAt: undefined });
+    expect(result.expiresAt).toBeUndefined();
+  });
+});
+
+describe('toEmergencyContact', () => {
+  it('完全なデータを正しく変換する', () => {
+    const result = toEmergencyContact({
+      id: 'ec-1',
+      userId: 'user-1',
+      memberId: 'mem-1',
+      contactName: '田中花子',
+      phoneNumber: '090-1234-5678',
+      relationship: '母',
+      createdAt: '2025-01-01T00:00:00Z',
+    });
+    expect(result.contactName).toBe('田中花子');
+    expect(result.phoneNumber).toBe('090-1234-5678');
+    expect(result.relationship).toBe('母');
+  });
+});
+
+describe('toBodyMeasurement', () => {
+  it('完全なデータを正しく変換する', () => {
+    const result = toBodyMeasurement({
+      id: 'bm-1',
+      userId: 'user-1',
+      memberId: 'mem-1',
+      weight: 65.5,
+      height: 170.2,
+      recordedAt: '2025-12-01',
+      createdAt: '2025-01-01T00:00:00Z',
+    });
+    expect(result.weight).toBe(65.5);
+    expect(result.height).toBe(170.2);
+    expect(result.recordedAt).toBeInstanceOf(Date);
   });
 });
