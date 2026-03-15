@@ -204,6 +204,28 @@ export const updateInsuranceSchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== Allergies =====
+export const createAllergySchema = z.object({
+  memberId: idField,
+  allergenName: z.string({ required_error: 'アレルゲン名は必須です' }).trim().min(1, 'アレルゲン名は必須です').max(200),
+  allergyType: z.enum(['food', 'medication', 'environmental', 'other'], { required_error: 'アレルギーの種類は必須です' }),
+  severity: z.enum(['mild', 'moderate', 'severe'], { required_error: '重症度は必須です' }),
+  symptoms: z.string().trim().max(500).optional(),
+  diagnosedAt: dateString.optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const updateAllergySchema = z.object({
+  allergenName: z.string().trim().min(1).max(200).optional(),
+  allergyType: z.enum(['food', 'medication', 'environmental', 'other']).optional(),
+  severity: z.enum(['mild', 'moderate', 'severe']).optional(),
+  symptoms: z.string().trim().max(500).optional().nullable(),
+  diagnosedAt: dateString.optional().nullable(),
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Auth =====
 export const signUpSchema = z.object({
   email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email('有効なメールアドレスを入力してください'),

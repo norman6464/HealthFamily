@@ -7,8 +7,9 @@ import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { HealthLog, ConditionLevel, SymptomType, SYMPTOM_OPTIONS } from '../../domain/entities/HealthLog';
 import { Vaccination } from '../../domain/entities/Vaccination';
 import { Examination } from '../../domain/entities/Examination';
+import { Allergy } from '../../domain/entities/Allergy';
 import { Insurance } from '../../domain/entities/Insurance';
-import { BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
+import { BackendAllergy, BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
 
 const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
@@ -133,6 +134,22 @@ export function toInsurance(b: BackendInsurance): Insurance {
     insuranceType: b.insuranceType,
     providerName: b.providerName,
     policyNumber: b.policyNumber,
+    notes: b.notes,
+    createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toAllergy(b: BackendAllergy): Allergy {
+  return {
+    id: b.id,
+    userId: b.userId,
+    memberId: b.memberId,
+    memberName: b.memberName,
+    allergenName: b.allergenName,
+    allergyType: b.allergyType,
+    severity: b.severity,
+    symptoms: b.symptoms,
+    diagnosedAt: b.diagnosedAt ? new Date(b.diagnosedAt) : undefined,
     notes: b.notes,
     createdAt: new Date(b.createdAt),
   };

@@ -103,6 +103,20 @@ export interface BackendInsurance {
   createdAt: string;
 }
 
+export interface BackendAllergy {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  allergenName: string;
+  allergyType: string;
+  severity: string;
+  symptoms?: string;
+  diagnosedAt?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface BackendExamination {
   id: string;
   userId: string;
