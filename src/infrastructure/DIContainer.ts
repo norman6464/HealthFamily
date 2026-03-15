@@ -15,6 +15,7 @@ import { VaccinationRepository } from '../domain/repositories/VaccinationReposit
 import { ExaminationRepository } from '../domain/repositories/ExaminationRepository';
 import { InsuranceRepository } from '../domain/repositories/InsuranceRepository';
 import { AllergyRepository } from '../domain/repositories/AllergyRepository';
+import { BodyMeasurementRepository } from '../domain/repositories/BodyMeasurementRepository';
 import { MemberRepositoryImpl } from '../data/repositories/MemberRepositoryImpl';
 import { MedicationRepositoryImpl } from '../data/repositories/MedicationRepositoryImpl';
 import { ScheduleRepositoryImpl } from '../data/repositories/ScheduleRepositoryImpl';
@@ -27,6 +28,7 @@ import { VaccinationRepositoryImpl } from '../data/repositories/VaccinationRepos
 import { ExaminationRepositoryImpl } from '../data/repositories/ExaminationRepositoryImpl';
 import { InsuranceRepositoryImpl } from '../data/repositories/InsuranceRepositoryImpl';
 import { AllergyRepositoryImpl } from '../data/repositories/AllergyRepositoryImpl';
+import { BodyMeasurementRepositoryImpl } from '../data/repositories/BodyMeasurementRepositoryImpl';
 
 export interface DIContainer {
   memberRepository: MemberRepository;
@@ -41,6 +43,7 @@ export interface DIContainer {
   examinationRepository: ExaminationRepository;
   insuranceRepository: InsuranceRepository;
   allergyRepository: AllergyRepository;
+  bodyMeasurementRepository: BodyMeasurementRepository;
 }
 
 // シングルトンコンテナ（テスト時にモックに差し替え可能）
@@ -61,6 +64,7 @@ export const getDIContainer = (): DIContainer => {
       examinationRepository: new ExaminationRepositoryImpl(),
       insuranceRepository: new InsuranceRepositoryImpl(),
       allergyRepository: new AllergyRepositoryImpl(),
+      bodyMeasurementRepository: new BodyMeasurementRepositoryImpl(),
     };
   }
   return container;

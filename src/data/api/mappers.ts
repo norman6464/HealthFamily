@@ -8,8 +8,9 @@ import { HealthLog, ConditionLevel, SymptomType, SYMPTOM_OPTIONS } from '../../d
 import { Vaccination } from '../../domain/entities/Vaccination';
 import { Examination } from '../../domain/entities/Examination';
 import { Allergy } from '../../domain/entities/Allergy';
+import { BodyMeasurement } from '../../domain/entities/BodyMeasurement';
 import { Insurance } from '../../domain/entities/Insurance';
-import { BackendAllergy, BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
+import { BackendAllergy, BackendBodyMeasurement, BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
 
 const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
@@ -134,6 +135,20 @@ export function toInsurance(b: BackendInsurance): Insurance {
     insuranceType: b.insuranceType,
     providerName: b.providerName,
     policyNumber: b.policyNumber,
+    notes: b.notes,
+    createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toBodyMeasurement(b: BackendBodyMeasurement): BodyMeasurement {
+  return {
+    id: b.id,
+    userId: b.userId,
+    memberId: b.memberId,
+    memberName: b.memberName,
+    weight: b.weight,
+    height: b.height,
+    recordedAt: new Date(b.recordedAt),
     notes: b.notes,
     createdAt: new Date(b.createdAt),
   };

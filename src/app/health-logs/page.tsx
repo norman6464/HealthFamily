@@ -1,22 +1,27 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Plus, Activity } from 'lucide-react';
+import { Plus, X, Activity, Ruler } from 'lucide-react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { HealthLogList } from '@/components/health-logs/HealthLogList';
 import { HealthLogForm } from '@/components/health-logs/HealthLogForm';
 import { HealthWeeklyTrend } from '@/components/health-logs/HealthWeeklyTrend';
 import { SymptomFrequencySummary } from '@/components/health-logs/SymptomFrequencySummary';
 import { useHealthLogs } from '@/presentation/hooks/useHealthLogs';
+import { useBodyMeasurements } from '@/presentation/hooks/useBodyMeasurements';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useAuth } from '@/hooks/useAuth';
 import { HealthLogEntity } from '@/domain/entities/HealthLog';
+import { BodyMeasurementForm, BodyMeasurementFormData } from '@/components/body-measurements/BodyMeasurementForm';
+import { BodyMeasurementList } from '@/components/body-measurements/BodyMeasurementList';
 
 export default function HealthLogsPage() {
   const { userId } = useAuth();
   const { groups, isLoading, createLog, deleteLog } = useHealthLogs();
   const { members } = useMembers(userId ?? '');
+  const { measurements, isLoading: measurementsLoading, createMeasurement, updateMeasurement, deleteMeasurement } = useBodyMeasurements();
   const [showForm, setShowForm] = useState(false);
+  const [showMeasurementForm, setShowMeasurementForm] = useState(false);
 
   const allLogs = useMemo(
     () => groups.flatMap((g) => g.logs),
@@ -41,6 +46,16 @@ export default function HealthLogsPage() {
   }) => {
     await createLog(input);
     setShowForm(false);
+  };
+
+  const handleCreateMeasurement = async (data: BodyMeasurementFormData) => {
+    await createMeasurement(data);
+    setShowMeasurementForm(false);
+  };
+
+  const handleDeleteMeasurement = async (id: string) => {
+    if (!window.confirm('この記録を削除しますか？')) return;
+    await deleteMeasurement(id);
   };
 
   return (
@@ -79,6 +94,46 @@ export default function HealthLogsPage() {
         <SymptomFrequencySummary symptoms={frequentSymptoms} />
 
         <HealthLogList groups={groups} isLoading={isLoading} onDelete={deleteLog} />
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <Ruler size={18} className="text-primary-600" />
+              <h2 className="text-base font-bold text-gray-800">体重・身長記録</h2>
+            </div>
+            <button
+              onClick={() => setShowMeasurementForm(!showMeasurementForm)}
+              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
+              aria-label={showMeasurementForm ? '閉じる' : '記録を追加'}
+            >
+              {showMeasurementForm ? <X size={16} /> : <Plus size={16} />}
+            </button>
+          </div>
+
+          {showMeasurementForm && members.length > 0 && (
+            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">体重・身長の記録</h3>
+              <BodyMeasurementForm
+                members={members}
+                onSubmit={handleCreateMeasurement}
+                onCancel={() => setShowMeasurementForm(false)}
+              />
+            </div>
+          )}
+
+          {showMeasurementForm && members.length === 0 && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
+              先にメンバーを登録してください。
+            </div>
+          )}
+
+          <BodyMeasurementList
+            measurements={measurements}
+            isLoading={measurementsLoading}
+            onUpdate={updateMeasurement}
+            onDelete={handleDeleteMeasurement}
+          />
+        </div>
       </main>
 
       <BottomNavigation activePath="/health-logs" />

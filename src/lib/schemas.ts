@@ -204,6 +204,26 @@ export const updateInsuranceSchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== Body Measurements =====
+export const createBodyMeasurementSchema = z.object({
+  memberId: idField,
+  weight: z.number().min(0.1, '体重は0.1以上を指定してください').max(9999).optional(),
+  height: z.number().min(0.1, '身長は0.1以上を指定してください').max(9999).optional(),
+  recordedAt: dateString,
+  notes: z.string().trim().max(500).optional(),
+}).refine((data) => data.weight != null || data.height != null, {
+  message: '体重または身長のいずれかは必須です',
+});
+
+export const updateBodyMeasurementSchema = z.object({
+  weight: z.number().min(0.1).max(9999).optional().nullable(),
+  height: z.number().min(0.1).max(9999).optional().nullable(),
+  recordedAt: dateString.optional(),
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Allergies =====
 export const createAllergySchema = z.object({
   memberId: idField,

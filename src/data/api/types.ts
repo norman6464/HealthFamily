@@ -103,6 +103,18 @@ export interface BackendInsurance {
   createdAt: string;
 }
 
+export interface BackendBodyMeasurement {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  weight?: number;
+  height?: number;
+  recordedAt: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface BackendAllergy {
   id: string;
   userId: string;
