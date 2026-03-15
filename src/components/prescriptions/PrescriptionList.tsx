@@ -51,7 +51,10 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
   const [editPharmacy, setEditPharmacy] = useState(prescription.pharmacyName || '');
   const [editNotes, setEditNotes] = useState(prescription.notes || '');
 
-  const isExpired = prescription.expiresAt && new Date(prescription.expiresAt) < new Date();
+  const now = new Date();
+  const expiresDate = prescription.expiresAt ? new Date(prescription.expiresAt) : null;
+  const isExpired = expiresDate && expiresDate < now;
+  const isExpiringSoon = !isExpired && expiresDate && (expiresDate.getTime() - now.getTime()) < 7 * 24 * 60 * 60 * 1000;
 
   const handleSave = async () => {
     if (!editName.trim()) return;
@@ -141,6 +144,9 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
             <p className="font-medium text-gray-800 text-sm">{prescription.prescriptionName}</p>
             {isExpired && (
               <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">期限切れ</span>
+            )}
+            {isExpiringSoon && (
+              <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">期限間近</span>
             )}
             {prescription.memberName && (
               <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{prescription.memberName}</span>
