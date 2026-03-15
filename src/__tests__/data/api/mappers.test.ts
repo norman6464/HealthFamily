@@ -15,7 +15,7 @@ import {
   toEmergencyContact,
   toBodyMeasurement,
 } from '@/data/api/mappers';
-import { BackendMember, BackendMedication, BackendRecord, BackendHospital, BackendAppointment, BackendSchedule, BackendVaccination, BackendExamination, BackendAllergy, BackendInsurance, BackendHealthLog, BackendPrescription, BackendEmergencyContact, BackendBodyMeasurement } from '@/data/api/types';
+import { BackendMember, BackendMedication, BackendRecord, BackendHospital, BackendAppointment, BackendSchedule, BackendVaccination, BackendExamination, BackendAllergy, BackendInsurance, BackendHealthLog, BackendPrescription } from '@/data/api/types';
 
 describe('toMember', () => {
   const validBackend: BackendMember = {
