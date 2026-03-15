@@ -10,6 +10,14 @@ import {
   createHospitalSchema,
   createAppointmentSchema,
   updateStockSchema,
+  createAllergySchema,
+  updateAllergySchema,
+  createVaccinationSchema,
+  updateVaccinationSchema,
+  createExaminationSchema,
+  updateExaminationSchema,
+  createInsuranceSchema,
+  updateInsuranceSchema,
 } from '@/lib/schemas';
 
 describe('signUpSchema', () => {
@@ -378,6 +386,270 @@ describe('テキストフィールドのtrim処理', () => {
     expect(createMemberSchema.safeParse({ name: '   ' }).success).toBe(false);
     expect(createMedicationSchema.safeParse({ name: '   ' }).success).toBe(false);
     expect(createHospitalSchema.safeParse({ name: '   ' }).success).toBe(false);
+  });
+});
+
+// --- アレルギースキーマ ---
+describe('createAllergySchema', () => {
+  it('有効な入力を受け付ける', () => {
+    const result = createAllergySchema.safeParse({
+      memberId: 'mem-1',
+      allergenName: 'ピーナッツ',
+      allergyType: 'food',
+      severity: 'severe',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('全フィールド指定で受け付ける', () => {
+    const result = createAllergySchema.safeParse({
+      memberId: 'mem-1',
+      allergenName: 'スギ花粉',
+      allergyType: 'pollen',
+      severity: 'moderate',
+      symptoms: 'くしゃみ、鼻水',
+      diagnosedAt: '2024-03-01',
+      notes: '春に悪化',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('アレルゲン名が空の場合エラー', () => {
+    const result = createAllergySchema.safeParse({
+      memberId: 'mem-1',
+      allergenName: '',
+      allergyType: 'food',
+      severity: 'mild',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('不正なアレルギー種類でエラー', () => {
+    const result = createAllergySchema.safeParse({
+      memberId: 'mem-1',
+      allergenName: 'テスト',
+      allergyType: 'invalid',
+      severity: 'mild',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('不正な重症度でエラー', () => {
+    const result = createAllergySchema.safeParse({
+      memberId: 'mem-1',
+      allergenName: 'テスト',
+      allergyType: 'food',
+      severity: 'critical',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('花粉・アトピーを受け付ける', () => {
+    for (const type of ['pollen', 'atopy']) {
+      const result = createAllergySchema.safeParse({
+        memberId: 'mem-1',
+        allergenName: 'テスト',
+        allergyType: type,
+        severity: 'mild',
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it('全アレルギー種類を受け付ける', () => {
+    for (const type of ['food', 'medication', 'environmental', 'pollen', 'atopy', 'other']) {
+      const result = createAllergySchema.safeParse({
+        memberId: 'mem-1',
+        allergenName: 'テスト',
+        allergyType: type,
+        severity: 'mild',
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it('全重症度を受け付ける', () => {
+    for (const severity of ['mild', 'moderate', 'severe']) {
+      const result = createAllergySchema.safeParse({
+        memberId: 'mem-1',
+        allergenName: 'テスト',
+        allergyType: 'food',
+        severity,
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+});
+
+describe('updateAllergySchema', () => {
+  it('部分更新を受け付ける', () => {
+    const result = updateAllergySchema.safeParse({ allergenName: '更新名' });
+    expect(result.success).toBe(true);
+  });
+
+  it('空オブジェクトはエラー', () => {
+    const result = updateAllergySchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  it('nullableフィールドにnullを受け付ける', () => {
+    const result = updateAllergySchema.safeParse({ symptoms: null, notes: null });
+    expect(result.success).toBe(true);
+  });
+});
+
+// --- ワクチンスキーマ ---
+describe('createVaccinationSchema', () => {
+  it('有効な入力を受け付ける', () => {
+    const result = createVaccinationSchema.safeParse({
+      memberId: 'mem-1',
+      vaccineName: 'インフルエンザ',
+      vaccinatedAt: '2025-11-01',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('ワクチン名が空の場合エラー', () => {
+    const result = createVaccinationSchema.safeParse({
+      memberId: 'mem-1',
+      vaccineName: '',
+      vaccinatedAt: '2025-11-01',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('不正な日付でエラー', () => {
+    const result = createVaccinationSchema.safeParse({
+      memberId: 'mem-1',
+      vaccineName: 'テスト',
+      vaccinatedAt: 'invalid-date',
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('updateVaccinationSchema', () => {
+  it('部分更新を受け付ける', () => {
+    const result = updateVaccinationSchema.safeParse({ vaccineName: '更新名' });
+    expect(result.success).toBe(true);
+  });
+
+  it('空オブジェクトはエラー', () => {
+    const result = updateVaccinationSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  it('次回予定日をnullで更新できる', () => {
+    const result = updateVaccinationSchema.safeParse({ nextScheduledDate: null });
+    expect(result.success).toBe(true);
+  });
+});
+
+// --- 検査スキーマ ---
+describe('createExaminationSchema', () => {
+  it('有効な入力を受け付ける', () => {
+    const result = createExaminationSchema.safeParse({
+      memberId: 'mem-1',
+      examinationType: '血液検査',
+      examinedAt: '2025-12-01',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('検査種類が空の場合エラー', () => {
+    const result = createExaminationSchema.safeParse({
+      memberId: 'mem-1',
+      examinationType: '',
+      examinedAt: '2025-12-01',
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('updateExaminationSchema', () => {
+  it('部分更新を受け付ける', () => {
+    const result = updateExaminationSchema.safeParse({ examinationType: '尿検査' });
+    expect(result.success).toBe(true);
+  });
+
+  it('空オブジェクトはエラー', () => {
+    const result = updateExaminationSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+});
+
+// --- 保険スキーマ ---
+describe('createInsuranceSchema', () => {
+  it('有効な入力を受け付ける', () => {
+    const result = createInsuranceSchema.safeParse({
+      memberId: 'mem-1',
+      insuranceType: '健康保険',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('保険種類が空の場合エラー', () => {
+    const result = createInsuranceSchema.safeParse({
+      memberId: 'mem-1',
+      insuranceType: '',
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('updateInsuranceSchema', () => {
+  it('部分更新を受け付ける', () => {
+    const result = updateInsuranceSchema.safeParse({ insuranceType: '生命保険' });
+    expect(result.success).toBe(true);
+  });
+
+  it('空オブジェクトはエラー', () => {
+    const result = updateInsuranceSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+});
+
+// --- スケジュール間隔スキーマ ---
+describe('createScheduleSchema(間隔スケジュール)', () => {
+  it('間隔日数と開始日を受け付ける', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'mem-1',
+      scheduledTime: '08:00',
+      intervalDays: 21,
+      startDate: '2026-03-01',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('間隔日数が0以下でエラー', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'mem-1',
+      scheduledTime: '08:00',
+      intervalDays: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('間隔日数が365を超えるとエラー', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'mem-1',
+      scheduledTime: '08:00',
+      intervalDays: 366,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('間隔日数1(毎日)を受け付ける', () => {
+    const result = createScheduleSchema.safeParse({
+      medicationId: 'med-1',
+      memberId: 'mem-1',
+      scheduledTime: '08:00',
+      intervalDays: 1,
+    });
+    expect(result.success).toBe(true);
   });
 });
 
