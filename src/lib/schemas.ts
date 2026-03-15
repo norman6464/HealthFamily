@@ -272,7 +272,7 @@ export const updateBodyMeasurementSchema = z.object({
 export const createAllergySchema = z.object({
   memberId: idField,
   allergenName: z.string({ required_error: 'アレルゲン名は必須です' }).trim().min(1, 'アレルゲン名は必須です').max(200),
-  allergyType: z.enum(['food', 'medication', 'environmental', 'pollen', 'other'], { required_error: 'アレルギーの種類は必須です' }),
+  allergyType: z.enum(['food', 'medication', 'environmental', 'pollen', 'atopy', 'other'], { required_error: 'アレルギーの種類は必須です' }),
   severity: z.enum(['mild', 'moderate', 'severe'], { required_error: '重症度は必須です' }),
   symptoms: z.string().trim().max(500).optional(),
   diagnosedAt: dateString.optional(),
@@ -281,7 +281,7 @@ export const createAllergySchema = z.object({
 
 export const updateAllergySchema = z.object({
   allergenName: z.string().trim().min(1).max(200).optional(),
-  allergyType: z.enum(['food', 'medication', 'environmental', 'pollen', 'other']).optional(),
+  allergyType: z.enum(['food', 'medication', 'environmental', 'pollen', 'atopy', 'other']).optional(),
   severity: z.enum(['mild', 'moderate', 'severe']).optional(),
   symptoms: z.string().trim().max(500).optional().nullable(),
   diagnosedAt: dateString.optional().nullable(),
