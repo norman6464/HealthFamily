@@ -20,6 +20,8 @@ interface TodayScheduleResponse {
   memberType: string;
   scheduledTime: string;
   daysOfWeek: string[];
+  intervalDays?: number;
+  startDate?: string;
   isEnabled: boolean;
   reminderMinutesBefore: number;
   isCompleted: boolean;
@@ -39,6 +41,8 @@ export const scheduleApi = {
         memberId: item.memberId,
         scheduledTime: item.scheduledTime,
         daysOfWeek: (item.daysOfWeek?.filter((d) => VALID_DAYS.includes(d)) as DayOfWeek[]) ?? [],
+        intervalDays: item.intervalDays ?? undefined,
+        startDate: item.startDate ? new Date(item.startDate) : undefined,
         isEnabled: item.isEnabled,
         reminderMinutesBefore: item.reminderMinutesBefore ?? 10,
         createdAt: new Date(item.createdAt),
@@ -58,6 +62,8 @@ export const scheduleApi = {
         memberId: item.memberId,
         scheduledTime: item.scheduledTime,
         daysOfWeek: (item.daysOfWeek?.filter((d) => VALID_DAYS.includes(d)) as DayOfWeek[]) ?? [],
+        intervalDays: item.intervalDays ?? undefined,
+        startDate: item.startDate ? new Date(item.startDate) : undefined,
         isEnabled: item.isEnabled,
         reminderMinutesBefore: item.reminderMinutesBefore ?? 10,
         createdAt: new Date(item.createdAt),
@@ -77,6 +83,8 @@ export const scheduleApi = {
       memberId: schedule.memberId,
       scheduledTime: schedule.scheduledTime,
       daysOfWeek: [...schedule.daysOfWeek],
+      intervalDays: schedule.intervalDays,
+      startDate: schedule.startDate?.toISOString(),
       isEnabled: schedule.isEnabled,
       reminderMinutesBefore: schedule.reminderMinutesBefore,
     });
@@ -87,6 +95,8 @@ export const scheduleApi = {
     const body: Record<string, unknown> = {};
     if (schedule.scheduledTime !== undefined) body.scheduledTime = schedule.scheduledTime;
     if (schedule.daysOfWeek !== undefined) body.daysOfWeek = [...schedule.daysOfWeek];
+    if (schedule.intervalDays !== undefined) body.intervalDays = schedule.intervalDays;
+    if (schedule.startDate !== undefined) body.startDate = schedule.startDate?.toISOString() ?? null;
     if (schedule.isEnabled !== undefined) body.isEnabled = schedule.isEnabled;
     if (schedule.reminderMinutesBefore !== undefined) body.reminderMinutesBefore = schedule.reminderMinutesBefore;
 

@@ -23,6 +23,8 @@ export interface Schedule {
   readonly memberId: string;
   readonly scheduledTime: string; // HH:mm形式
   readonly daysOfWeek: readonly DayOfWeek[];
+  readonly intervalDays?: number;
+  readonly startDate?: Date;
   readonly isEnabled: boolean;
   readonly reminderMinutesBefore: number;
   readonly createdAt: Date;
@@ -72,11 +74,22 @@ export class ScheduleEntity {
   }
 
   /**
-   * 指定された曜日にスケジュールが有効かチェック
+   * 指定された日にスケジュールが有効かチェック
    */
   isActiveOnDay(date: Date): boolean {
     if (!this.schedule.isEnabled) {
       return false;
+    }
+
+    // 間隔スケジュール（X日ごと）
+    if (this.schedule.intervalDays && this.schedule.intervalDays > 0 && this.schedule.startDate) {
+      const start = new Date(this.schedule.startDate);
+      start.setHours(0, 0, 0, 0);
+      const target = new Date(date);
+      target.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) return false;
+      return diffDays % this.schedule.intervalDays === 0;
     }
 
     // 曜日が未設定（空配列）の場合は毎日有効

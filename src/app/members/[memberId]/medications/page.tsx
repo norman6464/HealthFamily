@@ -51,6 +51,8 @@ export default function Medications() {
       memberId,
       scheduledTime: data.scheduledTime,
       daysOfWeek: data.daysOfWeek,
+      intervalDays: data.intervalDays,
+      startDate: data.startDate ? new Date(data.startDate) : undefined,
       reminderMinutesBefore: data.reminderMinutesBefore,
     });
     setScheduleTarget(null);

@@ -16,6 +16,8 @@ export interface CreateScheduleInput {
   memberId: string;
   scheduledTime: string;
   daysOfWeek: DayOfWeek[];
+  intervalDays?: number;
+  startDate?: Date;
   reminderMinutesBefore: number;
 }
 
@@ -59,6 +61,8 @@ export const useSchedules = (): UseSchedulesResult => {
         memberId: input.memberId,
         scheduledTime: input.scheduledTime,
         daysOfWeek: input.daysOfWeek,
+        intervalDays: input.intervalDays,
+        startDate: input.startDate,
         isEnabled: true,
         reminderMinutesBefore: input.reminderMinutesBefore,
       });

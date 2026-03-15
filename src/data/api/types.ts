@@ -33,6 +33,8 @@ export interface BackendSchedule {
   memberId: string;
   scheduledTime: string;
   daysOfWeek?: string[];
+  intervalDays?: number;
+  startDate?: string;
   isEnabled?: boolean;
   reminderMinutesBefore?: number;
   createdAt: string;

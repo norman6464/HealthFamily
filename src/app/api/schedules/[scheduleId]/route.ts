@@ -27,9 +27,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ sche
         const parsed = updateScheduleSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
+        const updateData: Record<string, unknown> = { ...parsed.data };
+        if (parsed.data.startDate !== undefined) {
+          updateData.startDate = parsed.data.startDate ? new Date(parsed.data.startDate) : null;
+        }
         const updated = await prisma.schedule.update({
           where: { id: scheduleId },
-          data: parsed.data,
+          data: updateData,
         });
         return success(updated);
       },

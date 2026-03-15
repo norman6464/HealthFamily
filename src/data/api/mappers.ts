@@ -108,6 +108,8 @@ export function toSchedule(b: BackendSchedule): Schedule {
     memberId: b.memberId,
     scheduledTime: b.scheduledTime,
     daysOfWeek: (b.daysOfWeek?.filter((d: string) => VALID_DAYS_OF_WEEK.includes(d)) as DayOfWeek[]) ?? [],
+    intervalDays: b.intervalDays ?? undefined,
+    startDate: b.startDate ? new Date(b.startDate) : undefined,
     isEnabled: b.isEnabled ?? true,
     reminderMinutesBefore: b.reminderMinutesBefore ?? 10,
     createdAt: new Date(b.createdAt),

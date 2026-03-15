@@ -74,6 +74,8 @@ export const createScheduleSchema = z.object({
   memberId: idField,
   scheduledTime: z.string().trim().min(1, '予定時刻は必須です').max(10),
   daysOfWeek: z.array(dayOfWeekEnum).optional(),
+  intervalDays: z.number().int().min(1).max(365).optional(),
+  startDate: dateString.optional(),
   isEnabled: z.boolean().optional(),
   reminderMinutesBefore: z.number().int().min(0).max(1440).optional(),
 });
@@ -81,6 +83,8 @@ export const createScheduleSchema = z.object({
 export const updateScheduleSchema = z.object({
   scheduledTime: z.string().trim().min(1, '予定時刻は必須です').max(10).optional(),
   daysOfWeek: z.array(dayOfWeekEnum).optional(),
+  intervalDays: z.number().int().min(1).max(365).optional().nullable(),
+  startDate: dateString.optional().nullable(),
   isEnabled: z.boolean().optional(),
   reminderMinutesBefore: z.number().int().min(0).max(1440).optional(),
 });
