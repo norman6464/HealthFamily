@@ -8,6 +8,7 @@ import { useHospitals } from '@/presentation/hooks/useHospitals';
 import { useVaccinations } from '@/presentation/hooks/useVaccinations';
 import { useExaminations } from '@/presentation/hooks/useExaminations';
 import { useInsurances } from '@/presentation/hooks/useInsurances';
+import { useAllergies } from '@/presentation/hooks/useAllergies';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { AppointmentList, AppointmentFilter, getAppointmentCounts } from '@/components/appointments/AppointmentList';
 import { AppointmentForm, AppointmentFormData } from '@/components/appointments/AppointmentForm';
@@ -17,11 +18,13 @@ import { ExaminationForm, ExaminationFormData } from '@/components/examinations/
 import { ExaminationList } from '@/components/examinations/ExaminationList';
 import { InsuranceForm, InsuranceFormData } from '@/components/insurances/InsuranceForm';
 import { InsuranceList } from '@/components/insurances/InsuranceList';
+import { AllergyForm, AllergyFormData } from '@/components/allergies/AllergyForm';
+import { AllergyList } from '@/components/allergies/AllergyList';
 import { TabSwitch } from '@/components/shared/TabSwitch';
 import { Appointment } from '@/domain/entities/Appointment';
 import { MiniCalendar } from '@/components/appointments/MiniCalendar';
 import Link from 'next/link';
-import { Plus, X, MapPin, Syringe, ClipboardList, ShieldCheck } from 'lucide-react';
+import { Plus, X, MapPin, Syringe, ClipboardList, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 export default function AppointmentsPage() {
   const { userId } = useAuth();
@@ -31,10 +34,12 @@ export default function AppointmentsPage() {
   const { vaccinations, isLoading: vaccinationsLoading, createVaccination, updateVaccination, deleteVaccination } = useVaccinations();
   const { examinations, isLoading: examinationsLoading, createExamination, updateExamination, deleteExamination } = useExaminations();
   const { insurances, isLoading: insurancesLoading, createInsurance, updateInsurance, deleteInsurance } = useInsurances();
+  const { allergies, isLoading: allergiesLoading, createAllergy, updateAllergy, deleteAllergy } = useAllergies();
   const [showForm, setShowForm] = useState(false);
   const [showVaccinationForm, setShowVaccinationForm] = useState(false);
   const [showExaminationForm, setShowExaminationForm] = useState(false);
   const [showInsuranceForm, setShowInsuranceForm] = useState(false);
+  const [showAllergyForm, setShowAllergyForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<AppointmentFilter>('upcoming');
   const [updateError, setUpdateError] = useState<string | null>(null);
@@ -106,6 +111,16 @@ export default function AppointmentsPage() {
   const handleDeleteExamination = async (id: string) => {
     if (!window.confirm('この検査記録を削除しますか？')) return;
     await deleteExamination(id);
+  };
+
+  const handleCreateAllergy = async (data: AllergyFormData) => {
+    await createAllergy(data);
+    setShowAllergyForm(false);
+  };
+
+  const handleDeleteAllergy = async (id: string) => {
+    if (!window.confirm('このアレルギー情報を削除しますか？')) return;
+    await deleteAllergy(id);
   };
 
   const handleCreateInsurance = async (data: InsuranceFormData) => {
@@ -266,6 +281,46 @@ export default function AppointmentsPage() {
             isLoading={examinationsLoading}
             onUpdate={updateExamination}
             onDelete={handleDeleteExamination}
+          />
+        </div>
+
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle size={18} className="text-primary-600" />
+              <h2 className="text-base font-bold text-gray-800">アレルギー管理</h2>
+            </div>
+            <button
+              onClick={() => setShowAllergyForm(!showAllergyForm)}
+              className="bg-primary-600 text-white p-1.5 rounded-full hover:bg-primary-700 transition-colors"
+              aria-label={showAllergyForm ? '閉じる' : 'アレルギーを追加'}
+            >
+              {showAllergyForm ? <X size={16} /> : <Plus size={16} />}
+            </button>
+          </div>
+
+          {showAllergyForm && !membersLoading && members.length > 0 && (
+            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">アレルギーの追加</h3>
+              <AllergyForm
+                members={members}
+                onSubmit={handleCreateAllergy}
+                onCancel={() => setShowAllergyForm(false)}
+              />
+            </div>
+          )}
+
+          {showAllergyForm && !membersLoading && members.length === 0 && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
+              先にメンバーを登録してください。
+            </div>
+          )}
+
+          <AllergyList
+            allergies={allergies}
+            isLoading={allergiesLoading}
+            onUpdate={updateAllergy}
+            onDelete={handleDeleteAllergy}
           />
         </div>
 
