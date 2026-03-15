@@ -30,8 +30,10 @@ import Link from 'next/link';
 import { Plus, X, MapPin, Syringe, ClipboardList, ShieldCheck, AlertTriangle, FileText } from 'lucide-react';
 
 export default function AppointmentsPage() {
-  const { userId } = useAuth();
+  const { userId, isLoading: authLoading } = useAuth();
   const { members, isLoading: membersLoading } = useMembers(userId);
+  const membersReady = !authLoading && !membersLoading;
+  const hasNoMembers = membersReady && members.length === 0;
   const { appointments, isLoading, createAppointment, updateAppointment, deleteAppointment } = useAppointments();
   const { hospitals } = useHospitals();
   const { vaccinations, isLoading: vaccinationsLoading, createVaccination, updateVaccination, deleteVaccination } = useVaccinations();
@@ -173,7 +175,7 @@ export default function AppointmentsPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-4">
-        {showForm && !membersLoading && members.length > 0 && (
+        {showForm && membersReady && members.length > 0 && (
           <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-gray-200">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">通院予約の追加</h2>
             <AppointmentForm
@@ -184,13 +186,13 @@ export default function AppointmentsPage() {
           </div>
         )}
 
-        {showForm && !membersLoading && members.length === 0 && (
+        {showForm && hasNoMembers && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-            先にメンバーを登録してください。
+            先に<Link href="/members" className="underline font-medium text-yellow-800 hover:text-yellow-900">メンバーページ</Link>でメンバーを登録してください。
           </div>
         )}
 
-        {editingAppointment && !membersLoading && members.length > 0 && (
+        {editingAppointment && membersReady && members.length > 0 && (
           <div ref={editFormRef} className="mb-6 bg-white rounded-lg shadow-md p-4 border border-blue-200">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">通院予約の編集</h2>
             {updateError && (
@@ -234,7 +236,7 @@ export default function AppointmentsPage() {
             </button>
           </div>
 
-          {showVaccinationForm && !membersLoading && members.length > 0 && (
+          {showVaccinationForm && membersReady && members.length > 0 && (
             <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">ワクチン記録の追加</h3>
               <VaccinationForm
@@ -245,7 +247,7 @@ export default function AppointmentsPage() {
             </div>
           )}
 
-          {showVaccinationForm && !membersLoading && members.length === 0 && (
+          {showVaccinationForm && hasNoMembers && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
               先にメンバーを登録してください。
             </div>
@@ -274,7 +276,7 @@ export default function AppointmentsPage() {
             </button>
           </div>
 
-          {showExaminationForm && !membersLoading && members.length > 0 && (
+          {showExaminationForm && membersReady && members.length > 0 && (
             <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">検査記録の追加</h3>
               <ExaminationForm
@@ -285,7 +287,7 @@ export default function AppointmentsPage() {
             </div>
           )}
 
-          {showExaminationForm && !membersLoading && members.length === 0 && (
+          {showExaminationForm && hasNoMembers && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
               先にメンバーを登録してください。
             </div>
@@ -314,7 +316,7 @@ export default function AppointmentsPage() {
             </button>
           </div>
 
-          {showAllergyForm && !membersLoading && members.length > 0 && (
+          {showAllergyForm && membersReady && members.length > 0 && (
             <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">アレルギーの追加</h3>
               <AllergyForm
@@ -325,7 +327,7 @@ export default function AppointmentsPage() {
             </div>
           )}
 
-          {showAllergyForm && !membersLoading && members.length === 0 && (
+          {showAllergyForm && hasNoMembers && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
               先にメンバーを登録してください。
             </div>
@@ -354,7 +356,7 @@ export default function AppointmentsPage() {
             </button>
           </div>
 
-          {showPrescriptionForm && !membersLoading && members.length > 0 && (
+          {showPrescriptionForm && membersReady && members.length > 0 && (
             <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">処方箋の追加</h3>
               <PrescriptionForm
@@ -365,7 +367,7 @@ export default function AppointmentsPage() {
             </div>
           )}
 
-          {showPrescriptionForm && !membersLoading && members.length === 0 && (
+          {showPrescriptionForm && hasNoMembers && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
               先にメンバーを登録してください。
             </div>
@@ -394,7 +396,7 @@ export default function AppointmentsPage() {
             </button>
           </div>
 
-          {showInsuranceForm && !membersLoading && members.length > 0 && (
+          {showInsuranceForm && membersReady && members.length > 0 && (
             <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">保険の追加</h3>
               <InsuranceForm
@@ -405,7 +407,7 @@ export default function AppointmentsPage() {
             </div>
           )}
 
-          {showInsuranceForm && !membersLoading && members.length === 0 && (
+          {showInsuranceForm && hasNoMembers && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
               先にメンバーを登録してください。
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { Plus, X, Activity, Ruler } from 'lucide-react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { HealthLogList } from '@/components/health-logs/HealthLogList';
@@ -16,9 +17,9 @@ import { BodyMeasurementForm, BodyMeasurementFormData } from '@/components/body-
 import { BodyMeasurementList } from '@/components/body-measurements/BodyMeasurementList';
 
 export default function HealthLogsPage() {
-  const { userId } = useAuth();
+  const { userId, isLoading: authLoading } = useAuth();
   const { groups, isLoading, createLog, deleteLog } = useHealthLogs();
-  const { members } = useMembers(userId ?? '');
+  const { members, isLoading: membersLoading } = useMembers(userId ?? '');
   const { measurements, isLoading: measurementsLoading, createMeasurement, updateMeasurement, deleteMeasurement } = useBodyMeasurements();
   const [showForm, setShowForm] = useState(false);
   const [showMeasurementForm, setShowMeasurementForm] = useState(false);
@@ -110,7 +111,7 @@ export default function HealthLogsPage() {
             </button>
           </div>
 
-          {showMeasurementForm && members.length > 0 && (
+          {showMeasurementForm && !authLoading && !membersLoading && members.length > 0 && (
             <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">体重・身長の記録</h3>
               <BodyMeasurementForm
@@ -121,9 +122,9 @@ export default function HealthLogsPage() {
             </div>
           )}
 
-          {showMeasurementForm && members.length === 0 && (
+          {showMeasurementForm && !authLoading && !membersLoading && members.length === 0 && (
             <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-700">
-              先にメンバーを登録してください。
+              先に<Link href="/members" className="underline font-medium text-yellow-800 hover:text-yellow-900">メンバーページ</Link>でメンバーを登録してください。
             </div>
           )}
 
