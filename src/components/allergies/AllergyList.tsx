@@ -9,6 +9,7 @@ const ALLERGY_TYPE_LABELS: Record<string, string> = {
   food: '食物',
   medication: '薬物',
   environmental: '環境',
+  pollen: '花粉',
   other: 'その他',
 };
 
