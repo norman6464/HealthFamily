@@ -131,7 +131,7 @@ const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate,
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">症状・反応</label>
+          <label className="block text-xs text-gray-500 mb-1">症状</label>
           <textarea
             value={editSymptoms}
             onChange={(e) => setEditSymptoms(e.target.value)}
