@@ -4,6 +4,7 @@ import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 
 interface MedicationListProps {
   medications: MedicationViewModel[];
@@ -23,9 +24,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
 
   if (medications.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <p className="text-gray-500 text-lg">薬がまだ登録されていません</p>
-      </div>
+      <EmptyStatePrompt message="薬がまだ登録されていません" subMessage="メンバーページから薬を追加してください" />
     );
   }
 

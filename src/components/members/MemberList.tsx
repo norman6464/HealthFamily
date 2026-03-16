@@ -6,6 +6,7 @@ import { MemberIcon } from '../shared/MemberIcon';
 import { MemberSummaryCard } from './MemberSummaryCard';
 import { Pill, Pencil } from 'lucide-react';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 
 interface MemberListProps {
   members: Member[];
@@ -24,9 +25,7 @@ export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDe
 
   if (members.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <p className="text-gray-500 text-lg">メンバーがまだ登録されていません</p>
-      </div>
+      <EmptyStatePrompt message="メンバーがまだ登録されていません" subMessage="上のフォームからメンバーを追加してください" />
     );
   }
 
