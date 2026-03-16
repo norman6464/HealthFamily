@@ -81,14 +81,14 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-3 border border-blue-200 space-y-3">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">ワクチンの種類</label>
           <input
             type="text"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -98,7 +98,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
             type="date"
             value={editDate}
             onChange={(e) => setEditDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -108,7 +108,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
             type="date"
             value={editNextDate}
             onChange={(e) => setEditNextDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
@@ -116,7 +116,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
           <textarea
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             rows={2}
           />
         </div>
@@ -124,7 +124,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
           <button
             onClick={handleSave}
             disabled={!editName.trim() || !editDate}
-            className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             <Check size={14} />
             <span>保存</span>

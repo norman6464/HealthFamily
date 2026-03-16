@@ -86,7 +86,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           id="allergy-member"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -105,7 +105,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           type="text"
           value={allergenName}
           onChange={(e) => setAllergenName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="例: ピーナッツ、ペニシリン、花粉"
         />
@@ -119,7 +119,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           id="allergy-type"
           value={allergyType}
           onChange={(e) => setAllergyType(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -137,7 +137,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           id="allergy-severity"
           value={severity}
           onChange={(e) => setSeverity(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -155,7 +155,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           id="allergy-symptoms"
           value={symptoms}
           onChange={(e) => setSymptoms(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="例: アナフィラキシー、じんましん、呼吸困難"
         />
@@ -171,7 +171,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           inputMode="numeric"
           value={diagnosedAt}
           onChange={(e) => setDiagnosedAt(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="例: 2024-01-15"
         />
       </div>
@@ -184,7 +184,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           id="allergy-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="例: エピペン携帯必要"
         />
@@ -193,7 +193,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {initialData ? '更新する' : '登録する'}
         </button>

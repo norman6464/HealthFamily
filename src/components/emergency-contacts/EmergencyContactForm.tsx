@@ -66,7 +66,7 @@ export const EmergencyContactForm: React.FC<EmergencyContactFormProps> = ({ memb
           id="ec-member"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -85,7 +85,7 @@ export const EmergencyContactForm: React.FC<EmergencyContactFormProps> = ({ memb
           type="text"
           value={contactName}
           onChange={(e) => setContactName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="例: 田中花子"
         />
@@ -100,7 +100,7 @@ export const EmergencyContactForm: React.FC<EmergencyContactFormProps> = ({ memb
           type="tel"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="例: 090-1234-5678"
         />
@@ -122,7 +122,7 @@ export const EmergencyContactForm: React.FC<EmergencyContactFormProps> = ({ memb
               setShowCustomRelationship(false);
             }
           }}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         >
           <option value="">選択してください</option>
           {RELATIONSHIP_OPTIONS.map((opt) => (
@@ -135,7 +135,7 @@ export const EmergencyContactForm: React.FC<EmergencyContactFormProps> = ({ memb
             type="text"
             value={relationship}
             onChange={(e) => setRelationship(e.target.value)}
-            className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             placeholder="続柄を入力してください"
           />
         )}
@@ -149,7 +149,7 @@ export const EmergencyContactForm: React.FC<EmergencyContactFormProps> = ({ memb
           id="ec-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="日中連絡可、夜間のみ等"
         />
@@ -158,7 +158,7 @@ export const EmergencyContactForm: React.FC<EmergencyContactFormProps> = ({ memb
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {initialData ? '更新する' : '登録する'}
         </button>

@@ -72,14 +72,14 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-3 border border-blue-200 space-y-3">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">連絡先名</label>
           <input
             type="text"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -89,7 +89,7 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
             type="tel"
             value={editPhone}
             onChange={(e) => setEditPhone(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -99,7 +99,7 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
             type="text"
             value={editRelationship}
             onChange={(e) => setEditRelationship(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
@@ -107,7 +107,7 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
           <textarea
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             rows={2}
           />
         </div>
@@ -115,7 +115,7 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
           <button
             onClick={handleSave}
             disabled={!editName.trim() || !editPhone.trim()}
-            className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             <Check size={14} />
             <span>保存</span>

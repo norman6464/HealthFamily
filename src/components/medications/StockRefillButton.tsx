@@ -41,7 +41,7 @@ export const StockRefillButton: React.FC<StockRefillButtonProps> = ({ medication
         <button
           onClick={handleRefill}
           disabled={isSubmitting}
-          className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
+          className="px-2 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 disabled:opacity-50"
         >
           補充
         </button>

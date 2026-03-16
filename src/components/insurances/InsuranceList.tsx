@@ -72,14 +72,14 @@ const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onU
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-3 border border-blue-200 space-y-3">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">保険の種類</label>
           <input
             type="text"
             value={editType}
             onChange={(e) => setEditType(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -89,7 +89,7 @@ const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onU
             type="text"
             value={editProvider}
             onChange={(e) => setEditProvider(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             placeholder="保険会社名を入力"
           />
         </div>
@@ -99,7 +99,7 @@ const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onU
             type="text"
             value={editPolicy}
             onChange={(e) => setEditPolicy(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             placeholder="証券番号を入力"
           />
         </div>
@@ -108,7 +108,7 @@ const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onU
           <textarea
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             rows={2}
           />
         </div>
@@ -116,7 +116,7 @@ const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onU
           <button
             onClick={handleSave}
             disabled={!editType.trim()}
-            className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             <Check size={14} />
             <span>保存</span>

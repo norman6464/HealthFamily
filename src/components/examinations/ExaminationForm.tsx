@@ -65,7 +65,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           id="exam-member"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -84,7 +84,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           type="text"
           value={examinationType}
           onChange={(e) => setExaminationType(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="例: 健康診断、血液検査、歯科検診"
         />
@@ -99,7 +99,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           type="date"
           value={examinedAt}
           onChange={(e) => setExaminedAt(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         />
       </div>
@@ -113,7 +113,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           type="date"
           value={nextScheduledDate}
           onChange={(e) => setNextScheduledDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -125,7 +125,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           id="exam-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="メモを入力"
         />
@@ -134,7 +134,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {initialData ? '更新する' : '登録する'}
         </button>
