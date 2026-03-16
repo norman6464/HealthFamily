@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { BodyMeasurement } from '../../domain/entities/BodyMeasurement';
 import { UpdateBodyMeasurementInput } from '../../domain/repositories/BodyMeasurementRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface BodyMeasurementListProps {
@@ -23,9 +24,7 @@ export const BodyMeasurementList: React.FC<BodyMeasurementListProps> = ({ measur
 
   if (measurements.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-8">
-        <p className="text-gray-500 text-sm">記録がありません</p>
-      </div>
+      <EmptyStatePrompt message="記録がありません" subMessage="上の＋ボタンから計測記録を追加できます" />
     );
   }
 

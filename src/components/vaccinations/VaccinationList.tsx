@@ -6,6 +6,7 @@ import { Vaccination } from '../../domain/entities/Vaccination';
 import { UpdateVaccinationInput } from '../../domain/repositories/VaccinationRepository';
 import { formatDateJP } from '../../domain/entities/DateFormat';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface VaccinationListProps {
@@ -24,9 +25,7 @@ export const VaccinationList: React.FC<VaccinationListProps> = ({ vaccinations, 
 
   if (vaccinations.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-8">
-        <p className="text-gray-500 text-sm">ワクチン記録がありません</p>
-      </div>
+      <EmptyStatePrompt message="ワクチン記録がありません" subMessage="上の＋ボタンから記録を追加できます" />
     );
   }
 

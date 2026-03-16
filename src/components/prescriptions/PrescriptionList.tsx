@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Prescription } from '../../domain/entities/Prescription';
 import { UpdatePrescriptionInput } from '../../domain/repositories/PrescriptionRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface PrescriptionListProps {
@@ -23,9 +24,7 @@ export const PrescriptionList: React.FC<PrescriptionListProps> = ({ prescription
 
   if (prescriptions.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-8">
-        <p className="text-gray-500 text-sm">処方箋が登録されていません</p>
-      </div>
+      <EmptyStatePrompt message="処方箋が登録されていません" subMessage="上の＋ボタンから処方箋を追加できます" />
     );
   }
 

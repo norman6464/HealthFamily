@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X, Phone } from 'lucide-react';
 import { EmergencyContact } from '../../domain/entities/EmergencyContact';
 import { UpdateEmergencyContactInput } from '../../domain/repositories/EmergencyContactRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface EmergencyContactListProps {
@@ -23,9 +24,7 @@ export const EmergencyContactList: React.FC<EmergencyContactListProps> = ({ cont
 
   if (contacts.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-8">
-        <p className="text-gray-500 text-sm">緊急連絡先が登録されていません</p>
-      </div>
+      <EmptyStatePrompt message="緊急連絡先が登録されていません" subMessage="上の＋ボタンから連絡先を追加できます" />
     );
   }
 
