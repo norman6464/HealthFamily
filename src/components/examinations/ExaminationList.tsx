@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X, Calendar } from 'lucide-react';
 import { Examination } from '../../domain/entities/Examination';
 import { UpdateExaminationInput } from '../../domain/repositories/ExaminationRepository';
+import { formatDateJP } from '../../domain/entities/DateFormat';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface ExaminationListProps {
@@ -23,9 +25,7 @@ export const ExaminationList: React.FC<ExaminationListProps> = ({ examinations, 
 
   if (examinations.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-8">
-        <p className="text-gray-500 text-sm">検査記録がありません</p>
-      </div>
+      <EmptyStatePrompt message="検査記録がありません" subMessage="上の＋ボタンから記録を追加できます" />
     );
   }
 
@@ -43,10 +43,6 @@ interface ExaminationCardProps {
   onUpdate: (id: string, input: UpdateExaminationInput) => Promise<void>;
   onDelete: (id: string) => void;
 }
-
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-};
 
 const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examination, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -155,12 +151,12 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
           <div className="text-xs text-gray-500 mt-1 space-y-0.5">
             <p className="flex items-center space-x-1">
               <Calendar size={10} />
-              <span>検査日: {formatDate(examination.examinedAt)}</span>
+              <span>検査日: {formatDateJP(examination.examinedAt)}</span>
             </p>
             {examination.nextScheduledDate && (
               <p className={`flex items-center space-x-1 ${isNextDatePast ? 'text-red-500 font-medium' : isNextDateUpcoming ? 'text-blue-500' : ''}`}>
                 <Calendar size={10} />
-                <span>次回予定: {formatDate(examination.nextScheduledDate)}</span>
+                <span>次回予定: {formatDateJP(examination.nextScheduledDate)}</span>
                 {isNextDatePast && <span>(期限切れ)</span>}
               </p>
             )}

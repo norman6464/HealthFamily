@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Allergy } from '../../domain/entities/Allergy';
 import { UpdateAllergyInput } from '../../domain/repositories/AllergyRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 const ALLERGY_TYPE_LABELS: Record<string, string> = {
@@ -44,9 +45,7 @@ export const AllergyList: React.FC<AllergyListProps> = ({ allergies, isLoading, 
 
   if (allergies.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-8">
-        <p className="text-gray-500 text-sm">アレルギーが登録されていません</p>
-      </div>
+      <EmptyStatePrompt message="アレルギーが登録されていません" subMessage="上の＋ボタンからアレルギー情報を追加できます" />
     );
   }
 

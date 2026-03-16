@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Insurance } from '../../domain/entities/Insurance';
 import { UpdateInsuranceInput } from '../../domain/repositories/InsuranceRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface InsuranceListProps {
@@ -23,9 +24,7 @@ export const InsuranceList: React.FC<InsuranceListProps> = ({ insurances, isLoad
 
   if (insurances.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-8">
-        <p className="text-gray-500 text-sm">保険が登録されていません</p>
-      </div>
+      <EmptyStatePrompt message="保険が登録されていません" subMessage="上の＋ボタンから保険情報を追加できます" />
     );
   }
 
