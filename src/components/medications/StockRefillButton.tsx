@@ -59,7 +59,7 @@ export const StockRefillButton: React.FC<StockRefillButtonProps> = ({ medication
   return (
     <button
       onClick={() => setShowInput(true)}
-      className="p-1 text-blue-500 hover:text-blue-700 transition-colors"
+      className="p-1 text-primary-500 hover:text-primary-700 transition-colors"
       aria-label="在庫補充"
     >
       <PackagePlus size={16} />

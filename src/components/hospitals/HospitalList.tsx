@@ -5,6 +5,7 @@ import { MapPin, Pencil, Trash2, Phone, Check, X } from 'lucide-react';
 import { Hospital } from '../../domain/entities/Hospital';
 import { UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface HospitalListProps {
@@ -23,9 +24,7 @@ export const HospitalList: React.FC<HospitalListProps> = ({ hospitals, isLoading
 
   if (hospitals.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <p className="text-gray-500 text-lg">病院が登録されていません</p>
-      </div>
+      <EmptyStatePrompt message="病院が登録されていません" subMessage="上のフォームから病院を追加してください" />
     );
   }
 
@@ -187,7 +186,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
         <div className="flex items-center space-x-1 flex-shrink-0">
           <button
             onClick={() => setIsEditing(true)}
-            className="text-gray-400 hover:text-blue-500 p-1 transition-colors"
+            className="text-gray-400 hover:text-primary-500 p-1 transition-colors"
             aria-label="編集"
           >
             <Pencil size={14} />
