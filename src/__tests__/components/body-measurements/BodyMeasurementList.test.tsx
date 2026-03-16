@@ -61,6 +61,8 @@ describe('BodyMeasurementList', () => {
     const measurement = createMeasurement();
     render(<BodyMeasurementList measurements={[measurement]} isLoading={false} onUpdate={mockOnUpdate} onDelete={mockOnDelete} />);
     fireEvent.click(screen.getByLabelText('削除'));
+    expect(screen.getByText(/削除しますか/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('確認'));
     expect(mockOnDelete).toHaveBeenCalledWith('bm-1');
   });
 

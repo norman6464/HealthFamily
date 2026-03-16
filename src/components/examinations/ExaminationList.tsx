@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X, Calendar } from 'lucide-react';
 import { Examination } from '../../domain/entities/Examination';
 import { UpdateExaminationInput } from '../../domain/repositories/ExaminationRepository';
+import { formatDateJP } from '../../domain/entities/DateFormat';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
@@ -43,10 +44,6 @@ interface ExaminationCardProps {
   onUpdate: (id: string, input: UpdateExaminationInput) => Promise<void>;
   onDelete: (id: string) => void;
 }
-
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-};
 
 const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examination, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -155,12 +152,12 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
           <div className="text-xs text-gray-500 mt-1 space-y-0.5">
             <p className="flex items-center space-x-1">
               <Calendar size={10} />
-              <span>検査日: {formatDate(examination.examinedAt)}</span>
+              <span>検査日: {formatDateJP(examination.examinedAt)}</span>
             </p>
             {examination.nextScheduledDate && (
               <p className={`flex items-center space-x-1 ${isNextDatePast ? 'text-red-500 font-medium' : isNextDateUpcoming ? 'text-blue-500' : ''}`}>
                 <Calendar size={10} />
-                <span>次回予定: {formatDate(examination.nextScheduledDate)}</span>
+                <span>次回予定: {formatDateJP(examination.nextScheduledDate)}</span>
                 {isNextDatePast && <span>(期限切れ)</span>}
               </p>
             )}

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X, Calendar } from 'lucide-react';
 import { Vaccination } from '../../domain/entities/Vaccination';
 import { UpdateVaccinationInput } from '../../domain/repositories/VaccinationRepository';
+import { formatDateJP } from '../../domain/entities/DateFormat';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
@@ -43,10 +44,6 @@ interface VaccinationCardProps {
   onUpdate: (id: string, input: UpdateVaccinationInput) => Promise<void>;
   onDelete: (id: string) => void;
 }
-
-const formatDate = (date: Date) => {
-  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-};
 
 const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccination, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -155,12 +152,12 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
           <div className="text-xs text-gray-500 mt-1 space-y-0.5">
             <p className="flex items-center space-x-1">
               <Calendar size={10} />
-              <span>接種日: {formatDate(vaccination.vaccinatedAt)}</span>
+              <span>接種日: {formatDateJP(vaccination.vaccinatedAt)}</span>
             </p>
             {vaccination.nextScheduledDate && (
               <p className={`flex items-center space-x-1 ${isNextDatePast ? 'text-red-500 font-medium' : isNextDateUpcoming ? 'text-blue-500' : ''}`}>
                 <Calendar size={10} />
-                <span>次回予定: {formatDate(vaccination.nextScheduledDate)}</span>
+                <span>次回予定: {formatDateJP(vaccination.nextScheduledDate)}</span>
                 {isNextDatePast && <span>(期限切れ)</span>}
               </p>
             )}

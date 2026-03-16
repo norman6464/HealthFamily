@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { BodyMeasurement } from '../../domain/entities/BodyMeasurement';
 import { UpdateBodyMeasurementInput } from '../../domain/repositories/BodyMeasurementRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface BodyMeasurementListProps {
   measurements: BodyMeasurement[];
@@ -45,6 +46,7 @@ interface MeasurementCardProps {
 
 const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measurement, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editWeight, setEditWeight] = useState(measurement.weight?.toString() || '');
   const [editHeight, setEditHeight] = useState(measurement.height?.toString() || '');
   const [editNotes, setEditNotes] = useState(measurement.notes || '');
@@ -162,7 +164,7 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measuremen
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(measurement.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -170,6 +172,17 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measuremen
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="計測記録の削除"
+        message="この計測記録を削除しますか？この操作は取り消せません。"
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(measurement.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });
