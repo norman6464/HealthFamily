@@ -15,6 +15,11 @@ export interface UseFetcherResult<T> {
 
 const dataCache = new Map<string, unknown>();
 
+// テスト用: キャッシュをクリア
+export const clearFetcherCache = (): void => {
+  dataCache.clear();
+};
+
 export function useFetcher<T>(
   asyncFn: () => Promise<T>,
   deps: React.DependencyList,
