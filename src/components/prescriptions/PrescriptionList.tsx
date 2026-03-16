@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Prescription } from '../../domain/entities/Prescription';
 import { UpdatePrescriptionInput } from '../../domain/repositories/PrescriptionRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface PrescriptionListProps {
   prescriptions: Prescription[];
@@ -45,6 +46,7 @@ interface PrescriptionCardProps {
 
 const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescription, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editName, setEditName] = useState(prescription.prescriptionName);
   const [editDoctor, setEditDoctor] = useState(prescription.prescribedBy || '');
   const [editPharmacy, setEditPharmacy] = useState(prescription.pharmacyName || '');
@@ -170,7 +172,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(prescription.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -178,6 +180,17 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="処方箋の削除"
+        message={`「${prescription.prescriptionName}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(prescription.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });

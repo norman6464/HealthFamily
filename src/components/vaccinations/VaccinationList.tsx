@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X, Calendar } from 'lucide-react';
 import { Vaccination } from '../../domain/entities/Vaccination';
 import { UpdateVaccinationInput } from '../../domain/repositories/VaccinationRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface VaccinationListProps {
   vaccinations: Vaccination[];
@@ -49,6 +50,7 @@ const formatDate = (date: Date) => {
 
 const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccination, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editName, setEditName] = useState(vaccination.vaccineName);
   const [editDate, setEditDate] = useState(vaccination.vaccinatedAt.toISOString().split('T')[0]);
   const [editNextDate, setEditNextDate] = useState(
@@ -174,7 +176,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(vaccination.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -182,6 +184,17 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="ワクチン記録の削除"
+        message={`「${vaccination.vaccineName}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(vaccination.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });

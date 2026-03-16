@@ -5,6 +5,7 @@ import { MapPin, Pencil, Trash2, Phone, Check, X } from 'lucide-react';
 import { Hospital } from '../../domain/entities/Hospital';
 import { UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface HospitalListProps {
   hospitals: Hospital[];
@@ -45,6 +46,7 @@ export interface HospitalCardProps {
 
 const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editName, setEditName] = useState(hospital.name);
   const [editAddress, setEditAddress] = useState(hospital.address || '');
   const [editPhone, setEditPhone] = useState(hospital.phoneNumber || '');
@@ -191,7 +193,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(hospital.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -199,6 +201,17 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="病院の削除"
+        message={`「${hospital.name}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(hospital.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });
