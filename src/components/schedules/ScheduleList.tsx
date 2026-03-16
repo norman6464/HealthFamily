@@ -5,6 +5,7 @@ import { Clock, Trash2, Pencil, Check, X } from 'lucide-react';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { ScheduleWithDetails } from '../../domain/repositories/ScheduleRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 
 const DAY_LABELS: Record<DayOfWeek, string> = {
   mon: '月',
@@ -34,9 +35,7 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, isLoading
 
   if (schedules.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <p className="text-gray-500 text-lg">スケジュールがありません</p>
-      </div>
+      <EmptyStatePrompt message="スケジュールがありません" subMessage="薬の詳細画面からスケジュールを追加できます" />
     );
   }
 

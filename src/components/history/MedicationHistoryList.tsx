@@ -4,6 +4,7 @@ import React from 'react';
 import { Clock, Pill, User, Trash2 } from 'lucide-react';
 import { DailyRecordGroup, MedicationRecordEntity } from '../../domain/entities/MedicationRecord';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 
 interface MedicationHistoryListProps {
   groups: DailyRecordGroup[];
@@ -20,9 +21,7 @@ export const MedicationHistoryList: React.FC<MedicationHistoryListProps> = ({ gr
 
   if (groups.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <p className="text-gray-500 text-lg">服薬履歴がありません</p>
-      </div>
+      <EmptyStatePrompt message="服薬履歴がありません" subMessage="服薬を記録すると履歴が表示されます" />
     );
   }
 

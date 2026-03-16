@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { Calendar, Pencil, Trash2, User, MapPin } from 'lucide-react';
 import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 
 export type AppointmentFilter = 'upcoming' | 'past';
 
@@ -44,9 +45,7 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
 
   if (appointments.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <p className="text-gray-500 text-lg">通院予定がありません</p>
-      </div>
+      <EmptyStatePrompt message="通院予定がありません" subMessage="上の＋ボタンから通院予定を追加できます" />
     );
   }
 
