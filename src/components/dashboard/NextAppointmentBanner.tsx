@@ -22,15 +22,15 @@ export const NextAppointmentBanner: React.FC<NextAppointmentBannerProps> = ({ ap
   const formatted = `${date.getMonth() + 1}/${date.getDate()}`;
 
   return (
-    <div className="bg-blue-50 rounded-lg p-3 mb-4 border border-blue-200">
+    <div className="bg-primary-50 rounded-lg p-3 mb-4 border border-primary-200">
       <div className="flex items-center space-x-3">
-        <Calendar size={18} className="text-blue-600 flex-shrink-0" />
+        <Calendar size={18} className="text-primary-600 flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-blue-800 truncate">
+          <p className="text-sm font-medium text-primary-800 truncate">
             {nextAppointment.memberName && <span>{nextAppointment.memberName}</span>}
             {nextAppointment.hospitalName && <span> - {nextAppointment.hospitalName}</span>}
           </p>
-          <p className="text-xs text-blue-600">{formatted}</p>
+          <p className="text-xs text-primary-600">{formatted}</p>
         </div>
       </div>
     </div>

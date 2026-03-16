@@ -154,7 +154,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
               <span>検査日: {formatDateJP(examination.examinedAt)}</span>
             </p>
             {examination.nextScheduledDate && (
-              <p className={`flex items-center space-x-1 ${isNextDatePast ? 'text-red-500 font-medium' : isNextDateUpcoming ? 'text-blue-500' : ''}`}>
+              <p className={`flex items-center space-x-1 ${isNextDatePast ? 'text-red-500 font-medium' : isNextDateUpcoming ? 'text-primary-500' : ''}`}>
                 <Calendar size={10} />
                 <span>次回予定: {formatDateJP(examination.nextScheduledDate)}</span>
                 {isNextDatePast && <span>(期限切れ)</span>}
