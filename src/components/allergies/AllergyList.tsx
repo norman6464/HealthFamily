@@ -179,7 +179,7 @@ const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate,
             <span className={`text-xs px-1.5 py-0.5 rounded ${SEVERITY_COLORS[allergy.severity] || 'bg-gray-100 text-gray-600'}`}>
               {SEVERITY_LABELS[allergy.severity] || allergy.severity}
             </span>
-            <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+            <span className="text-xs bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded">
               {ALLERGY_TYPE_LABELS[allergy.allergyType] || allergy.allergyType}
             </span>
             {allergy.memberName && (

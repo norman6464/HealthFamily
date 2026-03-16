@@ -139,7 +139,7 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
           <div className="flex items-center space-x-2 flex-wrap gap-y-1">
             <p className="font-medium text-gray-800 text-sm">{contact.contactName}</p>
             {contact.relationship && (
-              <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">{contact.relationship}</span>
+              <span className="text-xs bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded">{contact.relationship}</span>
             )}
             {contact.memberName && (
               <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{contact.memberName}</span>
