@@ -46,6 +46,8 @@ describe('HospitalList', () => {
     const hospital = createHospital();
     render(<HospitalList hospitals={[hospital]} isLoading={false} onUpdate={mockOnUpdate} onDelete={mockOnDelete} />);
     fireEvent.click(screen.getByLabelText('削除'));
+    expect(screen.getByText(/削除しますか/)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('確認'));
     expect(mockOnDelete).toHaveBeenCalledWith('hosp-1');
   });
 

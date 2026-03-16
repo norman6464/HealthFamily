@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X, Calendar } from 'lucide-react';
 import { Examination } from '../../domain/entities/Examination';
 import { UpdateExaminationInput } from '../../domain/repositories/ExaminationRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface ExaminationListProps {
   examinations: Examination[];
@@ -49,6 +50,7 @@ const formatDate = (date: Date) => {
 
 const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examination, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editType, setEditType] = useState(examination.examinationType);
   const [editDate, setEditDate] = useState(examination.examinedAt.toISOString().split('T')[0]);
   const [editNextDate, setEditNextDate] = useState(
@@ -174,7 +176,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(examination.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -182,6 +184,17 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="検査記録の削除"
+        message={`「${examination.examinationType}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(examination.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });

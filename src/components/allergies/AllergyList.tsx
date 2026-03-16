@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Allergy } from '../../domain/entities/Allergy';
 import { UpdateAllergyInput } from '../../domain/repositories/AllergyRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 const ALLERGY_TYPE_LABELS: Record<string, string> = {
   food: '食物',
@@ -66,6 +67,7 @@ interface AllergyCardProps {
 
 const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editName, setEditName] = useState(allergy.allergenName);
   const [editType, setEditType] = useState(allergy.allergyType);
   const [editSeverity, setEditSeverity] = useState(allergy.severity);
@@ -202,7 +204,7 @@ const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate,
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(allergy.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -210,6 +212,17 @@ const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate,
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="アレルギーの削除"
+        message={`「${allergy.allergenName}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(allergy.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });

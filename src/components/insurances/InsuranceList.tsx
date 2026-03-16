@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Insurance } from '../../domain/entities/Insurance';
 import { UpdateInsuranceInput } from '../../domain/repositories/InsuranceRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface InsuranceListProps {
   insurances: Insurance[];
@@ -45,6 +46,7 @@ interface InsuranceCardProps {
 
 const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editType, setEditType] = useState(insurance.insuranceType);
   const [editProvider, setEditProvider] = useState(insurance.providerName || '');
   const [editPolicy, setEditPolicy] = useState(insurance.policyNumber || '');
@@ -157,7 +159,7 @@ const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onU
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(insurance.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -165,6 +167,17 @@ const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onU
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="保険の削除"
+        message={`「${insurance.insuranceType}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(insurance.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });

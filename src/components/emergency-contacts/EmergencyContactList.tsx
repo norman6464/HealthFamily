@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X, Phone } from 'lucide-react';
 import { EmergencyContact } from '../../domain/entities/EmergencyContact';
 import { UpdateEmergencyContactInput } from '../../domain/repositories/EmergencyContactRepository';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 
 interface EmergencyContactListProps {
   contacts: EmergencyContact[];
@@ -45,6 +46,7 @@ interface ContactCardProps {
 
 const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editName, setEditName] = useState(contact.contactName);
   const [editPhone, setEditPhone] = useState(contact.phoneNumber);
   const [editRelationship, setEditRelationship] = useState(contact.relationship || '');
@@ -163,7 +165,7 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
             <Pencil size={14} />
           </button>
           <button
-            onClick={() => onDelete(contact.id)}
+            onClick={() => setIsDeleteDialogOpen(true)}
             className="text-gray-400 hover:text-red-500 p-1 transition-colors"
             aria-label="削除"
           >
@@ -171,6 +173,17 @@ const ContactCard: React.FC<ContactCardProps> = React.memo(({ contact, onUpdate,
           </button>
         </div>
       </div>
+      <ConfirmationDialog
+        title="緊急連絡先の削除"
+        message={`「${contact.contactName}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(contact.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 });
