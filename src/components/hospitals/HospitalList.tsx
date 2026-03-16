@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { MapPin, Pencil, Trash2, Phone, Check, X } from 'lucide-react';
 import { Hospital } from '../../domain/entities/Hospital';
 import { UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface HospitalListProps {
   hospitals: Hospital[];
@@ -15,9 +16,7 @@ interface HospitalListProps {
 export const HospitalList: React.FC<HospitalListProps> = ({ hospitals, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 
@@ -78,14 +77,14 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-3 border border-blue-200 space-y-3">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">病院名</label>
           <input
             type="text"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -95,7 +94,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
             type="text"
             value={editAddress}
             onChange={(e) => setEditAddress(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             placeholder="住所を入力"
           />
         </div>
@@ -105,7 +104,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
             type="tel"
             value={editPhone}
             onChange={(e) => setEditPhone(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             placeholder="電話番号を入力"
           />
         </div>
@@ -115,7 +114,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
             type="text"
             value={editDepartment}
             onChange={(e) => setEditDepartment(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             placeholder="例: 内科、外科、小児科"
           />
         </div>
@@ -125,7 +124,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
             type="text"
             value={editDoctorName}
             onChange={(e) => setEditDoctorName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             placeholder="担当医の名前を入力"
           />
         </div>
@@ -134,7 +133,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
           <textarea
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             rows={2}
             placeholder="メモを入力"
           />
@@ -143,7 +142,7 @@ const HospitalCard: React.FC<HospitalCardProps> = React.memo(({ hospital, onUpda
           <button
             onClick={handleSave}
             disabled={!editName.trim()}
-            className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             <Check size={14} />
             <span>保存</span>

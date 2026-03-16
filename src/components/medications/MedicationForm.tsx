@@ -70,7 +70,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
           placeholder="薬の名前を入力"
         />
       </div>
@@ -83,7 +83,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           id="med-category"
           value={category}
           onChange={(e) => setCategory(e.target.value as MedicationCategory)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
         >
           <option value="regular">常用薬</option>
           <option value="supplement">サプリメント</option>
@@ -107,7 +107,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
             type="text"
             value={dosage}
             onChange={(e) => setDosage(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             placeholder="例: 1錠"
           />
         </div>
@@ -120,7 +120,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
             type="text"
             value={frequency}
             onChange={(e) => setFrequency(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             placeholder="例: 1日1回"
           />
         </div>
@@ -136,7 +136,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           min="0"
           value={stockQuantity}
           onChange={(e) => setStockQuantity(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
           placeholder="例: 30"
         />
       </div>
@@ -150,7 +150,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           type="date"
           value={stockAlertDate}
           onChange={(e) => setStockAlertDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
         />
       </div>
 
@@ -162,7 +162,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           id="med-instructions"
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
           rows={2}
           placeholder="例: 食後に水と一緒に服用"
         />
@@ -171,7 +171,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {isEditing ? '更新する' : '追加する'}
         </button>

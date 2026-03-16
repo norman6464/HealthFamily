@@ -65,7 +65,7 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
           id="vacc-member"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -84,7 +84,7 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
           type="text"
           value={vaccineName}
           onChange={(e) => setVaccineName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="例: インフルエンザ、混合ワクチン"
         />
@@ -99,7 +99,7 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
           type="date"
           value={vaccinatedAt}
           onChange={(e) => setVaccinatedAt(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         />
       </div>
@@ -113,7 +113,7 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
           type="date"
           value={nextScheduledDate}
           onChange={(e) => setNextScheduledDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -125,7 +125,7 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
           id="vacc-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="メモを入力"
         />
@@ -134,7 +134,7 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {initialData ? '更新する' : '登録する'}
         </button>

@@ -5,6 +5,7 @@ import { MemberSummary } from '../../domain/entities/MemberSummary';
 import { MemberIcon } from '../shared/MemberIcon';
 import { MemberSummaryCard } from './MemberSummaryCard';
 import { Pill, Pencil } from 'lucide-react';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface MemberListProps {
   members: Member[];
@@ -17,9 +18,7 @@ interface MemberListProps {
 export const MemberList: React.FC<MemberListProps> = ({ members, isLoading, onDelete, onEdit, summaries }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

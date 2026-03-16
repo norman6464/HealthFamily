@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { BodyMeasurement } from '../../domain/entities/BodyMeasurement';
 import { UpdateBodyMeasurementInput } from '../../domain/repositories/BodyMeasurementRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface BodyMeasurementListProps {
   measurements: BodyMeasurement[];
@@ -15,9 +16,7 @@ interface BodyMeasurementListProps {
 export const BodyMeasurementList: React.FC<BodyMeasurementListProps> = ({ measurements, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 
@@ -71,7 +70,7 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measuremen
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-3 border border-blue-200 space-y-3">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-gray-500 mb-1">体重 (kg)</label>
@@ -81,7 +80,7 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measuremen
               min="0.1"
               value={editWeight}
               onChange={(e) => setEditWeight(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
@@ -92,7 +91,7 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measuremen
               min="0.1"
               value={editHeight}
               onChange={(e) => setEditHeight(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             />
           </div>
         </div>
@@ -101,7 +100,7 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measuremen
           <textarea
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             rows={2}
           />
         </div>
@@ -109,7 +108,7 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(({ measuremen
           <button
             onClick={handleSave}
             disabled={!editWeight && !editHeight}
-            className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             <Check size={14} />
             <span>保存</span>

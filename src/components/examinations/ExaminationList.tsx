@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X, Calendar } from 'lucide-react';
 import { Examination } from '../../domain/entities/Examination';
 import { UpdateExaminationInput } from '../../domain/repositories/ExaminationRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface ExaminationListProps {
   examinations: Examination[];
@@ -15,9 +16,7 @@ interface ExaminationListProps {
 export const ExaminationList: React.FC<ExaminationListProps> = ({ examinations, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 
@@ -81,14 +80,14 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-3 border border-blue-200 space-y-3">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">検査の種類</label>
           <input
             type="text"
             value={editType}
             onChange={(e) => setEditType(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -98,7 +97,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
             type="date"
             value={editDate}
             onChange={(e) => setEditDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -108,7 +107,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
             type="date"
             value={editNextDate}
             onChange={(e) => setEditNextDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
@@ -116,7 +115,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
           <textarea
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             rows={2}
           />
         </div>
@@ -124,7 +123,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
           <button
             onClick={handleSave}
             disabled={!editType.trim() || !editDate}
-            className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             <Check size={14} />
             <span>保存</span>

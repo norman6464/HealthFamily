@@ -7,6 +7,7 @@ import {
   HealthLogEntity,
   ConditionLevel,
 } from '../../domain/entities/HealthLog';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface HealthLogListProps {
   groups: DailyHealthLogGroup[];
@@ -17,9 +18,7 @@ interface HealthLogListProps {
 export const HealthLogList: React.FC<HealthLogListProps> = ({ groups, isLoading, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

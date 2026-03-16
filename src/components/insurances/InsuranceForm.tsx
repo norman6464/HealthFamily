@@ -61,7 +61,7 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
           id="ins-member"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -80,7 +80,7 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
           type="text"
           value={insuranceType}
           onChange={(e) => setInsuranceType(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="例: ガン保険、生命保険、医療保険"
         />
@@ -95,7 +95,7 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
           type="text"
           value={providerName}
           onChange={(e) => setProviderName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="保険会社名を入力"
         />
       </div>
@@ -109,7 +109,7 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
           type="text"
           value={policyNumber}
           onChange={(e) => setPolicyNumber(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="証券番号を入力"
         />
       </div>
@@ -122,7 +122,7 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
           id="ins-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="メモを入力"
         />
@@ -131,7 +131,7 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {initialData ? '更新する' : '登録する'}
         </button>

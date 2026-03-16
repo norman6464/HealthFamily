@@ -60,7 +60,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit, initialData, o
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="名前を入力"
         />
       </div>
@@ -74,7 +74,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit, initialData, o
             id="member-type"
             value={memberType}
             onChange={(e) => setMemberType(e.target.value as MemberType)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="human">家族</option>
             <option value="pet">ペット</option>
@@ -91,7 +91,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit, initialData, o
             id="pet-type"
             value={petType}
             onChange={(e) => setPetType(e.target.value as PetType)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="dog">犬</option>
             <option value="cat">猫</option>
@@ -111,7 +111,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit, initialData, o
           type="date"
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -123,7 +123,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit, initialData, o
           id="member-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={3}
           placeholder="メモを入力（任意）"
         />
@@ -132,7 +132,7 @@ export const MemberForm: React.FC<MemberFormProps> = ({ onSubmit, initialData, o
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {isEditing ? '更新する' : '追加する'}
         </button>

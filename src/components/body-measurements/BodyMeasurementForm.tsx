@@ -63,7 +63,7 @@ export const BodyMeasurementForm: React.FC<BodyMeasurementFormProps> = ({ member
           id="bm-member"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -85,7 +85,7 @@ export const BodyMeasurementForm: React.FC<BodyMeasurementFormProps> = ({ member
             min="0.1"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             placeholder="65.5"
           />
         </div>
@@ -100,7 +100,7 @@ export const BodyMeasurementForm: React.FC<BodyMeasurementFormProps> = ({ member
             min="0.1"
             value={height}
             onChange={(e) => setHeight(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             placeholder="170.0"
           />
         </div>
@@ -115,7 +115,7 @@ export const BodyMeasurementForm: React.FC<BodyMeasurementFormProps> = ({ member
           type="date"
           value={recordedAt}
           onChange={(e) => setRecordedAt(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         />
       </div>
@@ -128,7 +128,7 @@ export const BodyMeasurementForm: React.FC<BodyMeasurementFormProps> = ({ member
           id="bm-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="朝食前に測定、など"
         />
@@ -137,7 +137,7 @@ export const BodyMeasurementForm: React.FC<BodyMeasurementFormProps> = ({ member
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {initialData ? '更新する' : '記録する'}
         </button>

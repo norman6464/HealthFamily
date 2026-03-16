@@ -99,7 +99,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
           type="date"
           value={appointmentDate}
           onChange={(e) => setAppointmentDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         />
       </div>
@@ -114,7 +114,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
             value={hospitalId}
             onChange={(e) => setHospitalId(e.target.value)}
             disabled={isEditing}
-            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <option value="">選択しない</option>
             {hospitals.map((h) => (
@@ -132,7 +132,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
           id="apt-type"
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         >
           <option value="">選択しない</option>
           {typeOptions.map(([key, label]) => (
@@ -149,7 +149,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
           id="apt-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder={type === 'vaccination' ? '例: 混合ワクチン, 狂犬病ワクチン' : 'メモを入力'}
         />
@@ -158,7 +158,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
       <div className={isEditing ? 'flex space-x-2' : ''}>
         <button
           type="submit"
-          className={`${isEditing ? 'flex-1' : 'w-full'} bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium`}
+          className={`${isEditing ? 'flex-1' : 'w-full'} bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium`}
         >
           {isEditing ? '更新する' : '追加する'}
         </button>

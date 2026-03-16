@@ -20,7 +20,7 @@ describe('ScheduleForm', () => {
   it('毎日モードがデフォルトで選択されている', () => {
     render(<ScheduleForm onSubmit={mockOnSubmit} />);
     const dailyButton = screen.getByText('毎日');
-    expect(dailyButton.className).toContain('bg-blue-600');
+    expect(dailyButton.className).toContain('bg-primary-600');
   });
 
   it('曜日指定モードに切り替えると曜日ボタンが表示される', () => {
@@ -91,7 +91,7 @@ describe('ScheduleForm', () => {
     render(<ScheduleForm onSubmit={mockOnSubmit} />);
     fireEvent.click(screen.getByText('スケジュールを追加'));
     const dailyButton = screen.getByText('毎日');
-    expect(dailyButton.className).toContain('bg-blue-600');
+    expect(dailyButton.className).toContain('bg-primary-600');
   });
 
   it('間隔指定モードに切り替えると間隔選択と開始日が表示される', () => {

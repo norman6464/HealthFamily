@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Prescription } from '../../domain/entities/Prescription';
 import { UpdatePrescriptionInput } from '../../domain/repositories/PrescriptionRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface PrescriptionListProps {
   prescriptions: Prescription[];
@@ -15,9 +16,7 @@ interface PrescriptionListProps {
 export const PrescriptionList: React.FC<PrescriptionListProps> = ({ prescriptions, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 
@@ -77,14 +76,14 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
 
   if (isEditing) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-3 border border-blue-200 space-y-3">
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
         <div>
           <label className="block text-xs text-gray-500 mb-1">処方箋名</label>
           <input
             type="text"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             required
           />
         </div>
@@ -94,7 +93,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
             type="text"
             value={editDoctor}
             onChange={(e) => setEditDoctor(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
@@ -103,7 +102,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
             type="text"
             value={editPharmacy}
             onChange={(e) => setEditPharmacy(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
@@ -111,7 +110,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
           <textarea
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
             rows={2}
           />
         </div>
@@ -119,7 +118,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
           <button
             onClick={handleSave}
             disabled={!editName.trim()}
-            className="flex-1 flex items-center justify-center space-x-1 bg-blue-600 text-white py-1.5 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
           >
             <Check size={14} />
             <span>保存</span>

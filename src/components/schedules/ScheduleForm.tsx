@@ -77,7 +77,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
   const modeButtonClass = (m: ScheduleMode) =>
     `flex items-center justify-center px-3 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
       mode === m
-        ? 'bg-blue-600 text-white border-blue-600'
+        ? 'bg-primary-600 text-white border-blue-600'
         : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
     }`;
 
@@ -92,7 +92,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
           type="time"
           value={scheduledTime}
           onChange={(e) => setScheduledTime(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
         />
       </div>
 
@@ -117,7 +117,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
                 key={value}
                 className={`flex items-center justify-center w-10 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
                   selectedDays.includes(value)
-                    ? 'bg-blue-600 text-white border-blue-600'
+                    ? 'bg-primary-600 text-white border-blue-600'
                     : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
                 }`}
               >
@@ -147,7 +147,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
                 id="interval-days"
                 value={intervalDays}
                 onChange={(e) => setIntervalDays(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
               >
                 {INTERVAL_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -163,7 +163,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
                 required
               />
             </div>
@@ -179,7 +179,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
           id="reminder-minutes"
           value={reminderMinutes}
           onChange={(e) => setReminderMinutes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
         >
           <option value="0">なし</option>
           <option value="5">5分前</option>
@@ -192,7 +192,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
       >
         スケジュールを追加
       </button>

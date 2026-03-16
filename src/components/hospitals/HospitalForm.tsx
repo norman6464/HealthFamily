@@ -55,7 +55,7 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="病院名を入力"
         />
@@ -70,7 +70,7 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="住所を入力"
         />
       </div>
@@ -84,7 +84,7 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="電話番号を入力"
         />
       </div>
@@ -98,7 +98,7 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
           type="text"
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="例: 内科、外科、小児科"
         />
       </div>
@@ -112,7 +112,7 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
           type="text"
           value={doctorName}
           onChange={(e) => setDoctorName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="担当医の名前を入力"
         />
       </div>
@@ -125,7 +125,7 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
           id="hosp-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="メモを入力"
         />
@@ -133,7 +133,7 @@ export const HospitalForm: React.FC<HospitalFormProps> = ({ onSubmit }) => {
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
       >
         追加する
       </button>

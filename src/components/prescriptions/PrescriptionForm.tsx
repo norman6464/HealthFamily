@@ -70,7 +70,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
           id="rx-member"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
           <option value="">選択してください</option>
@@ -89,7 +89,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
           type="text"
           value={prescriptionName}
           onChange={(e) => setPrescriptionName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
           placeholder="例: 高血圧治療薬、抗生物質"
         />
@@ -104,7 +104,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
           type="text"
           value={prescribedBy}
           onChange={(e) => setPrescribedBy(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="例: 山田太郎 医師"
         />
       </div>
@@ -119,7 +119,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
             type="date"
             value={prescribedAt}
             onChange={(e) => setPrescribedAt(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             required
           />
         </div>
@@ -132,7 +132,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
             type="date"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
       </div>
@@ -146,7 +146,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
           type="text"
           value={pharmacyName}
           onChange={(e) => setPharmacyName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="例: 調剤薬局ABC"
         />
       </div>
@@ -159,7 +159,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
           id="rx-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
           placeholder="リフィル回数、注意事項など"
         />
@@ -168,7 +168,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           {initialData ? '更新する' : '登録する'}
         </button>
