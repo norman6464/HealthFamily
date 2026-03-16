@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { User, Trash2, Activity } from 'lucide-react';
+import { User, Trash2 } from 'lucide-react';
 import {
   DailyHealthLogGroup,
   HealthLogEntity,
   ConditionLevel,
 } from '../../domain/entities/HealthLog';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 
 interface HealthLogListProps {
   groups: DailyHealthLogGroup[];
@@ -24,11 +25,7 @@ export const HealthLogList: React.FC<HealthLogListProps> = ({ groups, isLoading,
 
   if (groups.length === 0) {
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <Activity size={48} className="text-gray-300 mb-3" />
-        <p className="text-gray-500 text-lg">体調記録がありません</p>
-        <p className="text-gray-400 text-sm mt-1">上のボタンから記録を追加してください</p>
-      </div>
+      <EmptyStatePrompt message="体調記録がありません" subMessage="上のボタンから記録を追加してください" />
     );
   }
 
