@@ -3,6 +3,7 @@
 import React from 'react';
 import { Clock, Pill, User, Trash2 } from 'lucide-react';
 import { DailyRecordGroup, MedicationRecordEntity } from '../../domain/entities/MedicationRecord';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface MedicationHistoryListProps {
   groups: DailyRecordGroup[];
@@ -13,9 +14,7 @@ interface MedicationHistoryListProps {
 export const MedicationHistoryList: React.FC<MedicationHistoryListProps> = ({ groups, isLoading, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

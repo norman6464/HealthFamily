@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X, Phone } from 'lucide-react';
 import { EmergencyContact } from '../../domain/entities/EmergencyContact';
 import { UpdateEmergencyContactInput } from '../../domain/repositories/EmergencyContactRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface EmergencyContactListProps {
   contacts: EmergencyContact[];
@@ -15,9 +16,7 @@ interface EmergencyContactListProps {
 export const EmergencyContactList: React.FC<EmergencyContactListProps> = ({ contacts, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

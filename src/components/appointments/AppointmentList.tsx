@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Calendar, Pencil, Trash2, User, MapPin } from 'lucide-react';
 import { Appointment, AppointmentEntity } from '../../domain/entities/Appointment';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 export type AppointmentFilter = 'upcoming' | 'past';
 
@@ -37,9 +38,7 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, 
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

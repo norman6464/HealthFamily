@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { BodyMeasurement } from '../../domain/entities/BodyMeasurement';
 import { UpdateBodyMeasurementInput } from '../../domain/repositories/BodyMeasurementRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface BodyMeasurementListProps {
   measurements: BodyMeasurement[];
@@ -15,9 +16,7 @@ interface BodyMeasurementListProps {
 export const BodyMeasurementList: React.FC<BodyMeasurementListProps> = ({ measurements, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

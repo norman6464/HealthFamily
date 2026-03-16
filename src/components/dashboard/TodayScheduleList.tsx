@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 import { ScheduleEntity } from '../../domain/entities/Schedule';
 import { MissedDoseIndicator } from './MissedDoseIndicator';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
@@ -13,9 +14,7 @@ interface TodayScheduleListProps {
 export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, onMarkCompleted }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

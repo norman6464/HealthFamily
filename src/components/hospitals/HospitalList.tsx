@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { MapPin, Pencil, Trash2, Phone, Check, X } from 'lucide-react';
 import { Hospital } from '../../domain/entities/Hospital';
 import { UpdateHospitalInput } from '../../domain/repositories/HospitalRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface HospitalListProps {
   hospitals: Hospital[];
@@ -15,9 +16,7 @@ interface HospitalListProps {
 export const HospitalList: React.FC<HospitalListProps> = ({ hospitals, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

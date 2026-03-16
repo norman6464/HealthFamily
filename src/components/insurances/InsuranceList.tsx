@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Insurance } from '../../domain/entities/Insurance';
 import { UpdateInsuranceInput } from '../../domain/repositories/InsuranceRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface InsuranceListProps {
   insurances: Insurance[];
@@ -15,9 +16,7 @@ interface InsuranceListProps {
 export const InsuranceList: React.FC<InsuranceListProps> = ({ insurances, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

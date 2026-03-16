@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Prescription } from '../../domain/entities/Prescription';
 import { UpdatePrescriptionInput } from '../../domain/repositories/PrescriptionRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface PrescriptionListProps {
   prescriptions: Prescription[];
@@ -15,9 +16,7 @@ interface PrescriptionListProps {
 export const PrescriptionList: React.FC<PrescriptionListProps> = ({ prescriptions, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

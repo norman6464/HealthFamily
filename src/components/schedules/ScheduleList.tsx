@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Clock, Trash2, Pencil, Check, X } from 'lucide-react';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { ScheduleWithDetails } from '../../domain/repositories/ScheduleRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 const DAY_LABELS: Record<DayOfWeek, string> = {
   mon: '月',
@@ -27,9 +28,7 @@ interface ScheduleListProps {
 export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

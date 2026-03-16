@@ -3,6 +3,7 @@ import { Pill, Check, Pencil, Clock } from 'lucide-react';
 import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 interface MedicationListProps {
   medications: MedicationViewModel[];
@@ -16,9 +17,7 @@ interface MedicationListProps {
 export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onMarkPastTaken, onEdit }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 

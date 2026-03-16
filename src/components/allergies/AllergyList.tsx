@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { Allergy } from '../../domain/entities/Allergy';
 import { UpdateAllergyInput } from '../../domain/repositories/AllergyRepository';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
 
 const ALLERGY_TYPE_LABELS: Record<string, string> = {
   food: '食物',
@@ -36,9 +37,7 @@ interface AllergyListProps {
 export const AllergyList: React.FC<AllergyListProps> = ({ allergies, isLoading, onUpdate, onDelete }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p className="text-gray-500">読み込み中...</p>
-      </div>
+      <LoadingSpinner />
     );
   }
 
