@@ -19,7 +19,7 @@ describe('CharacterSelector', () => {
   it('選択中のキャラクターがハイライトされる', () => {
     render(<CharacterSelector />);
     const catButton = screen.getByText('ねこ').closest('button');
-    expect(catButton?.className).toContain('border-blue-500');
+    expect(catButton?.className).toContain('border-primary-500');
   });
 
   it('キャラクターをクリックすると選択が変更される', () => {

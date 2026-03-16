@@ -77,8 +77,8 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
   const modeButtonClass = (m: ScheduleMode) =>
     `flex items-center justify-center px-3 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
       mode === m
-        ? 'bg-primary-600 text-white border-blue-600'
-        : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+        ? 'bg-primary-600 text-white border-primary-600'
+        : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400'
     }`;
 
   return (
@@ -117,8 +117,8 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
                 key={value}
                 className={`flex items-center justify-center w-10 h-10 rounded-full cursor-pointer border-2 text-sm font-medium transition-colors ${
                   selectedDays.includes(value)
-                    ? 'bg-primary-600 text-white border-blue-600'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400'
                 }`}
               >
                 <input

@@ -20,12 +20,12 @@ export const CharacterSelector: React.FC = () => {
             onClick={() => setCharacter(type)}
             className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all ${
               isSelected
-                ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                : 'border-gray-200 bg-white hover:border-blue-300'
+                ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-200'
+                : 'border-gray-200 bg-white hover:border-primary-300'
             }`}
           >
             <CharacterIcon type={type} size={40} className="mb-2 text-gray-700" />
-            <span className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+            <span className={`text-sm font-medium ${isSelected ? 'text-primary-700' : 'text-gray-600'}`}>
               {config.name}
             </span>
           </button>

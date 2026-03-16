@@ -154,7 +154,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
               <span>接種日: {formatDateJP(vaccination.vaccinatedAt)}</span>
             </p>
             {vaccination.nextScheduledDate && (
-              <p className={`flex items-center space-x-1 ${isNextDatePast ? 'text-red-500 font-medium' : isNextDateUpcoming ? 'text-blue-500' : ''}`}>
+              <p className={`flex items-center space-x-1 ${isNextDatePast ? 'text-red-500 font-medium' : isNextDateUpcoming ? 'text-primary-500' : ''}`}>
                 <Calendar size={10} />
                 <span>次回予定: {formatDateJP(vaccination.nextScheduledDate)}</span>
                 {isNextDatePast && <span>(期限切れ)</span>}
