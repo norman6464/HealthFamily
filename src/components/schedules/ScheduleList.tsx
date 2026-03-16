@@ -200,7 +200,7 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
           </button>
           <button
             onClick={() => setIsEditing(true)}
-            className="text-gray-400 hover:text-blue-500 p-1 transition-colors"
+            className="text-gray-400 hover:text-primary-500 p-1 transition-colors"
             aria-label="編集"
           >
             <Pencil size={14} />

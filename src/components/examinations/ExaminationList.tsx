@@ -166,7 +166,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
         <div className="flex items-center space-x-1 flex-shrink-0">
           <button
             onClick={() => setIsEditing(true)}
-            className="text-gray-400 hover:text-blue-500 p-1 transition-colors"
+            className="text-gray-400 hover:text-primary-500 p-1 transition-colors"
             aria-label="編集"
           >
             <Pencil size={14} />

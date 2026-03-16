@@ -156,7 +156,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = React.memo(({ appointmen
         <div className="flex items-center space-x-1 flex-shrink-0">
           <button
             onClick={() => onEdit(appointment)}
-            className="text-gray-400 hover:text-blue-500 p-1 transition-colors"
+            className="text-gray-400 hover:text-primary-500 p-1 transition-colors"
             aria-label="編集"
           >
             <Pencil size={14} />
