@@ -32,7 +32,7 @@ export default function ForgotPassword() {
 
       router.push(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch {
-      setErrorMessage('送信に失敗しました');
+      setErrorMessage('通信エラーが発生しました。インターネット接続を確認して再試行してください。');
     } finally {
       setIsSubmitting(false);
     }
