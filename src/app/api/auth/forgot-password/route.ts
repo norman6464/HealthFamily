@@ -38,17 +38,32 @@ export async function POST(request: NextRequest) {
     const code = generateVerificationCode();
     const expiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    await prisma.user.update({
-      where: { email },
-      data: { resetCode: code, resetCodeExpiry: expiry },
-    });
+    try {
+      await prisma.user.update({
+        where: { email },
+        data: { resetCode: code, resetCodeExpiry: expiry },
+      });
+    } catch (dbError) {
+      console.error('パスワード再設定 DB更新エラー:', dbError instanceof Error ? dbError.message : dbError);
+      return errorResponse('サーバーエラーが発生しました。しばらくしてから再試行してください。', 500);
+    }
 
-    const template = emailTemplates.passwordReset({ code });
-    await sendEmail({ to: email, ...template });
+    try {
+      const template = emailTemplates.passwordReset({ code });
+      await sendEmail({ to: email, ...template });
+    } catch (emailError) {
+      console.error('パスワード再設定 メール送信エラー:', emailError instanceof Error ? emailError.message : emailError);
+      // メール送信失敗時はリセットコードをクリア
+      await prisma.user.update({
+        where: { email },
+        data: { resetCode: null, resetCodeExpiry: null },
+      }).catch(() => {});
+      return errorResponse('メールの送信に失敗しました。しばらくしてから再試行してください。', 500);
+    }
 
     return success({ message: 'リセットコードを送信しました' });
   } catch (error) {
-    console.error('パスワード再設定エラー:', error);
-    return errorResponse('送信に失敗しました', 500);
+    console.error('パスワード再設定エラー:', error instanceof Error ? error.message : error);
+    return errorResponse('送信に失敗しました。しばらくしてから再試行してください。', 500);
   }
 }
