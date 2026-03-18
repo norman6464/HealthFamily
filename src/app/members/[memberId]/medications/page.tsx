@@ -140,7 +140,7 @@ export default function Medications() {
         )}
 
         {memberSchedules.length > 0 && (
-          <div className="mt-6">
+          <div id="schedules" className="mt-6">
             <h2 className="text-sm font-medium text-gray-600 mb-3">スケジュール管理</h2>
             <ScheduleList
               schedules={memberSchedules}
