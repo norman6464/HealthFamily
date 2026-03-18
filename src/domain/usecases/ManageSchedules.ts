@@ -33,14 +33,14 @@ export class CreateSchedule {
 export class UpdateSchedule {
   constructor(private readonly scheduleRepository: ScheduleRepository) {}
 
-  async execute(scheduleId: string, input: Partial<Schedule>): Promise<Schedule> {
+  async execute(scheduleId: string, input: Partial<Schedule>, options?: { clearInterval?: boolean }): Promise<Schedule> {
     if (!scheduleId) {
       throw new Error('スケジュールIDは必須です');
     }
     if (Object.keys(input).length === 0) {
       throw new Error('更新するフィールドがありません');
     }
-    return this.scheduleRepository.updateSchedule(scheduleId, input);
+    return this.scheduleRepository.updateSchedule(scheduleId, input, options);
   }
 }
 

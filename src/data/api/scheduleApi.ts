@@ -91,7 +91,7 @@ export const scheduleApi = {
     return toSchedule(data);
   },
 
-  async updateSchedule(id: string, schedule: Partial<Schedule>): Promise<Schedule> {
+  async updateSchedule(id: string, schedule: Partial<Schedule>, clearInterval?: boolean): Promise<Schedule> {
     const body: Record<string, unknown> = {};
     if (schedule.scheduledTime !== undefined) body.scheduledTime = schedule.scheduledTime;
     if (schedule.daysOfWeek !== undefined) body.daysOfWeek = [...schedule.daysOfWeek];
@@ -99,6 +99,10 @@ export const scheduleApi = {
     if (schedule.startDate !== undefined) body.startDate = schedule.startDate?.toISOString() ?? null;
     if (schedule.isEnabled !== undefined) body.isEnabled = schedule.isEnabled;
     if (schedule.reminderMinutesBefore !== undefined) body.reminderMinutesBefore = schedule.reminderMinutesBefore;
+    if (clearInterval) {
+      body.intervalDays = null;
+      body.startDate = null;
+    }
 
     const data = await apiClient.put<BackendSchedule>(`/schedules/${id}`, body);
     return toSchedule(data);

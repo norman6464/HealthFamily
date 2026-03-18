@@ -27,7 +27,7 @@ export interface UseSchedulesResult {
   isCreating: boolean;
   error: Error | null;
   createSchedule: (input: CreateScheduleInput) => Promise<void>;
-  updateSchedule: (scheduleId: string, input: Partial<Schedule>) => Promise<void>;
+  updateSchedule: (scheduleId: string, input: Partial<Schedule>, options?: { clearInterval?: boolean }) => Promise<void>;
   deleteSchedule: (scheduleId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -72,8 +72,8 @@ export const useSchedules = (): UseSchedulesResult => {
     }
   }, [useCases, refetch]);
 
-  const handleUpdateSchedule = useCallback(async (scheduleId: string, input: Partial<Schedule>) => {
-    await useCases.updateSchedule.execute(scheduleId, input);
+  const handleUpdateSchedule = useCallback(async (scheduleId: string, input: Partial<Schedule>, options?: { clearInterval?: boolean }) => {
+    await useCases.updateSchedule.execute(scheduleId, input, options);
     await refetch();
   }, [useCases, refetch]);
 

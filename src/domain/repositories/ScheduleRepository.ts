@@ -43,7 +43,7 @@ export interface ScheduleRepository {
   /**
    * スケジュールを更新
    */
-  updateSchedule(id: string, schedule: Partial<Schedule>): Promise<Schedule>;
+  updateSchedule(id: string, schedule: Partial<Schedule>, options?: { clearInterval?: boolean }): Promise<Schedule>;
 
   /**
    * スケジュールを削除
