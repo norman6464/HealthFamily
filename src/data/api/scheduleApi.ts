@@ -24,6 +24,7 @@ interface TodayScheduleResponse {
   startDate?: string;
   isEnabled: boolean;
   reminderMinutesBefore: number;
+  medicationDisplayOrder?: number;
   isCompleted: boolean;
   createdAt: string;
 }
@@ -71,6 +72,7 @@ export const scheduleApi = {
       medicationName: item.medicationName,
       memberName: item.memberName,
       memberType: (item.memberType as 'human' | 'pet') || 'human',
+      medicationDisplayOrder: item.medicationDisplayOrder ?? 0,
       isCompleted: item.isCompleted,
     }));
   },
