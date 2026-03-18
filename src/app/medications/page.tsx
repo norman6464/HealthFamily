@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { Plus, ClipboardList } from 'lucide-react';
 
 function MemberMedications({ member, categoryFilter }: { member: Member; categoryFilter: MedicationCategory | null }) {
-  const { medications, isLoading, updateMedication, deleteMedication } = useMedications(member.id);
+  const { medications, isLoading, updateMedication, deleteMedication, reorderMedications } = useMedications(member.id);
   const { markAsTaken, markAsTakenAt } = useMedicationRecordActions();
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
@@ -98,6 +98,7 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
         onMarkTaken={handleMarkTaken}
         onMarkPastTaken={handleMarkPastTaken}
         onEdit={handleEdit}
+        onReorder={!categoryFilter ? reorderMedications : undefined}
       />
     </section>
   );

@@ -80,6 +80,7 @@ model Medication {
   stockAlertDate    DateTime?
   intervalHours     Int?
   instructions      String?
+  displayOrder      Int      @default(0)
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

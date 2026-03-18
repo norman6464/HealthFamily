@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { GetMedications, CreateMedication, UpdateMedication, DeleteMedication, MedicationViewModel } from '../../domain/usecases/ManageMedications';
+import { GetMedications, CreateMedication, UpdateMedication, DeleteMedication, ReorderMedications, MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { CreateMedicationInput, UpdateMedicationInput } from '../../domain/repositories/MedicationRepository';
 import { getDIContainer } from '../../infrastructure/DIContainer';
 import { useFetcher } from './useFetcher';
@@ -16,6 +16,7 @@ export interface UseMedicationsResult {
   createMedication: (input: CreateMedicationInput) => Promise<void>;
   updateMedication: (medicationId: string, input: UpdateMedicationInput) => Promise<void>;
   deleteMedication: (medicationId: string) => Promise<void>;
+  reorderMedications: (medicationIds: string[]) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -27,6 +28,7 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
       createMedication: new CreateMedication(medicationRepository),
       updateMedication: new UpdateMedication(medicationRepository),
       deleteMedication: new DeleteMedication(medicationRepository),
+      reorderMedications: new ReorderMedications(medicationRepository),
     };
   }, []);
 
@@ -52,6 +54,11 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     await refetch();
   }, [useCases, refetch]);
 
+  const handleReorderMedications = useCallback(async (medicationIds: string[]) => {
+    await useCases.reorderMedications.execute(medicationIds);
+    await refetch();
+  }, [useCases, refetch]);
+
   return {
     medications,
     isLoading,
@@ -59,6 +66,7 @@ export const useMedications = (memberId: string): UseMedicationsResult => {
     createMedication: handleCreateMedication,
     updateMedication: handleUpdateMedication,
     deleteMedication: handleDeleteMedication,
+    reorderMedications: handleReorderMedications,
     refetch,
   };
 };

@@ -18,7 +18,7 @@ export default function Medications() {
   const router = useRouter();
   const memberId = params.memberId as string;
   const { userId } = useAuth();
-  const { medications, isLoading, createMedication, deleteMedication } = useMedications(memberId);
+  const { medications, isLoading, createMedication, deleteMedication, reorderMedications } = useMedications(memberId);
   const { schedules, isLoading: schedulesLoading, createSchedule, updateSchedule, deleteSchedule } = useSchedules();
   const [showMedForm, setShowMedForm] = useState(false);
   const [scheduleTarget, setScheduleTarget] = useState<MedicationViewModel | null>(null);
@@ -118,6 +118,7 @@ export default function Medications() {
           medications={medications}
           isLoading={isLoading}
           onDelete={deleteMedication}
+          onReorder={reorderMedications}
         />
 
         {medications.length > 0 && !scheduleTarget && (

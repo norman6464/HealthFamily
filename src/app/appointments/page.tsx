@@ -83,6 +83,7 @@ export default function AppointmentsPage() {
     try {
       await updateAppointment(editingAppointment.id, {
         appointmentDate: data.appointmentDate,
+        hospitalId: data.hospitalId,
         type: data.type,
         notes: data.notes,
       });
