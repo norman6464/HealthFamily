@@ -130,7 +130,7 @@ describe('UpdateSchedule', () => {
     const result = await useCase.execute('sch-1', { scheduledTime: '09:00' });
 
     expect(result).toBe(mockSchedule);
-    expect(repo.updateSchedule).toHaveBeenCalledWith('sch-1', { scheduledTime: '09:00' });
+    expect(repo.updateSchedule).toHaveBeenCalledWith('sch-1', { scheduledTime: '09:00' }, undefined);
   });
 
   it('スケジュールIDが空の場合エラーを投げる', async () => {
@@ -156,7 +156,7 @@ describe('UpdateSchedule', () => {
     const useCase = new UpdateSchedule(repo);
     await useCase.execute('sch-1', { isEnabled: false });
 
-    expect(repo.updateSchedule).toHaveBeenCalledWith('sch-1', { isEnabled: false });
+    expect(repo.updateSchedule).toHaveBeenCalledWith('sch-1', { isEnabled: false }, undefined);
   });
 });
 

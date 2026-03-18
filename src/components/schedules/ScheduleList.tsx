@@ -22,7 +22,7 @@ const DAY_ORDER: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 interface ScheduleListProps {
   schedules: ScheduleWithDetails[];
   isLoading: boolean;
-  onUpdate: (scheduleId: string, input: Partial<Schedule>) => Promise<void>;
+  onUpdate: (scheduleId: string, input: Partial<Schedule>, options?: { clearInterval?: boolean }) => Promise<void>;
   onDelete: (scheduleId: string) => void;
 }
 
@@ -71,17 +71,46 @@ export const ScheduleList: React.FC<ScheduleListProps> = ({ schedules, isLoading
 
 export interface ScheduleCardProps {
   item: ScheduleWithDetails;
-  onUpdate: (scheduleId: string, input: Partial<Schedule>) => Promise<void>;
+  onUpdate: (scheduleId: string, input: Partial<Schedule>, options?: { clearInterval?: boolean }) => Promise<void>;
   onDelete: (scheduleId: string) => void;
+}
+
+type EditMode = 'daily' | 'weekdays' | 'interval';
+
+const INTERVAL_OPTIONS = [
+  { value: 2, label: '2日ごと' },
+  { value: 3, label: '3日ごと' },
+  { value: 7, label: '1週間ごと' },
+  { value: 14, label: '2週間ごと' },
+  { value: 21, label: '3週間ごと' },
+  { value: 28, label: '4週間ごと' },
+  { value: 30, label: '1ヶ月ごと' },
+  { value: 60, label: '2ヶ月ごと' },
+  { value: 90, label: '3ヶ月ごと' },
+];
+
+function getInitialMode(schedule: Schedule): EditMode {
+  if (schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate) return 'interval';
+  if (schedule.daysOfWeek.length > 0) return 'weekdays';
+  return 'daily';
 }
 
 const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, onDelete }) => {
   const { schedule, medicationName, memberName } = item;
   const [isEditing, setIsEditing] = useState(false);
   const [editTime, setEditTime] = useState(schedule.scheduledTime);
+  const [editMode, setEditMode] = useState<EditMode>(() => getInitialMode(schedule));
   const [editDays, setEditDays] = useState<DayOfWeek[]>([...schedule.daysOfWeek]);
+  const [editIntervalDays, setEditIntervalDays] = useState(String(schedule.intervalDays || 21));
+  const [editStartDate, setEditStartDate] = useState(() => {
+    if (schedule.startDate) {
+      const d = new Date(schedule.startDate);
+      return d.toISOString().split('T')[0];
+    }
+    return new Date().toISOString().split('T')[0];
+  });
 
-  const daysLabel = schedule.intervalDays
+  const daysLabel = schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate
     ? `${schedule.intervalDays}日ごと`
     : schedule.daysOfWeek.length === 7
       ? '毎日'
@@ -95,23 +124,49 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
     );
   };
 
+  const canSave = editMode === 'daily'
+    || (editMode === 'weekdays' && editDays.length > 0)
+    || (editMode === 'interval' && editStartDate);
+
   const handleSave = async () => {
-    await onUpdate(schedule.id, {
-      scheduledTime: editTime,
-      daysOfWeek: editDays,
-    });
+    if (!canSave) return;
+    const wasInterval = getInitialMode(schedule) === 'interval';
+    const shouldClearInterval = wasInterval && editMode !== 'interval';
+    let updateData: Partial<Schedule>;
+    if (editMode === 'interval') {
+      updateData = {
+        scheduledTime: editTime,
+        daysOfWeek: [],
+        intervalDays: parseInt(editIntervalDays, 10),
+        startDate: new Date(editStartDate),
+      };
+    } else if (editMode === 'weekdays') {
+      updateData = { scheduledTime: editTime, daysOfWeek: editDays };
+    } else {
+      updateData = { scheduledTime: editTime, daysOfWeek: [] };
+    }
+    await onUpdate(schedule.id, updateData, shouldClearInterval ? { clearInterval: true } : undefined);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
     setEditTime(schedule.scheduledTime);
+    setEditMode(getInitialMode(schedule));
     setEditDays([...schedule.daysOfWeek]);
+    setEditIntervalDays(String(schedule.intervalDays || 21));
     setIsEditing(false);
   };
 
   const handleToggleEnabled = () => {
     onUpdate(schedule.id, { isEnabled: !schedule.isEnabled });
   };
+
+  const modeButtonClass = (m: EditMode) =>
+    `px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+      editMode === m
+        ? 'bg-primary-600 text-white'
+        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+    }`;
 
   if (isEditing) {
     return (
@@ -127,28 +182,74 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">曜日</label>
-            <div className="flex gap-1">
-              {DAY_ORDER.map((day) => (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => toggleDay(day)}
-                  className={`w-8 h-8 rounded-full text-xs font-medium transition-colors ${
-                    editDays.includes(day)
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  {DAY_LABELS[day]}
-                </button>
-              ))}
+            <label className="block text-xs text-gray-500 mb-2">頻度</label>
+            <div className="flex gap-2 mb-2">
+              <button type="button" className={modeButtonClass('daily')} onClick={() => setEditMode('daily')}>
+                毎日
+              </button>
+              <button type="button" className={modeButtonClass('weekdays')} onClick={() => setEditMode('weekdays')}>
+                曜日指定
+              </button>
+              <button type="button" className={modeButtonClass('interval')} onClick={() => setEditMode('interval')}>
+                間隔指定
+              </button>
             </div>
+
+            {editMode === 'weekdays' && (
+              <div>
+                <div className="flex gap-1">
+                  {DAY_ORDER.map((day) => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => toggleDay(day)}
+                      className={`w-8 h-8 rounded-full text-xs font-medium transition-colors ${
+                        editDays.includes(day)
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
+                      {DAY_LABELS[day]}
+                    </button>
+                  ))}
+                </div>
+                {editDays.length === 0 && (
+                  <p className="text-xs text-red-500 mt-1">曜日を選択してください</p>
+                )}
+              </div>
+            )}
+
+            {editMode === 'interval' && (
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">投与間隔</label>
+                  <select
+                    value={editIntervalDays}
+                    onChange={(e) => setEditIntervalDays(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                  >
+                    {INTERVAL_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">開始日（最初の投与日）</label>
+                  <input
+                    type="date"
+                    value={editStartDate}
+                    onChange={(e) => setEditStartDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                    required
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex space-x-2">
             <button
               onClick={handleSave}
-              disabled={editDays.length === 0}
+              disabled={!canSave}
               className="flex-1 flex items-center justify-center space-x-1 bg-primary-600 text-white py-1.5 rounded-lg text-sm hover:bg-primary-700 transition-colors disabled:opacity-50"
             >
               <Check size={14} />

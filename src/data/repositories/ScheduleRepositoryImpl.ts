@@ -25,8 +25,8 @@ export class ScheduleRepositoryImpl implements ScheduleRepository {
     return await scheduleApi.createSchedule(schedule);
   }
 
-  async updateSchedule(id: string, schedule: Partial<Schedule>): Promise<Schedule> {
-    return await scheduleApi.updateSchedule(id, schedule);
+  async updateSchedule(id: string, schedule: Partial<Schedule>, options?: { clearInterval?: boolean }): Promise<Schedule> {
+    return await scheduleApi.updateSchedule(id, schedule, options?.clearInterval);
   }
 
   async deleteSchedule(id: string): Promise<void> {
