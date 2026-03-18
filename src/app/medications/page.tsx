@@ -13,7 +13,7 @@ import { Medication, MedicationCategory } from '@/domain/entities/Medication';
 import { CategoryFilter } from '@/components/shared/CategoryFilter';
 import { useMedicationRecordActions } from '@/presentation/hooks/useMedicationRecordActions';
 import Link from 'next/link';
-import { Plus, ClipboardList } from 'lucide-react';
+import { Plus, ClipboardList, Clock } from 'lucide-react';
 
 function MemberMedications({ member, categoryFilter }: { member: Member; categoryFilter: MedicationCategory | null }) {
   const { medications, isLoading, updateMedication, deleteMedication, reorderMedications } = useMedications(member.id);
@@ -71,13 +71,22 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
           />
           <h2 className="font-semibold text-gray-800">{displayInfo.name}</h2>
         </div>
-        <Link
-          href={`/members/${member.id}/medications`}
-          className="flex items-center space-x-1 text-sm text-primary-600 hover:text-primary-700 transition-colors"
-        >
-          <Plus size={14} />
-          <span>追加</span>
-        </Link>
+        <div className="flex items-center space-x-3">
+          <Link
+            href={`/members/${member.id}/medications#schedules`}
+            className="flex items-center space-x-1 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+          >
+            <Clock size={14} />
+            <span>時間</span>
+          </Link>
+          <Link
+            href={`/members/${member.id}/medications`}
+            className="flex items-center space-x-1 text-sm text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            <Plus size={14} />
+            <span>追加</span>
+          </Link>
+        </div>
       </div>
 
       {editingMed && (
