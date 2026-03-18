@@ -15,6 +15,7 @@ export interface TodayScheduleItem {
   medicationName: string;
   memberName: string;
   memberType: 'human' | 'pet';
+  medicationDisplayOrder: number;
   isCompleted: boolean;
 }
 

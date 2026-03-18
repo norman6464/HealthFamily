@@ -17,7 +17,7 @@ export const GET = withAuth(async (userId) => {
     prisma.schedule.findMany({
       where: { userId, isEnabled: true },
       include: {
-        medication: { select: { id: true, name: true } },
+        medication: { select: { id: true, name: true, displayOrder: true } },
       },
       take: QUERY_LIMITS.SCHEDULES,
     }),
@@ -58,6 +58,7 @@ export const GET = withAuth(async (userId) => {
       startDate: s.startDate?.toISOString(),
       isEnabled: s.isEnabled,
       reminderMinutesBefore: s.reminderMinutesBefore,
+      medicationDisplayOrder: s.medication.displayOrder ?? 0,
       isCompleted: completedScheduleIds.has(s.id) || completedMedicationIds.has(s.medicationId),
       createdAt: s.createdAt.toISOString(),
     };

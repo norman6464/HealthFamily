@@ -20,6 +20,7 @@ export interface TodayScheduleViewModel {
   memberName: string;
   memberType: 'human' | 'pet';
   scheduledTime: string;
+  medicationDisplayOrder: number;
   status: ScheduleStatus;
   isEnabled: boolean;
   reminderMinutesBefore: number;
@@ -48,8 +49,12 @@ export class GetTodaySchedules {
       })
       .map((item) => this.toViewModel(item, date));
 
-    // 時刻順にソート
-    viewModels.sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime));
+    // 時刻順 → 薬の表示順でソート
+    viewModels.sort((a, b) => {
+      const timeCompare = a.scheduledTime.localeCompare(b.scheduledTime);
+      if (timeCompare !== 0) return timeCompare;
+      return a.medicationDisplayOrder - b.medicationDisplayOrder;
+    });
 
     return viewModels;
   }
@@ -67,6 +72,7 @@ export class GetTodaySchedules {
       memberName: item.memberName,
       memberType: item.memberType,
       scheduledTime: item.schedule.scheduledTime,
+      medicationDisplayOrder: item.medicationDisplayOrder,
       status,
       isEnabled: item.schedule.isEnabled,
       reminderMinutesBefore: item.schedule.reminderMinutesBefore,
