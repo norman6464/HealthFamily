@@ -68,6 +68,14 @@ export class DeleteMedication {
   }
 }
 
+export class ReorderMedications {
+  constructor(private readonly medicationRepository: MedicationRepository) {}
+
+  async execute(medicationIds: string[]): Promise<void> {
+    return this.medicationRepository.reorderMedications(medicationIds);
+  }
+}
+
 export class SearchMedications {
   constructor(private readonly medicationRepository: MedicationRepository) {}
 

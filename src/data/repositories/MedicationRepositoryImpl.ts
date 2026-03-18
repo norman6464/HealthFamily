@@ -33,6 +33,10 @@ export class MedicationRepositoryImpl implements MedicationRepository {
     return medicationApi.deleteMedication(medicationId);
   }
 
+  async reorderMedications(medicationIds: string[]): Promise<void> {
+    return medicationApi.reorderMedications(medicationIds);
+  }
+
   async searchMedications(query: string): Promise<MedicationSearchResult[]> {
     return medicationApi.searchMedications(query);
   }

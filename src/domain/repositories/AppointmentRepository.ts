@@ -16,6 +16,7 @@ export interface CreateAppointmentInput {
 
 export interface UpdateAppointmentInput {
   appointmentDate?: string;
+  hospitalId?: string;
   type?: string;
   notes?: string;
   reminderEnabled?: boolean;

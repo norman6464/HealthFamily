@@ -21,6 +21,7 @@ export interface BackendMedication {
   stockQuantity?: number;
   stockAlertDate?: string;
   instructions?: string;
+  displayOrder?: number;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;

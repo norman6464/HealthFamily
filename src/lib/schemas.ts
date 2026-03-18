@@ -137,6 +137,7 @@ export const createAppointmentSchema = z.object({
 
 export const updateAppointmentSchema = z.object({
   appointmentDate: dateString.optional(),
+  hospitalId: z.string().trim().max(50).optional().nullable(),
   appointmentTime: z.string().trim().max(10).optional(),
   type: z.string().trim().max(100).optional(),
   notes: z.string().trim().max(1000).optional(),

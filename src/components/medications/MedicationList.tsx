@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pill, Check, Pencil, Clock } from 'lucide-react';
+import { Pill, Check, Pencil, Clock, ChevronUp, ChevronDown } from 'lucide-react';
 import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
@@ -13,9 +13,10 @@ interface MedicationListProps {
   onMarkTaken?: (medicationId: string) => Promise<void>;
   onMarkPastTaken?: (medicationId: string, takenAt: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
+  onReorder?: (medicationIds: string[]) => Promise<void>;
 }
 
-export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onMarkPastTaken, onEdit }) => {
+export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onMarkPastTaken, onEdit, onReorder }) => {
   if (isLoading) {
     return (
       <LoadingSpinner />
@@ -28,10 +29,28 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
     );
   }
 
+  const handleMove = async (index: number, direction: 'up' | 'down') => {
+    if (!onReorder) return;
+    const newList = [...medications];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newList.length) return;
+    [newList[index], newList[targetIndex]] = [newList[targetIndex], newList[index]];
+    await onReorder(newList.map((vm) => vm.medication.id));
+  };
+
   return (
     <div className="space-y-3">
-      {medications.map((vm) => (
-        <MedicationCard key={vm.medication.id} viewModel={vm} onDelete={onDelete} onMarkTaken={onMarkTaken} onMarkPastTaken={onMarkPastTaken} onEdit={onEdit} />
+      {medications.map((vm, index) => (
+        <MedicationCard
+          key={vm.medication.id}
+          viewModel={vm}
+          onDelete={onDelete}
+          onMarkTaken={onMarkTaken}
+          onMarkPastTaken={onMarkPastTaken}
+          onEdit={onEdit}
+          onMoveUp={onReorder && index > 0 ? () => handleMove(index, 'up') : undefined}
+          onMoveDown={onReorder && index < medications.length - 1 ? () => handleMove(index, 'down') : undefined}
+        />
       ))}
     </div>
   );
@@ -43,9 +62,11 @@ export interface MedicationCardProps {
   onMarkTaken?: (medicationId: string) => Promise<void>;
   onMarkPastTaken?: (medicationId: string, takenAt: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
-const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, onDelete, onMarkTaken, onMarkPastTaken, onEdit }) => {
+const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, onDelete, onMarkTaken, onMarkPastTaken, onEdit, onMoveUp, onMoveDown }) => {
   const { medication, isLowStock, displayInfo } = viewModel;
   const [isTaken, setIsTaken] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,6 +109,26 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
   return (
     <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
       <div className="flex items-center justify-between">
+        {(onMoveUp || onMoveDown) && (
+          <div className="flex flex-col mr-2 -my-1">
+            <button
+              onClick={onMoveUp}
+              disabled={!onMoveUp}
+              className={`p-0.5 rounded ${onMoveUp ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100' : 'text-gray-200'}`}
+              aria-label="上に移動"
+            >
+              <ChevronUp size={16} />
+            </button>
+            <button
+              onClick={onMoveDown}
+              disabled={!onMoveDown}
+              className={`p-0.5 rounded ${onMoveDown ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100' : 'text-gray-200'}`}
+              aria-label="下に移動"
+            >
+              <ChevronDown size={16} />
+            </button>
+          </div>
+        )}
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <Pill size={20} className="text-primary-600" />

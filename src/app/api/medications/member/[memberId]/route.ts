@@ -11,7 +11,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ mem
     const { memberId } = await params;
     const idError = validateParamId(memberId);
     if (idError) return idError;
-    const medications = await prisma.medication.findMany({ where: { memberId, userId }, take: QUERY_LIMITS.APPOINTMENTS });
+    const medications = await prisma.medication.findMany({ where: { memberId, userId }, orderBy: { displayOrder: 'asc' }, take: QUERY_LIMITS.APPOINTMENTS });
     return success(medications);
   })();
 }

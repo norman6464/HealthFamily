@@ -113,8 +113,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
             id="apt-hospital"
             value={hospitalId}
             onChange={(e) => setHospitalId(e.target.value)}
-            disabled={isEditing}
-            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${isEditing ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="">選択しない</option>
             {hospitals.map((h) => (

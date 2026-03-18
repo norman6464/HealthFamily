@@ -34,6 +34,7 @@ export interface MedicationRepository {
   createMedication(input: CreateMedicationInput): Promise<Medication>;
   updateMedication(medicationId: string, input: UpdateMedicationInput): Promise<Medication>;
   deleteMedication(medicationId: string): Promise<void>;
+  reorderMedications(medicationIds: string[]): Promise<void>;
   searchMedications(query: string): Promise<MedicationSearchResult[]>;
   getStockAlerts(): Promise<StockAlert[]>;
 }

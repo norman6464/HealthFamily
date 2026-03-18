@@ -53,6 +53,10 @@ export const medicationApi = {
     await apiClient.del(`/medications/${medicationId}`);
   },
 
+  async reorderMedications(medicationIds: string[]): Promise<void> {
+    await apiClient.put('/medications/reorder', { medicationIds });
+  },
+
   async searchMedications(query: string): Promise<MedicationSearchResult[]> {
     return apiClient.get<MedicationSearchResult[]>(`/medications/search?q=${encodeURIComponent(query)}`);
   },

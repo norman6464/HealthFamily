@@ -31,6 +31,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ appo
           where: { id: appointmentId },
           data: {
             appointmentDate: parsed.data.appointmentDate ? new Date(parsed.data.appointmentDate) : undefined,
+            hospitalId: parsed.data.hospitalId === '' ? null : parsed.data.hospitalId,
             appointmentType: parsed.data.type,
             description: parsed.data.notes,
             reminderEnabled: parsed.data.reminderEnabled,

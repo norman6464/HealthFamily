@@ -27,6 +27,7 @@ export interface Medication {
   readonly stockAlertDate?: Date;
   readonly intervalHours?: number;
   readonly instructions?: string;
+  readonly displayOrder: number;
   readonly isActive: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
