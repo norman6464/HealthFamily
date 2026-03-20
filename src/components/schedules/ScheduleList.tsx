@@ -78,15 +78,15 @@ export interface ScheduleCardProps {
 type EditMode = 'daily' | 'weekdays' | 'interval' | 'prn';
 
 const INTERVAL_OPTIONS = [
-  { value: 2, label: '2日ごと' },
-  { value: 3, label: '3日ごと' },
-  { value: 7, label: '1週間ごと' },
-  { value: 14, label: '2週間ごと' },
-  { value: 21, label: '3週間ごと' },
-  { value: 28, label: '4週間ごと' },
-  { value: 30, label: '1ヶ月ごと' },
-  { value: 60, label: '2ヶ月ごと' },
-  { value: 90, label: '3ヶ月ごと' },
+  { value: 2, label: '2日毎' },
+  { value: 3, label: '3日毎' },
+  { value: 7, label: '1週間毎' },
+  { value: 14, label: '2週間毎' },
+  { value: 21, label: '3週間毎' },
+  { value: 28, label: '4週間毎' },
+  { value: 30, label: '1ヶ月毎' },
+  { value: 60, label: '2ヶ月毎' },
+  { value: 90, label: '3ヶ月毎' },
 ];
 
 function getInitialMode(schedule: Schedule): EditMode {
@@ -114,7 +114,7 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
   const daysLabel = schedule.intervalDays === -1
     ? '頓服'
     : schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate
-      ? `${schedule.intervalDays}日ごと`
+      ? `${schedule.intervalDays}日毎`
       : schedule.daysOfWeek.length === 7
         ? '毎日'
         : schedule.daysOfWeek.length === 0

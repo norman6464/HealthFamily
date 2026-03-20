@@ -9,7 +9,7 @@ import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
 export interface MedicationScheduleInfo {
   scheduleId: string;
   time: string;
-  label: string; // "毎日", "月・水・金", "21日ごと" etc.
+  label: string; // "毎日", "月・水・金", "21日毎" etc.
 }
 
 export interface MedicationScheduleMap {
