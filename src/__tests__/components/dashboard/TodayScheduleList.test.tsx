@@ -24,9 +24,14 @@ describe('TodayScheduleList', () => {
     expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
-  it('スケジュールが空の場合はメッセージを表示する', () => {
-    render(<TodayScheduleList schedules={[]} isLoading={false} />);
+  it('スケジュールが空でメンバーがいる場合はメッセージを表示する', () => {
+    render(<TodayScheduleList schedules={[]} isLoading={false} hasMembers={true} />);
     expect(screen.getByText('今日の服薬スケジュールはありません')).toBeInTheDocument();
+  });
+
+  it('スケジュールが空でメンバーもいない場合はセットアップガイドを表示する', () => {
+    render(<TodayScheduleList schedules={[]} isLoading={false} hasMembers={false} />);
+    expect(screen.getByText('はじめての方へ')).toBeInTheDocument();
   });
 
   it('スケジュール一覧を表示する', () => {

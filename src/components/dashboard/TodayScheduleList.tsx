@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Check } from 'lucide-react';
+import Link from 'next/link';
+import { Check, Users, Pill, Clock } from 'lucide-react';
 import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 import { ScheduleEntity } from '../../domain/entities/Schedule';
 import { MissedDoseIndicator } from './MissedDoseIndicator';
@@ -9,9 +10,10 @@ interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
   isLoading: boolean;
   onMarkCompleted?: (scheduleId: string) => void;
+  hasMembers?: boolean;
 }
 
-export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, onMarkCompleted }) => {
+export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, onMarkCompleted, hasMembers }) => {
   if (isLoading) {
     return (
       <LoadingSpinner />
@@ -19,9 +21,28 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
   }
 
   if (schedules.length === 0) {
+    if (!hasMembers) {
+      return (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <p className="text-sm font-medium text-gray-700 mb-4">はじめての方へ</p>
+          <div className="space-y-3">
+            <SetupStep icon={Users} label="メンバーを登録" href="/members" description="家族やペットを追加" step={1} />
+            <SetupStep icon={Pill} label="お薬を登録" href="/medications" description="メンバーごとに薬を追加" step={2} />
+            <SetupStep icon={Clock} label="スケジュールを設定" href="/medications" description="飲む時間と頻度を設定" step={3} />
+          </div>
+        </div>
+      );
+    }
     return (
-      <div className="flex flex-col justify-center items-center py-12">
-        <p className="text-gray-500 text-lg">今日の服薬スケジュールはありません</p>
+      <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+        <p className="text-gray-500 mb-3">今日の服薬スケジュールはありません</p>
+        <Link
+          href="/medications"
+          className="inline-flex items-center space-x-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+        >
+          <Pill size={14} />
+          <span>お薬ページでスケジュールを確認</span>
+        </Link>
       </div>
     );
   }
@@ -158,3 +179,29 @@ const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({ status }) => {
 });
 
 StatusBadge.displayName = 'StatusBadge';
+
+interface SetupStepProps {
+  icon: React.FC<{ size?: number; className?: string }>;
+  label: string;
+  description: string;
+  href: string;
+  step: number;
+}
+
+const SetupStep: React.FC<SetupStepProps> = ({ icon: Icon, label, description, href, step }) => (
+  <Link
+    href={href}
+    className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 hover:border-primary-200 hover:bg-primary-50/50 transition-colors"
+  >
+    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-bold">
+      {step}
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center space-x-1.5">
+        <Icon size={14} className="text-primary-600" />
+        <span className="text-sm font-medium text-gray-800">{label}</span>
+      </div>
+      <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+    </div>
+  </Link>
+);
