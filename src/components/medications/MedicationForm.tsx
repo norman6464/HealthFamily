@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Medication, MedicationCategory } from '../../domain/entities/Medication';
 
 export interface MedicationFormData {
@@ -30,6 +31,8 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
     initialData?.stockAlertDate ? new Date(initialData.stockAlertDate).toISOString().split('T')[0] : ''
   );
   const [instructions, setInstructions] = useState(initialData?.instructions || '');
+  const hasOptionalData = !!(initialData?.stockQuantity || initialData?.stockAlertDate || initialData?.instructions);
+  const [showOptional, setShowOptional] = useState(isEditing && hasOptionalData);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +103,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="med-dosage" className="block text-sm font-medium text-gray-700 mb-1">
-            用量
+            用量 <span className="text-xs text-gray-400 font-normal">任意</span>
           </label>
           <input
             id="med-dosage"
@@ -113,7 +116,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
         </div>
         <div>
           <label htmlFor="med-frequency" className="block text-sm font-medium text-gray-700 mb-1">
-            頻度
+            頻度 <span className="text-xs text-gray-400 font-normal">任意</span>
           </label>
           <input
             id="med-frequency"
@@ -126,47 +129,61 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
         </div>
       </div>
 
-      <div>
-        <label htmlFor="med-stock" className="block text-sm font-medium text-gray-700 mb-1">
-          在庫数(何日分)
-        </label>
-        <input
-          id="med-stock"
-          type="number"
-          min="0"
-          value={stockQuantity}
-          onChange={(e) => setStockQuantity(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-          placeholder="例: 30"
-        />
-      </div>
+      <button
+        type="button"
+        onClick={() => setShowOptional(!showOptional)}
+        className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        {showOptional ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        <span>詳細設定（在庫・服用方法など）</span>
+      </button>
 
-      <div>
-        <label htmlFor="med-alert-date" className="block text-sm font-medium text-gray-700 mb-1">
-          在庫警告日(この日までに在庫が不足する場合に通知)
-        </label>
-        <input
-          id="med-alert-date"
-          type="date"
-          value={stockAlertDate}
-          onChange={(e) => setStockAlertDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-        />
-      </div>
+      {showOptional && (
+        <div className="space-y-4 pt-1">
+          <div>
+            <label htmlFor="med-stock" className="block text-sm font-medium text-gray-700 mb-1">
+              在庫数(何日分)
+            </label>
+            <input
+              id="med-stock"
+              type="number"
+              min="0"
+              value={stockQuantity}
+              onChange={(e) => setStockQuantity(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              placeholder="例: 30"
+            />
+          </div>
 
-      <div>
-        <label htmlFor="med-instructions" className="block text-sm font-medium text-gray-700 mb-1">
-          服用方法
-        </label>
-        <textarea
-          id="med-instructions"
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-          rows={2}
-          placeholder="例: 食後に水と一緒に服用"
-        />
-      </div>
+          <div>
+            <label htmlFor="med-alert-date" className="block text-sm font-medium text-gray-700 mb-1">
+              在庫警告日
+            </label>
+            <input
+              id="med-alert-date"
+              type="date"
+              value={stockAlertDate}
+              onChange={(e) => setStockAlertDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">この日までに在庫が不足する場合に通知します</p>
+          </div>
+
+          <div>
+            <label htmlFor="med-instructions" className="block text-sm font-medium text-gray-700 mb-1">
+              服用方法
+            </label>
+            <textarea
+              id="med-instructions"
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              rows={2}
+              placeholder="例: 食後に水と一緒に服用"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="flex space-x-2">
         <button

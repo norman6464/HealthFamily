@@ -62,6 +62,7 @@ export default function Dashboard() {
           schedules={filteredSchedules}
           isLoading={isLoading}
           onMarkCompleted={markAsCompleted}
+          hasMembers={members.length > 0}
         />
 
         <StockAlertList alerts={alerts} isLoading={alertsLoading} />

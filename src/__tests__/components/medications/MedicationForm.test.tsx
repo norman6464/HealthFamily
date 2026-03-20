@@ -14,8 +14,8 @@ describe('MedicationForm', () => {
     render(<MedicationForm onSubmit={mockOnSubmit} />);
     expect(screen.getByLabelText('薬の名前')).toBeInTheDocument();
     expect(screen.getByLabelText('カテゴリ')).toBeInTheDocument();
-    expect(screen.getByLabelText('用量')).toBeInTheDocument();
-    expect(screen.getByLabelText('頻度')).toBeInTheDocument();
+    expect(screen.getByLabelText(/用量/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/頻度/)).toBeInTheDocument();
   });
 
   it('名前が空の場合送信しない', () => {
@@ -72,7 +72,9 @@ describe('MedicationForm', () => {
   it('在庫数を含めて送信する', () => {
     render(<MedicationForm onSubmit={mockOnSubmit} />);
     fireEvent.change(screen.getByLabelText('薬の名前'), { target: { value: '薬A' } });
-    fireEvent.change(screen.getByLabelText('在庫数(何日分)'), { target: { value: '30' } });
+    // 詳細設定を開く
+    fireEvent.click(screen.getByText(/詳細設定/));
+    fireEvent.change(screen.getByLabelText(/在庫数/), { target: { value: '30' } });
     fireEvent.click(screen.getByText('追加する'));
     expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
       name: '薬A',
