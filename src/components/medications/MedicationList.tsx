@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
-import { Pill, Check, Pencil, Clock, ChevronUp, ChevronDown } from 'lucide-react';
+import { Pill, Check, Pencil, Clock, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react';
 import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
 import { ConfirmationDialog } from '../shared/ConfirmationDialog';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
 import { EmptyStatePrompt } from '../shared/EmptyStatePrompt';
+
+export interface MedicationScheduleInfo {
+  scheduleId: string;
+  time: string;
+  label: string; // "毎日", "月・水・金", "21日ごと" etc.
+}
+
+export interface MedicationScheduleMap {
+  [medicationId: string]: MedicationScheduleInfo[];
+}
 
 interface MedicationListProps {
   medications: MedicationViewModel[];
@@ -14,9 +24,11 @@ interface MedicationListProps {
   onMarkPastTaken?: (medicationId: string, takenAt: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
   onReorder?: (medicationIds: string[]) => Promise<void>;
+  scheduleMap?: MedicationScheduleMap;
+  scheduleEditUrl?: string;
 }
 
-export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onMarkPastTaken, onEdit, onReorder }) => {
+export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onMarkPastTaken, onEdit, onReorder, scheduleMap, scheduleEditUrl }) => {
   if (isLoading) {
     return (
       <LoadingSpinner />
@@ -50,6 +62,8 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
           onEdit={onEdit}
           onMoveUp={onReorder && index > 0 ? () => handleMove(index, 'up') : undefined}
           onMoveDown={onReorder && index < medications.length - 1 ? () => handleMove(index, 'down') : undefined}
+          schedules={scheduleMap?.[vm.medication.id]}
+          scheduleEditUrl={scheduleEditUrl}
         />
       ))}
     </div>
@@ -64,9 +78,11 @@ export interface MedicationCardProps {
   onEdit?: (medication: Medication) => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  schedules?: MedicationScheduleInfo[];
+  scheduleEditUrl?: string;
 }
 
-const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, onDelete, onMarkTaken, onMarkPastTaken, onEdit, onMoveUp, onMoveDown }) => {
+const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, onDelete, onMarkTaken, onMarkPastTaken, onEdit, onMoveUp, onMoveDown, schedules, scheduleEditUrl }) => {
   const { medication, isLowStock, displayInfo } = viewModel;
   const [isTaken, setIsTaken] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -195,6 +211,33 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
           </button>
         </div>
       </div>
+      {scheduleEditUrl && (
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          {schedules && schedules.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {schedules.map((s) => (
+                <a
+                  key={s.scheduleId}
+                  href={scheduleEditUrl || '#'}
+                  className="inline-flex items-center space-x-1 px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs hover:bg-primary-100 transition-colors"
+                >
+                  <Clock size={10} />
+                  <span>{s.time}</span>
+                  <span className="text-primary-500">{s.label}</span>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <a
+              href={scheduleEditUrl || '#'}
+              className="inline-flex items-center space-x-1 px-2 py-1 bg-amber-50 text-amber-700 rounded-full text-xs hover:bg-amber-100 transition-colors"
+            >
+              <AlertCircle size={12} />
+              <span>スケジュール未設定 - タップして設定</span>
+            </a>
+          )}
+        </div>
+      )}
       <ConfirmationDialog
         title="薬の削除"
         message={`「${displayInfo.name}」を削除しますか？この操作は取り消せません。`}

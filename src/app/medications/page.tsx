@@ -12,16 +12,46 @@ import { MemberEntity, Member } from '@/domain/entities/Member';
 import { Medication, MedicationCategory } from '@/domain/entities/Medication';
 import { CategoryFilter } from '@/components/shared/CategoryFilter';
 import { useMedicationRecordActions } from '@/presentation/hooks/useMedicationRecordActions';
+import { useSchedules } from '@/presentation/hooks/useSchedules';
+import { MedicationScheduleMap } from '@/components/medications/MedicationList';
+import { DayOfWeek } from '@/domain/entities/Schedule';
 import Link from 'next/link';
 import { Plus, ClipboardList, Clock } from 'lucide-react';
+
+const DAY_LABELS: Record<DayOfWeek, string> = {
+  mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日',
+};
+const DAY_ORDER: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+function getScheduleLabel(daysOfWeek: readonly DayOfWeek[], intervalDays?: number): string {
+  if (intervalDays && intervalDays > 0) return `${intervalDays}日ごと`;
+  if (daysOfWeek.length === 0 || daysOfWeek.length === 7) return '毎日';
+  return DAY_ORDER.filter((d) => daysOfWeek.includes(d)).map((d) => DAY_LABELS[d]).join('・');
+}
 
 function MemberMedications({ member, categoryFilter }: { member: Member; categoryFilter: MedicationCategory | null }) {
   const { medications, isLoading, updateMedication, deleteMedication, reorderMedications } = useMedications(member.id);
   const { markAsTaken, markAsTakenAt } = useMedicationRecordActions();
+  const { schedules } = useSchedules();
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
+
+  const scheduleMap = useMemo<MedicationScheduleMap>(() => {
+    const map: MedicationScheduleMap = {};
+    const memberSchedules = schedules.filter((s) => s.schedule.memberId === member.id);
+    for (const item of memberSchedules) {
+      const medId = item.schedule.medicationId;
+      if (!map[medId]) map[medId] = [];
+      map[medId].push({
+        scheduleId: item.schedule.id,
+        time: item.schedule.scheduledTime,
+        label: getScheduleLabel(item.schedule.daysOfWeek, item.schedule.intervalDays),
+      });
+    }
+    return map;
+  }, [schedules, member.id]);
 
   useEffect(() => {
     if (editingMed && editFormRef.current) {
@@ -108,6 +138,8 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
         onMarkPastTaken={handleMarkPastTaken}
         onEdit={handleEdit}
         onReorder={!categoryFilter ? reorderMedications : undefined}
+        scheduleMap={scheduleMap}
+        scheduleEditUrl={`/members/${member.id}/medications#schedules`}
       />
     </section>
   );
