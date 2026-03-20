@@ -25,7 +25,7 @@ const DAY_ORDER: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
 function getScheduleLabel(daysOfWeek: readonly DayOfWeek[], intervalDays?: number): string {
   if (intervalDays === -1) return '頓服';
-  if (intervalDays && intervalDays > 0) return `${intervalDays}日ごと`;
+  if (intervalDays && intervalDays > 0) return `${intervalDays}日毎`;
   if (daysOfWeek.length === 0 || daysOfWeek.length === 7) return '毎日';
   return DAY_ORDER.filter((d) => daysOfWeek.includes(d)).map((d) => DAY_LABELS[d]).join('・');
 }

@@ -30,15 +30,15 @@ const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
 ];
 
 const INTERVAL_OPTIONS = [
-  { value: 2, label: '2日ごと' },
-  { value: 3, label: '3日ごと' },
-  { value: 7, label: '1週間ごと' },
-  { value: 14, label: '2週間ごと' },
-  { value: 21, label: '3週間ごと' },
-  { value: 28, label: '4週間ごと' },
-  { value: 30, label: '1ヶ月ごと' },
-  { value: 60, label: '2ヶ月ごと' },
-  { value: 90, label: '3ヶ月ごと' },
+  { value: 2, label: '2日毎' },
+  { value: 3, label: '3日毎' },
+  { value: 7, label: '1週間毎' },
+  { value: 14, label: '2週間毎' },
+  { value: 21, label: '3週間毎' },
+  { value: 28, label: '4週間毎' },
+  { value: 30, label: '1ヶ月毎' },
+  { value: 60, label: '2ヶ月毎' },
+  { value: 90, label: '3ヶ月毎' },
 ];
 
 export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit, onSubmitMultiple }) => {
