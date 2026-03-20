@@ -49,10 +49,12 @@ export class GetTodaySchedules {
       })
       .map((item) => this.toViewModel(item, date));
 
-    // 時刻順 → 薬の表示順でソート
+    // 時刻順 → メンバー名順 → 薬の表示順でソート
     viewModels.sort((a, b) => {
       const timeCompare = a.scheduledTime.localeCompare(b.scheduledTime);
       if (timeCompare !== 0) return timeCompare;
+      const memberCompare = a.memberName.localeCompare(b.memberName);
+      if (memberCompare !== 0) return memberCompare;
       return a.medicationDisplayOrder - b.medicationDisplayOrder;
     });
 
