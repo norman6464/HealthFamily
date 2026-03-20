@@ -88,15 +88,23 @@ export const GET = withAuth(async (userId) => {
   const memberMap = new Map(members.map((m) => [m.id, m]));
 
   const completedScheduleIds = new Set(
-    todayRecords.map((r) => r.scheduleId).filter(Boolean)
-  );
-  const completedMedicationIds = new Set(
-    todayRecords.map((r) => r.medicationId).filter(Boolean)
+    todayRecords.filter((r) => r.scheduleId).map((r) => r.scheduleId as string)
   );
 
-  // サーバー側で今日(JST)有効なスケジュールだけにフィルタリング
+  // 同じ薬に複数スケジュールがあるかを判定するためのマップ
   const activeSchedules = schedules.filter((s) =>
     isScheduleActiveToday(s, jstToday)
+  );
+  const medicationScheduleCount = new Map<string, number>();
+  for (const s of activeSchedules) {
+    medicationScheduleCount.set(s.medicationId, (medicationScheduleCount.get(s.medicationId) || 0) + 1);
+  }
+
+  // scheduleIdなしの記録(手動記録)はスケジュールが1つだけの薬にのみ適用
+  const manualCompletedMedicationIds = new Set(
+    todayRecords
+      .filter((r) => !r.scheduleId && (medicationScheduleCount.get(r.medicationId) || 0) <= 1)
+      .map((r) => r.medicationId)
   );
 
   const result = activeSchedules.map((s) => {
@@ -116,7 +124,7 @@ export const GET = withAuth(async (userId) => {
       isEnabled: s.isEnabled,
       reminderMinutesBefore: s.reminderMinutesBefore,
       medicationDisplayOrder: s.medication.displayOrder ?? 0,
-      isCompleted: completedScheduleIds.has(s.id) || completedMedicationIds.has(s.medicationId),
+      isCompleted: completedScheduleIds.has(s.id) || manualCompletedMedicationIds.has(s.medicationId),
       createdAt: s.createdAt.toISOString(),
     };
   });
