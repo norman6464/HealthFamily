@@ -13,6 +13,11 @@ function isScheduleActiveToday(
   schedule: { daysOfWeek: string[]; intervalDays: number | null; startDate: Date | null },
   jstDate: Date,
 ): boolean {
+  // 頓服（PRN）: ホーム画面に表示しない
+  if (schedule.intervalDays === -1) {
+    return false;
+  }
+
   // 間隔スケジュール（X日ごと）
   if (schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate) {
     const startUtc = new Date(schedule.startDate);

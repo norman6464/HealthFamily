@@ -75,7 +75,7 @@ export interface ScheduleCardProps {
   onDelete: (scheduleId: string) => void;
 }
 
-type EditMode = 'daily' | 'weekdays' | 'interval';
+type EditMode = 'daily' | 'weekdays' | 'interval' | 'prn';
 
 const INTERVAL_OPTIONS = [
   { value: 2, label: '2日ごと' },
@@ -90,6 +90,7 @@ const INTERVAL_OPTIONS = [
 ];
 
 function getInitialMode(schedule: Schedule): EditMode {
+  if (schedule.intervalDays === -1) return 'prn';
   if (schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate) return 'interval';
   if (schedule.daysOfWeek.length > 0) return 'weekdays';
   return 'daily';
@@ -110,13 +111,15 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
     return new Date().toISOString().split('T')[0];
   });
 
-  const daysLabel = schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate
-    ? `${schedule.intervalDays}日ごと`
-    : schedule.daysOfWeek.length === 7
-      ? '毎日'
-      : schedule.daysOfWeek.length === 0
+  const daysLabel = schedule.intervalDays === -1
+    ? '頓服'
+    : schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate
+      ? `${schedule.intervalDays}日ごと`
+      : schedule.daysOfWeek.length === 7
         ? '毎日'
-        : DAY_ORDER.filter((d) => schedule.daysOfWeek.includes(d)).map((d) => DAY_LABELS[d]).join('・');
+        : schedule.daysOfWeek.length === 0
+          ? '毎日'
+          : DAY_ORDER.filter((d) => schedule.daysOfWeek.includes(d)).map((d) => DAY_LABELS[d]).join('・');
 
   const toggleDay = (day: DayOfWeek) => {
     setEditDays((prev) =>
@@ -125,15 +128,19 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
   };
 
   const canSave = editMode === 'daily'
+    || editMode === 'prn'
     || (editMode === 'weekdays' && editDays.length > 0)
     || (editMode === 'interval' && editStartDate);
 
   const handleSave = async () => {
     if (!canSave) return;
     const wasInterval = getInitialMode(schedule) === 'interval';
-    const shouldClearInterval = wasInterval && editMode !== 'interval';
+    const wasPrn = getInitialMode(schedule) === 'prn';
+    const shouldClearInterval = (wasInterval || wasPrn) && editMode !== 'interval' && editMode !== 'prn';
     let updateData: Partial<Schedule>;
-    if (editMode === 'interval') {
+    if (editMode === 'prn') {
+      updateData = { scheduledTime: '00:00', daysOfWeek: [], intervalDays: -1 };
+    } else if (editMode === 'interval') {
       updateData = {
         scheduledTime: editTime,
         daysOfWeek: [],
@@ -173,17 +180,8 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
       <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200">
         <div className="space-y-3">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">服薬時刻</label>
-            <input
-              type="time"
-              value={editTime}
-              onChange={(e) => setEditTime(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
-            />
-          </div>
-          <div>
             <label className="block text-xs text-gray-500 mb-2">頻度</label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               <button type="button" className={modeButtonClass('daily')} onClick={() => setEditMode('daily')}>
                 毎日
               </button>
@@ -193,7 +191,30 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
               <button type="button" className={modeButtonClass('interval')} onClick={() => setEditMode('interval')}>
                 間隔指定
               </button>
+              <button type="button" className={modeButtonClass('prn')} onClick={() => setEditMode('prn')}>
+                頓服
+              </button>
             </div>
+
+            {editMode === 'prn' && (
+              <p className="text-xs text-gray-500">症状がある時だけ服用。ホーム画面には表示されません。</p>
+            )}
+          </div>
+
+          {editMode !== 'prn' && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">服薬時刻</label>
+            <input
+              type="time"
+              value={editTime}
+              onChange={(e) => setEditTime(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+            />
+          </div>
+          )}
+
+          {editMode !== 'prn' && (
+          <div>
 
             {editMode === 'weekdays' && (
               <div>
@@ -246,6 +267,7 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ item, onUpdate, 
               </div>
             )}
           </div>
+          )}
           <div className="flex space-x-2">
             <button
               onClick={handleSave}
