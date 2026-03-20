@@ -81,6 +81,11 @@ export class ScheduleEntity {
       return false;
     }
 
+    // 頓服（PRN）: 定期スケジュールではないため常にfalse
+    if (this.schedule.intervalDays === -1) {
+      return false;
+    }
+
     // 間隔スケジュール（X日ごと）
     if (this.schedule.intervalDays && this.schedule.intervalDays > 0 && this.schedule.startDate) {
       const start = new Date(this.schedule.startDate);

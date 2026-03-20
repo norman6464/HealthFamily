@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DayOfWeek } from '../../domain/entities/Schedule';
 
-export type ScheduleMode = 'daily' | 'weekdays' | 'interval';
+export type ScheduleMode = 'daily' | 'weekdays' | 'interval' | 'prn';
 
 export interface ScheduleFormData {
   scheduledTime: string;
@@ -61,11 +61,11 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
     if (mode === 'interval' && !startDate) return;
 
     onSubmit({
-      scheduledTime,
+      scheduledTime: mode === 'prn' ? '00:00' : scheduledTime,
       daysOfWeek: mode === 'weekdays' ? selectedDays : [],
-      intervalDays: mode === 'interval' ? parseInt(intervalDays, 10) : undefined,
+      intervalDays: mode === 'prn' ? -1 : mode === 'interval' ? parseInt(intervalDays, 10) : undefined,
       startDate: mode === 'interval' ? startDate : undefined,
-      reminderMinutesBefore: parseInt(reminderMinutes, 10) || 0,
+      reminderMinutesBefore: mode === 'prn' ? 0 : parseInt(reminderMinutes, 10) || 0,
     });
 
     setScheduledTime('08:00');
@@ -84,19 +84,6 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="schedule-time" className="block text-sm font-medium text-gray-700 mb-1">
-          服薬時刻
-        </label>
-        <input
-          id="schedule-time"
-          type="time"
-          value={scheduledTime}
-          onChange={(e) => setScheduledTime(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-        />
-      </div>
-
-      <div>
         <span className="block text-sm font-medium text-gray-700 mb-2">頻度</span>
         <div className="flex flex-wrap gap-2 mb-2">
           <button type="button" className={modeButtonClass('daily')} onClick={() => setMode('daily')}>
@@ -108,7 +95,35 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
           <button type="button" className={modeButtonClass('interval')} onClick={() => setMode('interval')}>
             間隔指定
           </button>
+          <button type="button" className={modeButtonClass('prn')} onClick={() => setMode('prn')}>
+            頓服
+          </button>
         </div>
+
+        {mode === 'prn' && (
+          <p className="text-xs text-gray-500 mt-1">
+            症状がある時だけ服用する薬です。ホーム画面には表示されません。
+          </p>
+        )}
+      </div>
+
+      {mode !== 'prn' && (
+      <div>
+        <label htmlFor="schedule-time" className="block text-sm font-medium text-gray-700 mb-1">
+          服薬時刻
+        </label>
+        <input
+          id="schedule-time"
+          type="time"
+          value={scheduledTime}
+          onChange={(e) => setScheduledTime(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+        />
+      </div>
+      )}
+
+      {mode !== 'prn' && (
+      <div>
 
         {mode === 'weekdays' && (
           <div className="flex flex-wrap gap-2">
@@ -170,7 +185,9 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
           </div>
         )}
       </div>
+      )}
 
+      {mode !== 'prn' && (
       <div>
         <label htmlFor="reminder-minutes" className="block text-sm font-medium text-gray-700 mb-1">
           リマインダー（分前）
@@ -189,6 +206,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
           <option value="60">1時間前</option>
         </select>
       </div>
+      )}
 
       <button
         type="submit"
