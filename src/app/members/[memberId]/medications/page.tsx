@@ -58,6 +58,23 @@ export default function Medications() {
     setScheduleTarget(null);
   };
 
+  const handleCreateMultipleSchedules = async (items: ScheduleFormData[]) => {
+    if (!scheduleTarget) return;
+    for (const data of items) {
+      await createSchedule({
+        medicationId: scheduleTarget.medication.id,
+        userId,
+        memberId,
+        scheduledTime: data.scheduledTime,
+        daysOfWeek: data.daysOfWeek,
+        intervalDays: data.intervalDays,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        reminderMinutesBefore: data.reminderMinutesBefore,
+      });
+    }
+    setScheduleTarget(null);
+  };
+
   const handleDeleteSchedule = async (scheduleId: string) => {
     await deleteSchedule(scheduleId);
   };
@@ -110,7 +127,7 @@ export default function Medications() {
                 <X size={18} />
               </button>
             </div>
-            <ScheduleForm onSubmit={handleCreateSchedule} />
+            <ScheduleForm onSubmit={handleCreateSchedule} onSubmitMultiple={handleCreateMultipleSchedules} />
           </div>
         )}
 

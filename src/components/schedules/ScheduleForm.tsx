@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DayOfWeek } from '../../domain/entities/Schedule';
 
-export type ScheduleMode = 'daily' | 'weekdays' | 'interval' | 'prn';
+export type ScheduleMode = 'daily' | 'weekdays' | 'interval' | 'prn' | 'twice_daily' | 'three_daily';
 
 export interface ScheduleFormData {
   scheduledTime: string;
@@ -13,7 +13,11 @@ export interface ScheduleFormData {
 
 interface ScheduleFormProps {
   onSubmit: (data: ScheduleFormData) => void;
+  onSubmitMultiple?: (data: ScheduleFormData[]) => void;
 }
+
+const TWICE_DAILY_TIMES = ['08:00', '20:00'];
+const THREE_DAILY_TIMES = ['08:00', '13:00', '20:00'];
 
 const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
   { value: 'mon', label: '月' },
@@ -37,7 +41,7 @@ const INTERVAL_OPTIONS = [
   { value: 90, label: '3ヶ月ごと' },
 ];
 
-export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
+export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit, onSubmitMultiple }) => {
   const [scheduledTime, setScheduledTime] = useState('08:00');
   const [mode, setMode] = useState<ScheduleMode>('daily');
   const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>([]);
@@ -60,13 +64,24 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
     if (mode === 'weekdays' && selectedDays.length === 0) return;
     if (mode === 'interval' && !startDate) return;
 
-    onSubmit({
-      scheduledTime: mode === 'prn' ? '00:00' : scheduledTime,
-      daysOfWeek: mode === 'weekdays' ? selectedDays : [],
+    const baseData = {
+      daysOfWeek: mode === 'weekdays' ? selectedDays : [] as DayOfWeek[],
       intervalDays: mode === 'prn' ? -1 : mode === 'interval' ? parseInt(intervalDays, 10) : undefined,
       startDate: mode === 'interval' ? startDate : undefined,
       reminderMinutesBefore: mode === 'prn' ? 0 : parseInt(reminderMinutes, 10) || 0,
-    });
+    };
+
+    if (mode === 'twice_daily' || mode === 'three_daily') {
+      const times = mode === 'twice_daily' ? TWICE_DAILY_TIMES : THREE_DAILY_TIMES;
+      const items = times.map((time) => ({ ...baseData, scheduledTime: time }));
+      if (onSubmitMultiple) {
+        onSubmitMultiple(items);
+      } else {
+        items.forEach((item) => onSubmit(item));
+      }
+    } else {
+      onSubmit({ ...baseData, scheduledTime: mode === 'prn' ? '00:00' : scheduledTime });
+    }
 
     setScheduledTime('08:00');
     setSelectedDays([]);
@@ -95,11 +110,27 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
           <button type="button" className={modeButtonClass('interval')} onClick={() => setMode('interval')}>
             間隔指定
           </button>
+          <button type="button" className={modeButtonClass('twice_daily')} onClick={() => setMode('twice_daily')}>
+            1日2回
+          </button>
+          <button type="button" className={modeButtonClass('three_daily')} onClick={() => setMode('three_daily')}>
+            1日3回
+          </button>
           <button type="button" className={modeButtonClass('prn')} onClick={() => setMode('prn')}>
             頓服
           </button>
         </div>
 
+        {mode === 'twice_daily' && (
+          <p className="text-xs text-gray-500 mt-1">
+            朝(08:00)と夜(20:00)の2回分のスケジュールを追加します。
+          </p>
+        )}
+        {mode === 'three_daily' && (
+          <p className="text-xs text-gray-500 mt-1">
+            朝(08:00)・昼(13:00)・夜(20:00)の3回分のスケジュールを追加します。
+          </p>
+        )}
         {mode === 'prn' && (
           <p className="text-xs text-gray-500 mt-1">
             症状がある時だけ服用する薬です。ホーム画面には表示されません。
@@ -107,7 +138,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
         )}
       </div>
 
-      {mode !== 'prn' && (
+      {mode !== 'prn' && mode !== 'twice_daily' && mode !== 'three_daily' && (
       <div>
         <label htmlFor="schedule-time" className="block text-sm font-medium text-gray-700 mb-1">
           服薬時刻
@@ -122,7 +153,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
       </div>
       )}
 
-      {mode !== 'prn' && (
+      {mode !== 'prn' && mode !== 'twice_daily' && mode !== 'three_daily' && (
       <div>
 
         {mode === 'weekdays' && (
@@ -187,7 +218,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit }) => {
       </div>
       )}
 
-      {mode !== 'prn' && (
+      {mode !== 'prn' && mode !== 'twice_daily' && mode !== 'three_daily' && (
       <div>
         <label htmlFor="reminder-minutes" className="block text-sm font-medium text-gray-700 mb-1">
           リマインダー（分前）
