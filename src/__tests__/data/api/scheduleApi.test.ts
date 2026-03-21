@@ -49,7 +49,7 @@ describe('scheduleApi', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce([mockTodayResponse]);
 
     const result = await scheduleApi.getSchedules();
-    expect(apiClient.get).toHaveBeenCalledWith('/schedules/today');
+    expect(apiClient.get).toHaveBeenCalledWith('/schedules/all');
     expect(result).toHaveLength(1);
     expect(result[0].medicationName).toBe('頭痛薬');
     expect(result[0].memberName).toBe('太郎');
