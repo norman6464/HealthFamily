@@ -33,7 +33,7 @@ const VALID_DAYS: readonly string[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat',
 
 export const scheduleApi = {
   async getSchedules(): Promise<ScheduleWithDetails[]> {
-    const items = await apiClient.get<TodayScheduleResponse[]>('/schedules/today');
+    const items = await apiClient.get<TodayScheduleResponse[]>('/schedules/all');
     return items.map((item) => ({
       schedule: {
         id: item.id,
