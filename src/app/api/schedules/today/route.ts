@@ -91,21 +91,38 @@ export const GET = withAuth(async (userId) => {
     todayRecords.filter((r) => r.scheduleId).map((r) => r.scheduleId as string)
   );
 
-  // 同じ薬に複数スケジュールがあるかを判定するためのマップ
   const activeSchedules = schedules.filter((s) =>
     isScheduleActiveToday(s, jstToday)
   );
-  const medicationScheduleCount = new Map<string, number>();
-  for (const s of activeSchedules) {
-    medicationScheduleCount.set(s.medicationId, (medicationScheduleCount.get(s.medicationId) || 0) + 1);
+
+  // 薬ごとの手動記録(scheduleIdなし)の件数を集計
+  const manualRecordCountByMedication = new Map<string, number>();
+  for (const r of todayRecords) {
+    if (!r.scheduleId) {
+      manualRecordCountByMedication.set(r.medicationId, (manualRecordCountByMedication.get(r.medicationId) || 0) + 1);
+    }
   }
 
-  // scheduleIdなしの記録(手動記録)はスケジュールが1つだけの薬にのみ適用
-  const manualCompletedMedicationIds = new Set(
-    todayRecords
-      .filter((r) => !r.scheduleId && (medicationScheduleCount.get(r.medicationId) || 0) <= 1)
-      .map((r) => r.medicationId)
-  );
+  // 薬ごとのスケジュールを時刻順に並べ、手動記録を古い時刻のスケジュールから割り当て
+  const manualCompletedScheduleIds = new Set<string>();
+  const medScheduleGroups = new Map<string, typeof activeSchedules>();
+  for (const s of activeSchedules) {
+    const group = medScheduleGroups.get(s.medicationId) || [];
+    group.push(s);
+    medScheduleGroups.set(s.medicationId, group);
+  }
+  for (const [medId, group] of medScheduleGroups) {
+    const manualCount = manualRecordCountByMedication.get(medId) || 0;
+    if (manualCount === 0) continue;
+    // scheduleId付き記録で既に完了しているものを除外し、時刻順でソート
+    const uncompletedBySchedule = group
+      .filter((s) => !completedScheduleIds.has(s.id))
+      .sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime));
+    // 手動記録の件数分、古い時刻のスケジュールから服薬済みにする
+    for (let i = 0; i < Math.min(manualCount, uncompletedBySchedule.length); i++) {
+      manualCompletedScheduleIds.add(uncompletedBySchedule[i].id);
+    }
+  }
 
   const result = activeSchedules.map((s) => {
     const member = memberMap.get(s.memberId);
@@ -124,7 +141,7 @@ export const GET = withAuth(async (userId) => {
       isEnabled: s.isEnabled,
       reminderMinutesBefore: s.reminderMinutesBefore,
       medicationDisplayOrder: s.medication.displayOrder ?? 0,
-      isCompleted: completedScheduleIds.has(s.id) || manualCompletedMedicationIds.has(s.medicationId),
+      isCompleted: completedScheduleIds.has(s.id) || manualCompletedScheduleIds.has(s.id),
       createdAt: s.createdAt.toISOString(),
     };
   });
