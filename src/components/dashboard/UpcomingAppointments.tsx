@@ -51,7 +51,7 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({ appo
                       </span>
                     )}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5 flex-wrap">
                     {apt.memberName && (
                       <span className="flex items-center space-x-1">
                         <User size={10} />
@@ -64,7 +64,15 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({ appo
                         <span>{apt.hospitalName}</span>
                       </span>
                     )}
+                    {apt.appointmentType && AppointmentEntity.typeLabels[apt.appointmentType] && (
+                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                        {AppointmentEntity.typeLabels[apt.appointmentType]}
+                      </span>
+                    )}
                   </div>
+                  {apt.description && (
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{apt.description}</p>
+                  )}
                 </div>
               </div>
             </div>
