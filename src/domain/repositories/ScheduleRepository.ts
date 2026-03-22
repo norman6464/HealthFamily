@@ -32,9 +32,19 @@ export interface ScheduleRepository {
   getSchedules(): Promise<ScheduleWithDetails[]>;
 
   /**
+   * ユーザーの全スケジュールを取得（生データ）
+   */
+  getSchedulesRaw(): Promise<Schedule[]>;
+
+  /**
    * 今日のスケジュール一覧を取得
    */
   getTodaySchedules(query: TodayScheduleQuery): Promise<TodayScheduleItem[]>;
+
+  /**
+   * 同じ薬・同じ時刻の有効なスケジュールを検索（重複チェック用）
+   */
+  findOverlapping(medicationId: string, scheduledTime: string): Promise<Schedule | null>;
 
   /**
    * スケジュールを作成

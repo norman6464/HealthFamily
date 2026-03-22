@@ -2,7 +2,7 @@
  * スケジュール管理ユースケース
  */
 
-import { Schedule } from '../entities/Schedule';
+import { Schedule, ScheduleEntity } from '../entities/Schedule';
 import { ScheduleRepository, ScheduleWithDetails } from '../repositories/ScheduleRepository';
 
 export class GetSchedules {
@@ -26,6 +26,24 @@ export class CreateSchedule {
     if (!input.scheduledTime) {
       throw new Error('スケジュール時刻は必須です');
     }
+
+    // 重複チェック
+    const existing = await this.scheduleRepository.findOverlapping(
+      input.medicationId,
+      input.scheduledTime,
+    );
+    if (existing) {
+      const newScheduleData: Schedule = {
+        id: '',
+        ...input,
+        createdAt: new Date(),
+      };
+      const entity = new ScheduleEntity(newScheduleData);
+      if (entity.hasOverlap(existing)) {
+        throw new Error('同じ薬の同じ時刻に既にスケジュールが存在します');
+      }
+    }
+
     return this.scheduleRepository.createSchedule(input);
   }
 }

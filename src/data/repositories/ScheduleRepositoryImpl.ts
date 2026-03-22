@@ -17,8 +17,18 @@ export class ScheduleRepositoryImpl implements ScheduleRepository {
     return await scheduleApi.getSchedules();
   }
 
+  async getSchedulesRaw(): Promise<Schedule[]> {
+    // フロントエンドからは使用しない（サーバーサイド専用）
+    return [];
+  }
+
   async getTodaySchedules(query: TodayScheduleQuery): Promise<TodayScheduleItem[]> {
     return await scheduleApi.getTodaySchedules(query.userId, query.date);
+  }
+
+  async findOverlapping(_medicationId: string, _scheduledTime: string): Promise<Schedule | null> {
+    // フロントエンドからは使用しない（サーバーサイド専用）
+    return null;
   }
 
   async createSchedule(schedule: Omit<Schedule, 'id' | 'createdAt'>): Promise<Schedule> {
