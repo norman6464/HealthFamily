@@ -1,62 +1,16 @@
-import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-import { StockAlertEntity } from '@/domain/entities/StockAlert';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetStockAlerts } from '@/domain/usecases/ManageMedications';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`medications-alerts-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const now = new Date();
 
-  const [medications, schedules] = await Promise.all([
-    prisma.medication.findMany({
-      where: {
-        userId,
-        isActive: true,
-        stockAlertDate: { not: null },
-      },
-      include: { member: { select: { id: true, name: true } } },
-      orderBy: { stockAlertDate: 'asc' },
-      take: QUERY_LIMITS.SCHEDULES,
-    }),
-    prisma.schedule.findMany({
-      where: { userId, isEnabled: true },
-      select: { medicationId: true },
-      take: QUERY_LIMITS.RECORDS,
-    }),
-  ]);
-
-  // 各薬の1日あたりのスケジュール数をカウント
-  const scheduleCountByMed = new Map<string, number>();
-  for (const s of schedules) {
-    scheduleCountByMed.set(s.medicationId, (scheduleCountByMed.get(s.medicationId) ?? 0) + 1);
-  }
-
-  const alerts = medications
-    .filter((med) => {
-      if (!med.stockAlertDate) return false;
-      const daysUntil = Math.ceil((med.stockAlertDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      return daysUntil <= 14;
-    })
-    .map((med) => {
-      const daysUntil = Math.ceil((med.stockAlertDate!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      const dailyConsumption = scheduleCountByMed.get(med.id) ?? 0;
-      const remainingDays = StockAlertEntity.calculateRemainingDays(med.stockQuantity, dailyConsumption);
-
-      return {
-        medicationId: med.id,
-        medicationName: med.name,
-        memberId: med.memberId,
-        memberName: med.member.name,
-        stockQuantity: med.stockQuantity,
-        stockAlertDate: med.stockAlertDate!.toISOString(),
-        daysUntilAlert: daysUntil,
-        isOverdue: daysUntil <= 0,
-        remainingDays,
-      };
-    });
+  const container = createServerDIContainer(userId);
+  const usecase = new GetStockAlerts(container.medicationRepository);
+  const alerts = await usecase.execute();
 
   return success(alerts);
 });
