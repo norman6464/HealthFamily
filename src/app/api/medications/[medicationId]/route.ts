@@ -1,23 +1,23 @@
-import { prisma } from '@/lib/prisma';
 import { updateMedicationSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck, validateBodySize , safeParseJson } from '@/lib/api-helpers';
+import { withAuth, validateBodySize, safeParseJson, validateParamId } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-
-const findMedication = (id: string) => prisma.medication.findUnique({ where: { id } });
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { UpdateMedication, DeleteMedication } from '@/domain/usecases/ManageMedications';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ medicationId: string }> }) {
   return withAuth(async (userId) => {
     const { allowed } = checkRateLimit(`medications-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
-    return withOwnershipCheck({
-      userId,
-      resourceId: medicationId,
-      finder: findMedication,
-      resourceName: 'お薬',
-      handler: async (medication) => success(medication),
-    });
+    const idError = validateParamId(medicationId);
+    if (idError) return idError;
+
+    const container = createServerDIContainer(userId);
+    const medication = await container.medicationRepository.getMedicationById(medicationId);
+    if (!medication) return errorResponse('お薬が見つかりません', 404);
+
+    return success(medication);
   })();
 }
 
@@ -29,37 +29,36 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
     const { allowed } = checkRateLimit(`medications-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
-    return withOwnershipCheck({
-      userId,
-      resourceId: medicationId,
-      finder: findMedication,
-      resourceName: 'お薬',
-      handler: async () => {
-        const jsonResult = await safeParseJson(request);
+    const idError = validateParamId(medicationId);
+    if (idError) return idError;
+
+    const jsonResult = await safeParseJson(request);
     if ('error' in jsonResult) return jsonResult.error;
     const body = jsonResult.data;
-        const parsed = updateMedicationSchema.safeParse(body);
-        if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
+    const parsed = updateMedicationSchema.safeParse(body);
+    if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const data: Record<string, unknown> = {};
-        if (parsed.data.name !== undefined) data.name = parsed.data.name;
-        if (parsed.data.category !== undefined) data.category = parsed.data.category;
-        if (parsed.data.dosageAmount !== undefined) data.dosageAmount = parsed.data.dosageAmount;
-        if (parsed.data.frequency !== undefined) data.frequency = parsed.data.frequency;
-        if (parsed.data.stockQuantity !== undefined) data.stockQuantity = parsed.data.stockQuantity;
-        if (parsed.data.stockAlertDate !== undefined) {
-          data.stockAlertDate = parsed.data.stockAlertDate ? new Date(parsed.data.stockAlertDate) : null;
-        }
-        if (parsed.data.instructions !== undefined) data.instructions = parsed.data.instructions;
-        if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive;
+    const container = createServerDIContainer(userId);
+    const usecase = new UpdateMedication(container.medicationRepository);
 
-        const updated = await prisma.medication.update({
-          where: { id: medicationId },
-          data,
-        });
-        return success(updated);
-      },
-    });
+    try {
+      const updated = await usecase.execute(medicationId, {
+        name: parsed.data.name,
+        category: parsed.data.category,
+        dosage: parsed.data.dosageAmount,
+        frequency: parsed.data.frequency,
+        stockQuantity: parsed.data.stockQuantity,
+        stockAlertDate: parsed.data.stockAlertDate,
+        instructions: parsed.data.instructions,
+        isActive: parsed.data.isActive,
+      });
+      return success(updated);
+    } catch (error) {
+      if (error instanceof Error && error.message === '薬が見つかりません') {
+        return errorResponse('お薬が見つかりません', 404);
+      }
+      throw error;
+    }
   })();
 }
 
@@ -68,15 +67,20 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     const { allowed } = checkRateLimit(`medications-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
     const { medicationId } = await params;
-    return withOwnershipCheck({
-      userId,
-      resourceId: medicationId,
-      finder: findMedication,
-      resourceName: 'お薬',
-      handler: async () => {
-        await prisma.medication.delete({ where: { id: medicationId } });
-        return success({ message: '削除しました' });
-      },
-    });
+    const idError = validateParamId(medicationId);
+    if (idError) return idError;
+
+    const container = createServerDIContainer(userId);
+    const usecase = new DeleteMedication(container.medicationRepository);
+
+    try {
+      await usecase.execute(medicationId);
+      return success({ message: '削除しました' });
+    } catch (error) {
+      if (error instanceof Error && error.message === '薬が見つかりません') {
+        return errorResponse('お薬が見つかりません', 404);
+      }
+      throw error;
+    }
   })();
 }

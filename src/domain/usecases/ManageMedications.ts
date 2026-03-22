@@ -10,6 +10,7 @@ import {
   CreateMedicationInput,
   UpdateMedicationInput,
 } from '../repositories/MedicationRepository';
+import { ScheduleRepository } from '../repositories/ScheduleRepository';
 
 export interface MedicationViewModel {
   medication: Medication;
@@ -41,6 +42,43 @@ export class CreateMedication {
       throw new Error('薬の名前は必須です');
     }
     return this.medicationRepository.createMedication(input);
+  }
+}
+
+/**
+ * 薬を作成し、デフォルトスケジュールも同時に作成するユースケース
+ * APIルート (POST /medications) で使用される
+ */
+export class CreateMedicationWithSchedule {
+  constructor(
+    private readonly medicationRepository: MedicationRepository,
+    private readonly scheduleRepository: ScheduleRepository,
+  ) {}
+
+  async execute(input: CreateMedicationInput): Promise<Medication> {
+    if (!input.name.trim()) {
+      throw new Error('薬の名前は必須です');
+    }
+
+    const medication = await this.medicationRepository.createMedication(input);
+
+    try {
+      await this.scheduleRepository.createSchedule({
+        medicationId: medication.id,
+        userId: input.userId,
+        memberId: input.memberId,
+        scheduledTime: '08:00',
+        daysOfWeek: [],
+        isEnabled: true,
+        reminderMinutesBefore: 5,
+      });
+    } catch (error) {
+      // スケジュール作成に失敗した場合、作成した薬を削除して整合性を保つ
+      await this.medicationRepository.deleteMedication(medication.id);
+      throw error;
+    }
+
+    return medication;
   }
 }
 

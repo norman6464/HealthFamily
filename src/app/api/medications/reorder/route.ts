@@ -1,7 +1,8 @@
-import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { ReorderMedications } from '@/domain/usecases/ManageMedications';
 import { z } from 'zod';
 
 const reorderSchema = z.object({
@@ -21,26 +22,17 @@ export async function PUT(request: Request) {
     const parsed = reorderSchema.safeParse(jsonResult.data);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-    const { medicationIds } = parsed.data;
+    const container = createServerDIContainer(userId);
+    const usecase = new ReorderMedications(container.medicationRepository);
 
-    const medications = await prisma.medication.findMany({
-      where: { id: { in: medicationIds }, userId },
-      select: { id: true },
-    });
-
-    const ownedIds = new Set(medications.map((m) => m.id));
-    const allOwned = medicationIds.every((id) => ownedIds.has(id));
-    if (!allOwned) return errorResponse('権限がありません', 403);
-
-    await prisma.$transaction(
-      medicationIds.map((id, index) =>
-        prisma.medication.update({
-          where: { id },
-          data: { displayOrder: index },
-        })
-      )
-    );
-
-    return success({ message: '並び順を更新しました' });
+    try {
+      await usecase.execute(parsed.data.medicationIds);
+      return success({ message: '並び順を更新しました' });
+    } catch (error) {
+      if (error instanceof Error && error.message === '権限がありません') {
+        return errorResponse('権限がありません', 403);
+      }
+      throw error;
+    }
   })();
 }

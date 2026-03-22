@@ -1,8 +1,10 @@
-import { prisma } from '@/lib/prisma';
 import { createMedicationSchema } from '@/lib/schemas';
 import { created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize , safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { prisma } from '@/lib/prisma';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { CreateMedicationWithSchedule } from '@/domain/usecases/ManageMedications';
 
 export async function POST(request: Request) {
   const sizeError = validateBodySize(request);
@@ -26,31 +28,22 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    const medication = await prisma.medication.create({
-      data: {
-        userId,
-        memberId: parsed.data.memberId,
-        name: parsed.data.name,
-        category: parsed.data.category ?? 'regular',
-        dosageAmount: parsed.data.dosageAmount,
-        frequency: parsed.data.frequency,
-        stockQuantity: parsed.data.stockQuantity,
-        stockAlertDate: parsed.data.stockAlertDate ? new Date(parsed.data.stockAlertDate) : undefined,
-        instructions: parsed.data.instructions,
-        isActive: true,
-      },
-    });
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateMedicationWithSchedule(
+      container.medicationRepository,
+      container.scheduleRepository,
+    );
 
-    await prisma.schedule.create({
-      data: {
-        userId,
-        medicationId: medication.id,
-        memberId: parsed.data.memberId,
-        scheduledTime: '08:00',
-        daysOfWeek: [],
-        isEnabled: true,
-        reminderMinutesBefore: 5,
-      },
+    const medication = await usecase.execute({
+      userId,
+      memberId: parsed.data.memberId,
+      name: parsed.data.name,
+      category: (parsed.data.category as 'regular') ?? 'regular',
+      dosage: parsed.data.dosageAmount,
+      frequency: parsed.data.frequency,
+      stockQuantity: parsed.data.stockQuantity,
+      stockAlertDate: parsed.data.stockAlertDate,
+      instructions: parsed.data.instructions,
     });
 
     return created(medication);

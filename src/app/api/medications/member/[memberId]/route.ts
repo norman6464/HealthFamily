@@ -1,8 +1,7 @@
-import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateParamId } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
@@ -11,7 +10,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ mem
     const { memberId } = await params;
     const idError = validateParamId(memberId);
     if (idError) return idError;
-    const medications = await prisma.medication.findMany({ where: { memberId, userId }, orderBy: { displayOrder: 'asc' }, take: QUERY_LIMITS.APPOINTMENTS });
+
+    const container = createServerDIContainer(userId);
+    const medications = await container.medicationRepository.getMedicationsByMember(memberId);
+
     return success(medications);
   })();
 }
