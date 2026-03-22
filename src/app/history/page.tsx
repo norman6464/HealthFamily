@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Calendar, List, Plus } from 'lucide-react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MedicationHistoryList } from '@/components/history/MedicationHistoryList';
@@ -12,6 +12,7 @@ import { useHealthLogs } from '@/presentation/hooks/useHealthLogs';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useAuth } from '@/hooks/useAuth';
 import { MedicationRecordEntity } from '@/domain/entities/MedicationRecord';
+import { getDIContainer } from '@/infrastructure/DIContainer';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -29,6 +30,12 @@ export default function HistoryPage() {
     () => members.map((m) => ({ id: m.id, name: m.name })),
     [members],
   );
+
+  const fetchMedicationsByMember = useCallback(async (memberId: string) => {
+    const { medicationRepository } = getDIContainer();
+    const meds = await medicationRepository.getMedicationsByMember(memberId);
+    return meds.map((m) => ({ id: m.id, name: m.name, memberId: m.memberId }));
+  }, []);
 
   // メンバーフィルタ適用済みグループ
   const memberFilteredGroups = useMemo(
@@ -135,6 +142,7 @@ export default function HistoryPage() {
                     <AddPastRecordForm
                       selectedDate={selectedDate}
                       members={memberOptions}
+                      fetchMedicationsByMember={fetchMedicationsByMember}
                       onSubmit={createRecord}
                       onClose={() => setShowAddForm(false)}
                     />

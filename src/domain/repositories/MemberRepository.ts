@@ -5,6 +5,7 @@
 
 import { Member } from '../entities/Member';
 import { MemberSummary } from '../entities/MemberSummary';
+import { MemberProfile } from '../entities/MemberProfile';
 
 export interface CreateMemberInput {
   userId: string;
@@ -29,4 +30,5 @@ export interface MemberRepository {
   updateMember(memberId: string, input: UpdateMemberInput): Promise<Member>;
   deleteMember(memberId: string): Promise<void>;
   getMemberSummaries(): Promise<MemberSummary[]>;
+  getMemberProfile(memberId: string): Promise<MemberProfile | null>;
 }

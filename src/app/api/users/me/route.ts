@@ -1,27 +1,26 @@
-import { prisma } from '@/lib/prisma';
 import { updateUserProfileSchema } from '@/lib/schemas';
-import { success, errorResponse, notFound } from '@/lib/auth-helpers';
-import { withAuth, validateBodySize , safeParseJson } from '@/lib/api-helpers';
+import { success, errorResponse } from '@/lib/auth-helpers';
+import { withAuth, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-
-const USER_SELECT = {
-  id: true,
-  email: true,
-  displayName: true,
-  characterType: true,
-  characterName: true,
-} as const;
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetUserProfile, UpdateUserProfile } from '@/domain/usecases/ManageUserProfile';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`users-me-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: USER_SELECT,
-  });
-  if (!user) return notFound('ユーザー');
 
-  return success(user);
+  const container = createServerDIContainer(userId);
+  const usecase = new GetUserProfile(container.userProfileRepository);
+
+  try {
+    const user = await usecase.execute();
+    return success(user);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'ユーザーが見つかりません') {
+      return errorResponse('ユーザーが見つかりません', 404);
+    }
+    throw error;
+  }
 });
 
 export async function PUT(request: Request) {
@@ -40,11 +39,9 @@ export async function PUT(request: Request) {
     const parsed = updateUserProfileSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-    const updated = await prisma.user.update({
-      where: { id: userId },
-      data: { displayName: parsed.data.displayName },
-      select: USER_SELECT,
-    });
+    const container = createServerDIContainer(userId);
+    const usecase = new UpdateUserProfile(container.userProfileRepository);
+    const updated = await usecase.execute({ displayName: parsed.data.displayName });
 
     return success(updated);
   })();

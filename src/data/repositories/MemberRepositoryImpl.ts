@@ -10,6 +10,7 @@ import {
 } from '../../domain/repositories/MemberRepository';
 import { Member } from '../../domain/entities/Member';
 import { MemberSummary } from '../../domain/entities/MemberSummary';
+import { MemberProfile } from '../../domain/entities/MemberProfile';
 import { memberApi } from '../api/memberApi';
 
 export class MemberRepositoryImpl implements MemberRepository {
@@ -35,5 +36,10 @@ export class MemberRepositoryImpl implements MemberRepository {
 
   async getMemberSummaries(): Promise<MemberSummary[]> {
     return memberApi.getMemberSummaries();
+  }
+
+  async getMemberProfile(_memberId: string): Promise<MemberProfile | null> {
+    // フロントエンドからは使用しない（サーバーサイド専用）
+    return null;
   }
 }

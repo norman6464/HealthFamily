@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
-import { apiClient } from '../../data/api/apiClient';
 
 interface Medication {
   id: string;
@@ -18,6 +17,7 @@ interface Member {
 interface AddPastRecordFormProps {
   selectedDate: string;
   members: Member[];
+  fetchMedicationsByMember: (memberId: string) => Promise<Medication[]>;
   onSubmit: (input: {
     memberId: string;
     medicationId: string;
@@ -30,6 +30,7 @@ interface AddPastRecordFormProps {
 export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
   selectedDate,
   members,
+  fetchMedicationsByMember,
   onSubmit,
   onClose,
 }) => {
@@ -46,7 +47,7 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
       setSelectedMedicationId('');
       return;
     }
-    apiClient.get<Medication[]>(`/medications/member/${selectedMemberId}`)
+    fetchMedicationsByMember(selectedMemberId)
       .then((data) => {
         setMedications(data);
         setSelectedMedicationId('');
@@ -54,7 +55,7 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
       .catch(() => {
         setMedications([]);
       });
-  }, [selectedMemberId]);
+  }, [selectedMemberId, fetchMedicationsByMember]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
