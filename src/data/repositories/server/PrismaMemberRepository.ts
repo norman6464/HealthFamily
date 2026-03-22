@@ -10,6 +10,8 @@ import {
 } from '@/domain/repositories/MemberRepository';
 import { Member, MemberType, PetType } from '@/domain/entities/Member';
 import { MemberSummary } from '@/domain/entities/MemberSummary';
+import { MemberProfile } from '@/domain/entities/MemberProfile';
+import { DateRangeHelper } from '@/domain/entities/DateRange';
 import { QUERY_LIMITS } from '@/lib/constants';
 
 function toMember(row: {
@@ -135,5 +137,40 @@ export class PrismaMemberRepository implements MemberRepository {
         nextAppointmentDate: nextAppointment?.appointmentDate.toISOString() ?? null,
       };
     });
+  }
+
+  async getMemberProfile(memberId: string): Promise<MemberProfile | null> {
+    const row = await prisma.member.findUnique({ where: { id: memberId } });
+    if (!row || row.userId !== this.userId) return null;
+
+    const member = toMember(row);
+
+    const [medicationCount, activeScheduleCount, upcomingAppointmentCount] = await Promise.all([
+      prisma.medication.count({ where: { memberId, userId: this.userId, isActive: true } }),
+      prisma.schedule.count({ where: { memberId, userId: this.userId, isEnabled: true } }),
+      prisma.appointment.count({
+        where: { memberId, userId: this.userId, appointmentDate: { gte: new Date() } },
+      }),
+    ]);
+
+    const sevenDaysAgo = DateRangeHelper.daysAgo(7);
+
+    const [recordCount, scheduleCount] = await Promise.all([
+      prisma.medicationRecord.count({ where: { memberId, userId: this.userId, takenAt: { gte: sevenDaysAgo } } }),
+      prisma.schedule.count({ where: { memberId, userId: this.userId, isEnabled: true } }),
+    ]);
+
+    const expectedRecords = scheduleCount * 7;
+    const recentAdherenceRate = expectedRecords > 0
+      ? Math.round((recordCount / expectedRecords) * 100)
+      : null;
+
+    return {
+      member,
+      medicationCount,
+      activeScheduleCount,
+      upcomingAppointmentCount,
+      recentAdherenceRate,
+    };
   }
 }

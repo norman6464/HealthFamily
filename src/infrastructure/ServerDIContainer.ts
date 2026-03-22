@@ -18,6 +18,7 @@ import { AllergyRepository } from '@/domain/repositories/AllergyRepository';
 import { HealthLogRepository } from '@/domain/repositories/HealthLogRepository';
 import { MemberRepository } from '@/domain/repositories/MemberRepository';
 import { AppointmentRepository } from '@/domain/repositories/AppointmentRepository';
+import { UserProfileRepository } from '@/domain/repositories/UserProfileRepository';
 import { PrismaMedicationRepository } from '@/data/repositories/server/PrismaMedicationRepository';
 import { PrismaScheduleRepository } from '@/data/repositories/server/PrismaScheduleRepository';
 import { PrismaMedicationRecordRepository } from '@/data/repositories/server/PrismaMedicationRecordRepository';
@@ -32,6 +33,7 @@ import { PrismaAllergyRepository } from '@/data/repositories/server/PrismaAllerg
 import { PrismaHealthLogRepository } from '@/data/repositories/server/PrismaHealthLogRepository';
 import { PrismaMemberRepository } from '@/data/repositories/server/PrismaMemberRepository';
 import { PrismaAppointmentRepository } from '@/data/repositories/server/PrismaAppointmentRepository';
+import { PrismaUserProfileRepository } from '@/data/repositories/server/PrismaUserProfileRepository';
 
 export interface ServerDIContainer {
   medicationRepository: MedicationRepository;
@@ -48,6 +50,7 @@ export interface ServerDIContainer {
   healthLogRepository: HealthLogRepository;
   memberRepository: MemberRepository;
   appointmentRepository: AppointmentRepository;
+  userProfileRepository: UserProfileRepository;
 }
 
 /**
@@ -70,5 +73,6 @@ export function createServerDIContainer(userId: string): ServerDIContainer {
     healthLogRepository: new PrismaHealthLogRepository(userId),
     memberRepository: new PrismaMemberRepository(userId),
     appointmentRepository: new PrismaAppointmentRepository(userId),
+    userProfileRepository: new PrismaUserProfileRepository(userId),
   };
 }
