@@ -20,6 +20,7 @@ export interface CreateMedicationInput {
 
 export interface UpdateMedicationInput {
   name?: string;
+  category?: string;
   dosage?: string | null;
   frequency?: string | null;
   stockQuantity?: number | null;

@@ -92,6 +92,7 @@ export class PrismaMedicationRepository implements MedicationRepository {
   async updateMedication(medicationId: string, input: UpdateMedicationInput): Promise<Medication> {
     const data: Record<string, unknown> = {};
     if (input.name !== undefined) data.name = input.name;
+    if (input.category !== undefined) data.category = input.category;
     if (input.dosage !== undefined) data.dosageAmount = input.dosage;
     if (input.frequency !== undefined) data.frequency = input.frequency;
     if (input.stockQuantity !== undefined) data.stockQuantity = input.stockQuantity;

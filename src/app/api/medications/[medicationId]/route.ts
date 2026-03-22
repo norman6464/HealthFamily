@@ -44,6 +44,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
     try {
       const updated = await usecase.execute(medicationId, {
         name: parsed.data.name,
+        category: parsed.data.category,
         dosage: parsed.data.dosageAmount,
         frequency: parsed.data.frequency,
         stockQuantity: parsed.data.stockQuantity,

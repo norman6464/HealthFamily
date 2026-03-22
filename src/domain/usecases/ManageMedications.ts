@@ -62,15 +62,21 @@ export class CreateMedicationWithSchedule {
 
     const medication = await this.medicationRepository.createMedication(input);
 
-    await this.scheduleRepository.createSchedule({
-      medicationId: medication.id,
-      userId: input.userId,
-      memberId: input.memberId,
-      scheduledTime: '08:00',
-      daysOfWeek: [],
-      isEnabled: true,
-      reminderMinutesBefore: 5,
-    });
+    try {
+      await this.scheduleRepository.createSchedule({
+        medicationId: medication.id,
+        userId: input.userId,
+        memberId: input.memberId,
+        scheduledTime: '08:00',
+        daysOfWeek: [],
+        isEnabled: true,
+        reminderMinutesBefore: 5,
+      });
+    } catch (error) {
+      // スケジュール作成に失敗した場合、作成した薬を削除して整合性を保つ
+      await this.medicationRepository.deleteMedication(medication.id);
+      throw error;
+    }
 
     return medication;
   }

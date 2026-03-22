@@ -39,6 +39,7 @@ export const medicationApi = {
     const body: Record<string, unknown> = {};
     if (input.stockQuantity !== undefined) body.stockQuantity = input.stockQuantity;
     if (input.name !== undefined) body.name = input.name;
+    if (input.category !== undefined) body.category = input.category;
     if (input.dosage !== undefined) body.dosageAmount = input.dosage;
     if (input.frequency !== undefined) body.frequency = input.frequency;
     if (input.stockAlertDate !== undefined) body.stockAlertDate = input.stockAlertDate;

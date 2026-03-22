@@ -96,6 +96,13 @@ export class PrismaScheduleRepository implements ScheduleRepository {
     if (schedule.isEnabled !== undefined) data.isEnabled = schedule.isEnabled;
     if (schedule.reminderMinutesBefore !== undefined) data.reminderMinutesBefore = schedule.reminderMinutesBefore;
 
+    const existing = await prisma.schedule.findFirst({
+      where: { id, userId: this.userId },
+    });
+    if (!existing) {
+      throw new Error('スケジュールが見つかりません');
+    }
+
     const row = await prisma.schedule.update({
       where: { id },
       data,
@@ -104,6 +111,12 @@ export class PrismaScheduleRepository implements ScheduleRepository {
   }
 
   async deleteSchedule(id: string): Promise<void> {
+    const existing = await prisma.schedule.findFirst({
+      where: { id, userId: this.userId },
+    });
+    if (!existing) {
+      throw new Error('スケジュールが見つかりません');
+    }
     await prisma.schedule.delete({ where: { id } });
   }
 
