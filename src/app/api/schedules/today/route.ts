@@ -1,150 +1,36 @@
-import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-import { QUERY_LIMITS } from '@/lib/constants';
-
-const DAY_MAP: Record<number, string> = {
-  0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat',
-};
-
-// jstDate は getJSTDate() で生成されたUTCフィールドにJST値が入ったDate
-function isScheduleActiveToday(
-  schedule: { daysOfWeek: string[]; intervalDays: number | null; startDate: Date | null },
-  jstDate: Date,
-): boolean {
-  // 頓服（PRN）: ホーム画面に表示しない
-  if (schedule.intervalDays === -1) {
-    return false;
-  }
-
-  // 間隔スケジュール（X日ごと）
-  if (schedule.intervalDays && schedule.intervalDays > 0 && schedule.startDate) {
-    const startUtc = new Date(schedule.startDate);
-    // startDateをJSTの日付として扱う(UTC+9)
-    const startJst = new Date(startUtc.getTime() + 9 * 60 * 60 * 1000);
-    // JSTの日付差を計算（UTCフィールドにJST値が入っている）
-    const startDay = Date.UTC(startJst.getUTCFullYear(), startJst.getUTCMonth(), startJst.getUTCDate());
-    const todayDay = Date.UTC(jstDate.getUTCFullYear(), jstDate.getUTCMonth(), jstDate.getUTCDate());
-    const diffDays = Math.round((todayDay - startDay) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return false;
-    return diffDays % schedule.intervalDays === 0;
-  }
-
-  // 曜日が未設定（空配列）の場合は毎日有効
-  if (schedule.daysOfWeek.length === 0) {
-    return true;
-  }
-
-  // 曜日チェック（jstDateのUTCフィールドにJST値が入っている）
-  const todayDayCode = DAY_MAP[jstDate.getUTCDay()];
-  return schedule.daysOfWeek.includes(todayDayCode);
-}
-
-// JST (UTC+9) の今日の日付を取得
-function getJSTDate(): Date {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return jst;
-}
-
-function getJSTDayBoundaries(): { todayStart: Date; todayEnd: Date } {
-  const jstNow = getJSTDate();
-  const year = jstNow.getUTCFullYear();
-  const month = jstNow.getUTCMonth();
-  const day = jstNow.getUTCDate();
-  // JST 00:00:00 = UTC 前日 15:00:00
-  const todayStart = new Date(Date.UTC(year, month, day, -9, 0, 0, 0));
-  const todayEnd = new Date(Date.UTC(year, month, day, -9 + 23, 59, 59, 999));
-  return { todayStart, todayEnd };
-}
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`schedules-today-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const jstToday = getJSTDate();
-  const { todayStart, todayEnd } = getJSTDayBoundaries();
 
-  const [schedules, todayRecords, members] = await Promise.all([
-    prisma.schedule.findMany({
-      where: { userId, isEnabled: true },
-      include: {
-        medication: { select: { id: true, name: true, displayOrder: true } },
-      },
-      take: QUERY_LIMITS.SCHEDULES,
-    }),
-    prisma.medicationRecord.findMany({
-      where: { userId, takenAt: { gte: todayStart, lte: todayEnd } },
-      select: { scheduleId: true, medicationId: true },
-      take: QUERY_LIMITS.RECORDS,
-    }),
-    prisma.member.findMany({
-      where: { userId },
-      select: { id: true, name: true, memberType: true },
-      take: QUERY_LIMITS.MEMBERS,
-    }),
-  ]);
-
-  const memberMap = new Map(members.map((m) => [m.id, m]));
-
-  const completedScheduleIds = new Set(
-    todayRecords.filter((r) => r.scheduleId).map((r) => r.scheduleId as string)
-  );
-
-  const activeSchedules = schedules.filter((s) =>
-    isScheduleActiveToday(s, jstToday)
-  );
-
-  // 薬ごとの手動記録(scheduleIdなし)の件数を集計
-  const manualRecordCountByMedication = new Map<string, number>();
-  for (const r of todayRecords) {
-    if (!r.scheduleId) {
-      manualRecordCountByMedication.set(r.medicationId, (manualRecordCountByMedication.get(r.medicationId) || 0) + 1);
-    }
-  }
-
-  // 薬ごとのスケジュールを時刻順に並べ、手動記録を古い時刻のスケジュールから割り当て
-  const manualCompletedScheduleIds = new Set<string>();
-  const medScheduleGroups = new Map<string, typeof activeSchedules>();
-  for (const s of activeSchedules) {
-    const group = medScheduleGroups.get(s.medicationId) || [];
-    group.push(s);
-    medScheduleGroups.set(s.medicationId, group);
-  }
-  for (const [medId, group] of medScheduleGroups) {
-    const manualCount = manualRecordCountByMedication.get(medId) || 0;
-    if (manualCount === 0) continue;
-    // scheduleId付き記録で既に完了しているものを除外し、時刻順でソート
-    const uncompletedBySchedule = group
-      .filter((s) => !completedScheduleIds.has(s.id))
-      .sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime));
-    // 手動記録の件数分、古い時刻のスケジュールから服薬済みにする
-    for (let i = 0; i < Math.min(manualCount, uncompletedBySchedule.length); i++) {
-      manualCompletedScheduleIds.add(uncompletedBySchedule[i].id);
-    }
-  }
-
-  const result = activeSchedules.map((s) => {
-    const member = memberMap.get(s.memberId);
-    return {
-      id: s.id,
-      medicationId: s.medicationId,
-      medicationName: s.medication.name,
-      userId: s.userId,
-      memberId: s.memberId,
-      memberName: member?.name || '',
-      memberType: member?.memberType || 'human',
-      scheduledTime: s.scheduledTime,
-      daysOfWeek: s.daysOfWeek,
-      intervalDays: s.intervalDays,
-      startDate: s.startDate?.toISOString(),
-      isEnabled: s.isEnabled,
-      reminderMinutesBefore: s.reminderMinutesBefore,
-      medicationDisplayOrder: s.medication.displayOrder ?? 0,
-      isCompleted: completedScheduleIds.has(s.id) || manualCompletedScheduleIds.has(s.id),
-      createdAt: s.createdAt.toISOString(),
-    };
+  const container = createServerDIContainer(userId);
+  const items = await container.scheduleRepository.getTodaySchedules({
+    userId,
+    date: new Date(),
   });
+
+  const result = items.map((item) => ({
+    id: item.schedule.id,
+    medicationId: item.schedule.medicationId,
+    medicationName: item.medicationName,
+    userId: item.schedule.userId,
+    memberId: item.schedule.memberId,
+    memberName: item.memberName,
+    memberType: item.memberType,
+    scheduledTime: item.schedule.scheduledTime,
+    daysOfWeek: item.schedule.daysOfWeek,
+    intervalDays: item.schedule.intervalDays,
+    startDate: item.schedule.startDate instanceof Date ? item.schedule.startDate.toISOString() : item.schedule.startDate,
+    isEnabled: item.schedule.isEnabled,
+    reminderMinutesBefore: item.schedule.reminderMinutesBefore,
+    medicationDisplayOrder: item.medicationDisplayOrder,
+    isCompleted: item.isCompleted,
+    createdAt: item.schedule.createdAt instanceof Date ? item.schedule.createdAt.toISOString() : item.schedule.createdAt,
+  }));
 
   return success(result);
 });

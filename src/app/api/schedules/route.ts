@@ -1,15 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { createScheduleSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize , safeParseJson } from '@/lib/api-helpers';
-import { ScheduleEntity, Schedule } from '@/domain/entities/Schedule';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { CreateSchedule } from '@/domain/usecases/ManageSchedules';
+import { DayOfWeek } from '@/domain/entities/Schedule';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`schedules-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const schedules = await prisma.schedule.findMany({ where: { userId }, take: QUERY_LIMITS.SCHEDULES });
+
+  const container = createServerDIContainer(userId);
+  const schedules = await container.scheduleRepository.getSchedulesRaw();
   return success(schedules);
 });
 
@@ -33,55 +36,27 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    const daysOfWeek = parsed.data.daysOfWeek ?? [];
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateSchedule(container.scheduleRepository);
 
-    // ドメインエンティティによる重複チェック
-    const existing = await prisma.schedule.findFirst({
-      where: {
-        userId,
-        medicationId: parsed.data.medicationId,
-        scheduledTime: parsed.data.scheduledTime,
-        isEnabled: true,
-      },
-    });
-
-    if (existing) {
-      const newScheduleData: Schedule = {
-        id: '',
+    try {
+      const schedule = await usecase.execute({
         medicationId: parsed.data.medicationId,
         userId,
         memberId: parsed.data.memberId,
         scheduledTime: parsed.data.scheduledTime,
-        daysOfWeek: daysOfWeek as Schedule['daysOfWeek'],
-        isEnabled: true,
-        reminderMinutesBefore: parsed.data.reminderMinutesBefore ?? 5,
-        createdAt: new Date(),
-      };
-      const entity = new ScheduleEntity(newScheduleData);
-      const existingSchedule: Schedule = {
-        ...existing,
-        daysOfWeek: existing.daysOfWeek as Schedule['daysOfWeek'],
-        intervalDays: existing.intervalDays ?? undefined,
-        startDate: existing.startDate ?? undefined,
-      };
-      if (entity.hasOverlap(existingSchedule)) {
-        return errorResponse('同じ薬の同じ時刻に既にスケジュールが存在します');
-      }
-    }
-
-    const schedule = await prisma.schedule.create({
-      data: {
-        userId,
-        medicationId: parsed.data.medicationId,
-        memberId: parsed.data.memberId,
-        scheduledTime: parsed.data.scheduledTime,
-        daysOfWeek,
-        intervalDays: parsed.data.intervalDays ?? null,
-        startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : null,
+        daysOfWeek: (parsed.data.daysOfWeek ?? []) as DayOfWeek[],
+        intervalDays: parsed.data.intervalDays ?? undefined,
+        startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : undefined,
         isEnabled: parsed.data.isEnabled ?? true,
         reminderMinutesBefore: parsed.data.reminderMinutesBefore ?? 5,
-      },
-    });
-    return created(schedule);
+      });
+      return created(schedule);
+    } catch (error) {
+      if (error instanceof Error && error.message === '同じ薬の同じ時刻に既にスケジュールが存在します') {
+        return errorResponse(error.message);
+      }
+      throw error;
+    }
   })();
 }

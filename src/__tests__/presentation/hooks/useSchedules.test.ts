@@ -22,10 +22,14 @@ const mockScheduleWithDetails = {
 
 const mockRepository = {
   getSchedules: vi.fn().mockResolvedValue([mockScheduleWithDetails]),
+  getSchedulesRaw: vi.fn().mockResolvedValue([]),
   getScheduleById: vi.fn(),
+  getTodaySchedules: vi.fn().mockResolvedValue([]),
+  findOverlapping: vi.fn().mockResolvedValue(null),
   createSchedule: vi.fn().mockResolvedValue(mockScheduleWithDetails.schedule),
   updateSchedule: vi.fn().mockResolvedValue(mockScheduleWithDetails.schedule),
   deleteSchedule: vi.fn().mockResolvedValue(undefined),
+  markAsCompleted: vi.fn().mockResolvedValue(undefined),
 };
 
 describe('useSchedules', () => {

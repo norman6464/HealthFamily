@@ -23,7 +23,9 @@ const mockScheduleWithDetails: ScheduleWithDetails = {
 
 const createMockRepository = (): ScheduleRepository => ({
   getSchedules: vi.fn().mockResolvedValue([mockScheduleWithDetails]),
+  getSchedulesRaw: vi.fn().mockResolvedValue([mockSchedule]),
   getTodaySchedules: vi.fn().mockResolvedValue([]),
+  findOverlapping: vi.fn().mockResolvedValue(null),
   createSchedule: vi.fn().mockResolvedValue(mockSchedule),
   updateSchedule: vi.fn().mockResolvedValue(mockSchedule),
   deleteSchedule: vi.fn().mockResolvedValue(undefined),
