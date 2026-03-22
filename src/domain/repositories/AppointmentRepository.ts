@@ -25,6 +25,7 @@ export interface UpdateAppointmentInput {
 
 export interface AppointmentRepository {
   getAppointments(): Promise<Appointment[]>;
+  getAppointmentById(appointmentId: string): Promise<Appointment | null>;
   createAppointment(input: CreateAppointmentInput): Promise<Appointment>;
   updateAppointment(appointmentId: string, input: UpdateAppointmentInput): Promise<Appointment>;
   deleteAppointment(appointmentId: string): Promise<void>;

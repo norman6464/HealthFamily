@@ -44,6 +44,17 @@ function toAppointment(row: {
 export class PrismaAppointmentRepository implements AppointmentRepository {
   constructor(private readonly userId: string) {}
 
+  async getAppointmentById(appointmentId: string): Promise<Appointment | null> {
+    const row = await prisma.appointment.findFirst({
+      where: { id: appointmentId, userId: this.userId },
+      include: {
+        member: { select: { name: true } },
+        hospital: { select: { name: true } },
+      },
+    });
+    return row ? toAppointment(row) : null;
+  }
+
   async getAppointments(): Promise<Appointment[]> {
     const rows = await prisma.appointment.findMany({
       where: { userId: this.userId },

@@ -15,6 +15,11 @@ export class AppointmentRepositoryImpl implements AppointmentRepository {
     return appointmentApi.getAppointments();
   }
 
+  async getAppointmentById(_appointmentId: string): Promise<Appointment | null> {
+    // フロントエンドからは使用しない（サーバーサイド専用）
+    return null;
+  }
+
   async createAppointment(input: CreateAppointmentInput): Promise<Appointment> {
     return appointmentApi.createAppointment(input);
   }
