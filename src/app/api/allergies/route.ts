@@ -1,25 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { createAllergySchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations, safeParseJson } from '@/lib/api-helpers';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetAllergies, CreateAllergy } from '@/domain/usecases/ManageAllergies';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`allergies-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const allergies = await prisma.allergy.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-    take: QUERY_LIMITS.DEFAULT,
-    include: {
-      member: { select: { name: true } },
-    },
-  });
-  const result = allergies.map((a) =>
-    flattenRelations(a, { member: 'memberName' }),
-  );
-  return success(result);
+  const container = createServerDIContainer(userId);
+  const usecase = new GetAllergies(container.allergyRepository);
+  const allergies = await usecase.execute();
+  return success(allergies);
 });
 
 export async function POST(request: Request) {
@@ -41,17 +34,16 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    const allergy = await prisma.allergy.create({
-      data: {
-        userId,
-        memberId: parsed.data.memberId,
-        allergenName: parsed.data.allergenName,
-        allergyType: parsed.data.allergyType,
-        severity: parsed.data.severity,
-        symptoms: parsed.data.symptoms,
-        diagnosedAt: parsed.data.diagnosedAt ? new Date(parsed.data.diagnosedAt) : undefined,
-        notes: parsed.data.notes,
-      },
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateAllergy(container.allergyRepository);
+    const allergy = await usecase.execute({
+      memberId: parsed.data.memberId,
+      allergenName: parsed.data.allergenName,
+      allergyType: parsed.data.allergyType,
+      severity: parsed.data.severity,
+      symptoms: parsed.data.symptoms,
+      diagnosedAt: parsed.data.diagnosedAt,
+      notes: parsed.data.notes,
     });
     return created(allergy);
   })();

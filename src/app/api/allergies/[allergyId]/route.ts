@@ -3,6 +3,8 @@ import { updateAllergySchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { UpdateAllergy, DeleteAllergy } from '@/domain/usecases/ManageAllergies';
 
 const findAllergy = (id: string) => prisma.allergy.findUnique({ where: { id } });
 
@@ -27,16 +29,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ alle
         const parsed = updateAllergySchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const updated = await prisma.allergy.update({
-          where: { id: allergyId },
-          data: {
-            allergenName: parsed.data.allergenName,
-            allergyType: parsed.data.allergyType,
-            severity: parsed.data.severity,
-            symptoms: parsed.data.symptoms,
-            diagnosedAt: parsed.data.diagnosedAt ? new Date(parsed.data.diagnosedAt) : parsed.data.diagnosedAt,
-            notes: parsed.data.notes,
-          },
+        const container = createServerDIContainer(userId);
+        const usecase = new UpdateAllergy(container.allergyRepository);
+        const updated = await usecase.execute(allergyId, {
+          allergenName: parsed.data.allergenName,
+          allergyType: parsed.data.allergyType,
+          severity: parsed.data.severity,
+          symptoms: parsed.data.symptoms,
+          diagnosedAt: parsed.data.diagnosedAt,
+          notes: parsed.data.notes,
         });
         return success(updated);
       },
@@ -55,7 +56,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       finder: findAllergy,
       resourceName: 'アレルギー',
       handler: async () => {
-        await prisma.allergy.delete({ where: { id: allergyId } });
+        const container = createServerDIContainer(userId);
+        const usecase = new DeleteAllergy(container.allergyRepository);
+        await usecase.execute(allergyId);
         return success({ message: '削除しました' });
       },
     });

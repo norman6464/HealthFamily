@@ -1,25 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { createInsuranceSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations, safeParseJson } from '@/lib/api-helpers';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetInsurances, CreateInsurance } from '@/domain/usecases/ManageInsurances';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`insurances-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const insurances = await prisma.insurance.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-    take: QUERY_LIMITS.DEFAULT,
-    include: {
-      member: { select: { name: true } },
-    },
-  });
-  const result = insurances.map((i) =>
-    flattenRelations(i, { member: 'memberName' }),
-  );
-  return success(result);
+  const container = createServerDIContainer(userId);
+  const usecase = new GetInsurances(container.insuranceRepository);
+  const insurances = await usecase.execute();
+  return success(insurances);
 });
 
 export async function POST(request: Request) {
@@ -41,15 +34,14 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    const insurance = await prisma.insurance.create({
-      data: {
-        userId,
-        memberId: parsed.data.memberId,
-        insuranceType: parsed.data.insuranceType,
-        providerName: parsed.data.providerName,
-        policyNumber: parsed.data.policyNumber,
-        notes: parsed.data.notes,
-      },
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateInsurance(container.insuranceRepository);
+    const insurance = await usecase.execute({
+      memberId: parsed.data.memberId,
+      insuranceType: parsed.data.insuranceType,
+      providerName: parsed.data.providerName,
+      policyNumber: parsed.data.policyNumber,
+      notes: parsed.data.notes,
     });
     return created(insurance);
   })();

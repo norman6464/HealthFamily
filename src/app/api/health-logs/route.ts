@@ -1,25 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { createHealthLogSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations , safeParseJson } from '@/lib/api-helpers';
+import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetHealthLogs, CreateHealthLog } from '@/domain/usecases/ManageHealthLogs';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`health-logs-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const logs = await prisma.healthLog.findMany({
-    where: { userId },
-    orderBy: { recordedAt: 'desc' },
-    take: QUERY_LIMITS.DEFAULT,
-    include: {
-      member: { select: { name: true } },
-    },
-  });
-  const result = logs.map((log) =>
-    flattenRelations(log, { member: 'memberName' }),
-  );
-  return success(result);
+  const container = createServerDIContainer(userId);
+  const usecase = new GetHealthLogs(container.healthLogRepository);
+  const logs = await usecase.execute();
+  return success(logs);
 });
 
 export async function POST(request: Request) {
@@ -43,15 +36,14 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    const log = await prisma.healthLog.create({
-      data: {
-        userId,
-        memberId: parsed.data.memberId,
-        conditionLevel: parsed.data.conditionLevel,
-        symptoms: parsed.data.symptoms ?? [],
-        notes: parsed.data.notes,
-      },
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateHealthLog(container.healthLogRepository);
+    await usecase.execute({
+      memberId: parsed.data.memberId,
+      conditionLevel: parsed.data.conditionLevel,
+      symptoms: parsed.data.symptoms ?? [],
+      notes: parsed.data.notes,
     });
-    return created(log);
+    return created({ success: true });
   })();
 }

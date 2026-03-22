@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { DeleteHealthLog } from '@/domain/usecases/ManageHealthLogs';
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ logId: string }> }) {
   return withAuth(async (userId) => {
@@ -14,7 +16,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       finder: (id) => prisma.healthLog.findUnique({ where: { id } }),
       resourceName: '体調記録',
       handler: async (log) => {
-        await prisma.healthLog.delete({ where: { id: log.id } });
+        const container = createServerDIContainer(userId);
+        const usecase = new DeleteHealthLog(container.healthLogRepository);
+        await usecase.execute(log.id);
         return success({ deleted: true });
       },
     });

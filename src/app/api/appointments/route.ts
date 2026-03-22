@@ -1,26 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { createAppointmentSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations , safeParseJson } from '@/lib/api-helpers';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetAppointments, CreateAppointment } from '@/domain/usecases/ManageAppointments';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`appointments-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const appointments = await prisma.appointment.findMany({
-    where: { userId },
-    orderBy: { appointmentDate: 'asc' },
-    take: QUERY_LIMITS.APPOINTMENTS,
-    include: {
-      member: { select: { name: true } },
-      hospital: { select: { name: true } },
-    },
-  });
-  const result = appointments.map((a) =>
-    flattenRelations(a, { member: 'memberName', hospital: 'hospitalName' }),
-  );
-  return success(result);
+  const container = createServerDIContainer(userId);
+  const usecase = new GetAppointments(container.appointmentRepository);
+  const appointments = await usecase.execute();
+  return success(appointments);
 });
 
 export async function POST(request: Request) {
@@ -49,17 +41,16 @@ export async function POST(request: Request) {
     const ownershipError = await verifyResourceOwnership(userId, checks);
     if (ownershipError) return ownershipError;
 
-    const appointment = await prisma.appointment.create({
-      data: {
-        userId,
-        memberId: parsed.data.memberId,
-        hospitalId: parsed.data.hospitalId,
-        appointmentType: parsed.data.type,
-        appointmentDate: new Date(parsed.data.appointmentDate),
-        description: parsed.data.notes,
-        reminderEnabled: parsed.data.reminderEnabled ?? true,
-        reminderDaysBefore: parsed.data.reminderDaysBefore ?? 1,
-      },
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateAppointment(container.appointmentRepository);
+    const appointment = await usecase.execute({
+      memberId: parsed.data.memberId,
+      hospitalId: parsed.data.hospitalId,
+      appointmentDate: parsed.data.appointmentDate,
+      type: parsed.data.type,
+      notes: parsed.data.notes,
+      reminderEnabled: parsed.data.reminderEnabled ?? true,
+      reminderDaysBefore: parsed.data.reminderDaysBefore ?? 1,
     });
     return created(appointment);
   })();

@@ -3,6 +3,8 @@ import { updateInsuranceSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { UpdateInsurance, DeleteInsurance } from '@/domain/usecases/ManageInsurances';
 
 const findInsurance = (id: string) => prisma.insurance.findUnique({ where: { id } });
 
@@ -27,14 +29,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ insu
         const parsed = updateInsuranceSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const updated = await prisma.insurance.update({
-          where: { id: insuranceId },
-          data: {
-            insuranceType: parsed.data.insuranceType,
-            providerName: parsed.data.providerName,
-            policyNumber: parsed.data.policyNumber,
-            notes: parsed.data.notes,
-          },
+        const container = createServerDIContainer(userId);
+        const usecase = new UpdateInsurance(container.insuranceRepository);
+        const updated = await usecase.execute(insuranceId, {
+          insuranceType: parsed.data.insuranceType,
+          providerName: parsed.data.providerName,
+          policyNumber: parsed.data.policyNumber,
+          notes: parsed.data.notes,
         });
         return success(updated);
       },
@@ -53,7 +54,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       finder: findInsurance,
       resourceName: '保険',
       handler: async () => {
-        await prisma.insurance.delete({ where: { id: insuranceId } });
+        const container = createServerDIContainer(userId);
+        const usecase = new DeleteInsurance(container.insuranceRepository);
+        await usecase.execute(insuranceId);
         return success({ message: '削除しました' });
       },
     });

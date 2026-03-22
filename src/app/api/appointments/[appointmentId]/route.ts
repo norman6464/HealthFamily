@@ -1,8 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { updateAppointmentSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck, validateBodySize , safeParseJson } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { UpdateAppointment, DeleteAppointment } from '@/domain/usecases/ManageAppointments';
 
 const findAppointment = (id: string) => prisma.appointment.findUnique({ where: { id } });
 
@@ -27,16 +29,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ appo
         const parsed = updateAppointmentSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const updated = await prisma.appointment.update({
-          where: { id: appointmentId },
-          data: {
-            appointmentDate: parsed.data.appointmentDate ? new Date(parsed.data.appointmentDate) : undefined,
-            hospitalId: parsed.data.hospitalId === '' ? null : parsed.data.hospitalId,
-            appointmentType: parsed.data.type,
-            description: parsed.data.notes,
-            reminderEnabled: parsed.data.reminderEnabled,
-            reminderDaysBefore: parsed.data.reminderDaysBefore,
-          },
+        const container = createServerDIContainer(userId);
+        const usecase = new UpdateAppointment(container.appointmentRepository);
+        const updated = await usecase.execute(appointmentId, {
+          appointmentDate: parsed.data.appointmentDate,
+          hospitalId: parsed.data.hospitalId === '' ? undefined : (parsed.data.hospitalId ?? undefined),
+          type: parsed.data.type,
+          notes: parsed.data.notes,
+          reminderEnabled: parsed.data.reminderEnabled,
+          reminderDaysBefore: parsed.data.reminderDaysBefore,
         });
         return success(updated);
       },
@@ -55,7 +56,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       finder: findAppointment,
       resourceName: '予約',
       handler: async () => {
-        await prisma.appointment.delete({ where: { id: appointmentId } });
+        const container = createServerDIContainer(userId);
+        const usecase = new DeleteAppointment(container.appointmentRepository);
+        await usecase.execute(appointmentId);
         return success({ message: '削除しました' });
       },
     });
