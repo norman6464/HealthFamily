@@ -6,12 +6,15 @@
 
 import { MedicationRepository } from '@/domain/repositories/MedicationRepository';
 import { ScheduleRepository } from '@/domain/repositories/ScheduleRepository';
+import { MedicationRecordRepository } from '@/domain/repositories/MedicationRecordRepository';
 import { PrismaMedicationRepository } from '@/data/repositories/server/PrismaMedicationRepository';
 import { PrismaScheduleRepository } from '@/data/repositories/server/PrismaScheduleRepository';
+import { PrismaMedicationRecordRepository } from '@/data/repositories/server/PrismaMedicationRecordRepository';
 
 export interface ServerDIContainer {
   medicationRepository: MedicationRepository;
   scheduleRepository: ScheduleRepository;
+  medicationRecordRepository: MedicationRecordRepository;
 }
 
 /**
@@ -22,5 +25,6 @@ export function createServerDIContainer(userId: string): ServerDIContainer {
   return {
     medicationRepository: new PrismaMedicationRepository(userId),
     scheduleRepository: new PrismaScheduleRepository(userId),
+    medicationRecordRepository: new PrismaMedicationRecordRepository(userId),
   };
 }

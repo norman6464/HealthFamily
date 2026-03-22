@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateParamId } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { PrismaMedicationRecordRepository } from '@/data/repositories/server/PrismaMedicationRecordRepository';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
@@ -11,11 +11,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ mem
     const { memberId } = await params;
     const idError = validateParamId(memberId);
     if (idError) return idError;
-    const records = await prisma.medicationRecord.findMany({
-      where: { memberId, userId },
-      orderBy: { takenAt: 'desc' },
-      take: QUERY_LIMITS.DEFAULT,
-    });
+
+    const container = createServerDIContainer(userId);
+    const repo = container.medicationRecordRepository as PrismaMedicationRecordRepository;
+    const records = await repo.getHistoryByMember(memberId);
+
     return success(records);
   })();
 }
