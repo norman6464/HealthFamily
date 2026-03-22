@@ -3,6 +3,8 @@ import { updateExaminationSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { UpdateExamination, DeleteExamination } from '@/domain/usecases/ManageExaminations';
 
 const findExamination = (id: string) => prisma.examination.findUnique({ where: { id } });
 
@@ -27,14 +29,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ exam
         const parsed = updateExaminationSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const updated = await prisma.examination.update({
-          where: { id: examinationId },
-          data: {
-            examinationType: parsed.data.examinationType,
-            examinedAt: parsed.data.examinedAt ? new Date(parsed.data.examinedAt) : undefined,
-            nextScheduledDate: parsed.data.nextScheduledDate ? new Date(parsed.data.nextScheduledDate) : parsed.data.nextScheduledDate === null ? null : undefined,
-            notes: parsed.data.notes,
-          },
+        const container = createServerDIContainer(userId);
+        const usecase = new UpdateExamination(container.examinationRepository);
+        const updated = await usecase.execute(examinationId, {
+          examinationType: parsed.data.examinationType,
+          examinedAt: parsed.data.examinedAt,
+          nextScheduledDate: parsed.data.nextScheduledDate,
+          notes: parsed.data.notes,
         });
         return success(updated);
       },
@@ -53,7 +54,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       finder: findExamination,
       resourceName: '検査記録',
       handler: async () => {
-        await prisma.examination.delete({ where: { id: examinationId } });
+        const container = createServerDIContainer(userId);
+        const usecase = new DeleteExamination(container.examinationRepository);
+        await usecase.execute(examinationId);
         return success({ message: '削除しました' });
       },
     });

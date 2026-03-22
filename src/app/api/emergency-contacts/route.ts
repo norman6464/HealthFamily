@@ -1,25 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { createEmergencyContactSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations, safeParseJson } from '@/lib/api-helpers';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetEmergencyContacts, CreateEmergencyContact } from '@/domain/usecases/ManageEmergencyContacts';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`emergency-contacts-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const contacts = await prisma.emergencyContact.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-    take: QUERY_LIMITS.DEFAULT,
-    include: {
-      member: { select: { name: true } },
-    },
-  });
-  const result = contacts.map((c) =>
-    flattenRelations(c, { member: 'memberName' }),
-  );
-  return success(result);
+  const container = createServerDIContainer(userId);
+  const usecase = new GetEmergencyContacts(container.emergencyContactRepository);
+  const contacts = await usecase.execute();
+  return success(contacts);
 });
 
 export async function POST(request: Request) {
@@ -41,15 +34,14 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    const contact = await prisma.emergencyContact.create({
-      data: {
-        userId,
-        memberId: parsed.data.memberId,
-        contactName: parsed.data.contactName,
-        phoneNumber: parsed.data.phoneNumber,
-        relationship: parsed.data.relationship,
-        notes: parsed.data.notes,
-      },
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateEmergencyContact(container.emergencyContactRepository);
+    const contact = await usecase.execute({
+      memberId: parsed.data.memberId,
+      contactName: parsed.data.contactName,
+      phoneNumber: parsed.data.phoneNumber,
+      relationship: parsed.data.relationship,
+      notes: parsed.data.notes,
     });
     return created(contact);
   })();

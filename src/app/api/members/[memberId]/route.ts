@@ -1,8 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import { updateMemberSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, withOwnershipCheck, validateBodySize , safeParseJson } from '@/lib/api-helpers';
+import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { UpdateMember, DeleteMember } from '@/domain/usecases/ManageMembers';
 
 const findMember = (id: string) => prisma.member.findUnique({ where: { id } });
 
@@ -49,10 +51,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ memb
         }
         if (parsed.data.notes !== undefined) data.notes = parsed.data.notes;
 
-        const updated = await prisma.member.update({
-          where: { id: memberId },
-          data,
-        });
+        const container = createServerDIContainer(userId);
+        const usecase = new UpdateMember(container.memberRepository);
+        const updated = await usecase.execute(memberId, data);
         return success(updated);
       },
     });
@@ -70,7 +71,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       finder: findMember,
       resourceName: 'メンバー',
       handler: async () => {
-        await prisma.member.delete({ where: { id: memberId } });
+        const container = createServerDIContainer(userId);
+        const usecase = new DeleteMember(container.memberRepository);
+        await usecase.execute(memberId);
         return success({ message: '削除しました' });
       },
     });

@@ -1,14 +1,17 @@
-import { prisma } from '@/lib/prisma';
 import { createMemberSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, validateBodySize , safeParseJson } from '@/lib/api-helpers';
+import { withAuth, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetMembers, CreateMember } from '@/domain/usecases/ManageMembers';
+import { CreateMemberInput } from '@/domain/repositories/MemberRepository';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`members-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const members = await prisma.member.findMany({ where: { userId }, take: QUERY_LIMITS.MEMBERS });
+  const container = createServerDIContainer(userId);
+  const usecase = new GetMembers(container.memberRepository);
+  const members = await usecase.execute(userId);
   return success(members);
 });
 
@@ -28,15 +31,15 @@ export async function POST(request: Request) {
     const parsed = createMemberSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-    const member = await prisma.member.create({
-      data: {
-        userId,
-        name: parsed.data.name,
-        memberType: parsed.data.memberType ?? 'human',
-        petType: parsed.data.petType,
-        birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : undefined,
-        notes: parsed.data.notes,
-      },
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateMember(container.memberRepository);
+    const member = await usecase.execute({
+      userId,
+      name: parsed.data.name,
+      memberType: parsed.data.memberType ?? 'human',
+      petType: parsed.data.petType as CreateMemberInput['petType'],
+      birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : undefined,
+      notes: parsed.data.notes,
     });
     return created(member);
   })();

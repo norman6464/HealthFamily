@@ -1,25 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import { createVaccinationSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
-import { withAuth, verifyResourceOwnership, validateBodySize, flattenRelations, safeParseJson } from '@/lib/api-helpers';
-import { QUERY_LIMITS } from '@/lib/constants';
+import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { GetVaccinations, CreateVaccination } from '@/domain/usecases/ManageVaccinations';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`vaccinations-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
-  const vaccinations = await prisma.vaccination.findMany({
-    where: { userId },
-    orderBy: { nextScheduledDate: { sort: 'asc', nulls: 'last' } },
-    take: QUERY_LIMITS.DEFAULT,
-    include: {
-      member: { select: { name: true } },
-    },
-  });
-  const result = vaccinations.map((v) =>
-    flattenRelations(v, { member: 'memberName' }),
-  );
-  return success(result);
+  const container = createServerDIContainer(userId);
+  const usecase = new GetVaccinations(container.vaccinationRepository);
+  const vaccinations = await usecase.execute();
+  return success(vaccinations);
 });
 
 export async function POST(request: Request) {
@@ -41,15 +34,14 @@ export async function POST(request: Request) {
     ]);
     if (ownershipError) return ownershipError;
 
-    const vaccination = await prisma.vaccination.create({
-      data: {
-        userId,
-        memberId: parsed.data.memberId,
-        vaccineName: parsed.data.vaccineName,
-        vaccinatedAt: new Date(parsed.data.vaccinatedAt),
-        nextScheduledDate: parsed.data.nextScheduledDate ? new Date(parsed.data.nextScheduledDate) : undefined,
-        notes: parsed.data.notes,
-      },
+    const container = createServerDIContainer(userId);
+    const usecase = new CreateVaccination(container.vaccinationRepository);
+    const vaccination = await usecase.execute({
+      memberId: parsed.data.memberId,
+      vaccineName: parsed.data.vaccineName,
+      vaccinatedAt: parsed.data.vaccinatedAt,
+      nextScheduledDate: parsed.data.nextScheduledDate,
+      notes: parsed.data.notes,
     });
     return created(vaccination);
   })();

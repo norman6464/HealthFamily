@@ -3,6 +3,8 @@ import { updateVaccinationSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
+import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
+import { UpdateVaccination, DeleteVaccination } from '@/domain/usecases/ManageVaccinations';
 
 const findVaccination = (id: string) => prisma.vaccination.findUnique({ where: { id } });
 
@@ -27,14 +29,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ vacc
         const parsed = updateVaccinationSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const updated = await prisma.vaccination.update({
-          where: { id: vaccinationId },
-          data: {
-            vaccineName: parsed.data.vaccineName,
-            vaccinatedAt: parsed.data.vaccinatedAt ? new Date(parsed.data.vaccinatedAt) : undefined,
-            nextScheduledDate: parsed.data.nextScheduledDate ? new Date(parsed.data.nextScheduledDate) : parsed.data.nextScheduledDate === null ? null : undefined,
-            notes: parsed.data.notes,
-          },
+        const container = createServerDIContainer(userId);
+        const usecase = new UpdateVaccination(container.vaccinationRepository);
+        const updated = await usecase.execute(vaccinationId, {
+          vaccineName: parsed.data.vaccineName,
+          vaccinatedAt: parsed.data.vaccinatedAt,
+          nextScheduledDate: parsed.data.nextScheduledDate,
+          notes: parsed.data.notes,
         });
         return success(updated);
       },
@@ -53,7 +54,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       finder: findVaccination,
       resourceName: 'ワクチン記録',
       handler: async () => {
-        await prisma.vaccination.delete({ where: { id: vaccinationId } });
+        const container = createServerDIContainer(userId);
+        const usecase = new DeleteVaccination(container.vaccinationRepository);
+        await usecase.execute(vaccinationId);
         return success({ message: '削除しました' });
       },
     });
