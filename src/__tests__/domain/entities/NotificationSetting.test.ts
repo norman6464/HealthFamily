@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   NotificationSetting,
-  NotificationType,
   DEFAULT_NOTIFICATION_SETTING,
   createNotificationSetting,
   isNotificationEnabled,
