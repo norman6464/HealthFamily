@@ -34,12 +34,8 @@ function toNotificationSetting(raw: BackendNotificationSetting): NotificationSet
 
 export const notificationSettingApi = {
   async get(): Promise<NotificationSetting | null> {
-    try {
-      const data = await apiClient.get<BackendNotificationSetting>('/notification-settings');
-      return toNotificationSetting(data);
-    } catch {
-      return null;
-    }
+    const data = await apiClient.get<BackendNotificationSetting>('/notification-settings');
+    return toNotificationSetting(data);
   },
 
   async upsert(input: UpdateNotificationSettingInput): Promise<NotificationSetting> {

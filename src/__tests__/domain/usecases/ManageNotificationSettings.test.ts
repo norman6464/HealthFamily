@@ -109,5 +109,23 @@ describe('ManageNotificationSettings', () => {
       const useCase = new UpdateNotificationSetting(mockRepository);
       await expect(useCase.execute(input)).rejects.toThrow('リマインダー日数は0以上で指定してください');
     });
+
+    it('許可されていないリマインダー分数の場合エラー', async () => {
+      const input: UpdateNotificationSettingInput = {
+        defaultReminderMinutesBefore: 45,
+      };
+
+      const useCase = new UpdateNotificationSetting(mockRepository);
+      await expect(useCase.execute(input)).rejects.toThrow('リマインダー時間の値が不正です');
+    });
+
+    it('許可されていない予約リマインダー日数の場合エラー', async () => {
+      const input: UpdateNotificationSettingInput = {
+        defaultAppointmentReminderDaysBefore: 5,
+      };
+
+      const useCase = new UpdateNotificationSetting(mockRepository);
+      await expect(useCase.execute(input)).rejects.toThrow('リマインダー日数の値が不正です');
+    });
   });
 });

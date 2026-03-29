@@ -4,7 +4,7 @@ import { withAuth, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
 import { GetNotificationSetting, UpdateNotificationSetting } from '@/domain/usecases/ManageNotificationSettings';
-import { DEFAULT_NOTIFICATION_SETTING } from '@/domain/entities/NotificationSetting';
+import { createNotificationSetting } from '@/domain/entities/NotificationSetting';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`notification-settings-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
@@ -15,10 +15,7 @@ export const GET = withAuth(async (userId) => {
   const setting = await usecase.execute();
 
   if (!setting) {
-    return success({
-      userId,
-      ...DEFAULT_NOTIFICATION_SETTING,
-    });
+    return success(createNotificationSetting(userId));
   }
   return success(setting);
 });

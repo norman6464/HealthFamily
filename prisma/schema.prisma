@@ -294,8 +294,6 @@ model NotificationSetting {
   emailNotificationEnabled            Boolean  @default(true)
   createdAt                           DateTime @default(now())
   updatedAt                           DateTime @updatedAt
-
-  @@index([userId])
 }
 
 model Prescription {

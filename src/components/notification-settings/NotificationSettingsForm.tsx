@@ -61,13 +61,16 @@ export function NotificationSettingsForm({ setting, onSave, isLoading }: Notific
   }, [setting]);
 
   const handleToggleType = async (typeKey: string) => {
-    const newValue = !enabledTypes[typeKey];
+    const prevValue = enabledTypes[typeKey];
+    const newValue = !prevValue;
     setEnabledTypes((prev) => ({ ...prev, [typeKey]: newValue }));
     const field = NOTIFICATION_FIELD_MAP[typeKey];
     if (field) {
       setIsSaving(true);
       try {
         await onSave({ [field]: newValue });
+      } catch {
+        setEnabledTypes((prev) => ({ ...prev, [typeKey]: prevValue }));
       } finally {
         setIsSaving(false);
       }
@@ -75,31 +78,40 @@ export function NotificationSettingsForm({ setting, onSave, isLoading }: Notific
   };
 
   const handleToggleEmail = async () => {
-    const newValue = !emailEnabled;
+    const prevValue = emailEnabled;
+    const newValue = !prevValue;
     setEmailEnabled(newValue);
     setIsSaving(true);
     try {
       await onSave({ emailNotificationEnabled: newValue });
+    } catch {
+      setEmailEnabled(prevValue);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleReminderMinutesChange = async (value: number) => {
+    const prevValue = reminderMinutes;
     setReminderMinutes(value);
     setIsSaving(true);
     try {
       await onSave({ defaultReminderMinutesBefore: value });
+    } catch {
+      setReminderMinutes(prevValue);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleAppointmentDaysChange = async (value: number) => {
+    const prevValue = appointmentDays;
     setAppointmentDays(value);
     setIsSaving(true);
     try {
       await onSave({ defaultAppointmentReminderDaysBefore: value });
+    } catch {
+      setAppointmentDays(prevValue);
     } finally {
       setIsSaving(false);
     }
@@ -196,10 +208,11 @@ export function NotificationSettingsForm({ setting, onSave, isLoading }: Notific
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="reminder-minutes" className="block text-sm font-medium text-gray-700 mb-1">
               服薬リマインダー（何分前）
             </label>
             <select
+              id="reminder-minutes"
               value={reminderMinutes}
               onChange={(e) => handleReminderMinutesChange(Number(e.target.value))}
               disabled={!emailEnabled || isSaving}
@@ -213,13 +226,14 @@ export function NotificationSettingsForm({ setting, onSave, isLoading }: Notific
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="appointment-days" className="block text-sm font-medium text-gray-700 mb-1">
               <span className="flex items-center space-x-1">
                 <Calendar size={14} />
                 <span>通院リマインダー（何日前）</span>
               </span>
             </label>
             <select
+              id="appointment-days"
               value={appointmentDays}
               onChange={(e) => handleAppointmentDaysChange(Number(e.target.value))}
               disabled={!emailEnabled || isSaving}

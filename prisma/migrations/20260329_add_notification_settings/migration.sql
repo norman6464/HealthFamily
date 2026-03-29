@@ -18,8 +18,5 @@ CREATE TABLE "NotificationSetting" (
 -- CreateIndex
 CREATE UNIQUE INDEX "NotificationSetting_userId_key" ON "NotificationSetting"("userId");
 
--- CreateIndex
-CREATE INDEX "NotificationSetting_userId_idx" ON "NotificationSetting"("userId");
-
 -- AddForeignKey
 ALTER TABLE "NotificationSetting" ADD CONSTRAINT "NotificationSetting_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
