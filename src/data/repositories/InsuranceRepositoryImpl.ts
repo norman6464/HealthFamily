@@ -7,6 +7,10 @@ import { Insurance } from '../../domain/entities/Insurance';
 import { insuranceApi } from '../api/insuranceApi';
 
 export class InsuranceRepositoryImpl implements InsuranceRepository {
+  async findById(_id: string): Promise<{ userId: string } | null> {
+    throw new Error('findById はサーバーサイド専用です');
+  }
+
   async getAll(): Promise<Insurance[]> {
     return insuranceApi.getInsurances();
   }

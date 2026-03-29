@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { createAllergySchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
@@ -29,12 +28,12 @@ export async function POST(request: Request) {
     const parsed = createAllergySchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
+    const container = createServerDIContainer(userId);
     const ownershipError = await verifyResourceOwnership(userId, [
-      { finder: () => prisma.member.findUnique({ where: { id: parsed.data.memberId } }), resourceName: 'メンバー' },
+      { finder: () => container.memberRepository.getMemberById(parsed.data.memberId), resourceName: 'メンバー' },
     ]);
     if (ownershipError) return ownershipError;
 
-    const container = createServerDIContainer(userId);
     const usecase = new CreateAllergy(container.allergyRepository);
     const allergy = await usecase.execute({
       memberId: parsed.data.memberId,

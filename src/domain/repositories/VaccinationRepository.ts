@@ -16,6 +16,7 @@ export interface UpdateVaccinationInput {
 }
 
 export interface VaccinationRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getAll(): Promise<Vaccination[]>;
   create(input: CreateVaccinationInput): Promise<Vaccination>;
   update(id: string, input: UpdateVaccinationInput): Promise<Vaccination>;

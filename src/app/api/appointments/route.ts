@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { createAppointmentSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
@@ -29,19 +28,19 @@ export async function POST(request: Request) {
     const parsed = createAppointmentSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
+    const container = createServerDIContainer(userId);
     const checks: Parameters<typeof verifyResourceOwnership>[1] = [
-      { finder: () => prisma.member.findUnique({ where: { id: parsed.data.memberId } }), resourceName: 'メンバー' },
+      { finder: () => container.memberRepository.getMemberById(parsed.data.memberId), resourceName: 'メンバー' },
     ];
     if (parsed.data.hospitalId) {
       checks.push({
-        finder: () => prisma.hospital.findUnique({ where: { id: parsed.data.hospitalId! } }),
+        finder: () => container.hospitalRepository.findById(parsed.data.hospitalId!),
         resourceName: '病院',
       });
     }
     const ownershipError = await verifyResourceOwnership(userId, checks);
     if (ownershipError) return ownershipError;
 
-    const container = createServerDIContainer(userId);
     const usecase = new CreateAppointment(container.appointmentRepository);
     const appointment = await usecase.execute({
       memberId: parsed.data.memberId,

@@ -16,6 +16,10 @@ export class MedicationRecordRepositoryImpl implements MedicationRecordRepositor
     return recordApi.getHistory();
   }
 
+  async getHistoryByMember(_memberId: string): Promise<MedicationRecord[]> {
+    throw new Error('getHistoryByMember はサーバーサイド専用です');
+  }
+
   async createRecord(input: CreateRecordInput): Promise<void> {
     await recordApi.createRecord(input);
   }

@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { createRecordSchema } from '@/lib/schemas';
 import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
@@ -35,15 +34,15 @@ export async function POST(request: Request) {
     const parsed = createRecordSchema.safeParse(body);
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
+    const container = createServerDIContainer(userId);
     const ownershipChecks = [
-      { finder: () => prisma.member.findUnique({ where: { id: parsed.data.memberId } }), resourceName: 'メンバー' },
-      { finder: () => prisma.medication.findUnique({ where: { id: parsed.data.medicationId } }), resourceName: '薬' },
-      ...(parsed.data.scheduleId ? [{ finder: () => prisma.schedule.findUnique({ where: { id: parsed.data.scheduleId } }), resourceName: 'スケジュール' }] : []),
+      { finder: () => container.memberRepository.getMemberById(parsed.data.memberId), resourceName: 'メンバー' },
+      { finder: () => container.medicationRepository.getMedicationById(parsed.data.medicationId), resourceName: '薬' },
+      ...(parsed.data.scheduleId ? [{ finder: () => container.scheduleRepository.findById(parsed.data.scheduleId!), resourceName: 'スケジュール' }] : []),
     ];
     const ownershipError = await verifyResourceOwnership(userId, ownershipChecks);
     if (ownershipError) return ownershipError;
 
-    const container = createServerDIContainer(userId);
     const usecase = new CreateMedicationRecord(container.medicationRecordRepository);
 
     await usecase.execute({

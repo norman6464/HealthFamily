@@ -13,6 +13,10 @@ import { Schedule } from '../../domain/entities/Schedule';
 import { scheduleApi } from '../api/scheduleApi';
 
 export class ScheduleRepositoryImpl implements ScheduleRepository {
+  async findById(_id: string): Promise<{ userId: string } | null> {
+    throw new Error('findById はサーバーサイド専用です');
+  }
+
   async getSchedules(): Promise<ScheduleWithDetails[]> {
     return await scheduleApi.getSchedules();
   }

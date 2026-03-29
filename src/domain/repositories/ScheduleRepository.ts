@@ -27,6 +27,11 @@ export interface ScheduleWithDetails {
 
 export interface ScheduleRepository {
   /**
+   * IDでスケジュールを取得（所有権確認用）
+   */
+  findById(id: string): Promise<{ userId: string } | null>;
+
+  /**
    * 全スケジュール一覧を取得（薬名・メンバー名付き）
    */
   getSchedules(): Promise<ScheduleWithDetails[]>;

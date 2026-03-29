@@ -2,7 +2,6 @@ import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, validateParamId } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
-import { PrismaMedicationRecordRepository } from '@/data/repositories/server/PrismaMedicationRecordRepository';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
@@ -13,8 +12,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ mem
     if (idError) return idError;
 
     const container = createServerDIContainer(userId);
-    const repo = container.medicationRecordRepository as PrismaMedicationRecordRepository;
-    const records = await repo.getHistoryByMember(memberId);
+    const records = await container.medicationRecordRepository.getHistoryByMember(memberId);
 
     return success(records);
   })();

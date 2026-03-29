@@ -16,6 +16,7 @@ export interface UpdateEmergencyContactInput {
 }
 
 export interface EmergencyContactRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getAll(): Promise<EmergencyContact[]>;
   create(input: CreateEmergencyContactInput): Promise<EmergencyContact>;
   update(id: string, input: UpdateEmergencyContactInput): Promise<EmergencyContact>;

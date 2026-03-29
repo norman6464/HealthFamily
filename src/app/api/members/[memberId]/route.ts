@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { updateMemberSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
@@ -6,17 +5,16 @@ import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
 import { UpdateMember, DeleteMember } from '@/domain/usecases/ManageMembers';
 
-const findMember = (id: string) => prisma.member.findUnique({ where: { id } });
-
 export async function GET(_request: Request, { params }: { params: Promise<{ memberId: string }> }) {
   return withAuth(async (userId) => {
     const { allowed } = checkRateLimit(`members-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    const container = createServerDIContainer(userId);
     const { memberId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: memberId,
-      finder: findMember,
+      finder: (id) => container.memberRepository.getMemberById(id),
       resourceName: 'メンバー',
       handler: async (member) => success(member),
     });
@@ -30,11 +28,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ memb
   return withAuth(async (userId) => {
     const { allowed } = checkRateLimit(`members-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    const container = createServerDIContainer(userId);
     const { memberId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: memberId,
-      finder: findMember,
+      finder: (id) => container.memberRepository.getMemberById(id),
       resourceName: 'メンバー',
       handler: async () => {
         const jsonResult = await safeParseJson(request);
@@ -51,7 +50,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ memb
         }
         if (parsed.data.notes !== undefined) data.notes = parsed.data.notes;
 
-        const container = createServerDIContainer(userId);
         const usecase = new UpdateMember(container.memberRepository);
         const updated = await usecase.execute(memberId, data);
         return success(updated);
@@ -64,14 +62,14 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   return withAuth(async (userId) => {
     const { allowed } = checkRateLimit(`members-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    const container = createServerDIContainer(userId);
     const { memberId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: memberId,
-      finder: findMember,
+      finder: (id) => container.memberRepository.getMemberById(id),
       resourceName: 'メンバー',
       handler: async () => {
-        const container = createServerDIContainer(userId);
         const usecase = new DeleteMember(container.memberRepository);
         await usecase.execute(memberId);
         return success({ message: '削除しました' });

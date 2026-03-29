@@ -38,6 +38,13 @@ function toEmergencyContact(row: {
 export class PrismaEmergencyContactRepository implements EmergencyContactRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.emergencyContact.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getAll(): Promise<EmergencyContact[]> {
     const rows = await prisma.emergencyContact.findMany({
       where: { userId: this.userId },

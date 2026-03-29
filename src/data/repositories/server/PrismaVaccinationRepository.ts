@@ -38,6 +38,13 @@ function toVaccination(row: {
 export class PrismaVaccinationRepository implements VaccinationRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.vaccination.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getAll(): Promise<Vaccination[]> {
     const rows = await prisma.vaccination.findMany({
       where: { userId: this.userId },

@@ -1,12 +1,9 @@
-import { prisma } from '@/lib/prisma';
 import { updateAllergySchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
 import { UpdateAllergy, DeleteAllergy } from '@/domain/usecases/ManageAllergies';
-
-const findAllergy = (id: string) => prisma.allergy.findUnique({ where: { id } });
 
 export async function PUT(request: Request, { params }: { params: Promise<{ allergyId: string }> }) {
   const sizeError = validateBodySize(request);
@@ -16,11 +13,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ alle
     const { allowed } = checkRateLimit(`allergies-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
 
+    const container = createServerDIContainer(userId);
     const { allergyId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: allergyId,
-      finder: findAllergy,
+      finder: (id) => container.allergyRepository.findById(id),
       resourceName: 'アレルギー',
       handler: async () => {
         const jsonResult = await safeParseJson(request);
@@ -29,7 +27,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ alle
         const parsed = updateAllergySchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const container = createServerDIContainer(userId);
         const usecase = new UpdateAllergy(container.allergyRepository);
         const updated = await usecase.execute(allergyId, {
           allergenName: parsed.data.allergenName,
@@ -49,14 +46,14 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   return withAuth(async (userId) => {
     const { allowed } = checkRateLimit(`allergies-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    const container = createServerDIContainer(userId);
     const { allergyId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: allergyId,
-      finder: findAllergy,
+      finder: (id) => container.allergyRepository.findById(id),
       resourceName: 'アレルギー',
       handler: async () => {
-        const container = createServerDIContainer(userId);
         const usecase = new DeleteAllergy(container.allergyRepository);
         await usecase.execute(allergyId);
         return success({ message: '削除しました' });

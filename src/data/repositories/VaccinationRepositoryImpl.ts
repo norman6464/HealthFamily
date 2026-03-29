@@ -7,6 +7,10 @@ import { Vaccination } from '../../domain/entities/Vaccination';
 import { vaccinationApi } from '../api/vaccinationApi';
 
 export class VaccinationRepositoryImpl implements VaccinationRepository {
+  async findById(_id: string): Promise<{ userId: string } | null> {
+    throw new Error('findById はサーバーサイド専用です');
+  }
+
   async getAll(): Promise<Vaccination[]> {
     return vaccinationApi.getVaccinations();
   }

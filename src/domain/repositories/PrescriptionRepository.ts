@@ -20,6 +20,7 @@ export interface UpdatePrescriptionInput {
 }
 
 export interface PrescriptionRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getAll(): Promise<Prescription[]>;
   create(input: CreatePrescriptionInput): Promise<Prescription>;
   update(id: string, input: UpdatePrescriptionInput): Promise<Prescription>;

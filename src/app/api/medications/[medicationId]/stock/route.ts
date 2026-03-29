@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { updateStockSchema } from '@/lib/schemas';
 import { sendEmail, emailTemplates } from '@/lib/email';
 import { success, errorResponse } from '@/lib/auth-helpers';
@@ -50,11 +49,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
       );
 
       if (daysUntilAlert > 0 && updated.stockQuantity < daysUntilAlert) {
-        const [user, member] = await Promise.all([
-          prisma.user.findUnique({ where: { id: userId } }),
-          prisma.member.findUnique({ where: { id: updated.memberId } }),
+        const [userProfile, member] = await Promise.all([
+          container.userProfileRepository.getProfile(),
+          container.memberRepository.getMemberById(updated.memberId),
         ]);
-        if (user && member) {
+        if (userProfile && member) {
           const template = emailTemplates.lowStockAlert({
             memberName: member.name,
             medicationName: updated.name,
@@ -62,7 +61,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
             alertDate: alertDate.toLocaleDateString('ja-JP'),
             daysUntilAlert,
           });
-          sendEmail({ to: user.email, ...template }).catch((err) => {
+          sendEmail({ to: userProfile.email, ...template }).catch((err) => {
             console.error('在庫不足メール送信エラー:', err);
           });
         }

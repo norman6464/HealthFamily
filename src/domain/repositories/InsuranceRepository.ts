@@ -16,6 +16,7 @@ export interface UpdateInsuranceInput {
 }
 
 export interface InsuranceRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getAll(): Promise<Insurance[]>;
   create(input: CreateInsuranceInput): Promise<Insurance>;
   update(id: string, input: UpdateInsuranceInput): Promise<Insurance>;

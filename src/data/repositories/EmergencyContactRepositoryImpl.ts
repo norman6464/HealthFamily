@@ -7,6 +7,10 @@ import { EmergencyContact } from '../../domain/entities/EmergencyContact';
 import { emergencyContactApi } from '../api/emergencyContactApi';
 
 export class EmergencyContactRepositoryImpl implements EmergencyContactRepository {
+  async findById(_id: string): Promise<{ userId: string } | null> {
+    throw new Error('findById はサーバーサイド専用です');
+  }
+
   async getAll(): Promise<EmergencyContact[]> {
     return emergencyContactApi.getEmergencyContacts();
   }
