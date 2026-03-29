@@ -24,7 +24,7 @@ describe('signUpSchema', () => {
   it('有効なデータを受け入れる', () => {
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: 'テストユーザー',
     });
     expect(result.success).toBe(true);
@@ -33,7 +33,7 @@ describe('signUpSchema', () => {
   it('無効なメールアドレスを拒否する', () => {
     const result = signUpSchema.safeParse({
       email: 'invalid-email',
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: 'テスト',
     });
     expect(result.success).toBe(false);
@@ -69,7 +69,7 @@ describe('signUpSchema', () => {
   it('空の表示名を拒否する', () => {
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: '',
     });
     expect(result.success).toBe(false);
@@ -78,7 +78,7 @@ describe('signUpSchema', () => {
   it('メールアドレスを小文字に正規化する', () => {
     const result = signUpSchema.safeParse({
       email: 'Test@Example.COM',
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: 'テスト',
     });
     expect(result.success).toBe(true);
@@ -90,7 +90,7 @@ describe('signUpSchema', () => {
   it('メールアドレスの前後の空白を除去する', () => {
     const result = signUpSchema.safeParse({
       email: '  test@example.com  ',
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: 'テスト',
     });
     expect(result.success).toBe(true);
@@ -102,7 +102,7 @@ describe('signUpSchema', () => {
   it('表示名の前後の空白を除去する', () => {
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: '  テスト  ',
     });
     expect(result.success).toBe(true);
@@ -324,7 +324,7 @@ describe('数値フィールドの上限制約', () => {
 
 describe('文字列フィールドの長さ制約', () => {
   it('パスワードが128文字を超える場合を拒否する', () => {
-    const longPassword = 'Aa1' + 'x'.repeat(126);
+    const longPassword = 'Aa1!' + 'x'.repeat(126);
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
       password: longPassword,
@@ -334,7 +334,7 @@ describe('文字列フィールドの長さ制約', () => {
   });
 
   it('パスワードが128文字以内の場合を受け入れる', () => {
-    const validPassword = 'Aa1' + 'x'.repeat(125);
+    const validPassword = 'Aa1!' + 'x'.repeat(124);
     const result = signUpSchema.safeParse({
       email: 'test@example.com',
       password: validPassword,
@@ -347,7 +347,7 @@ describe('文字列フィールドの長さ制約', () => {
     const longEmail = 'a'.repeat(246) + '@test.com';
     const result = signUpSchema.safeParse({
       email: longEmail,
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: 'テスト',
     });
     expect(result.success).toBe(false);
@@ -356,7 +356,7 @@ describe('文字列フィールドの長さ制約', () => {
   it('メールアドレスが254文字以内の場合を受け入れる', () => {
     const result = signUpSchema.safeParse({
       email: 'normal@example.com',
-      password: 'Test1234',
+      password: 'Test1234!',
       displayName: 'テスト',
     });
     expect(result.success).toBe(true);
