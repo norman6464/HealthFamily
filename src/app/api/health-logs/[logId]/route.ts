@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
@@ -9,16 +8,16 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   return withAuth(async (userId) => {
     const { allowed } = checkRateLimit(`health-logs-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    const container = createServerDIContainer(userId);
     const { logId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: logId,
-      finder: (id) => prisma.healthLog.findUnique({ where: { id } }),
+      finder: (id) => container.healthLogRepository.findById(id),
       resourceName: '体調記録',
-      handler: async (log) => {
-        const container = createServerDIContainer(userId);
+      handler: async () => {
         const usecase = new DeleteHealthLog(container.healthLogRepository);
-        await usecase.execute(log.id);
+        await usecase.execute(logId);
         return success({ deleted: true });
       },
     });

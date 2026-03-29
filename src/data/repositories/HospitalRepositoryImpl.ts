@@ -11,6 +11,10 @@ import { Hospital } from '../../domain/entities/Hospital';
 import { hospitalApi } from '../api/hospitalApi';
 
 export class HospitalRepositoryImpl implements HospitalRepository {
+  async findById(_id: string): Promise<{ userId: string } | null> {
+    throw new Error('findById はサーバーサイド専用です');
+  }
+
   async getHospitals(): Promise<Hospital[]> {
     return hospitalApi.getHospitals();
   }

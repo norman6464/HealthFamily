@@ -40,6 +40,13 @@ function toHospital(row: {
 export class PrismaHospitalRepository implements HospitalRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.hospital.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getHospitals(): Promise<Hospital[]> {
     const rows = await prisma.hospital.findMany({
       where: { userId: this.userId },

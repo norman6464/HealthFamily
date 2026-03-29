@@ -38,6 +38,13 @@ function toInsurance(row: {
 export class PrismaInsuranceRepository implements InsuranceRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.insurance.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getAll(): Promise<Insurance[]> {
     const rows = await prisma.insurance.findMany({
       where: { userId: this.userId },

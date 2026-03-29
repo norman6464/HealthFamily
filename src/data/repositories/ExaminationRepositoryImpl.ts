@@ -7,6 +7,10 @@ import { Examination } from '../../domain/entities/Examination';
 import { examinationApi } from '../api/examinationApi';
 
 export class ExaminationRepositoryImpl implements ExaminationRepository {
+  async findById(_id: string): Promise<{ userId: string } | null> {
+    throw new Error('findById はサーバーサイド専用です');
+  }
+
   async getAll(): Promise<Examination[]> {
     return examinationApi.getExaminations();
   }

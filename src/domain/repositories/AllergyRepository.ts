@@ -20,6 +20,7 @@ export interface UpdateAllergyInput {
 }
 
 export interface AllergyRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getAll(): Promise<Allergy[]>;
   create(input: CreateAllergyInput): Promise<Allergy>;
   update(id: string, input: UpdateAllergyInput): Promise<Allergy>;

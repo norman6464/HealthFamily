@@ -16,6 +16,7 @@ export interface UpdateExaminationInput {
 }
 
 export interface ExaminationRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getAll(): Promise<Examination[]>;
   create(input: CreateExaminationInput): Promise<Examination>;
   update(id: string, input: UpdateExaminationInput): Promise<Examination>;

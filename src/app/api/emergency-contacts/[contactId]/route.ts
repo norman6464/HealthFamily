@@ -1,12 +1,9 @@
-import { prisma } from '@/lib/prisma';
 import { updateEmergencyContactSchema } from '@/lib/schemas';
 import { success, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, withOwnershipCheck, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
 import { UpdateEmergencyContact, DeleteEmergencyContact } from '@/domain/usecases/ManageEmergencyContacts';
-
-const findContact = (id: string) => prisma.emergencyContact.findUnique({ where: { id } });
 
 export async function PUT(request: Request, { params }: { params: Promise<{ contactId: string }> }) {
   const sizeError = validateBodySize(request);
@@ -16,11 +13,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ cont
     const { allowed } = checkRateLimit(`emergency-contacts-put:${userId}`, { maxAttempts: 20, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
 
+    const container = createServerDIContainer(userId);
     const { contactId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: contactId,
-      finder: findContact,
+      finder: (id) => container.emergencyContactRepository.findById(id),
       resourceName: '緊急連絡先',
       handler: async () => {
         const jsonResult = await safeParseJson(request);
@@ -29,7 +27,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ cont
         const parsed = updateEmergencyContactSchema.safeParse(body);
         if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
 
-        const container = createServerDIContainer(userId);
         const usecase = new UpdateEmergencyContact(container.emergencyContactRepository);
         const updated = await usecase.execute(contactId, {
           contactName: parsed.data.contactName,
@@ -47,14 +44,14 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   return withAuth(async (userId) => {
     const { allowed } = checkRateLimit(`emergency-contacts-delete:${userId}`, { maxAttempts: 10, windowMs: 60000 });
     if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
+    const container = createServerDIContainer(userId);
     const { contactId } = await params;
     return withOwnershipCheck({
       userId,
       resourceId: contactId,
-      finder: findContact,
+      finder: (id) => container.emergencyContactRepository.findById(id),
       resourceName: '緊急連絡先',
       handler: async () => {
-        const container = createServerDIContainer(userId);
         const usecase = new DeleteEmergencyContact(container.emergencyContactRepository);
         await usecase.execute(contactId);
         return success({ message: '削除しました' });

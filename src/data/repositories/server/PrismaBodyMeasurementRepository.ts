@@ -38,6 +38,13 @@ function toBodyMeasurement(row: {
 export class PrismaBodyMeasurementRepository implements BodyMeasurementRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.bodyMeasurement.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getAll(): Promise<BodyMeasurement[]> {
     const rows = await prisma.bodyMeasurement.findMany({
       where: { userId: this.userId },

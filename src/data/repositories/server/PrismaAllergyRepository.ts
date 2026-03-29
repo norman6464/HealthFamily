@@ -42,6 +42,13 @@ function toAllergy(row: {
 export class PrismaAllergyRepository implements AllergyRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.allergy.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getAll(): Promise<Allergy[]> {
     const rows = await prisma.allergy.findMany({
       where: { userId: this.userId },

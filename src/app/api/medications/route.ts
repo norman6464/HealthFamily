@@ -2,7 +2,6 @@ import { createMedicationSchema } from '@/lib/schemas';
 import { created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize , safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
-import { prisma } from '@/lib/prisma';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
 import { CreateMedicationWithSchedule } from '@/domain/usecases/ManageMedications';
 
@@ -23,12 +22,12 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse(parsed.error.errors[0].message);
     if (!parsed.data.memberId) return errorResponse('メンバーIDは必須です');
 
+    const container = createServerDIContainer(userId);
     const ownershipError = await verifyResourceOwnership(userId, [
-      { finder: () => prisma.member.findUnique({ where: { id: parsed.data.memberId! } }), resourceName: 'メンバー' },
+      { finder: () => container.memberRepository.getMemberById(parsed.data.memberId!), resourceName: 'メンバー' },
     ]);
     if (ownershipError) return ownershipError;
 
-    const container = createServerDIContainer(userId);
     const usecase = new CreateMedicationWithSchedule(
       container.medicationRepository,
       container.scheduleRepository,

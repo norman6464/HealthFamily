@@ -12,6 +12,7 @@ export interface CreateHealthLogInput {
 }
 
 export interface HealthLogRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getLogs(): Promise<HealthLog[]>;
   createLog(input: CreateHealthLogInput): Promise<void>;
   deleteLog(logId: string): Promise<void>;

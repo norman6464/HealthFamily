@@ -38,6 +38,13 @@ function toExamination(row: {
 export class PrismaExaminationRepository implements ExaminationRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.examination.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getAll(): Promise<Examination[]> {
     const rows = await prisma.examination.findMany({
       where: { userId: this.userId },

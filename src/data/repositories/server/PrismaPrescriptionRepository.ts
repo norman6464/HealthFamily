@@ -42,6 +42,13 @@ function toPrescription(row: {
 export class PrismaPrescriptionRepository implements PrescriptionRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.prescription.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getAll(): Promise<Prescription[]> {
     const rows = await prisma.prescription.findMany({
       where: { userId: this.userId },

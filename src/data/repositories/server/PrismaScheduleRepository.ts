@@ -88,6 +88,13 @@ function isScheduleActiveToday(
 export class PrismaScheduleRepository implements ScheduleRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.schedule.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getSchedules(): Promise<ScheduleWithDetails[]> {
     const rows = await prisma.schedule.findMany({
       where: { userId: this.userId },

@@ -7,6 +7,10 @@ import { Prescription } from '../../domain/entities/Prescription';
 import { prescriptionApi } from '../api/prescriptionApi';
 
 export class PrescriptionRepositoryImpl implements PrescriptionRepository {
+  async findById(_id: string): Promise<{ userId: string } | null> {
+    throw new Error('findById はサーバーサイド専用です');
+  }
+
   async getAll(): Promise<Prescription[]> {
     return prescriptionApi.getPrescriptions();
   }

@@ -16,6 +16,7 @@ export interface UpdateBodyMeasurementInput {
 }
 
 export interface BodyMeasurementRepository {
+  findById(id: string): Promise<{ userId: string } | null>;
   getAll(): Promise<BodyMeasurement[]>;
   create(input: CreateBodyMeasurementInput): Promise<BodyMeasurement>;
   update(id: string, input: UpdateBodyMeasurementInput): Promise<BodyMeasurement>;

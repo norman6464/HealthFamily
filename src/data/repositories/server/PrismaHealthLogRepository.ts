@@ -35,6 +35,13 @@ function toHealthLog(row: {
 export class PrismaHealthLogRepository implements HealthLogRepository {
   constructor(private readonly userId: string) {}
 
+  async findById(id: string): Promise<{ userId: string } | null> {
+    return prisma.healthLog.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    });
+  }
+
   async getLogs(): Promise<HealthLog[]> {
     const rows = await prisma.healthLog.findMany({
       where: { userId: this.userId },
