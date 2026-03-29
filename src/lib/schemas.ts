@@ -291,6 +291,19 @@ export const updateAllergySchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== NotificationSettings =====
+export const updateNotificationSettingSchema = z.object({
+  medicationReminderEnabled: z.boolean().optional(),
+  missedMedicationEnabled: z.boolean().optional(),
+  appointmentReminderEnabled: z.boolean().optional(),
+  lowStockAlertEnabled: z.boolean().optional(),
+  defaultReminderMinutesBefore: z.number().int().min(0, 'リマインダー時間は0以上で指定してください').max(120).optional(),
+  defaultAppointmentReminderDaysBefore: z.number().int().min(0, 'リマインダー日数は0以上で指定してください').max(30).optional(),
+  emailNotificationEnabled: z.boolean().optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Auth =====
 export const signUpSchema = z.object({
   email: z.string().trim().toLowerCase().max(254, 'メールアドレスが長すぎます').email('有効なメールアドレスを入力してください'),

@@ -11,7 +11,7 @@ import { EmergencyContactList } from '@/components/emergency-contacts/EmergencyC
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { LogOut, Pencil, Check, X, Plus, Phone } from 'lucide-react';
+import { LogOut, Pencil, Check, X, Plus, Phone, Bell, ChevronRight } from 'lucide-react';
 
 export default function Settings() {
   const { email, userId, isLoading: authLoading } = useAuth();
@@ -120,6 +120,20 @@ export default function Settings() {
             </div>
           </div>
         </section>
+
+        <Link
+          href="/settings/notifications"
+          className="flex items-center justify-between bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center space-x-3">
+            <Bell size={20} className="text-primary-600" />
+            <div>
+              <p className="text-sm font-semibold text-gray-800">通知設定</p>
+              <p className="text-xs text-gray-500">リマインダーやアラートの設定</p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-gray-400" />
+        </Link>
 
         <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">キャラクター選択</h2>
