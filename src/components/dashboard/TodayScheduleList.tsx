@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../shared/LoadingSpinner';
 interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
   isLoading: boolean;
-  onMarkCompleted?: (scheduleId: string, options?: { takenAt?: string; notes?: string }) => void;
+  onMarkCompleted?: (scheduleId: string, options?: { takenAt?: string; notes?: string }) => Promise<void>;
   hasMembers?: boolean;
 }
 
@@ -62,7 +62,7 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
 
 interface ScheduleCardProps {
   schedule: TodayScheduleViewModel;
-  onMarkCompleted?: (scheduleId: string, options?: { takenAt?: string; notes?: string }) => void;
+  onMarkCompleted?: (scheduleId: string, options?: { takenAt?: string; notes?: string }) => Promise<void>;
 }
 
 const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMarkCompleted }) => {
@@ -92,7 +92,8 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMark
 
   const overdueStyle = ScheduleEntity.getOverdueLevelStyle(overdueInfo.level);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const handleCheckClick = () => {
     setTakenDate(todayStr);

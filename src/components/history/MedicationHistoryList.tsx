@@ -95,18 +95,23 @@ const RecordCard: React.FC<RecordCardProps> = ({ record, onDelete, onUpdateNotes
   const [isEditing, setIsEditing] = useState(false);
   const [editNotes, setEditNotes] = useState(record.notes || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleStartEdit = () => {
     setEditNotes(record.notes || '');
+    setSaveError(null);
     setIsEditing(true);
   };
 
   const handleSave = async () => {
     if (!onUpdateNotes) return;
     setIsSaving(true);
+    setSaveError(null);
     try {
       await onUpdateNotes(record.id, editNotes.trim() || null);
       setIsEditing(false);
+    } catch {
+      setSaveError('保存に失敗しました');
     } finally {
       setIsSaving(false);
     }
@@ -143,31 +148,36 @@ const RecordCard: React.FC<RecordCardProps> = ({ record, onDelete, onUpdateNotes
         </div>
       </div>
       {isEditing ? (
-        <div className="mt-2 pl-8 flex items-center gap-1.5">
-          <input
-            type="text"
-            value={editNotes}
-            onChange={(e) => setEditNotes(e.target.value)}
-            className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
-            placeholder="メモを入力"
-            maxLength={500}
-            autoFocus
-          />
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="p-1 text-green-600 hover:text-green-700 disabled:opacity-50"
-            aria-label="保存"
-          >
-            <Check size={14} />
-          </button>
-          <button
-            onClick={() => setIsEditing(false)}
-            className="p-1 text-gray-400 hover:text-gray-600"
-            aria-label="キャンセル"
-          >
-            <X size={14} />
-          </button>
+        <div className="mt-2 pl-8">
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              value={editNotes}
+              onChange={(e) => setEditNotes(e.target.value)}
+              className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+              placeholder="メモを入力"
+              maxLength={500}
+              autoFocus
+              disabled={isSaving}
+            />
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="p-1 text-green-600 hover:text-green-700 disabled:opacity-50"
+              aria-label="保存"
+            >
+              <Check size={14} />
+            </button>
+            <button
+              onClick={() => setIsEditing(false)}
+              disabled={isSaving}
+              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+              aria-label="キャンセル"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          {saveError && <p className="text-xs text-red-500 mt-1">{saveError}</p>}
         </div>
       ) : (
         <div className="mt-1 pl-8 flex items-center gap-1">

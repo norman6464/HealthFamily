@@ -73,7 +73,7 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
     setError(null);
     try {
       const takenAt = new Date(`${selectedDate}T12:00:00`).toISOString();
-      await Promise.all(
+      const results = await Promise.allSettled(
         selectedMedicationIds.map((medicationId) =>
           onSubmit({
             memberId: selectedMemberId,
@@ -83,9 +83,17 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
           })
         )
       );
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
+      if (failedCount > 0) {
+        const successCount = results.length - failedCount;
+        if (successCount > 0) {
+          setError(`${successCount}件追加、${failedCount}件失敗しました`);
+        } else {
+          setError('記録の追加に失敗しました');
+        }
+        return;
+      }
       onClose();
-    } catch {
-      setError('記録の追加に失敗しました');
     } finally {
       setIsSubmitting(false);
     }

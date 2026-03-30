@@ -101,6 +101,8 @@ export const createRecordSchema = z.object({
 
 export const updateRecordSchema = z.object({
   notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
 });
 
 // ===== Hospitals =====

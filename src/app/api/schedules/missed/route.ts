@@ -76,7 +76,7 @@ export const GET = withAuth(async (userId) => {
     }),
     prisma.medicationRecord.findMany({
       where: { userId, takenAt: { gte: oldestBoundary.start } },
-      select: { scheduleId: true, medicationId: true, takenAt: true },
+      select: { scheduleId: true, medicationId: true, memberId: true, takenAt: true },
       take: QUERY_LIMITS.RECORDS,
     }),
     prisma.member.findMany({
@@ -100,7 +100,8 @@ export const GET = withAuth(async (userId) => {
     } else {
       if (!manualRecordsByDate.has(dateKey)) manualRecordsByDate.set(dateKey, new Map());
       const medMap = manualRecordsByDate.get(dateKey)!;
-      medMap.set(r.medicationId, (medMap.get(r.medicationId) || 0) + 1);
+      const manualKey = `${r.memberId}:${r.medicationId}`;
+      medMap.set(manualKey, (medMap.get(manualKey) || 0) + 1);
     }
   }
 
@@ -125,12 +126,13 @@ export const GET = withAuth(async (userId) => {
     const manualCompletedIds = new Set<string>();
     const medGroups = new Map<string, typeof activeSchedules>();
     for (const s of activeSchedules) {
-      const g = medGroups.get(s.medicationId) || [];
+      const scheduleKey = `${s.memberId}:${s.medicationId}`;
+      const g = medGroups.get(scheduleKey) || [];
       g.push(s);
-      medGroups.set(s.medicationId, g);
+      medGroups.set(scheduleKey, g);
     }
-    for (const [medId, group] of medGroups) {
-      const count = manualCounts.get(medId) || 0;
+    for (const [scheduleKey, group] of medGroups) {
+      const count = manualCounts.get(scheduleKey) || 0;
       if (count === 0) continue;
       const uncompleted = group
         .filter((s) => !completedIds.has(s.id))

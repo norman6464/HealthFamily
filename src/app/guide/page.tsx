@@ -10,10 +10,7 @@ import {
   Calendar,
   Settings,
   Users,
-  Clock,
-  Plus,
   Check,
-  AlertTriangle,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
@@ -244,6 +241,9 @@ export default function GuidePage() {
             >
               <button
                 onClick={() => toggleSection(section.id)}
+                id={`guide-button-${section.id}`}
+                aria-expanded={isOpen}
+                aria-controls={`guide-panel-${section.id}`}
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-3">
@@ -259,7 +259,7 @@ export default function GuidePage() {
                 )}
               </button>
               {isOpen && (
-                <div className="px-4 pb-4 space-y-3">
+                <div id={`guide-panel-${section.id}`} role="region" aria-labelledby={`guide-button-${section.id}`} className="px-4 pb-4 space-y-3">
                   {section.steps.map((step, idx) => (
                     <div key={idx} className="flex space-x-3">
                       <div className="flex-shrink-0 mt-0.5">
