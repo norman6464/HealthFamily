@@ -47,7 +47,7 @@ export class ScheduleRepositoryImpl implements ScheduleRepository {
     await scheduleApi.deleteSchedule(id);
   }
 
-  async markAsCompleted(scheduleId: string, completedAt: Date): Promise<void> {
-    await scheduleApi.markAsCompleted(scheduleId, completedAt);
+  async markAsCompleted(scheduleId: string, completedAt: Date, options?: { takenAt?: string; notes?: string }): Promise<void> {
+    await scheduleApi.markAsCompleted(scheduleId, completedAt, options);
   }
 }

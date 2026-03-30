@@ -18,7 +18,7 @@ type ViewMode = 'list' | 'calendar';
 
 export default function HistoryPage() {
   const { userId } = useAuth();
-  const { groups, isLoading, deleteRecord, createRecord } = useMedicationHistory();
+  const { groups, isLoading, deleteRecord, updateRecord, createRecord } = useMedicationHistory();
   const { groups: healthLogGroups } = useHealthLogs();
   const { members } = useMembers(userId);
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
@@ -30,6 +30,10 @@ export default function HistoryPage() {
     () => members.map((m) => ({ id: m.id, name: m.name })),
     [members],
   );
+
+  const handleUpdateNotes = useCallback(async (recordId: string, notes: string | null) => {
+    await updateRecord(recordId, { notes });
+  }, [updateRecord]);
 
   const fetchMedicationsByMember = useCallback(async (memberId: string) => {
     const { medicationRepository } = getDIContainer();
@@ -152,6 +156,7 @@ export default function HistoryPage() {
                   groups={filteredGroups}
                   isLoading={isLoading}
                   onDelete={deleteRecord}
+                  onUpdateNotes={handleUpdateNotes}
                 />
               </div>
             )}
@@ -162,7 +167,7 @@ export default function HistoryPage() {
             )}
           </div>
         ) : (
-          <MedicationHistoryList groups={memberFilteredGroups} isLoading={isLoading} onDelete={deleteRecord} />
+          <MedicationHistoryList groups={memberFilteredGroups} isLoading={isLoading} onDelete={deleteRecord} onUpdateNotes={handleUpdateNotes} />
         )}
       </main>
 

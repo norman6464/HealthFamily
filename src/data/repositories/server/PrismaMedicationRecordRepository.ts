@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import {
   MedicationRecordRepository,
   CreateRecordInput,
+  UpdateRecordInput,
 } from '@/domain/repositories/MedicationRecordRepository';
 import { MedicationRecord } from '@/domain/entities/MedicationRecord';
 import { AdherenceStats } from '@/domain/entities/AdherenceStats';
@@ -77,6 +78,21 @@ export class PrismaMedicationRecordRepository implements MedicationRecordReposit
         notes: input.notes,
         dosageAmount: input.dosageAmount,
         ...(input.takenAt ? { takenAt: new Date(input.takenAt) } : {}),
+      },
+    });
+  }
+
+  async updateRecord(recordId: string, input: UpdateRecordInput): Promise<void> {
+    const record = await prisma.medicationRecord.findFirst({
+      where: { id: recordId, userId: this.userId },
+    });
+    if (!record) {
+      throw new Error('服薬記録が見つかりません');
+    }
+    await prisma.medicationRecord.update({
+      where: { id: recordId },
+      data: {
+        notes: input.notes === null ? null : input.notes,
       },
     });
   }

@@ -8,6 +8,7 @@ import { AdherenceTrend } from '../entities/AdherenceTrend';
 import {
   MedicationRecordRepository,
   CreateRecordInput,
+  UpdateRecordInput,
 } from '../repositories/MedicationRecordRepository';
 
 export class GetMedicationHistory {
@@ -30,6 +31,17 @@ export class CreateMedicationRecord {
       throw new Error('薬IDは必須です');
     }
     return this.recordRepository.createRecord(input);
+  }
+}
+
+export class UpdateMedicationRecord {
+  constructor(private readonly recordRepository: MedicationRecordRepository) {}
+
+  async execute(recordId: string, input: UpdateRecordInput): Promise<void> {
+    if (!recordId) {
+      throw new Error('記録IDは必須です');
+    }
+    return this.recordRepository.updateRecord(recordId, input);
   }
 }
 
