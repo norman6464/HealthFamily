@@ -266,7 +266,7 @@ export class PrismaScheduleRepository implements ScheduleRepository {
     await prisma.schedule.delete({ where: { id } });
   }
 
-  async markAsCompleted(_scheduleId: string, _completedAt: Date): Promise<void> {
+  async markAsCompleted(_scheduleId: string, _completedAt: Date, _options?: { takenAt?: string; notes?: string }): Promise<void> {
     // 服薬完了は MedicationRecord の作成で管理されるため、ここでは空実装
   }
 }

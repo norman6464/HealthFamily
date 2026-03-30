@@ -114,7 +114,7 @@ export const scheduleApi = {
     await apiClient.del(`/schedules/${id}`);
   },
 
-  async markAsCompleted(scheduleId: string, _completedAt: Date): Promise<void> {
+  async markAsCompleted(scheduleId: string, _completedAt: Date, options?: { takenAt?: string; notes?: string }): Promise<void> {
     const scheduleData = await apiClient.get<BackendSchedule>(`/schedules/${scheduleId}`).catch(() => null);
     if (!scheduleData) return;
 
@@ -122,6 +122,8 @@ export const scheduleApi = {
       memberId: scheduleData.memberId,
       medicationId: scheduleData.medicationId,
       scheduleId,
+      ...(options?.takenAt ? { takenAt: options.takenAt } : {}),
+      ...(options?.notes ? { notes: options.notes } : {}),
     });
   },
 };

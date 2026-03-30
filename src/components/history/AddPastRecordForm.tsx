@@ -35,7 +35,7 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
   onClose,
 }) => {
   const [selectedMemberId, setSelectedMemberId] = useState('');
-  const [selectedMedicationId, setSelectedMedicationId] = useState('');
+  const [selectedMedicationIds, setSelectedMedicationIds] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [medications, setMedications] = useState<Medication[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,36 +44,56 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
   useEffect(() => {
     if (!selectedMemberId) {
       setMedications([]);
-      setSelectedMedicationId('');
+      setSelectedMedicationIds([]);
       return;
     }
     fetchMedicationsByMember(selectedMemberId)
       .then((data) => {
         setMedications(data);
-        setSelectedMedicationId('');
+        setSelectedMedicationIds([]);
       })
       .catch(() => {
         setMedications([]);
       });
   }, [selectedMemberId, fetchMedicationsByMember]);
 
+  const toggleMedication = (medicationId: string) => {
+    setSelectedMedicationIds((prev) =>
+      prev.includes(medicationId)
+        ? prev.filter((id) => id !== medicationId)
+        : [...prev, medicationId]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMemberId || !selectedMedicationId) return;
+    if (!selectedMemberId || selectedMedicationIds.length === 0) return;
 
     setIsSubmitting(true);
     setError(null);
     try {
       const takenAt = new Date(`${selectedDate}T12:00:00`).toISOString();
-      await onSubmit({
-        memberId: selectedMemberId,
-        medicationId: selectedMedicationId,
-        takenAt,
-        notes: notes.trim() || undefined,
-      });
+      const results = await Promise.allSettled(
+        selectedMedicationIds.map((medicationId) =>
+          onSubmit({
+            memberId: selectedMemberId,
+            medicationId,
+            takenAt,
+            notes: notes.trim() || undefined,
+          })
+        )
+      );
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
+      if (failedCount > 0) {
+        const successCount = results.length - failedCount;
+        if (successCount > 0) {
+          setError(`${successCount}件追加、${failedCount}件失敗しました`);
+        } else {
+          setError('記録の追加に失敗しました');
+        }
+        return;
+      }
       onClose();
-    } catch {
-      setError('記録の追加に失敗しました');
     } finally {
       setIsSubmitting(false);
     }
@@ -119,28 +139,35 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
         </div>
 
         <div>
-          <label htmlFor="past-record-medication" className="block text-xs font-medium text-gray-600 mb-1">
-            お薬
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            お薬（複数選択可）
           </label>
-          <select
-            id="past-record-medication"
-            value={selectedMedicationId}
-            onChange={(e) => setSelectedMedicationId(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-            required
-            disabled={!selectedMemberId || medications.length === 0}
-          >
-            <option value="">
-              {!selectedMemberId
-                ? 'メンバーを先に選択'
-                : medications.length === 0
-                  ? '登録されたお薬がありません'
-                  : '選択してください'}
-            </option>
-            {medications.map((med) => (
-              <option key={med.id} value={med.id}>{med.name}</option>
-            ))}
-          </select>
+          {!selectedMemberId ? (
+            <p className="text-sm text-gray-400 py-2">メンバーを先に選択</p>
+          ) : medications.length === 0 ? (
+            <p className="text-sm text-gray-400 py-2">登録されたお薬がありません</p>
+          ) : (
+            <div className="space-y-1 max-h-40 overflow-y-auto rounded-md border border-gray-300 p-2">
+              {medications.map((med) => (
+                <label
+                  key={med.id}
+                  className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer transition-colors ${
+                    selectedMedicationIds.includes(med.id)
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedMedicationIds.includes(med.id)}
+                    onChange={() => toggleMedication(med.id)}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  {med.name}
+                </label>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -164,11 +191,11 @@ export const AddPastRecordForm: React.FC<AddPastRecordFormProps> = ({
 
         <button
           type="submit"
-          disabled={isSubmitting || !selectedMemberId || !selectedMedicationId}
+          disabled={isSubmitting || !selectedMemberId || selectedMedicationIds.length === 0}
           className="w-full flex items-center justify-center space-x-1 bg-primary-600 text-white rounded-md py-2 text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={16} />
-          <span>{isSubmitting ? '追加中...' : '記録を追加'}</span>
+          <span>{isSubmitting ? '追加中...' : selectedMedicationIds.length > 1 ? `${selectedMedicationIds.length}件の記録を追加` : '記録を追加'}</span>
         </button>
       </form>
     </div>

@@ -99,6 +99,12 @@ export const createRecordSchema = z.object({
   takenAt: z.string().datetime().optional(),
 });
 
+export const updateRecordSchema = z.object({
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Hospitals =====
 export const createHospitalSchema = z.object({
   name: z.string({ required_error: '病院名は必須です' }).trim().min(1, '病院名は必須です').max(200),

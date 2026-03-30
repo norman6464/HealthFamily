@@ -8,7 +8,9 @@ import { useAdherenceStats } from '@/presentation/hooks/useAdherenceStats';
 import { useStockAlerts } from '@/presentation/hooks/useStockAlerts';
 import { useMembers } from '@/presentation/hooks/useMembers';
 import { useUserProfile } from '@/presentation/hooks/useUserProfile';
+import { useMissedDoses } from '@/presentation/hooks/useMissedDoses';
 import { TodayScheduleList } from '@/components/dashboard/TodayScheduleList';
+import { MissedDosesAlert } from '@/components/dashboard/MissedDosesAlert';
 import { UpcomingAppointments } from '@/components/dashboard/UpcomingAppointments';
 import { AdherenceStatsCard } from '@/components/dashboard/AdherenceStatsCard';
 import { StockAlertList } from '@/components/dashboard/StockAlertList';
@@ -25,6 +27,7 @@ export default function Dashboard() {
   const { alerts, isLoading: alertsLoading } = useStockAlerts();
   const { members } = useMembers(userId);
   const { profile } = useUserProfile();
+  const { missedDoses, isLoading: missedLoading } = useMissedDoses();
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   const filteredSchedules = useMemo(
@@ -49,6 +52,8 @@ export default function Dashboard() {
         <GreetingCard displayName={profile?.displayName || ''} weeklyRate={stats?.overall.weeklyRate} />
 
         <WeeklySummaryCard schedules={schedules} isLoading={isLoading} />
+
+        <MissedDosesAlert missedDoses={missedDoses} isLoading={missedLoading} />
 
         <h2 className="text-lg font-semibold text-gray-800 mb-3">今日の予定</h2>
         <div className="mb-4">

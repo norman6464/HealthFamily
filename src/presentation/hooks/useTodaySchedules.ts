@@ -13,7 +13,7 @@ export interface UseTodaySchedulesResult {
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
-  markAsCompleted: (scheduleId: string) => Promise<void>;
+  markAsCompleted: (scheduleId: string, options?: { takenAt?: string; notes?: string }) => Promise<void>;
 }
 
 export const useTodaySchedules = (userId: string): UseTodaySchedulesResult => {
@@ -34,9 +34,9 @@ export const useTodaySchedules = (userId: string): UseTodaySchedulesResult => {
     `today-schedules-${userId}`,
   );
 
-  const markAsCompleted = useCallback(async (scheduleId: string) => {
+  const markAsCompleted = useCallback(async (scheduleId: string, options?: { takenAt?: string; notes?: string }) => {
     try {
-      await scheduleRepository.markAsCompleted(scheduleId, new Date());
+      await scheduleRepository.markAsCompleted(scheduleId, new Date(), options);
       await refetch();
     } catch (err) {
       setMarkError(err instanceof Error ? err : new Error('Unknown error'));

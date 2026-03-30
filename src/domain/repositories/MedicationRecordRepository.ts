@@ -15,10 +15,15 @@ export interface CreateRecordInput {
   takenAt?: string;
 }
 
+export interface UpdateRecordInput {
+  notes?: string | null;
+}
+
 export interface MedicationRecordRepository {
   getHistory(): Promise<MedicationRecord[]>;
   getHistoryByMember(memberId: string): Promise<MedicationRecord[]>;
   createRecord(input: CreateRecordInput): Promise<void>;
+  updateRecord(recordId: string, input: UpdateRecordInput): Promise<void>;
   deleteRecord(recordId: string): Promise<void>;
   getAdherenceStats(): Promise<AdherenceStats>;
   getAdherenceTrends(): Promise<AdherenceTrend>;

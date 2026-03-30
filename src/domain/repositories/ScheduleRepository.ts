@@ -69,5 +69,5 @@ export interface ScheduleRepository {
   /**
    * スケジュールを服薬完了にする
    */
-  markAsCompleted(scheduleId: string, completedAt: Date): Promise<void>;
+  markAsCompleted(scheduleId: string, completedAt: Date, options?: { takenAt?: string; notes?: string }): Promise<void>;
 }

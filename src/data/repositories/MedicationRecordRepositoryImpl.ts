@@ -5,6 +5,7 @@
 import {
   MedicationRecordRepository,
   CreateRecordInput,
+  UpdateRecordInput,
 } from '../../domain/repositories/MedicationRecordRepository';
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { AdherenceStats } from '../../domain/entities/AdherenceStats';
@@ -22,6 +23,10 @@ export class MedicationRecordRepositoryImpl implements MedicationRecordRepositor
 
   async createRecord(input: CreateRecordInput): Promise<void> {
     await recordApi.createRecord(input);
+  }
+
+  async updateRecord(recordId: string, input: UpdateRecordInput): Promise<void> {
+    await recordApi.updateRecord(recordId, input);
   }
 
   async deleteRecord(recordId: string): Promise<void> {

@@ -24,6 +24,10 @@ export const recordApi = {
     return data.map(toMedicationRecord);
   },
 
+  async updateRecord(recordId: string, input: { notes?: string | null }): Promise<void> {
+    await apiClient.patch(`/records/${recordId}`, input);
+  },
+
   async deleteRecord(recordId: string): Promise<void> {
     await apiClient.del(`/records/${recordId}`);
   },
