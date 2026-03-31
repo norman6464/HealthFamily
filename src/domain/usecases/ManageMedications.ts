@@ -11,13 +11,10 @@ import {
   UpdateMedicationInput,
 } from '../repositories/MedicationRepository';
 import { ScheduleRepository } from '../repositories/ScheduleRepository';
+import { ConflictError, NotFoundError } from '../errors';
 
-export class DuplicateMedicationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'DuplicateMedicationError';
-  }
-}
+/** @deprecated ConflictErrorを使用してください */
+export class DuplicateMedicationError extends ConflictError {}
 
 export interface MedicationViewModel {
   medication: Medication;
@@ -103,7 +100,7 @@ export class UpdateMedication {
   async execute(medicationId: string, input: UpdateMedicationInput): Promise<Medication> {
     const existing = await this.medicationRepository.getMedicationById(medicationId);
     if (!existing) {
-      throw new Error('薬が見つかりません');
+      throw new NotFoundError('薬が見つかりません');
     }
     return this.medicationRepository.updateMedication(medicationId, input);
   }
@@ -115,7 +112,7 @@ export class DeleteMedication {
   async execute(medicationId: string): Promise<void> {
     const existing = await this.medicationRepository.getMedicationById(medicationId);
     if (!existing) {
-      throw new Error('薬が見つかりません');
+      throw new NotFoundError('薬が見つかりません');
     }
     return this.medicationRepository.deleteMedication(medicationId);
   }

@@ -1,5 +1,5 @@
 import { updateMedicationSchema } from '@/lib/schemas';
-import { success, errorResponse } from '@/lib/auth-helpers';
+import { success, errorResponse, handleDomainError } from '@/lib/auth-helpers';
 import { withAuth, validateBodySize, safeParseJson, validateParamId } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
@@ -54,10 +54,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
       });
       return success(updated);
     } catch (error) {
-      if (error instanceof Error && error.message === '薬が見つかりません') {
-        return errorResponse('お薬が見つかりません', 404);
-      }
-      throw error;
+      return handleDomainError(error);
     }
   })();
 }
@@ -77,10 +74,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       await usecase.execute(medicationId);
       return success({ message: '削除しました' });
     } catch (error) {
-      if (error instanceof Error && error.message === '薬が見つかりません') {
-        return errorResponse('お薬が見つかりません', 404);
-      }
-      throw error;
+      return handleDomainError(error);
     }
   })();
 }
