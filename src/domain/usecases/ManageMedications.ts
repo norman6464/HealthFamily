@@ -60,6 +60,14 @@ export class CreateMedicationWithSchedule {
       throw new Error('薬の名前は必須です');
     }
 
+    // 同一メンバー内の重複チェック
+    const existingMeds = await this.medicationRepository.getMedicationsByMember(input.memberId);
+    const normalizedName = input.name.trim().toLowerCase();
+    const duplicate = existingMeds.find((m) => m.name.toLowerCase() === normalizedName);
+    if (duplicate) {
+      throw new Error('同じ名前のお薬が既に登録されています');
+    }
+
     const medication = await this.medicationRepository.createMedication(input);
 
     try {
