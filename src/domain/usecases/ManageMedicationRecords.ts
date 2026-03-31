@@ -10,6 +10,7 @@ import {
   CreateRecordInput,
   UpdateRecordInput,
 } from '../repositories/MedicationRecordRepository';
+import { ValidationError } from '../errors';
 
 export class GetMedicationHistory {
   constructor(private readonly recordRepository: MedicationRecordRepository) {}
@@ -24,11 +25,11 @@ export class CreateMedicationRecord {
   constructor(private readonly recordRepository: MedicationRecordRepository) {}
 
   async execute(input: CreateRecordInput): Promise<void> {
-    if (!input.memberId) {
-      throw new Error('メンバーIDは必須です');
+    if (!input.memberId?.trim()) {
+      throw new ValidationError('メンバーIDは必須です');
     }
-    if (!input.medicationId) {
-      throw new Error('薬IDは必須です');
+    if (!input.medicationId?.trim()) {
+      throw new ValidationError('薬IDは必須です');
     }
     return this.recordRepository.createRecord(input);
   }
@@ -39,7 +40,7 @@ export class UpdateMedicationRecord {
 
   async execute(recordId: string, input: UpdateRecordInput): Promise<void> {
     if (!recordId) {
-      throw new Error('記録IDは必須です');
+      throw new ValidationError('記録IDは必須です');
     }
     return this.recordRepository.updateRecord(recordId, input);
   }
@@ -50,7 +51,7 @@ export class DeleteMedicationRecord {
 
   async execute(recordId: string): Promise<void> {
     if (!recordId) {
-      throw new Error('記録IDは必須です');
+      throw new ValidationError('記録IDは必須です');
     }
     return this.recordRepository.deleteRecord(recordId);
   }

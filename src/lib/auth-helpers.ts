@@ -1,5 +1,6 @@
 import { auth } from './auth';
 import { NextResponse } from 'next/server';
+import { NotFoundError, ConflictError, ValidationError, DomainError } from '@/domain/errors';
 
 export async function getAuthUserId(): Promise<string | null> {
   const session = await auth();
@@ -30,4 +31,25 @@ export function unauthorized() {
     { success: false, error: '認証エラー' },
     { status: 401 }
   );
+}
+
+/**
+ * ドメイン例外をHTTPレスポンスにマッピングする共通エラーハンドラ
+ */
+export function handleDomainError(error: unknown): NextResponse {
+  if (error instanceof NotFoundError) {
+    return errorResponse(error.message, 404);
+  }
+  if (error instanceof ConflictError) {
+    return errorResponse(error.message, 409);
+  }
+  if (error instanceof ValidationError) {
+    return errorResponse(error.message, 400);
+  }
+  if (error instanceof DomainError) {
+    return errorResponse(error.message, 400);
+  }
+  // 未知のエラーはログに出力し、クライアントには一般的なメッセージを返す
+  console.error('Unhandled error:', error);
+  return errorResponse('サーバーエラーが発生しました', 500);
 }

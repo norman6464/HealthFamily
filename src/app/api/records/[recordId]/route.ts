@@ -1,4 +1,4 @@
-import { success, errorResponse } from '@/lib/auth-helpers';
+import { success, errorResponse, handleDomainError } from '@/lib/auth-helpers';
 import { withAuth, validateParamId, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
@@ -28,10 +28,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ re
       await usecase.execute(recordId, parsed.data);
       return success({ message: '更新しました' });
     } catch (error) {
-      if (error instanceof Error && error.message === '服薬記録が見つかりません') {
-        return errorResponse('服薬記録が見つかりません', 404);
-      }
-      throw error;
+      return handleDomainError(error);
     }
   })();
 }
@@ -51,10 +48,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       await usecase.execute(recordId);
       return success({ message: '削除しました' });
     } catch (error) {
-      if (error instanceof Error && error.message === '服薬記録が見つかりません') {
-        return errorResponse('服薬記録が見つかりません', 404);
-      }
-      throw error;
+      return handleDomainError(error);
     }
   })();
 }
