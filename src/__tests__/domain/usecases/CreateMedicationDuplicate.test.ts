@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { CreateMedicationWithSchedule } from '../../../domain/usecases/ManageMedications';
+import { CreateMedicationWithSchedule, DuplicateMedicationError } from '../../../domain/usecases/ManageMedications';
 import { MedicationRepository, CreateMedicationInput } from '../../../domain/repositories/MedicationRepository';
 import { ScheduleRepository } from '../../../domain/repositories/ScheduleRepository';
 import { Medication, MedicationCategory } from '../../../domain/entities/Medication';
@@ -102,7 +102,7 @@ describe('CreateMedicationWithSchedule - 重複チェック', () => {
         id: 'existing-1',
         memberId: 'm1',
         userId: 'u1',
-        name: 'クラリチン',
+        name: 'Claritin',
         category: 'internal' as MedicationCategory,
         isActive: true,
         createdAt: new Date(),
@@ -112,7 +112,28 @@ describe('CreateMedicationWithSchedule - 重複チェック', () => {
     const schedRepo = createMockScheduleRepo();
     const usecase = new CreateMedicationWithSchedule(medRepo, schedRepo);
 
-    await expect(usecase.execute({ ...baseInput, name: 'クラリチン' })).rejects.toThrow('同じ名前のお薬が既に登録されています');
+    await expect(usecase.execute({ ...baseInput, name: 'claritin' })).rejects.toThrow(DuplicateMedicationError);
+  });
+
+  it('非アクティブな薬は重複として扱わない', async () => {
+    const existingMeds: Medication[] = [
+      {
+        id: 'existing-1',
+        memberId: 'm1',
+        userId: 'u1',
+        name: 'クラリチン',
+        category: 'internal' as MedicationCategory,
+        isActive: false,
+        createdAt: new Date(),
+      },
+    ];
+    const medRepo = createMockMedicationRepo(existingMeds);
+    const schedRepo = createMockScheduleRepo();
+    const usecase = new CreateMedicationWithSchedule(medRepo, schedRepo);
+
+    const result = await usecase.execute(baseInput);
+    expect(result).toBeDefined();
+    expect(medRepo.createMedication).toHaveBeenCalled();
   });
 
   it('重複がない場合は正常に作成される', async () => {
