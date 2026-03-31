@@ -61,8 +61,8 @@ describe('TodayScheduleList', () => {
     expect(screen.getByText('時間超過')).toBeInTheDocument();
   });
 
-  it('服薬完了ボタンをクリックするとコールバックが呼ばれる', () => {
-    const onMarkCompleted = vi.fn();
+  it('服薬完了ボタンをクリックすると確認パネルが表示される', () => {
+    const onMarkCompleted = vi.fn().mockResolvedValue(undefined);
     render(
       <TodayScheduleList
         schedules={[createSchedule({ scheduleId: 's1', status: 'pending' })]}
@@ -71,7 +71,7 @@ describe('TodayScheduleList', () => {
       />,
     );
     fireEvent.click(screen.getByLabelText('服薬完了'));
-    expect(onMarkCompleted).toHaveBeenCalledWith('s1');
+    expect(screen.getByText('服薬を記録')).toBeInTheDocument();
   });
 
   it('服薬済みの場合は完了ボタンが表示されない', () => {

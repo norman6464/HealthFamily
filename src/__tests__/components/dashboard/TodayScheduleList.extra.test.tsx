@@ -32,11 +32,12 @@ describe('TodayScheduleList - 追加テスト', () => {
   });
 
   it('未服薬のスケジュールに服薬完了ボタンが表示される', () => {
-    const onMarkCompleted = vi.fn();
+    const onMarkCompleted = vi.fn().mockResolvedValue(undefined);
     const schedules = [createSchedule({ scheduleId: 'sch-1', status: 'pending' })];
     render(<TodayScheduleList schedules={schedules} isLoading={false} onMarkCompleted={onMarkCompleted} />);
     fireEvent.click(screen.getByLabelText('服薬完了'));
-    expect(onMarkCompleted).toHaveBeenCalledWith('sch-1');
+    // 確認パネルが開くことを確認
+    expect(screen.getByText('服薬を記録')).toBeInTheDocument();
   });
 
   it('服薬済みのスケジュールには完了ボタンが表示されない', () => {

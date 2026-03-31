@@ -67,7 +67,7 @@ describe('useTodaySchedules', () => {
       await result.current.markAsCompleted('sch-1');
     });
 
-    expect(mockRepository.markAsCompleted).toHaveBeenCalledWith('sch-1', expect.any(Date));
+    expect(mockRepository.markAsCompleted).toHaveBeenCalledWith('sch-1', expect.any(Date), undefined);
   });
 
   it('取得エラー時にerrorを設定する', async () => {
