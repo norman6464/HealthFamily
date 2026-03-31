@@ -12,6 +12,13 @@ import {
 } from '../repositories/MedicationRepository';
 import { ScheduleRepository } from '../repositories/ScheduleRepository';
 
+export class DuplicateMedicationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DuplicateMedicationError';
+  }
+}
+
 export interface MedicationViewModel {
   medication: Medication;
   isLowStock: boolean;
@@ -58,6 +65,14 @@ export class CreateMedicationWithSchedule {
   async execute(input: CreateMedicationInput): Promise<Medication> {
     if (!input.name.trim()) {
       throw new Error('薬の名前は必須です');
+    }
+
+    // 同一メンバー内の重複チェック（アクティブな薬のみ）
+    const existingMeds = await this.medicationRepository.getMedicationsByMember(input.memberId);
+    const normalizedName = input.name.trim().toLowerCase();
+    const duplicate = existingMeds.find((m) => m.isActive && m.name.trim().toLowerCase() === normalizedName);
+    if (duplicate) {
+      throw new DuplicateMedicationError('同じ名前のお薬が既に登録されています');
     }
 
     const medication = await this.medicationRepository.createMedication(input);
