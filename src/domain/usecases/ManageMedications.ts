@@ -13,7 +13,7 @@ import {
 import { ScheduleRepository } from '../repositories/ScheduleRepository';
 import { ConflictError, NotFoundError } from '../errors';
 
-/** @deprecated ConflictErrorを使用してください */
+/** @deprecated ConflictErrorを使用してください。v1.3.0で削除予定 */
 export class DuplicateMedicationError extends ConflictError {}
 
 export interface MedicationViewModel {

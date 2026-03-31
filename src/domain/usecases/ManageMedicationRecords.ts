@@ -25,10 +25,10 @@ export class CreateMedicationRecord {
   constructor(private readonly recordRepository: MedicationRecordRepository) {}
 
   async execute(input: CreateRecordInput): Promise<void> {
-    if (!input.memberId) {
+    if (!input.memberId?.trim()) {
       throw new ValidationError('メンバーIDは必須です');
     }
-    if (!input.medicationId) {
+    if (!input.medicationId?.trim()) {
       throw new ValidationError('薬IDは必須です');
     }
     return this.recordRepository.createRecord(input);
