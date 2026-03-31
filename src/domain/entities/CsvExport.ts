@@ -1,10 +1,15 @@
 import { MedicationRecord } from './MedicationRecord';
 
 function escapeCsvField(value: string): string {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // CSVインジェクション対策: 数式として解釈される先頭文字を無害化
+  let sanitized = value;
+  if (/^[=+\-@]/.test(sanitized)) {
+    sanitized = `'${sanitized}`;
   }
-  return value;
+  if (sanitized.includes(',') || sanitized.includes('"') || sanitized.includes('\n') || sanitized !== value) {
+    return `"${sanitized.replace(/"/g, '""')}"`;
+  }
+  return sanitized;
 }
 
 function formatDateJST(date: Date): string {
@@ -22,7 +27,7 @@ function formatTimeJST(date: Date): string {
   return `${h}:${min}`;
 }
 
-const CSV_HEADERS = ['日付', 'メンバー', 'お薬名', '服薬時刻', 'メモ'];
+const CSV_HEADERS = ['日付', 'メンバー名', 'お薬名', '服薬時刻', 'メモ'];
 const BOM = '\uFEFF';
 
 export class CsvExportEntity {
@@ -42,10 +47,10 @@ export class CsvExportEntity {
   }
 
   static getFilename(): string {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
+    const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const y = jst.getUTCFullYear();
+    const m = String(jst.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(jst.getUTCDate()).padStart(2, '0');
     return `服薬履歴_${y}-${m}-${d}.csv`;
   }
 }

@@ -32,14 +32,11 @@ describe('CsvExportEntity', () => {
       expect(csv.charCodeAt(0)).toBe(0xFEFF); // BOM
     });
 
-    it('ヘッダー行が日本語で出力される', () => {
+    it('ヘッダー行が正確に出力される', () => {
       const csv = CsvExportEntity.toCsvString(sampleRecords);
       const lines = csv.split('\n');
-      expect(lines[0]).toContain('日付');
-      expect(lines[0]).toContain('メンバー');
-      expect(lines[0]).toContain('お薬名');
-      expect(lines[0]).toContain('服薬時刻');
-      expect(lines[0]).toContain('メモ');
+      const header = lines[0].replace(/^\uFEFF/, '');
+      expect(header).toBe('日付,メンバー名,お薬名,服薬時刻,メモ');
     });
 
     it('レコードが正しくCSV行に変換される', () => {
@@ -84,6 +81,19 @@ describe('CsvExportEntity', () => {
       ];
       const csv = CsvExportEntity.toCsvString(records);
       expect(csv).toContain('"""重要""なメモ"');
+    });
+    it('数式として解釈される先頭文字が無害化される', () => {
+      const formulaTests = ['=1+1', '+cmd', '-danger', '@SUM(A1)'];
+      for (const notes of formulaTests) {
+        const records: MedicationRecord[] = [
+          { ...sampleRecords[0], notes },
+        ];
+        const csv = CsvExportEntity.toCsvString(records);
+        // 先頭にシングルクォートが付加されること
+        expect(csv).toContain(`'${notes}`);
+        // 元の値がそのまま出力されないこと
+        expect(csv).not.toContain(`,${notes}`);
+      }
     });
   });
 

@@ -85,7 +85,7 @@ export default function HistoryPage() {
           <h1 className="text-xl font-bold text-primary-600">服薬履歴</h1>
           <div className="flex items-center space-x-2">
             <a
-              href="/api/records/export"
+              href={`/api/records/export${selectedMemberId ? `?memberId=${encodeURIComponent(selectedMemberId)}` : ''}`}
               download
               className="p-1.5 text-gray-500 hover:text-primary-600 transition-colors"
               aria-label="CSVエクスポート"
