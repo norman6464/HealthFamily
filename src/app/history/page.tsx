@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { Calendar, List, Plus } from 'lucide-react';
+import { Calendar, List, Plus, Download } from 'lucide-react';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MedicationHistoryList } from '@/components/history/MedicationHistoryList';
 import { MedicationCalendar } from '@/components/history/MedicationCalendar';
@@ -83,6 +83,15 @@ export default function HistoryPage() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold text-primary-600">服薬履歴</h1>
+          <div className="flex items-center space-x-2">
+            <a
+              href={`/api/records/export${selectedMemberId ? `?memberId=${encodeURIComponent(selectedMemberId)}` : ''}`}
+              download
+              className="p-1.5 text-gray-500 hover:text-primary-600 transition-colors"
+              aria-label="CSVエクスポート"
+            >
+              <Download size={18} />
+            </a>
           <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-0.5">
             <button
               onClick={() => setViewMode('calendar')}
@@ -102,6 +111,7 @@ export default function HistoryPage() {
             >
               <List size={18} />
             </button>
+          </div>
           </div>
         </div>
       </header>
