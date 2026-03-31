@@ -52,19 +52,26 @@ export interface RateLimitConfig {
   windowMs: number;
 }
 
-export function checkRateLimit(key: string, config: RateLimitConfig): { allowed: boolean; remaining: number } {
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+}
+
+export function checkRateLimit(key: string, config: RateLimitConfig): RateLimitResult {
   const now = Date.now();
   const entry = rateLimitStore.get(key);
 
   if (!entry || now > entry.resetAt) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + config.windowMs });
-    return { allowed: true, remaining: config.maxAttempts - 1 };
+    const resetAt = now + config.windowMs;
+    rateLimitStore.set(key, { count: 1, resetAt });
+    return { allowed: true, remaining: config.maxAttempts - 1, resetAt };
   }
 
   if (entry.count >= config.maxAttempts) {
-    return { allowed: false, remaining: 0 };
+    return { allowed: false, remaining: 0, resetAt: entry.resetAt };
   }
 
   entry.count++;
-  return { allowed: true, remaining: config.maxAttempts - entry.count };
+  return { allowed: true, remaining: config.maxAttempts - entry.count, resetAt: entry.resetAt };
 }

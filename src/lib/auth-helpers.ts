@@ -26,6 +26,21 @@ export function notFound(resource: string) {
   );
 }
 
+export function rateLimitExceeded(remaining: number, resetAt: number) {
+  const resetSeconds = Math.ceil((resetAt - Date.now()) / 1000);
+  return NextResponse.json(
+    { success: false, error: 'リクエストが多すぎます。しばらくしてから再試行してください。' },
+    {
+      status: 429,
+      headers: {
+        'X-RateLimit-Remaining': String(remaining),
+        'X-RateLimit-Reset': String(resetSeconds),
+        'Retry-After': String(resetSeconds),
+      },
+    },
+  );
+}
+
 export function unauthorized() {
   return NextResponse.json(
     { success: false, error: '認証エラー' },
