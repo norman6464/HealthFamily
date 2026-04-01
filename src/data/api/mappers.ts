@@ -85,6 +85,9 @@ export function toHospital(b: BackendHospital): Hospital {
 }
 
 export function toAppointment(b: BackendAppointment): Appointment {
+  const parsedDate = new Date(b.appointmentDate);
+  const parsedCreatedAt = new Date(b.createdAt);
+  const fallbackDate = !isNaN(parsedCreatedAt.getTime()) ? parsedCreatedAt : new Date(0);
   return {
     id: b.id,
     userId: b.userId,
@@ -93,7 +96,7 @@ export function toAppointment(b: BackendAppointment): Appointment {
     hospitalId: b.hospitalId,
     hospitalName: b.hospitalName,
     appointmentType: b.appointmentType,
-    appointmentDate: new Date(b.appointmentDate),
+    appointmentDate: isNaN(parsedDate.getTime()) ? fallbackDate : parsedDate,
     description: b.description,
     reminderEnabled: b.reminderEnabled ?? true,
     reminderDaysBefore: b.reminderDaysBefore ?? 1,

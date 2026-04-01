@@ -53,9 +53,16 @@ export class AppointmentEntity {
   /**
    * 予約が今日かどうか
    */
+  private getDate(): Date {
+    const d = new Date(this.appointment.appointmentDate);
+    if (!isNaN(d.getTime())) return d;
+    const fallback = new Date(this.appointment.createdAt);
+    return !isNaN(fallback.getTime()) ? fallback : new Date(0);
+  }
+
   isToday(): boolean {
     const today = DateRangeHelper.toStartOfDay(new Date());
-    const date = DateRangeHelper.toStartOfDay(new Date(this.appointment.appointmentDate));
+    const date = DateRangeHelper.toStartOfDay(this.getDate());
     return today.getTime() === date.getTime();
   }
 
@@ -64,7 +71,7 @@ export class AppointmentEntity {
    */
   isPast(): boolean {
     const today = DateRangeHelper.toStartOfDay(new Date());
-    const date = DateRangeHelper.toStartOfDay(new Date(this.appointment.appointmentDate));
+    const date = DateRangeHelper.toStartOfDay(this.getDate());
     return date.getTime() < today.getTime();
   }
 
@@ -72,14 +79,14 @@ export class AppointmentEntity {
    * 予約日までの残り日数
    */
   daysUntil(): number {
-    return DateRangeHelper.diffDays(new Date(), new Date(this.appointment.appointmentDate));
+    return DateRangeHelper.diffDays(new Date(), this.getDate());
   }
 
   /**
    * 日本語のフォーマット済み日付
    */
   getFormattedDate(): string {
-    const d = new Date(this.appointment.appointmentDate);
+    const d = this.getDate();
     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日(${DateRangeHelper.getDayOfWeekLabel(d)})`;
   }
 
