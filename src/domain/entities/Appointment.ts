@@ -55,7 +55,9 @@ export class AppointmentEntity {
    */
   private getDate(): Date {
     const d = new Date(this.appointment.appointmentDate);
-    return isNaN(d.getTime()) ? new Date() : d;
+    if (!isNaN(d.getTime())) return d;
+    const fallback = new Date(this.appointment.createdAt);
+    return !isNaN(fallback.getTime()) ? fallback : new Date(0);
   }
 
   isToday(): boolean {
