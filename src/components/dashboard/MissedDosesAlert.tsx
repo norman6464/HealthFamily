@@ -16,16 +16,19 @@ interface DateGroup {
   items: MissedDose[];
 }
 
+const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+
 function formatDateLabel(dateKey: string): string {
   const [y, m, d] = dateKey.split('-').map(Number);
   const date = new Date(y, m - 1, d);
+  const dow = DAY_LABELS[date.getDay()];
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diffDays = Math.round((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 1) return '昨日';
-  if (diffDays === 2) return '一昨日';
-  return `${m}/${d}`;
+  if (diffDays === 1) return `昨日（${m}/${d} ${dow}）`;
+  if (diffDays === 2) return `一昨日（${m}/${d} ${dow}）`;
+  return `${m}月${d}日（${dow}）`;
 }
 
 export const MissedDosesAlert: React.FC<MissedDosesAlertProps> = ({ missedDoses, isLoading }) => {
