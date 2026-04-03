@@ -162,10 +162,10 @@ export default function AppointmentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen pb-20">
+      <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-primary-600">通院管理</h1>
+          <h1 className="text-xl font-bold text-white">通院管理</h1>
           <button
             onClick={handleToggleForm}
             className="bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors"
@@ -178,7 +178,7 @@ export default function AppointmentsPage() {
 
       <main className="max-w-md mx-auto px-4 py-4">
         {showForm && membersReady && members.length > 0 && (
-          <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+          <div className="mb-6 bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">通院予約の追加</h2>
             <AppointmentForm
               members={members}
@@ -195,7 +195,7 @@ export default function AppointmentsPage() {
         )}
 
         {editingAppointment && membersReady && members.length > 0 && (
-          <div ref={editFormRef} className="mb-6 bg-white rounded-lg shadow-md p-4 border border-blue-200">
+          <div ref={editFormRef} className="mb-6 bg-white rounded-2xl shadow-soft p-4 border border-accent-200">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">通院予約の編集</h2>
             {updateError && (
               <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">{updateError}</p>

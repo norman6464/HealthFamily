@@ -61,7 +61,7 @@ export const SectionWithForm: React.FC<SectionWithFormProps> = ({
       </div>
 
       {showForm && membersReady && !hasNoMembers && (
-        <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <div className="mb-4 bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">{formTitle}</h3>
           {formContent}
         </div>

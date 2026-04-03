@@ -14,7 +14,7 @@ interface MemberQuickActionsProps {
 
 export const MemberQuickActions: React.FC<MemberQuickActionsProps> = ({ member, medicationCount, scheduleCount }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
+    <div className="bg-white rounded-2xl shadow-soft p-3 border border-pink-100">
       <div className="flex items-center space-x-2 mb-2">
         <MemberIcon memberType={member.memberType} petType={member.petType} size={18} className="text-gray-600" />
         <span className="text-sm font-medium text-gray-800">{member.name}</span>

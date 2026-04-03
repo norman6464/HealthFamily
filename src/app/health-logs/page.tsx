@@ -60,12 +60,12 @@ export default function HealthLogsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen pb-20">
+      <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Activity size={22} className="text-primary-600" />
-            <h1 className="text-xl font-bold text-primary-600">体調記録</h1>
+            <Activity size={22} className="text-white" />
+            <h1 className="text-xl font-bold text-white">体調記録</h1>
           </div>
           {!showForm && (
             <button
@@ -112,7 +112,7 @@ export default function HealthLogsPage() {
           </div>
 
           {showMeasurementForm && !authLoading && !membersLoading && members.length > 0 && (
-            <div className="mb-4 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+            <div className="mb-4 bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">体重・身長の記録</h3>
               <BodyMeasurementForm
                 members={members}

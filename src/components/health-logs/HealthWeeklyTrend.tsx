@@ -23,7 +23,7 @@ export const HealthWeeklyTrend: React.FC<HealthWeeklyTrendProps> = React.memo(({
   if (averages.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-4">
+    <div className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100 mb-4">
       <div className="flex items-center space-x-2 mb-3">
         <Activity size={16} className="text-primary-600" />
         <h3 className="text-sm font-semibold text-gray-700">週間体調トレンド</h3>

@@ -50,10 +50,10 @@ export default function Members() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen pb-20">
+      <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-primary-600">メンバー</h1>
+          <h1 className="text-xl font-bold text-white">メンバー</h1>
           <button
             onClick={() => {
               setShowForm(!showForm);
@@ -75,7 +75,7 @@ export default function Members() {
         )}
 
         {editingMember && (
-          <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-primary-200">
+          <div className="mb-6 bg-white rounded-2xl shadow-soft p-4 border border-pink-200">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">メンバー編集</h2>
             <MemberForm
               onSubmit={handleUpdate}

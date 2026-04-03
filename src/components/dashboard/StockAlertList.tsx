@@ -31,7 +31,7 @@ export interface StockAlertItemProps {
 
 const StockAlertItem: React.FC<StockAlertItemProps> = React.memo(({ alert }) => (
   <div
-    className={`bg-white rounded-lg shadow-sm p-3 border ${
+    className={`bg-white rounded-2xl shadow-soft p-3 border ${
       alert.isOverdue ? 'border-red-300 bg-red-50' : 'border-yellow-300 bg-yellow-50'
     }`}
   >

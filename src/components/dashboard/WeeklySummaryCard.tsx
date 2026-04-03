@@ -10,7 +10,7 @@ interface WeeklySummaryCardProps {
 export const WeeklySummaryCard: React.FC<WeeklySummaryCardProps> = React.memo(({ schedules, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
+      <div className="bg-white rounded-2xl shadow-soft p-4 mb-4 border border-pink-100">
         <p className="text-gray-400 text-sm text-center py-2">読み込み中...</p>
       </div>
     );
@@ -26,7 +26,7 @@ export const WeeklySummaryCard: React.FC<WeeklySummaryCardProps> = React.memo(({
   const completionRate = Math.round((completed / total) * 100);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
+    <div className="bg-white rounded-2xl shadow-soft p-4 mb-4 border border-pink-100">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">今日のまとめ</h3>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -49,12 +49,12 @@ export const WeeklySummaryCard: React.FC<WeeklySummaryCardProps> = React.memo(({
           <span>達成率</span>
           <span>{completionRate}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-pink-100 rounded-full h-2">
           <div
             className="h-2 rounded-full transition-all"
             style={{
               width: `${completionRate}%`,
-              backgroundColor: completionRate >= 80 ? '#22c55e' : completionRate >= 50 ? '#f59e0b' : '#ef4444',
+              backgroundColor: completionRate >= 80 ? '#ec4899' : completionRate >= 50 ? '#f472b6' : '#ef4444',
             }}
           />
         </div>

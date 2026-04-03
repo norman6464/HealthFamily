@@ -22,8 +22,8 @@ interface BottomNavigationProps {
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({ activePath }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200" aria-label="メインナビゲーション">
-      <div className="max-w-md mx-auto flex justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gradient-nav border-t border-pink-100 shadow-soft-lg" aria-label="メインナビゲーション">
+      <div className="max-w-md mx-auto flex justify-around py-2.5">
         {navItems.map(({ path, icon, label }) => {
           const isActive = activePath === path;
           return (
@@ -31,8 +31,8 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ activePath }
               key={path}
               href={path}
               {...(isActive && { 'aria-current': 'page' as const })}
-              className={`flex flex-col items-center text-xs ${
-                isActive ? 'text-primary-600' : 'text-gray-400'
+              className={`flex flex-col items-center text-xs transition-colors ${
+                isActive ? 'text-primary-500 font-semibold' : 'text-gray-400'
               }`}
             >
               {React.createElement(icon, { size: 20, className: 'mb-0.5' })}

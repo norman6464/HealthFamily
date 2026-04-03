@@ -17,7 +17,7 @@ export const SymptomFrequencySummary: React.FC<SymptomFrequencySummaryProps> = R
   const maxCount = Math.max(...symptoms.map((s) => s.count));
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-4">
+    <div className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100 mb-4">
       <div className="flex items-center space-x-2 mb-3">
         <Thermometer size={16} className="text-primary-600" />
         <h3 className="text-sm font-semibold text-gray-700">よく記録された症状</h3>

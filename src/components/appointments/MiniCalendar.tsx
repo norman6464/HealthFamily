@@ -51,7 +51,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({ appointmentDates }) 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-200 mb-4">
+    <div className="bg-white rounded-2xl shadow-soft p-3 border border-pink-100 mb-4">
       <div className="flex items-center justify-between mb-2">
         <button onClick={prevMonth} className="p-1 text-gray-500 hover:text-gray-700" aria-label="前の月">
           <ChevronLeft size={16} />

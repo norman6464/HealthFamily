@@ -127,7 +127,7 @@ export function NotificationSettingsForm({ setting, onSave, isLoading }: Notific
 
   return (
     <div className="space-y-6">
-      <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+      <section className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Mail size={18} className="text-primary-600" />
@@ -155,7 +155,7 @@ export function NotificationSettingsForm({ setting, onSave, isLoading }: Notific
         </p>
       </section>
 
-      <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+      <section className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
         <div className="flex items-center space-x-2 mb-4">
           {emailEnabled ? (
             <Bell size={18} className="text-primary-600" />
@@ -201,7 +201,7 @@ export function NotificationSettingsForm({ setting, onSave, isLoading }: Notific
         </div>
       </section>
 
-      <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+      <section className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
         <div className="flex items-center space-x-2 mb-4">
           <Clock size={18} className="text-primary-600" />
           <h2 className="text-lg font-semibold text-gray-800">デフォルトリマインダー</h2>

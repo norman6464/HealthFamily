@@ -60,15 +60,15 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen pb-20">
+      <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3">
-          <h1 className="text-xl font-bold text-primary-600">設定</h1>
+          <h1 className="text-xl font-bold text-white">設定</h1>
         </div>
       </header>
 
       <main className="max-w-md mx-auto px-4 py-4 space-y-6">
-        <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <section className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">アカウント</h2>
           <div className="space-y-3">
             <div>
@@ -123,7 +123,7 @@ export default function Settings() {
 
         <Link
           href="/settings/notifications"
-          className="flex items-center justify-between bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-between bg-white rounded-2xl shadow-soft p-4 border border-pink-100 hover:bg-pink-50 transition-colors"
         >
           <div className="flex items-center space-x-3">
             <Bell size={20} className="text-primary-600" />
@@ -137,7 +137,7 @@ export default function Settings() {
 
         <Link
           href="/guide"
-          className="flex items-center justify-between bg-white rounded-lg shadow-md p-4 border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-between bg-white rounded-2xl shadow-soft p-4 border border-pink-100 hover:bg-pink-50 transition-colors"
         >
           <div className="flex items-center space-x-3">
             <HelpCircle size={20} className="text-primary-600" />
@@ -149,12 +149,12 @@ export default function Settings() {
           <ChevronRight size={18} className="text-gray-400" />
         </Link>
 
-        <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <section className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">キャラクター選択</h2>
           <CharacterSelector />
         </section>
 
-        <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <section className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <Phone size={18} className="text-primary-600" />

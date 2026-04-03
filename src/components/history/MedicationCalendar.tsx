@@ -69,7 +69,7 @@ export const MedicationCalendar: React.FC<MedicationCalendarProps> = ({
   const weekdays = CalendarEntity.getWeekdayHeaders();
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-white rounded-2xl shadow-soft border border-pink-100 p-4">
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={handlePrevMonth}

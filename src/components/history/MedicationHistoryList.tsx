@@ -118,7 +118,7 @@ const RecordCard: React.FC<RecordCardProps> = ({ record, onDelete, onUpdateNotes
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
+    <div className="bg-white rounded-2xl shadow-soft p-3 border border-pink-100">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1 min-w-0">
           <div className="flex-shrink-0">

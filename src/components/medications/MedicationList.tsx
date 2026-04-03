@@ -123,7 +123,7 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+    <div className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
       <div className="flex items-center justify-between">
         {(onMoveUp || onMoveDown) && (
           <div className="flex flex-col mr-2 -my-1">
@@ -251,7 +251,7 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
       />
       {isPastRecordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-soft-lg">
             <h2 className="mb-2 text-lg font-bold">過去の服薬記録</h2>
             <p className="mb-4 text-sm text-gray-600">
               「{displayInfo.name}」の飲み忘れを記録します

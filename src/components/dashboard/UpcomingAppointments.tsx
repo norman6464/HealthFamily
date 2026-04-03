@@ -34,7 +34,7 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({ appo
           const entity = new AppointmentEntity(apt);
           const daysUntil = entity.daysUntil();
           return (
-            <div key={apt.id} className="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
+            <div key={apt.id} className="bg-white rounded-2xl shadow-soft p-3 border border-pink-100">
               <div className="flex items-center space-x-3">
                 <Calendar size={16} className={entity.isToday() ? 'text-red-500' : 'text-primary-600'} />
                 <div className="flex-1 min-w-0">

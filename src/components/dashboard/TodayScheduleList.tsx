@@ -23,7 +23,7 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
   if (schedules.length === 0) {
     if (!hasMembers) {
       return (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-pink-100 p-6 shadow-soft">
           <p className="text-sm font-medium text-gray-700 mb-4">はじめての方へ</p>
           <div className="space-y-3">
             <SetupStep icon={Users} label="メンバーを登録" href="/members" description="家族やペットを追加" step={1} />
@@ -34,7 +34,7 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
       );
     }
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+      <div className="bg-white rounded-2xl border border-pink-100 p-6 text-center shadow-soft">
         <p className="text-gray-500 mb-3">今日の服薬スケジュールはありません</p>
         <Link
           href="/medications"
@@ -121,10 +121,10 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMark
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md p-4 border hover:shadow-lg transition-shadow ${
+      className={`bg-white rounded-2xl shadow-soft p-4 border hover:shadow-lg transition-shadow ${
         overdueInfo.level !== 'none'
           ? `${overdueStyle.bg} ${overdueStyle.border}`
-          : 'border-gray-200'
+          : 'border-pink-100'
       }`}
       data-testid="schedule-item"
       role="article"

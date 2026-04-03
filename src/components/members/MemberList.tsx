@@ -52,7 +52,7 @@ const MemberCard: React.FC<MemberCardProps> = React.memo(({ member, onDelete, on
 
   return (
     <div
-      className="bg-white rounded-lg shadow-md p-4 border border-gray-200"
+      className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100"
       data-testid="member-item"
     >
       <div className="flex items-center justify-between">

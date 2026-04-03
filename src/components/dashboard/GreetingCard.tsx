@@ -16,14 +16,14 @@ export const GreetingCard: React.FC<GreetingCardProps> = ({ displayName, weeklyR
   const summaryMessage = GreetingMessageEntity.getWeeklySummaryMessage(weeklyRate ?? null);
 
   return (
-    <div className="bg-primary-50 rounded-lg p-4 mb-6 flex items-center space-x-3">
+    <div className="bg-gradient-greeting rounded-2xl p-4 mb-6 flex items-center space-x-3 shadow-soft border border-pink-100">
       <CharacterIcon type={config.type} size={40} />
       <div>
         <p className="text-sm font-medium text-primary-800">
           {greeting}、{displayName}さん
         </p>
         <p className="text-xs text-primary-600 mt-0.5">{summaryMessage}{config.suffix}</p>
-        <p className="text-xs text-primary-400 mt-0.5">{config.name}より</p>
+        <p className="text-xs text-accent-400 mt-0.5">{config.name}より</p>
       </div>
     </div>
   );

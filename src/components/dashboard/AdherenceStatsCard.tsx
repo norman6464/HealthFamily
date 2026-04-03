@@ -34,7 +34,7 @@ export const AdherenceStatsCard: React.FC<AdherenceStatsCardProps> = React.memo(
         <h2 className="text-lg font-semibold text-gray-800">お薬の達成率</h2>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+      <div className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="text-center">
             <p className="text-xs text-gray-500 mb-1">週間</p>

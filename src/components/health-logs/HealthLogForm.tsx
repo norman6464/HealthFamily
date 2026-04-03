@@ -53,7 +53,7 @@ export const HealthLogForm: React.FC<HealthLogFormProps> = ({ members, onSubmit,
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">体調を記録</h3>
         <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600">

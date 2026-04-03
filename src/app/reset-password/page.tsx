@@ -68,15 +68,15 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Image src="/icon.png" alt="HealthFamily" width={80} height={80} className="mx-auto mb-2" />
-          <h1 className="text-3xl font-bold text-primary-600">HealthFamily</h1>
+          <h1 className="text-3xl font-bold text-primary-500">HealthFamily</h1>
           <p className="mt-2 text-gray-500">新しいパスワードの設定</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white shadow-soft rounded-2xl border border-pink-100 p-6 space-y-4">
           <p className="text-sm text-gray-600">
             <strong>{email}</strong> に送信された6桁のリセットコードと新しいパスワードを入力してください。
           </p>
@@ -183,7 +183,7 @@ function ResetPasswordContent() {
 export default function ResetPassword() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">読み込み中...</p>
       </div>
     }>

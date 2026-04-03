@@ -40,7 +40,7 @@ export const HealthLogList: React.FC<HealthLogListProps> = ({ groups, isLoading,
             {group.logs.map((log) => (
               <div
                 key={log.id}
-                className="bg-white rounded-lg shadow-sm p-3 border border-gray-200"
+                className="bg-white rounded-2xl shadow-soft p-3 border border-pink-100"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">

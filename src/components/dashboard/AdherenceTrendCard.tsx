@@ -10,7 +10,7 @@ interface AdherenceTrendCardProps {
 export const AdherenceTrendCard: React.FC<AdherenceTrendCardProps> = ({ trend, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
+      <div className="bg-white rounded-2xl shadow-soft p-4 mb-4 border border-pink-100">
         <p className="text-gray-400 text-sm text-center py-2">読み込み中...</p>
       </div>
     );
@@ -23,7 +23,7 @@ export const AdherenceTrendCard: React.FC<AdherenceTrendCardProps> = ({ trend, i
   const trendColor = entity.isImproving() ? 'text-green-600' : entity.isDeclining() ? 'text-red-600' : 'text-gray-500';
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
+    <div className="bg-white rounded-2xl shadow-soft p-4 mb-4 border border-pink-100">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-700">お薬の達成率（週間）</h3>
         <div className={`flex items-center space-x-1 ${trendColor}`}>

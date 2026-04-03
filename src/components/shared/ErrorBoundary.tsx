@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center p-8">
             <h1 className="text-xl font-bold text-red-600 mb-4">エラーが発生しました</h1>
             <p className="text-gray-600 mb-6">{this.state.error?.message}</p>

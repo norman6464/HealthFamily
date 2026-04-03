@@ -9,7 +9,7 @@ interface DailyDoseProgressProps {
 export const DailyDoseProgress: React.FC<DailyDoseProgressProps> = ({ taken, total }) => {
   if (total === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-4">
+      <div className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100 mb-4">
         <div className="flex items-center space-x-2 text-gray-400">
           <Pill size={18} />
           <span className="text-sm">今日の予定なし</span>
@@ -22,7 +22,7 @@ export const DailyDoseProgress: React.FC<DailyDoseProgressProps> = ({ taken, tot
   const isComplete = taken >= total;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 mb-4">
+    <div className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100 mb-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           <Pill size={18} className="text-primary-600" />

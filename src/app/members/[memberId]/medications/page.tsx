@@ -80,18 +80,18 @@ export default function Medications() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen pb-20">
+      <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <button
               onClick={() => router.push('/members')}
-              className="text-gray-600 hover:text-gray-800 transition-colors"
+              className="text-white hover:text-gray-200 transition-colors"
               aria-label="メンバー一覧に戻る"
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-xl font-bold text-primary-600">薬管理</h1>
+            <h1 className="text-xl font-bold text-white">薬管理</h1>
           </div>
           <button
             onClick={() => setShowMedForm(!showMedForm)}
@@ -111,7 +111,7 @@ export default function Medications() {
         )}
 
         {scheduleTarget && (
-          <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+          <div className="mb-6 bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Clock size={18} className="text-primary-600" />

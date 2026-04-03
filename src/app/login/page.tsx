@@ -40,15 +40,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Image src="/icon.png" alt="HealthFamily" width={80} height={80} className="mx-auto mb-2" />
-          <h1 className="text-3xl font-bold text-primary-600">HealthFamily</h1>
+          <h1 className="text-3xl font-bold text-primary-500">HealthFamily</h1>
           <p className="mt-2 text-gray-500">ログイン</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white shadow-soft rounded-2xl border border-pink-100 p-6 space-y-4">
           {errorMessage && (
             <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm" role="alert">
               {errorMessage}

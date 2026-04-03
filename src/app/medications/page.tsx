@@ -121,7 +121,7 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
       </div>
 
       {editingMed && (
-        <div ref={editFormRef} className="mb-3 bg-white rounded-lg shadow-md p-4 border border-primary-200">
+        <div ref={editFormRef} className="mb-3 bg-white rounded-2xl shadow-soft p-4 border border-pink-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">薬の編集</h3>
           <MedicationForm
             onSubmit={handleUpdate}
@@ -152,10 +152,10 @@ export default function Medications() {
   const [selectedCategory, setSelectedCategory] = useState<MedicationCategory | null>(null);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen pb-20">
+      <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-primary-600">お薬</h1>
+          <h1 className="text-xl font-bold text-white">お薬</h1>
           <Link
             href="/history"
             className="flex items-center space-x-1 text-sm text-gray-500 hover:text-primary-600 transition-colors"

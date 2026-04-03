@@ -207,17 +207,17 @@ export default function GuidePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen pb-8">
+      <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center space-x-3">
           <Link
             href="/settings"
-            className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+            className="p-1 text-white hover:text-gray-200 transition-colors"
             aria-label="設定に戻る"
           >
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-xl font-bold text-primary-600">使い方ガイド</h1>
+          <h1 className="text-xl font-bold text-white">使い方ガイド</h1>
         </div>
       </header>
 
@@ -237,7 +237,7 @@ export default function GuidePage() {
           return (
             <div
               key={section.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+              className="bg-white rounded-2xl shadow-soft border border-pink-100 overflow-hidden"
             >
               <button
                 onClick={() => toggleSection(section.id)}

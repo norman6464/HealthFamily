@@ -12,7 +12,7 @@ export const StreakCard: React.FC<StreakCardProps> = React.memo(({ streak, isLoa
 
   return (
     <div className="mb-6">
-      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+      <div className="bg-white rounded-2xl shadow-soft p-4 border border-pink-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-100">
