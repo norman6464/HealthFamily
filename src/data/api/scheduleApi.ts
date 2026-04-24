@@ -1,5 +1,5 @@
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
-import { TodayScheduleItem } from '../../domain/repositories/ScheduleRepository';
+import { MissedDose, TodayScheduleItem } from '../../domain/repositories/ScheduleRepository';
 import { apiClient } from './apiClient';
 import { BackendSchedule } from './types';
 import { toSchedule } from './mappers';
@@ -125,5 +125,9 @@ export const scheduleApi = {
       ...(options?.takenAt ? { takenAt: options.takenAt } : {}),
       ...(options?.notes ? { notes: options.notes } : {}),
     });
+  },
+
+  async getMissedDoses(): Promise<MissedDose[]> {
+    return apiClient.get<MissedDose[]>('/schedules/missed');
   },
 };

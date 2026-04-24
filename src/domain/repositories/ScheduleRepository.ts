@@ -25,6 +25,15 @@ export interface ScheduleWithDetails {
   memberName: string;
 }
 
+export interface MissedDose {
+  date: string;
+  scheduleId: string;
+  medicationName: string;
+  memberName: string;
+  memberId: string;
+  scheduledTime: string;
+}
+
 export interface ScheduleRepository {
   /**
    * IDでスケジュールを取得（所有権確認用）
@@ -70,4 +79,9 @@ export interface ScheduleRepository {
    * スケジュールを服薬完了にする
    */
   markAsCompleted(scheduleId: string, completedAt: Date, options?: { takenAt?: string; notes?: string }): Promise<void>;
+
+  /**
+   * 過去7日間の飲み忘れスケジュールを取得
+   */
+  getMissedDoses(): Promise<MissedDose[]>;
 }

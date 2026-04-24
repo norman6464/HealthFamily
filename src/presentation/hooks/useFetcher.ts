@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { UnauthorizedError } from '../../data/api/apiClient';
 
 export interface UseFetcherResult<T> {
   data: T;
@@ -51,6 +52,10 @@ export function useFetcher<T>(
         }
       }
     } catch (err) {
+      if (err instanceof UnauthorizedError && typeof window !== 'undefined') {
+        window.location.href = '/login';
+        return;
+      }
       if (mountedRef.current) {
         setError(err instanceof Error ? err : new Error('Unknown error'));
       }

@@ -4,6 +4,7 @@
  */
 
 import {
+  MissedDose,
   ScheduleRepository,
   ScheduleWithDetails,
   TodayScheduleQuery,
@@ -49,5 +50,9 @@ export class ScheduleRepositoryImpl implements ScheduleRepository {
 
   async markAsCompleted(scheduleId: string, completedAt: Date, options?: { takenAt?: string; notes?: string }): Promise<void> {
     await scheduleApi.markAsCompleted(scheduleId, completedAt, options);
+  }
+
+  async getMissedDoses(): Promise<MissedDose[]> {
+    return await scheduleApi.getMissedDoses();
   }
 }

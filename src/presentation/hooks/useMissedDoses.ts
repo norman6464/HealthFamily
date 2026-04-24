@@ -1,14 +1,9 @@
+import { useMemo } from 'react';
+import { MissedDose } from '../../domain/repositories/ScheduleRepository';
+import { getDIContainer } from '../../infrastructure/DIContainer';
 import { useFetcher } from './useFetcher';
-import { apiClient } from '../../data/api/apiClient';
 
-export interface MissedDose {
-  date: string;
-  scheduleId: string;
-  medicationName: string;
-  memberName: string;
-  memberId: string;
-  scheduledTime: string;
-}
+export type { MissedDose };
 
 export interface UseMissedDosesResult {
   missedDoses: MissedDose[];
@@ -18,9 +13,11 @@ export interface UseMissedDosesResult {
 }
 
 export const useMissedDoses = (): UseMissedDosesResult => {
+  const scheduleRepository = useMemo(() => getDIContainer().scheduleRepository, []);
+
   const { data: missedDoses, isLoading, error, refetch } = useFetcher(
-    () => apiClient.get<MissedDose[]>('/schedules/missed'),
-    [],
+    () => scheduleRepository.getMissedDoses(),
+    [scheduleRepository],
     [] as MissedDose[],
     'missed-doses',
   );

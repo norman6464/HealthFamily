@@ -4,6 +4,7 @@
 
 import { prisma } from '@/lib/prisma';
 import {
+  MissedDose,
   ScheduleRepository,
   ScheduleWithDetails,
   TodayScheduleQuery,
@@ -268,5 +269,10 @@ export class PrismaScheduleRepository implements ScheduleRepository {
 
   async markAsCompleted(_scheduleId: string, _completedAt: Date, _options?: { takenAt?: string; notes?: string }): Promise<void> {
     // 服薬完了は MedicationRecord の作成で管理されるため、ここでは空実装
+  }
+
+  async getMissedDoses(): Promise<MissedDose[]> {
+    // フロントエンド専用メソッド（API ルート側で直接 Prisma を使用して実装している）
+    return [];
   }
 }
