@@ -59,6 +59,7 @@ export const useMedicationInfo = (): UseMedicationInfoResult => {
     try {
       const data = await useCases.get.execute(id);
       if (!data) {
+        setSelectedInfo(null);
         setError(new Error('薬剤情報が見つかりませんでした'));
         return;
       }

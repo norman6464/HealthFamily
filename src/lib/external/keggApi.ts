@@ -5,9 +5,15 @@
  * - find/drug_ja/{query} : 日本語での薬剤検索
  * - get/dr_ja:{id}       : 日本語版の薬剤詳細
  *
- * 制限:
- * - 3 req/sec (API側制限)
- * - アカデミック用途での利用を前提
+ * ⚠️ ライセンス上の注意:
+ * KEGG REST API (rest.kegg.jp) はアカデミック利用を前提に公開されている。
+ * 商用・コンシューマー向けサービスで利用する場合は
+ * https://www.kegg.jp/kegg/legal.html の利用規約を確認し、必要に応じて
+ * KEGG 社と商用ライセンス契約を結ぶか、PMDA など代替データソースへ
+ * 差し替えること。
+ *
+ * 技術的な制限:
+ * - 3 req/sec (上流側のレート制限)
  */
 
 const KEGG_BASE = 'https://rest.kegg.jp';
@@ -56,6 +62,18 @@ function cacheSet<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T): 
   cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
 }
 
+/**
+ * KEGG REST API へリクエストを送る。
+ *
+ * 戻り値の契約:
+ * - 200 OK:   レスポンス本文を返す (通常は非空のflat-file text)
+ * - 404:      空文字列 `''` を返す ("該当なし" を示すセンチネル)
+ * - その他:   例外をthrow
+ *
+ * 呼び出し側 (searchDrugsByName / getDrugInfo) は空文字列を "該当なし" と
+ * みなして分岐している。KEGG REST は 200 で空本文を返さない前提のため
+ * この取り扱いで問題ないが、将来の挙動変更に備えてこの契約を守ること。
+ */
 async function keggFetch(path: string): Promise<string> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);

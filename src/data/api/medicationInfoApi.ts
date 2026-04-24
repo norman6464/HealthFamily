@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, ApiError } from './apiClient';
 import {
   MedicationInfo,
   MedicationInfoSearchResult,
@@ -16,8 +16,9 @@ export const medicationInfoApi = {
       return await apiClient.get<MedicationInfo>(
         `/external/medication-info/${encodeURIComponent(id)}`,
       );
-    } catch {
-      return null;
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) return null;
+      throw err;
     }
   },
 };

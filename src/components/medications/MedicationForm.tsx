@@ -222,8 +222,13 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
         onClose={() => setShowInfoModal(false)}
         onApply={(data) => {
           if (data.name) setName(data.name);
-          if (data.instructions) {
-            setInstructions((prev) => (prev ? `${prev}\n${data.instructions}` : data.instructions ?? ''));
+          const newInstructions = data.instructions;
+          if (newInstructions) {
+            setInstructions((prev) => {
+              if (!prev) return newInstructions;
+              if (prev.includes(newInstructions)) return prev;
+              return `${prev}\n${newInstructions}`;
+            });
             setShowOptional(true);
           }
         }}

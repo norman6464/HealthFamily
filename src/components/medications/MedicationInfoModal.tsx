@@ -44,6 +44,15 @@ export const MedicationInfoModal: React.FC<MedicationInfoModalProps> = ({
     }
   }, [isOpen, initialQuery, reset, search]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -74,20 +83,24 @@ export const MedicationInfoModal: React.FC<MedicationInfoModalProps> = ({
     >
       <div className="flex w-full max-h-[90vh] flex-col bg-white shadow-xl sm:mx-4 sm:max-w-lg sm:rounded-2xl rounded-t-2xl">
         <div className="flex items-center justify-between border-b border-gray-200 p-4">
-          {selectedInfo ? (
-            <button
-              type="button"
-              onClick={clearSelection}
-              className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+          <div className="flex items-center">
+            {selectedInfo && (
+              <button
+                type="button"
+                onClick={clearSelection}
+                className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+              >
+                <ChevronLeft size={16} className="mr-1" />
+                戻る
+              </button>
+            )}
+            <h2
+              id="medication-info-title"
+              className={selectedInfo ? 'sr-only' : 'text-lg font-semibold'}
             >
-              <ChevronLeft size={16} className="mr-1" />
-              戻る
-            </button>
-          ) : (
-            <h2 id="medication-info-title" className="text-lg font-semibold">
               薬剤情報の取得
             </h2>
-          )}
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -107,6 +120,7 @@ export const MedicationInfoModal: React.FC<MedicationInfoModalProps> = ({
                 onChange={(e) => setQuery(e.target.value)}
                 className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-primary-500"
                 placeholder="薬名を入力 (例: ロキソニン)"
+                aria-label="薬名を入力"
                 maxLength={100}
               />
               <button
