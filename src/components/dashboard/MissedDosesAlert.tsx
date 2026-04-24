@@ -20,8 +20,10 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 function formatDateLabel(dateKey: string): string {
   const [y, m, d] = dateKey.split('-').map(Number);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return dateKey;
   const date = new Date(y, m - 1, d);
-  const dow = DAY_LABELS[date.getDay()];
+  if (isNaN(date.getTime())) return dateKey;
+  const dow = DAY_LABELS[date.getDay()] ?? '';
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diffDays = Math.round((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
