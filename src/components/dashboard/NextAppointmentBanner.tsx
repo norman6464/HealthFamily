@@ -19,7 +19,7 @@ export const NextAppointmentBanner: React.FC<NextAppointmentBannerProps> = ({ ap
   if (!nextAppointment) return null;
 
   const date = new Date(nextAppointment.appointmentDate);
-  const formatted = `${date.getMonth() + 1}/${date.getDate()}`;
+  const formatted = isNaN(date.getTime()) ? '-' : `${date.getMonth() + 1}/${date.getDate()}`;
 
   return (
     <div className="bg-primary-50 rounded-lg p-3 mb-4 border border-primary-200">
