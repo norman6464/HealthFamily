@@ -75,18 +75,7 @@ describe('CreateMedicationWithSchedule - 重複チェック', () => {
   });
 
   it('異なるメンバーの同一薬名は許可される', async () => {
-    const existingMeds: Medication[] = [
-      {
-        id: 'existing-1',
-        memberId: 'm2', // 別メンバー
-        userId: 'u1',
-        name: 'クラリチン',
-        category: 'internal' as MedicationCategory,
-        isActive: true,
-        createdAt: new Date(),
-      },
-    ];
-    // getMedicationsByMember returns empty for m1
+    // getMedicationsByMember returns empty for m1 (別メンバー m2 に同名薬があっても m1 では重複扱いにならない)
     const medRepo = createMockMedicationRepo([]);
     const schedRepo = createMockScheduleRepo();
     const usecase = new CreateMedicationWithSchedule(medRepo, schedRepo);
