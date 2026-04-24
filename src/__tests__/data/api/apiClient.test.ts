@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { apiClient } from '@/data/api/apiClient';
+import { apiClient, UnauthorizedError } from '@/data/api/apiClient';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -61,17 +61,10 @@ describe('apiClient', () => {
     await expect(apiClient.get('/members')).rejects.toThrow('バリデーションエラー');
   });
 
-  it('401レスポンス時にログインページへリダイレクトする', async () => {
-    const originalLocation = window.location;
-    Object.defineProperty(window, 'location', {
-      value: { href: '' },
-      writable: true,
-    });
+  it('401レスポンス時にUnauthorizedErrorをスローする（副作用なし）', async () => {
     mockFetch.mockReturnValue(
       Promise.resolve({ status: 401, json: () => Promise.resolve({}) }),
     );
-    await expect(apiClient.get('/members')).rejects.toThrow('認証エラー');
-    expect(window.location.href).toBe('/login');
-    Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
+    await expect(apiClient.get('/members')).rejects.toBeInstanceOf(UnauthorizedError);
   });
 });

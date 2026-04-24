@@ -1,3 +1,10 @@
+export class UnauthorizedError extends Error {
+  constructor(message = '認証エラー') {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
 const BASE_URL = '/api';
 
 interface ApiResponse<T> {
@@ -16,8 +23,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   if (res.status === 401) {
-    window.location.href = '/login';
-    throw new Error('認証エラー');
+    throw new UnauthorizedError();
   }
 
   const json: ApiResponse<T> = await res.json();
