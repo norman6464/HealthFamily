@@ -37,6 +37,7 @@ model User {
   bodyMeasurements   BodyMeasurement[]
   emergencyContacts  EmergencyContact[]
   prescriptions          Prescription[]
+  temperatureRecords     TemperatureRecord[]
   notificationSetting    NotificationSetting?
 }
 
@@ -64,6 +65,7 @@ model Member {
   bodyMeasurements   BodyMeasurement[]
   emergencyContacts  EmergencyContact[]
   prescriptions      Prescription[]
+  temperatureRecords TemperatureRecord[]
 
   @@index([userId])
 }
@@ -263,6 +265,22 @@ model BodyMeasurement {
 
   @@index([userId])
   @@index([memberId])
+}
+
+model TemperatureRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  temperature Float
+  measuredAt  DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([memberId])
+  @@index([memberId, measuredAt])
 }
 
 model EmergencyContact {
