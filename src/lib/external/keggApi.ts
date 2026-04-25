@@ -18,9 +18,11 @@
 
 const KEGG_BASE = 'https://rest.kegg.jp';
 const REQUEST_TIMEOUT_MS = 8000;
+const LIST_REQUEST_TIMEOUT_MS = 20000;
 const MAX_SEARCH_RESULTS = 20;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE_SIZE = 500;
+const DRUG_LIST_CACHE_KEY = '__drug_ja_list__';
 
 export interface KeggSearchResult {
   id: string;
@@ -43,6 +45,7 @@ interface CacheEntry<T> {
 
 const searchCache = new Map<string, CacheEntry<KeggSearchResult[]>>();
 const drugCache = new Map<string, CacheEntry<KeggDrugInfo | null>>();
+const drugListCache = new Map<string, CacheEntry<KeggSearchResult[]>>();
 
 function cacheGet<T>(cache: Map<string, CacheEntry<T>>, key: string): T | undefined {
   const entry = cache.get(key);
@@ -74,9 +77,9 @@ function cacheSet<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T): 
  * みなして分岐している。KEGG REST は 200 で空本文を返さない前提のため
  * この取り扱いで問題ないが、将来の挙動変更に備えてこの契約を守ること。
  */
-async function keggFetch(path: string): Promise<string> {
+async function keggFetch(path: string, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<string> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${KEGG_BASE}${path}`, {
       signal: controller.signal,
@@ -126,6 +129,33 @@ function parseKeggFlatFile(text: string): Map<string, string> {
   return fields;
 }
 
+/**
+ * KEGG `list/drug_ja` で日本語版薬剤の全リストを取得してキャッシュする。
+ *
+ * KEGG `find/drug_ja/{query}` は日本語(UTF-8)クエリだとHTTP 400で
+ * エラーになるため、全リストを一度落としてローカルで部分一致検索する。
+ * リストは約1MB / 約12,800件 (2026年4月時点)。
+ */
+async function getDrugList(): Promise<KeggSearchResult[]> {
+  const cached = cacheGet(drugListCache, DRUG_LIST_CACHE_KEY);
+  if (cached) return cached;
+
+  const text = await keggFetch('/list/drug_ja', LIST_REQUEST_TIMEOUT_MS);
+  const list: KeggSearchResult[] = [];
+  for (const line of text.split('\n')) {
+    if (!line) continue;
+    const tabIndex = line.indexOf('\t');
+    if (tabIndex === -1) continue;
+    const idPart = line.substring(0, tabIndex).trim();
+    const name = line.substring(tabIndex + 1).trim();
+    const id = idPart.replace(/^(dr_ja|dr):/i, '').trim();
+    if (id && name) list.push({ id, name });
+  }
+
+  cacheSet(drugListCache, DRUG_LIST_CACHE_KEY, list);
+  return list;
+}
+
 export async function searchDrugsByName(query: string): Promise<KeggSearchResult[]> {
   const normalized = query.trim();
   if (!normalized) return [];
@@ -134,18 +164,14 @@ export async function searchDrugsByName(query: string): Promise<KeggSearchResult
   const cached = cacheGet(searchCache, cacheKey);
   if (cached) return cached;
 
-  const encoded = encodeURIComponent(normalized);
-  const text = await keggFetch(`/find/drug_ja/${encoded}`);
-
+  const list = await getDrugList();
+  const lowerQuery = cacheKey;
   const results: KeggSearchResult[] = [];
-  const lines = text.split('\n').filter((line) => line.trim());
-  for (const line of lines.slice(0, MAX_SEARCH_RESULTS)) {
-    const tabIndex = line.indexOf('\t');
-    if (tabIndex === -1) continue;
-    const idPart = line.substring(0, tabIndex).trim();
-    const name = line.substring(tabIndex + 1).trim();
-    const id = idPart.replace(/^(dr_ja|dr):/i, '').trim();
-    if (id && name) results.push({ id, name });
+  for (const item of list) {
+    if (item.name.toLowerCase().includes(lowerQuery)) {
+      results.push(item);
+      if (results.length >= MAX_SEARCH_RESULTS) break;
+    }
   }
 
   cacheSet(searchCache, cacheKey, results);
