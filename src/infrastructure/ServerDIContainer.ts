@@ -20,6 +20,7 @@ import { MemberRepository } from '@/domain/repositories/MemberRepository';
 import { AppointmentRepository } from '@/domain/repositories/AppointmentRepository';
 import { UserProfileRepository } from '@/domain/repositories/UserProfileRepository';
 import { NotificationSettingRepository } from '@/domain/repositories/NotificationSettingRepository';
+import { TemperatureRecordRepository } from '@/domain/repositories/TemperatureRecordRepository';
 import { PrismaMedicationRepository } from '@/data/repositories/server/PrismaMedicationRepository';
 import { PrismaScheduleRepository } from '@/data/repositories/server/PrismaScheduleRepository';
 import { PrismaMedicationRecordRepository } from '@/data/repositories/server/PrismaMedicationRecordRepository';
@@ -36,6 +37,7 @@ import { PrismaMemberRepository } from '@/data/repositories/server/PrismaMemberR
 import { PrismaAppointmentRepository } from '@/data/repositories/server/PrismaAppointmentRepository';
 import { PrismaUserProfileRepository } from '@/data/repositories/server/PrismaUserProfileRepository';
 import { PrismaNotificationSettingRepository } from '@/data/repositories/server/PrismaNotificationSettingRepository';
+import { PrismaTemperatureRecordRepository } from '@/data/repositories/server/PrismaTemperatureRecordRepository';
 
 export interface ServerDIContainer {
   medicationRepository: MedicationRepository;
@@ -54,6 +56,7 @@ export interface ServerDIContainer {
   appointmentRepository: AppointmentRepository;
   userProfileRepository: UserProfileRepository;
   notificationSettingRepository: NotificationSettingRepository;
+  temperatureRecordRepository: TemperatureRecordRepository;
 }
 
 /**
@@ -78,5 +81,6 @@ export function createServerDIContainer(userId: string): ServerDIContainer {
     appointmentRepository: new PrismaAppointmentRepository(userId),
     userProfileRepository: new PrismaUserProfileRepository(userId),
     notificationSettingRepository: new PrismaNotificationSettingRepository(userId),
+    temperatureRecordRepository: new PrismaTemperatureRecordRepository(userId),
   };
 }

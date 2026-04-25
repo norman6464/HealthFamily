@@ -275,6 +275,28 @@ export const updateBodyMeasurementSchema = z.object({
   message: '更新するフィールドがありません',
 });
 
+// ===== Temperature Records =====
+export const createTemperatureRecordSchema = z.object({
+  memberId: idField,
+  temperature: z.number().min(30, '体温は30.0以上を指定してください').max(45, '体温は45.0以下を指定してください'),
+  measuredAt: z.string().trim().refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: '計測時刻は有効な日時形式で入力してください' },
+  ),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const updateTemperatureRecordSchema = z.object({
+  temperature: z.number().min(30).max(45).optional(),
+  measuredAt: z.string().trim().refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: '計測時刻は有効な日時形式で入力してください' },
+  ).optional(),
+  notes: z.string().trim().max(500).optional().nullable(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: '更新するフィールドがありません',
+});
+
 // ===== Allergies =====
 export const createAllergySchema = z.object({
   memberId: idField,

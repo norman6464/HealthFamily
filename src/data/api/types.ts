@@ -144,6 +144,17 @@ export interface BackendBodyMeasurement {
   createdAt: string;
 }
 
+export interface BackendTemperatureRecord {
+  id: string;
+  userId: string;
+  memberId: string;
+  memberName?: string;
+  temperature: number;
+  measuredAt: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface BackendAllergy {
   id: string;
   userId: string;

@@ -9,10 +9,11 @@ import { Vaccination } from '../../domain/entities/Vaccination';
 import { Examination } from '../../domain/entities/Examination';
 import { Allergy } from '../../domain/entities/Allergy';
 import { BodyMeasurement } from '../../domain/entities/BodyMeasurement';
+import { TemperatureRecord } from '../../domain/entities/TemperatureRecord';
 import { EmergencyContact } from '../../domain/entities/EmergencyContact';
 import { Prescription } from '../../domain/entities/Prescription';
 import { Insurance } from '../../domain/entities/Insurance';
-import { BackendAllergy, BackendBodyMeasurement, BackendEmergencyContact, BackendPrescription, BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendVaccination } from './types';
+import { BackendAllergy, BackendBodyMeasurement, BackendEmergencyContact, BackendPrescription, BackendAppointment, BackendExamination, BackendHealthLog, BackendHospital, BackendInsurance, BackendMember, BackendMedication, BackendRecord, BackendSchedule, BackendTemperatureRecord, BackendVaccination } from './types';
 
 const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
@@ -187,6 +188,19 @@ export function toBodyMeasurement(b: BackendBodyMeasurement): BodyMeasurement {
     weight: b.weight,
     height: b.height,
     recordedAt: new Date(b.recordedAt),
+    notes: b.notes,
+    createdAt: new Date(b.createdAt),
+  };
+}
+
+export function toTemperatureRecord(b: BackendTemperatureRecord): TemperatureRecord {
+  return {
+    id: b.id,
+    userId: b.userId,
+    memberId: b.memberId,
+    memberName: b.memberName,
+    temperature: b.temperature,
+    measuredAt: new Date(b.measuredAt),
     notes: b.notes,
     createdAt: new Date(b.createdAt),
   };
