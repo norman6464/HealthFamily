@@ -3,14 +3,13 @@ import { success, created, errorResponse } from '@/lib/auth-helpers';
 import { withAuth, verifyResourceOwnership, validateBodySize, safeParseJson } from '@/lib/api-helpers';
 import { checkRateLimit } from '@/lib/security';
 import { createServerDIContainer } from '@/infrastructure/ServerDIContainer';
-import { GetHealthLogs, CreateHealthLog } from '@/domain/usecases/ManageHealthLogs';
+import { CreateHealthLog } from '@/domain/usecases/ManageHealthLogs';
 
 export const GET = withAuth(async (userId) => {
   const { allowed } = checkRateLimit(`health-logs-get:${userId}`, { maxAttempts: 30, windowMs: 60000 });
   if (!allowed) return errorResponse('リクエストが多すぎます。しばらくしてから再試行してください。', 429);
   const container = createServerDIContainer(userId);
-  const usecase = new GetHealthLogs(container.healthLogRepository);
-  const logs = await usecase.execute();
+  const logs = await container.healthLogRepository.getLogs();
   return success(logs);
 });
 
