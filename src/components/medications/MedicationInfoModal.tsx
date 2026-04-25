@@ -156,7 +156,10 @@ export const MedicationInfoModal: React.FC<MedicationInfoModalProps> = ({
             <>
               {hasSearched && searchResults.length === 0 && (
                 <div className="py-8 text-center text-sm text-gray-400">
-                  該当する薬剤が見つかりませんでした
+                  <p>該当する薬剤が見つかりませんでした</p>
+                  <p className="mt-2 text-xs">
+                    商品名（例: クラリチン）の場合、一般名（例: ロラタジン）で再検索してください。
+                  </p>
                 </div>
               )}
               {!hasSearched && searchResults.length === 0 && (
