@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { Medication, MedicationCategory } from '../../domain/entities/Medication';
+import { MedicationInfoModal } from './MedicationInfoModal';
 
 export interface MedicationFormData {
   name: string;
@@ -33,6 +34,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
   const [instructions, setInstructions] = useState(initialData?.instructions || '');
   const hasOptionalData = !!(initialData?.stockQuantity || initialData?.stockAlertDate || initialData?.instructions);
   const [showOptional, setShowOptional] = useState(isEditing && hasOptionalData);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,14 +70,25 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
         <label htmlFor="med-name" className="block text-sm font-medium text-gray-700 mb-1">
           薬の名前
         </label>
-        <input
-          id="med-name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-          placeholder="薬の名前を入力"
-        />
+        <div className="flex space-x-2">
+          <input
+            id="med-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+            placeholder="薬の名前を入力"
+          />
+          <button
+            type="button"
+            onClick={() => setShowInfoModal(true)}
+            className="flex items-center px-3 py-2 border border-primary-300 text-primary-600 rounded-lg hover:bg-primary-50 text-sm whitespace-nowrap"
+            aria-label="薬剤情報を取得"
+          >
+            <Info size={14} className="mr-1" />
+            情報取得
+          </button>
+        </div>
       </div>
 
       <div>
@@ -202,6 +215,24 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           </button>
         )}
       </div>
+
+      <MedicationInfoModal
+        isOpen={showInfoModal}
+        initialQuery={name}
+        onClose={() => setShowInfoModal(false)}
+        onApply={(data) => {
+          if (data.name) setName(data.name);
+          const newInstructions = data.instructions;
+          if (newInstructions) {
+            setInstructions((prev) => {
+              if (!prev) return newInstructions;
+              if (prev.includes(newInstructions)) return prev;
+              return `${prev}\n${newInstructions}`;
+            });
+            setShowOptional(true);
+          }
+        }}
+      />
     </form>
   );
 };

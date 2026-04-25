@@ -5,6 +5,13 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export class ApiError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 const BASE_URL = '/api';
 
 interface ApiResponse<T> {
@@ -29,7 +36,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const json: ApiResponse<T> = await res.json();
 
   if (!json.success) {
-    throw new Error(json.error || 'APIエラー');
+    throw new ApiError(json.error || 'APIエラー', res.status);
   }
 
   return json.data;

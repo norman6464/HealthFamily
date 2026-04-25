@@ -19,6 +19,7 @@ import { BodyMeasurementRepository } from '../domain/repositories/BodyMeasuremen
 import { EmergencyContactRepository } from '../domain/repositories/EmergencyContactRepository';
 import { PrescriptionRepository } from '../domain/repositories/PrescriptionRepository';
 import { NotificationSettingRepository } from '../domain/repositories/NotificationSettingRepository';
+import { MedicationInfoRepository } from '../domain/repositories/MedicationInfoRepository';
 import { MemberRepositoryImpl } from '../data/repositories/MemberRepositoryImpl';
 import { MedicationRepositoryImpl } from '../data/repositories/MedicationRepositoryImpl';
 import { ScheduleRepositoryImpl } from '../data/repositories/ScheduleRepositoryImpl';
@@ -35,6 +36,7 @@ import { BodyMeasurementRepositoryImpl } from '../data/repositories/BodyMeasurem
 import { EmergencyContactRepositoryImpl } from '../data/repositories/EmergencyContactRepositoryImpl';
 import { PrescriptionRepositoryImpl } from '../data/repositories/PrescriptionRepositoryImpl';
 import { NotificationSettingRepositoryImpl } from '../data/repositories/NotificationSettingRepositoryImpl';
+import { MedicationInfoRepositoryImpl } from '../data/repositories/MedicationInfoRepositoryImpl';
 
 export interface DIContainer {
   memberRepository: MemberRepository;
@@ -53,6 +55,7 @@ export interface DIContainer {
   emergencyContactRepository: EmergencyContactRepository;
   prescriptionRepository: PrescriptionRepository;
   notificationSettingRepository: NotificationSettingRepository;
+  medicationInfoRepository: MedicationInfoRepository;
 }
 
 // シングルトンコンテナ（テスト時にモックに差し替え可能）
@@ -77,6 +80,7 @@ export const getDIContainer = (): DIContainer => {
       emergencyContactRepository: new EmergencyContactRepositoryImpl(),
       prescriptionRepository: new PrescriptionRepositoryImpl(),
       notificationSettingRepository: new NotificationSettingRepositoryImpl(),
+      medicationInfoRepository: new MedicationInfoRepositoryImpl(),
     };
   }
   return container;
