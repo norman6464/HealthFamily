@@ -14,6 +14,7 @@ export interface NotificationSetting {
   readonly defaultReminderMinutesBefore: number;
   readonly defaultAppointmentReminderDaysBefore: number;
   readonly emailNotificationEnabled: boolean;
+  readonly lineNotificationEnabled: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -26,6 +27,7 @@ export const DEFAULT_NOTIFICATION_SETTING: Omit<NotificationSetting, 'id' | 'use
   defaultReminderMinutesBefore: 5,
   defaultAppointmentReminderDaysBefore: 1,
   emailNotificationEnabled: true,
+  lineNotificationEnabled: false,
 };
 
 export function createNotificationSetting(
@@ -39,12 +41,12 @@ export function createNotificationSetting(
   };
 }
 
-export function isNotificationEnabled(
+export type NotificationChannel = 'email' | 'line';
+
+export function isNotificationTypeEnabled(
   setting: NotificationSetting,
   type: NotificationType,
 ): boolean {
-  if (!setting.emailNotificationEnabled) return false;
-
   switch (type) {
     case 'medication_reminder':
       return setting.medicationReminderEnabled;
@@ -55,6 +57,26 @@ export function isNotificationEnabled(
     case 'low_stock':
       return setting.lowStockAlertEnabled;
   }
+}
+
+export function isChannelEnabled(
+  setting: NotificationSetting,
+  channel: NotificationChannel,
+): boolean {
+  switch (channel) {
+    case 'email':
+      return setting.emailNotificationEnabled;
+    case 'line':
+      return setting.lineNotificationEnabled;
+  }
+}
+
+export function isNotificationEnabled(
+  setting: NotificationSetting,
+  type: NotificationType,
+  channel: NotificationChannel = 'email',
+): boolean {
+  return isChannelEnabled(setting, channel) && isNotificationTypeEnabled(setting, type);
 }
 
 export function getDefaultReminderMinutes(setting: NotificationSetting): number {

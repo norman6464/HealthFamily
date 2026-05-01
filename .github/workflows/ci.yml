@@ -30,4 +30,4 @@ jobs:
       - name: Test
         run: npx vitest run --coverage
       - name: Build
-        run: npm run build
+        run: npx next build

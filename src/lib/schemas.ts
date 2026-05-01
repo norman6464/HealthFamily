@@ -328,6 +328,7 @@ export const updateNotificationSettingSchema = z.object({
   defaultReminderMinutesBefore: z.number().int().min(0, 'リマインダー時間は0以上で指定してください').max(120).optional(),
   defaultAppointmentReminderDaysBefore: z.number().int().min(0, 'リマインダー日数は0以上で指定してください').max(30).optional(),
   emailNotificationEnabled: z.boolean().optional(),
+  lineNotificationEnabled: z.boolean().optional(),
 }).refine((data) => Object.keys(data).length > 0, {
   message: '更新するフィールドがありません',
 });

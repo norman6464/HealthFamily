@@ -12,6 +12,7 @@ interface BackendNotificationSetting {
   defaultReminderMinutesBefore: number;
   defaultAppointmentReminderDaysBefore: number;
   emailNotificationEnabled: boolean;
+  lineNotificationEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +28,7 @@ function toNotificationSetting(raw: BackendNotificationSetting): NotificationSet
     defaultReminderMinutesBefore: raw.defaultReminderMinutesBefore,
     defaultAppointmentReminderDaysBefore: raw.defaultAppointmentReminderDaysBefore,
     emailNotificationEnabled: raw.emailNotificationEnabled,
+    lineNotificationEnabled: raw.lineNotificationEnabled,
     createdAt: new Date(raw.createdAt),
     updatedAt: new Date(raw.updatedAt),
   };

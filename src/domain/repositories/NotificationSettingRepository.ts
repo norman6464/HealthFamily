@@ -8,6 +8,7 @@ export interface UpdateNotificationSettingInput {
   defaultReminderMinutesBefore?: number;
   defaultAppointmentReminderDaysBefore?: number;
   emailNotificationEnabled?: boolean;
+  lineNotificationEnabled?: boolean;
 }
 
 export interface NotificationSettingRepository {

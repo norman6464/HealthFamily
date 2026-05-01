@@ -17,7 +17,7 @@ export interface AppointmentFormData {
 interface AppointmentFormProps {
   members: Member[];
   hospitals: Hospital[];
-  onSubmit: (data: AppointmentFormData) => void;
+  onSubmit: (data: AppointmentFormData) => Promise<void> | void;
   initialData?: Appointment;
   onCancel?: () => void;
 }
@@ -39,23 +39,29 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
   );
   const [type, setType] = useState(initialData?.appointmentType || '');
   const [notes, setNotes] = useState(initialData?.description || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!memberId || !appointmentDate) return;
+    if (!memberId || !appointmentDate || isSubmitting) return;
 
-    onSubmit({
-      memberId,
-      hospitalId: hospitalId || undefined,
-      appointmentDate,
-      type: type || undefined,
-      notes: notes.trim() || undefined,
-    });
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        memberId,
+        hospitalId: hospitalId || undefined,
+        appointmentDate,
+        type: type || undefined,
+        notes: notes.trim() || undefined,
+      });
 
-    if (!isEditing) {
-      setAppointmentDate('');
-      setType('');
-      setNotes('');
+      if (!isEditing) {
+        setAppointmentDate('');
+        setType('');
+        setNotes('');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -157,9 +163,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({ members, hospi
       <div className={isEditing ? 'flex space-x-2' : ''}>
         <button
           type="submit"
-          className={`${isEditing ? 'flex-1' : 'w-full'} bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium`}
+          disabled={isSubmitting}
+          className={`${isEditing ? 'flex-1' : 'w-full'} bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed`}
         >
-          {isEditing ? '更新する' : '追加する'}
+          {isSubmitting ? '送信中...' : isEditing ? '更新する' : '追加する'}
         </button>
         {isEditing && onCancel && (
           <button

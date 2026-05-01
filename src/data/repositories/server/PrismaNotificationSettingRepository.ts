@@ -19,6 +19,7 @@ function toNotificationSetting(row: {
   defaultReminderMinutesBefore: number;
   defaultAppointmentReminderDaysBefore: number;
   emailNotificationEnabled: boolean;
+  lineNotificationEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }): NotificationSetting {
@@ -32,6 +33,7 @@ function toNotificationSetting(row: {
     defaultReminderMinutesBefore: row.defaultReminderMinutesBefore,
     defaultAppointmentReminderDaysBefore: row.defaultAppointmentReminderDaysBefore,
     emailNotificationEnabled: row.emailNotificationEnabled,
+    lineNotificationEnabled: row.lineNotificationEnabled,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -57,6 +59,7 @@ export class PrismaNotificationSettingRepository implements NotificationSettingR
     if (input.defaultReminderMinutesBefore !== undefined) data.defaultReminderMinutesBefore = input.defaultReminderMinutesBefore;
     if (input.defaultAppointmentReminderDaysBefore !== undefined) data.defaultAppointmentReminderDaysBefore = input.defaultAppointmentReminderDaysBefore;
     if (input.emailNotificationEnabled !== undefined) data.emailNotificationEnabled = input.emailNotificationEnabled;
+    if (input.lineNotificationEnabled !== undefined) data.lineNotificationEnabled = input.lineNotificationEnabled;
 
     const row = await prisma.notificationSetting.upsert({
       where: { userId: this.userId },

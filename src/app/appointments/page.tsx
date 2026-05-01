@@ -50,6 +50,7 @@ export default function AppointmentsPage() {
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<AppointmentFilter>('upcoming');
+  const [createError, setCreateError] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
@@ -61,8 +62,13 @@ export default function AppointmentsPage() {
   ], [counts]);
 
   const handleCreate = async (data: AppointmentFormData) => {
-    await createAppointment(data);
-    setShowForm(false);
+    setCreateError(null);
+    try {
+      await createAppointment(data);
+      setShowForm(false);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : '予約の追加に失敗しました。もう一度お試しください。');
+    }
   };
 
   const handleEdit = (appointment: Appointment) => {
@@ -155,8 +161,10 @@ export default function AppointmentsPage() {
   const handleToggleForm = () => {
     if (showForm) {
       setShowForm(false);
+      setCreateError(null);
     } else {
       setEditingAppointment(null);
+      setCreateError(null);
       setShowForm(true);
     }
   };
@@ -180,6 +188,9 @@ export default function AppointmentsPage() {
         {showForm && membersReady && members.length > 0 && (
           <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-gray-200">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">通院予約の追加</h2>
+            {createError && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3">{createError}</p>
+            )}
             <AppointmentForm
               members={members}
               hospitals={hospitals}
