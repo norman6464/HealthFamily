@@ -16,8 +16,8 @@ interface ScheduleFormProps {
   onSubmitMultiple?: (data: ScheduleFormData[]) => void;
 }
 
-const TWICE_DAILY_TIMES = ['08:00', '20:00'];
-const THREE_DAILY_TIMES = ['08:00', '13:00', '20:00'];
+const TWICE_DAILY_LABELS = ['朝', '夜'];
+const THREE_DAILY_LABELS = ['朝', '昼', '夜'];
 
 const DAY_OPTIONS: { value: DayOfWeek; label: string }[] = [
   { value: 'mon', label: '月' },
@@ -51,6 +51,14 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit, onSubmitMu
     return today.toISOString().split('T')[0];
   });
   const [reminderMinutes, setReminderMinutes] = useState('10');
+  const [twiceTimes, setTwiceTimes] = useState<[string, string]>(['08:00', '20:00']);
+  const [threeTimes, setThreeTimes] = useState<[string, string, string]>(['08:00', '13:00', '20:00']);
+
+  const handleModeChange = (m: ScheduleMode) => {
+    setMode(m);
+    setTwiceTimes(['08:00', '20:00']);
+    setThreeTimes(['08:00', '13:00', '20:00']);
+  };
 
   const toggleDay = (day: DayOfWeek) => {
     setSelectedDays((prev) =>
@@ -72,7 +80,7 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit, onSubmitMu
     };
 
     if (mode === 'twice_daily' || mode === 'three_daily') {
-      const times = mode === 'twice_daily' ? TWICE_DAILY_TIMES : THREE_DAILY_TIMES;
+      const times = mode === 'twice_daily' ? twiceTimes : threeTimes;
       const items = times.map((time) => ({ ...baseData, scheduledTime: time }));
       if (onSubmitMultiple) {
         onSubmitMultiple(items);
@@ -87,6 +95,8 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit, onSubmitMu
     setSelectedDays([]);
     setMode('daily');
     setReminderMinutes('10');
+    setTwiceTimes(['08:00', '20:00']);
+    setThreeTimes(['08:00', '13:00', '20:00']);
   };
 
   const modeButtonClass = (m: ScheduleMode) =>
@@ -96,41 +106,33 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit, onSubmitMu
         : 'bg-white text-gray-600 border-gray-300 hover:border-primary-400'
     }`;
 
+  const timeLabelClass = 'inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 text-primary-700 text-xs font-bold shrink-0';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <span className="block text-sm font-medium text-gray-700 mb-2">頻度</span>
         <div className="flex flex-wrap gap-2 mb-2">
-          <button type="button" className={modeButtonClass('daily')} onClick={() => setMode('daily')}>
+          <button type="button" className={modeButtonClass('daily')} onClick={() => handleModeChange('daily')}>
             毎日
           </button>
-          <button type="button" className={modeButtonClass('weekdays')} onClick={() => setMode('weekdays')}>
+          <button type="button" className={modeButtonClass('weekdays')} onClick={() => handleModeChange('weekdays')}>
             曜日指定
           </button>
-          <button type="button" className={modeButtonClass('interval')} onClick={() => setMode('interval')}>
+          <button type="button" className={modeButtonClass('interval')} onClick={() => handleModeChange('interval')}>
             間隔指定
           </button>
-          <button type="button" className={modeButtonClass('twice_daily')} onClick={() => setMode('twice_daily')}>
+          <button type="button" className={modeButtonClass('twice_daily')} onClick={() => handleModeChange('twice_daily')}>
             1日2回
           </button>
-          <button type="button" className={modeButtonClass('three_daily')} onClick={() => setMode('three_daily')}>
+          <button type="button" className={modeButtonClass('three_daily')} onClick={() => handleModeChange('three_daily')}>
             1日3回
           </button>
-          <button type="button" className={modeButtonClass('prn')} onClick={() => setMode('prn')}>
+          <button type="button" className={modeButtonClass('prn')} onClick={() => handleModeChange('prn')}>
             頓服
           </button>
         </div>
 
-        {mode === 'twice_daily' && (
-          <p className="text-xs text-gray-500 mt-1">
-            朝(08:00)と夜(20:00)の2回分のスケジュールを追加します。
-          </p>
-        )}
-        {mode === 'three_daily' && (
-          <p className="text-xs text-gray-500 mt-1">
-            朝(08:00)・昼(13:00)・夜(20:00)の3回分のスケジュールを追加します。
-          </p>
-        )}
         {mode === 'prn' && (
           <p className="text-xs text-gray-500 mt-1">
             症状がある時だけ服用する薬です。ホーム画面には表示されません。
@@ -218,7 +220,44 @@ export const ScheduleForm: React.FC<ScheduleFormProps> = ({ onSubmit, onSubmitMu
       </div>
       )}
 
-      {mode !== 'prn' && mode !== 'twice_daily' && mode !== 'three_daily' && (
+      {(mode === 'twice_daily' || mode === 'three_daily') && (
+        <div>
+          <span className="block text-sm font-medium text-gray-700 mb-2">服薬時刻</span>
+          <div className="space-y-2">
+            {(mode === 'twice_daily' ? TWICE_DAILY_LABELS : THREE_DAILY_LABELS).map((label, i) => (
+              <div key={label} className="flex items-center gap-3">
+                <span className={timeLabelClass}>{label}</span>
+                <input
+                  type="time"
+                  value={mode === 'twice_daily' ? twiceTimes[i] : threeTimes[i]}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (mode === 'twice_daily') {
+                      setTwiceTimes((prev) => {
+                        const next = [...prev] as [string, string];
+                        next[i] = val;
+                        return next;
+                      });
+                    } else {
+                      setThreeTimes((prev) => {
+                        const next = [...prev] as [string, string, string];
+                        next[i] = val;
+                        return next;
+                      });
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            {mode === 'twice_daily' ? '2回分' : '3回分'}のスケジュールがまとめて登録されます。時刻は変更できます。
+          </p>
+        </div>
+      )}
+
+      {mode !== 'prn' && (
       <div>
         <label htmlFor="reminder-minutes" className="block text-sm font-medium text-gray-700 mb-1">
           リマインダー（分前）
