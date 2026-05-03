@@ -21,7 +21,7 @@ import { BottomNavigation } from '@/components/shared/BottomNavigation';
 
 export default function Dashboard() {
   const { userId } = useAuth();
-  const { schedules, isLoading, markAsCompleted } = useTodaySchedules(userId);
+  const { schedules, isLoading, markAsCompleted, markMultipleCompleted } = useTodaySchedules(userId);
   const { appointments, isLoading: appointmentsLoading } = useAppointments();
   const { stats, isLoading: statsLoading } = useAdherenceStats();
   const { alerts, isLoading: alertsLoading } = useStockAlerts();
@@ -67,6 +67,7 @@ export default function Dashboard() {
           schedules={filteredSchedules}
           isLoading={isLoading}
           onMarkCompleted={markAsCompleted}
+          onMarkMultipleCompleted={markMultipleCompleted}
           hasMembers={members.length > 0}
         />
 

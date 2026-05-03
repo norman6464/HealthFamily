@@ -61,7 +61,7 @@ describe('TodayScheduleList', () => {
     expect(screen.getByText('時間超過')).toBeInTheDocument();
   });
 
-  it('服薬完了ボタンをクリックすると確認パネルが表示される', () => {
+  it('詳細入力ボタンをクリックすると確認パネルが表示される', () => {
     const onMarkCompleted = vi.fn().mockResolvedValue(undefined);
     render(
       <TodayScheduleList
@@ -70,11 +70,11 @@ describe('TodayScheduleList', () => {
         onMarkCompleted={onMarkCompleted}
       />,
     );
-    fireEvent.click(screen.getByLabelText('服薬完了'));
+    fireEvent.click(screen.getByLabelText('詳細入力'));
     expect(screen.getByText('服薬を記録')).toBeInTheDocument();
   });
 
-  it('服薬済みの場合は完了ボタンが表示されない', () => {
+  it('服薬済みの場合は詳細入力ボタンが表示されない', () => {
     const onMarkCompleted = vi.fn();
     render(
       <TodayScheduleList
@@ -83,6 +83,24 @@ describe('TodayScheduleList', () => {
         onMarkCompleted={onMarkCompleted}
       />,
     );
-    expect(screen.queryByLabelText('服薬完了')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('詳細入力')).not.toBeInTheDocument();
+  });
+
+  it('onMarkMultipleCompletedが渡されると一括記録ボタンが表示される', async () => {
+    const onMarkMultiple = vi.fn().mockResolvedValue(undefined);
+    const schedules = [
+      createSchedule({ scheduleId: 's1', status: 'pending' }),
+      createSchedule({ scheduleId: 's2', medicationName: 'ビタミンC', status: 'pending' }),
+    ];
+    render(
+      <TodayScheduleList
+        schedules={schedules}
+        isLoading={false}
+        onMarkMultipleCompleted={onMarkMultiple}
+      />,
+    );
+    const checkboxes = screen.getAllByLabelText('服薬済みとしてチェック');
+    fireEvent.click(checkboxes[0]);
+    expect(screen.getByText('1件をまとめて服薬記録')).toBeInTheDocument();
   });
 });
