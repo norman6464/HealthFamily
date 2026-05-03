@@ -232,6 +232,7 @@ export function toExamination(b: BackendExamination): Examination {
     examinedAt: new Date(b.examinedAt),
     nextScheduledDate: b.nextScheduledDate ? new Date(b.nextScheduledDate) : undefined,
     notes: b.notes,
+    imageData: b.imageData,
     createdAt: new Date(b.createdAt),
   };
 }

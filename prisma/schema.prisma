@@ -211,6 +211,7 @@ model Examination {
   examinedAt        DateTime
   nextScheduledDate DateTime?
   notes             String?
+  imageData         String?   @db.Text
   createdAt         DateTime  @default(now())
 
   @@index([userId])

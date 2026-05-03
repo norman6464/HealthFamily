@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { X, ImagePlus } from 'lucide-react';
 import { Member } from '../../domain/entities/Member';
 
 export interface ExaminationFormData {
@@ -9,6 +10,7 @@ export interface ExaminationFormData {
   examinedAt: string;
   nextScheduledDate?: string;
   notes?: string;
+  imageData?: string;
 }
 
 interface ExaminationFormProps {
@@ -21,7 +23,41 @@ interface ExaminationFormProps {
     examinedAt: Date;
     nextScheduledDate?: Date;
     notes?: string;
+    imageData?: string;
   };
+}
+
+async function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const MAX_DIM = 1200;
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width >= height) {
+            height = Math.round((height / width) * MAX_DIM);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width / height) * MAX_DIM);
+            height = MAX_DIM;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas not available')); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSubmit, onCancel, initialData }) => {
@@ -34,6 +70,29 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
     initialData?.nextScheduledDate ? initialData.nextScheduledDate.toISOString().split('T')[0] : '',
   );
   const [notes, setNotes] = useState(initialData?.notes || '');
+  const [imageData, setImageData] = useState<string | null>(initialData?.imageData ?? null);
+  const [imageError, setImageError] = useState('');
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setImageError('10MB以下の画像を選択してください');
+      return;
+    }
+    setImageError('');
+    try {
+      const compressed = await compressImage(file);
+      if (compressed.length > 1_500_000) {
+        setImageError('画像を圧縮できませんでした。より小さい画像を選択してください');
+        return;
+      }
+      setImageData(compressed);
+    } catch {
+      setImageError('画像の読み込みに失敗しました');
+    }
+    e.target.value = '';
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +104,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
       examinedAt: new Date(examinedAt).toISOString(),
       nextScheduledDate: nextScheduledDate ? new Date(nextScheduledDate).toISOString() : undefined,
       notes: notes.trim() || undefined,
+      imageData: imageData ?? undefined,
     });
 
     if (!initialData) {
@@ -52,6 +112,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
       setExaminedAt(new Date().toISOString().split('T')[0]);
       setNextScheduledDate('');
       setNotes('');
+      setImageData(null);
     }
   };
 
@@ -86,7 +147,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           onChange={(e) => setExaminationType(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
-          placeholder="例: 健康診断、血液検査、歯科検診"
+          placeholder="例: 健康診断、血液検査、耐性検査"
         />
       </div>
 
@@ -127,8 +188,43 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           onChange={(e) => setNotes(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           rows={2}
-          placeholder="メモを入力"
+          placeholder="例: 耐性あり ベンジルペニシリン / 異常なし"
         />
+      </div>
+
+      <div>
+        <span className="block text-sm font-medium text-gray-700 mb-1">
+          検査結果の画像（任意）
+        </span>
+        {imageData ? (
+          <div className="relative">
+            <img
+              src={imageData}
+              alt="検査結果"
+              className="w-full rounded-lg border border-gray-200 max-h-52 object-contain bg-gray-50"
+            />
+            <button
+              type="button"
+              onClick={() => setImageData(null)}
+              className="absolute top-1.5 right-1.5 bg-white rounded-full p-0.5 text-gray-500 hover:text-red-500 shadow transition-colors"
+              aria-label="画像を削除"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ) : (
+          <label className="flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-400 transition-colors text-sm text-gray-500">
+            <ImagePlus size={16} className="text-gray-400" />
+            <span>画像を追加</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleImageChange}
+            />
+          </label>
+        )}
+        {imageError && <p className="text-xs text-red-500 mt-1">{imageError}</p>}
       </div>
 
       <div className="flex space-x-2">

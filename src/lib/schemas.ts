@@ -180,12 +180,15 @@ export const updateVaccinationSchema = z.object({
 });
 
 // ===== Examinations =====
+const imageDataField = z.string().max(1_500_000).optional().nullable();
+
 export const createExaminationSchema = z.object({
   memberId: idField,
   examinationType: z.string({ required_error: '検査の種類は必須です' }).trim().min(1, '検査の種類は必須です').max(200),
   examinedAt: dateString,
   nextScheduledDate: dateString.optional(),
   notes: z.string().trim().max(500).optional(),
+  imageData: imageDataField,
 });
 
 export const updateExaminationSchema = z.object({
@@ -193,6 +196,7 @@ export const updateExaminationSchema = z.object({
   examinedAt: dateString.optional(),
   nextScheduledDate: dateString.optional().nullable(),
   notes: z.string().trim().max(500).optional().nullable(),
+  imageData: imageDataField,
 }).refine((data) => Object.keys(data).length > 0, {
   message: '更新するフィールドがありません',
 });

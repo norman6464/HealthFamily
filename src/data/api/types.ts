@@ -178,6 +178,7 @@ export interface BackendExamination {
   examinedAt: string;
   nextScheduledDate?: string;
   notes?: string;
+  imageData?: string;
   createdAt: string;
 }
 

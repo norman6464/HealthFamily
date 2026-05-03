@@ -7,5 +7,6 @@ export interface Examination {
   readonly examinedAt: Date;
   readonly nextScheduledDate?: Date;
   readonly notes?: string;
+  readonly imageData?: string;
   readonly createdAt: Date;
 }

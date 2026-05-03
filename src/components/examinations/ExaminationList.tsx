@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Pencil, Trash2, Check, X, Calendar } from 'lucide-react';
+import { Pencil, Trash2, Check, X, Calendar, ImagePlus } from 'lucide-react';
 import { Examination } from '../../domain/entities/Examination';
 import { UpdateExaminationInput } from '../../domain/repositories/ExaminationRepository';
 import { formatDateJP } from '../../domain/entities/DateFormat';
@@ -38,6 +38,39 @@ export const ExaminationList: React.FC<ExaminationListProps> = ({ examinations, 
   );
 };
 
+async function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const MAX_DIM = 1200;
+        let { width, height } = img;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width >= height) {
+            height = Math.round((height / width) * MAX_DIM);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width / height) * MAX_DIM);
+            height = MAX_DIM;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas not available')); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 interface ExaminationCardProps {
   examination: Examination;
   onUpdate: (id: string, input: UpdateExaminationInput) => Promise<void>;
@@ -47,12 +80,36 @@ interface ExaminationCardProps {
 const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examination, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
   const [editType, setEditType] = useState(examination.examinationType);
   const [editDate, setEditDate] = useState(examination.examinedAt.toISOString().split('T')[0]);
   const [editNextDate, setEditNextDate] = useState(
     examination.nextScheduledDate ? examination.nextScheduledDate.toISOString().split('T')[0] : '',
   );
   const [editNotes, setEditNotes] = useState(examination.notes || '');
+  const [editImageData, setEditImageData] = useState<string | null>(examination.imageData ?? null);
+  const [editImageError, setEditImageError] = useState('');
+
+  const handleEditImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setEditImageError('10MB以下の画像を選択してください');
+      return;
+    }
+    setEditImageError('');
+    try {
+      const compressed = await compressImage(file);
+      if (compressed.length > 1_500_000) {
+        setEditImageError('画像を圧縮できませんでした。より小さい画像を選択してください');
+        return;
+      }
+      setEditImageData(compressed);
+    } catch {
+      setEditImageError('画像の読み込みに失敗しました');
+    }
+    e.target.value = '';
+  };
 
   const handleSave = async () => {
     if (!editType.trim() || !editDate) return;
@@ -61,6 +118,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
       examinedAt: new Date(editDate).toISOString(),
       nextScheduledDate: editNextDate ? new Date(editNextDate).toISOString() : null,
       notes: editNotes.trim() || null,
+      imageData: editImageData,
     });
     setIsEditing(false);
   };
@@ -70,6 +128,8 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
     setEditDate(examination.examinedAt.toISOString().split('T')[0]);
     setEditNextDate(examination.nextScheduledDate ? examination.nextScheduledDate.toISOString().split('T')[0] : '');
     setEditNotes(examination.notes || '');
+    setEditImageData(examination.imageData ?? null);
+    setEditImageError('');
     setIsEditing(false);
   };
 
@@ -117,6 +177,33 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
             rows={2}
           />
         </div>
+        <div>
+          <span className="block text-xs text-gray-500 mb-1">検査結果の画像</span>
+          {editImageData ? (
+            <div className="relative">
+              <img
+                src={editImageData}
+                alt="検査結果"
+                className="w-full rounded border border-gray-200 max-h-40 object-contain bg-gray-50"
+              />
+              <button
+                type="button"
+                onClick={() => setEditImageData(null)}
+                className="absolute top-1 right-1 bg-white rounded-full p-0.5 text-gray-500 hover:text-red-500 shadow"
+                aria-label="画像を削除"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center gap-2 py-2 px-3 border border-dashed border-gray-300 rounded cursor-pointer hover:border-primary-400 text-xs text-gray-500">
+              <ImagePlus size={14} className="text-gray-400" />
+              <span>画像を追加</span>
+              <input type="file" accept="image/*" className="sr-only" onChange={handleEditImageChange} />
+            </label>
+          )}
+          {editImageError && <p className="text-xs text-red-500 mt-1">{editImageError}</p>}
+        </div>
         <div className="flex space-x-2">
           <button
             onClick={handleSave}
@@ -160,7 +247,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
                 {isNextDatePast && <span>(期限切れ)</span>}
               </p>
             )}
-            {examination.notes && <p className="text-gray-400">{examination.notes}</p>}
+            {examination.notes && <p className="text-gray-400 whitespace-pre-wrap">{examination.notes}</p>}
           </div>
         </div>
         <div className="flex items-center space-x-1 flex-shrink-0">
@@ -180,6 +267,21 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
           </button>
         </div>
       </div>
+
+      {examination.imageData && (
+        <div className="mt-2">
+          <img
+            src={examination.imageData}
+            alt="検査結果画像"
+            className={`w-full rounded border border-gray-200 object-contain bg-gray-50 cursor-pointer transition-all ${
+              showFullImage ? 'max-h-none' : 'max-h-32'
+            }`}
+            onClick={() => setShowFullImage((v) => !v)}
+            title={showFullImage ? 'タップで縮小' : 'タップで拡大'}
+          />
+        </div>
+      )}
+
       <ConfirmationDialog
         title="検査記録の削除"
         message={`「${examination.examinationType}」を削除しますか？この操作は取り消せません。`}
