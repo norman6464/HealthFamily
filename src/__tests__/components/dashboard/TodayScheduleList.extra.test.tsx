@@ -31,19 +31,19 @@ describe('TodayScheduleList - 追加テスト', () => {
     expect(screen.getByText('時間超過')).toBeInTheDocument();
   });
 
-  it('未服薬のスケジュールに服薬完了ボタンが表示される', () => {
+  it('未服薬のスケジュールに詳細入力ボタンが表示される', () => {
     const onMarkCompleted = vi.fn().mockResolvedValue(undefined);
     const schedules = [createSchedule({ scheduleId: 'sch-1', status: 'pending' })];
     render(<TodayScheduleList schedules={schedules} isLoading={false} onMarkCompleted={onMarkCompleted} />);
-    fireEvent.click(screen.getByLabelText('服薬完了'));
+    fireEvent.click(screen.getByLabelText('詳細入力'));
     // 確認パネルが開くことを確認
     expect(screen.getByText('服薬を記録')).toBeInTheDocument();
   });
 
-  it('服薬済みのスケジュールには完了ボタンが表示されない', () => {
+  it('服薬済みのスケジュールには詳細入力ボタンが表示されない', () => {
     const schedules = [createSchedule({ status: 'completed' })];
     render(<TodayScheduleList schedules={schedules} isLoading={false} onMarkCompleted={vi.fn()} />);
-    expect(screen.queryByLabelText('服薬完了')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('詳細入力')).not.toBeInTheDocument();
   });
 
   it('スケジュール時刻とメンバー名を表示する', () => {
@@ -53,9 +53,9 @@ describe('TodayScheduleList - 追加テスト', () => {
     expect(screen.getByText('花子')).toBeInTheDocument();
   });
 
-  it('onMarkCompletedが未指定の場合は完了ボタンが表示されない', () => {
+  it('onMarkCompletedが未指定の場合は詳細入力ボタンが表示されない', () => {
     const schedules = [createSchedule({ status: 'pending' })];
     render(<TodayScheduleList schedules={schedules} isLoading={false} />);
-    expect(screen.queryByLabelText('服薬完了')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('詳細入力')).not.toBeInTheDocument();
   });
 });

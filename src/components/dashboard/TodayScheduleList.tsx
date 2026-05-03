@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Check, Users, Pill, Clock, X } from 'lucide-react';
+import { Check, Users, Pill, Clock, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { TodayScheduleViewModel } from '../../domain/usecases/GetTodaySchedules';
 import { ScheduleEntity } from '../../domain/entities/Schedule';
 import { MissedDoseIndicator } from './MissedDoseIndicator';
@@ -10,15 +10,56 @@ interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];
   isLoading: boolean;
   onMarkCompleted?: (scheduleId: string, options?: { takenAt?: string; notes?: string }) => Promise<void>;
+  onMarkMultipleCompleted?: (scheduleIds: string[]) => Promise<void>;
   hasMembers?: boolean;
 }
 
-export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules, isLoading, onMarkCompleted, hasMembers }) => {
-  if (isLoading) {
-    return (
-      <LoadingSpinner />
-    );
-  }
+export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({
+  schedules,
+  isLoading,
+  onMarkCompleted,
+  onMarkMultipleCompleted,
+  hasMembers,
+}) => {
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
+
+  const pendingIds = useMemo(
+    () => new Set(schedules.filter((s) => s.status !== 'completed').map((s) => s.scheduleId)),
+    [schedules],
+  );
+
+  const handleToggleCheck = useCallback((scheduleId: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(scheduleId)) {
+        next.delete(scheduleId);
+      } else {
+        next.add(scheduleId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleToggleAll = useCallback(() => {
+    setCheckedIds((prev) => {
+      if (prev.size === pendingIds.size) return new Set();
+      return new Set(pendingIds);
+    });
+  }, [pendingIds]);
+
+  const handleBulkSubmit = async () => {
+    if (!onMarkMultipleCompleted || checkedIds.size === 0) return;
+    setIsBulkSubmitting(true);
+    try {
+      await onMarkMultipleCompleted([...checkedIds]);
+      setCheckedIds(new Set());
+    } finally {
+      setIsBulkSubmitting(false);
+    }
+  };
+
+  if (isLoading) return <LoadingSpinner />;
 
   if (schedules.length === 0) {
     if (!hasMembers) {
@@ -47,26 +88,70 @@ export const TodayScheduleList: React.FC<TodayScheduleListProps> = ({ schedules,
     );
   }
 
+  const pendingCount = pendingIds.size;
+  const allChecked = checkedIds.size === pendingCount && pendingCount > 0;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
+      {pendingCount > 1 && onMarkMultipleCompleted && (
+        <div className="flex items-center justify-between px-1 mb-1">
+          <span className="text-xs text-gray-500">{pendingCount}件が未服薬</span>
+          <button
+            type="button"
+            onClick={handleToggleAll}
+            className="text-xs text-primary-600 font-medium hover:underline"
+          >
+            {allChecked ? 'すべて解除' : 'すべて選択'}
+          </button>
+        </div>
+      )}
+
       {schedules.map((schedule) => (
         <ScheduleCard
           key={schedule.scheduleId}
           schedule={schedule}
+          isChecked={checkedIds.has(schedule.scheduleId)}
+          onToggleCheck={handleToggleCheck}
           onMarkCompleted={onMarkCompleted}
+          showCheckbox={!!onMarkMultipleCompleted && pendingCount > 0}
         />
       ))}
+
+      {checkedIds.size > 0 && onMarkMultipleCompleted && (
+        <div className="sticky bottom-20 z-10 pt-2">
+          <button
+            type="button"
+            onClick={handleBulkSubmit}
+            disabled={isBulkSubmitting}
+            className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white rounded-xl py-3 font-semibold shadow-lg hover:bg-green-700 active:bg-green-800 disabled:opacity-60 transition-colors"
+          >
+            <Check size={18} />
+            <span>
+              {isBulkSubmitting ? '記録中...' : `${checkedIds.size}件をまとめて服薬記録`}
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
 interface ScheduleCardProps {
   schedule: TodayScheduleViewModel;
+  isChecked: boolean;
+  onToggleCheck: (id: string) => void;
   onMarkCompleted?: (scheduleId: string, options?: { takenAt?: string; notes?: string }) => Promise<void>;
+  showCheckbox: boolean;
 }
 
-const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMarkCompleted }) => {
-  const [showConfirm, setShowConfirm] = useState(false);
+const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({
+  schedule,
+  isChecked,
+  onToggleCheck,
+  onMarkCompleted,
+  showCheckbox,
+}) => {
+  const [showDetail, setShowDetail] = useState(false);
   const [takenDate, setTakenDate] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,13 +180,15 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMark
   const now = new Date();
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-  const handleCheckClick = () => {
+  const isPending = schedule.status !== 'completed';
+
+  const handleDetailOpen = () => {
     setTakenDate(todayStr);
     setNotes('');
-    setShowConfirm(true);
+    setShowDetail(true);
   };
 
-  const handleConfirm = async () => {
+  const handleDetailConfirm = async () => {
     if (!onMarkCompleted) return;
     setIsSubmitting(true);
     try {
@@ -113,68 +200,81 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMark
         options.notes = notes.trim();
       }
       await onMarkCompleted(schedule.scheduleId, Object.keys(options).length > 0 ? options : undefined);
-      setShowConfirm(false);
+      setShowDetail(false);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const borderClass = isChecked
+    ? 'border-green-400 bg-green-50'
+    : overdueInfo.level !== 'none'
+    ? `${overdueStyle.bg} ${overdueStyle.border}`
+    : 'border-gray-200 bg-white';
+
   return (
     <div
-      className={`bg-white rounded-lg shadow-md p-4 border hover:shadow-lg transition-shadow ${
-        overdueInfo.level !== 'none'
-          ? `${overdueStyle.bg} ${overdueStyle.border}`
-          : 'border-gray-200'
-      }`}
+      className={`rounded-lg shadow-sm p-4 border transition-all ${borderClass}`}
       data-testid="schedule-item"
       role="article"
       aria-label={`${schedule.scheduledTime}の服薬スケジュール - ${schedule.medicationName}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="flex flex-col items-center">
-            <span
-              className="text-2xl font-bold text-gray-800"
-              data-testid="schedule-time"
-            >
-              {schedule.scheduledTime}
-            </span>
-            <MissedDoseIndicator
-              overdueLevel={overdueInfo.level}
-              overdueMinutes={overdueInfo.minutes}
-            />
+      <div className="flex items-center gap-3">
+        {showCheckbox && isPending && (
+          <button
+            type="button"
+            onClick={() => onToggleCheck(schedule.scheduleId)}
+            aria-label={isChecked ? 'チェックを外す' : '服薬済みとしてチェック'}
+            className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
+              isChecked
+                ? 'bg-green-500 border-green-500 text-white'
+                : 'border-gray-300 bg-white hover:border-green-400'
+            }`}
+          >
+            {isChecked && <Check size={14} />}
+          </button>
+        )}
+
+        <div className="flex-1 flex items-center justify-between min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex flex-col items-center flex-shrink-0">
+              <span className="text-2xl font-bold text-gray-800" data-testid="schedule-time">
+                {schedule.scheduledTime}
+              </span>
+              <MissedDoseIndicator
+                overdueLevel={overdueInfo.level}
+                overdueMinutes={overdueInfo.minutes}
+              />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium text-gray-500">{schedule.memberName}</span>
+              <span className="text-base font-semibold text-gray-800 truncate">{schedule.medicationName}</span>
+            </div>
           </div>
 
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-900">
-              {schedule.memberName}
-            </span>
-            <span className="text-lg font-semibold text-gray-800">
-              {schedule.medicationName}
-            </span>
+          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+            {isPending && onMarkCompleted && (
+              <button
+                type="button"
+                onClick={showDetail ? () => setShowDetail(false) : handleDetailOpen}
+                className="flex items-center gap-0.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="詳細入力"
+              >
+                <span>詳細</span>
+                {showDetail ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+            )}
+            <StatusBadge status={schedule.status} />
           </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {onMarkCompleted && schedule.status !== 'completed' && (
-            <button
-              onClick={handleCheckClick}
-              className="p-2 bg-green-50 text-green-600 rounded-full hover:bg-green-100 transition-colors"
-              aria-label="服薬完了"
-            >
-              <Check size={18} />
-            </button>
-          )}
-          <StatusBadge status={schedule.status} />
         </div>
       </div>
 
-      {showConfirm && (
+      {showDetail && isPending && (
         <div className="mt-3 pt-3 border-t border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-gray-600">服薬記録</span>
+            <span className="text-xs font-medium text-gray-600">服薬記録（詳細）</span>
             <button
-              onClick={() => setShowConfirm(false)}
+              onClick={() => setShowDetail(false)}
               className="p-0.5 text-gray-400 hover:text-gray-600"
               aria-label="閉じる"
             >
@@ -204,12 +304,18 @@ const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({ schedule, onMark
               />
             </div>
             <button
-              onClick={handleConfirm}
+              onClick={handleDetailConfirm}
               disabled={isSubmitting || !takenDate}
               className="w-full flex items-center justify-center space-x-1 bg-green-600 text-white rounded-md py-1.5 text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Check size={14} />
-              <span>{isSubmitting ? '記録中...' : takenDate !== todayStr ? `${takenDate.replace(/^\d{4}-/, '').replace('-', '/')}の服薬を記録` : '服薬を記録'}</span>
+              <span>
+                {isSubmitting
+                  ? '記録中...'
+                  : takenDate !== todayStr
+                  ? `${takenDate.replace(/^\d{4}-/, '').replace('-', '/')}の服薬を記録`
+                  : '服薬を記録'}
+              </span>
             </button>
           </div>
         </div>
@@ -226,28 +332,14 @@ interface StatusBadgeProps {
 
 const StatusBadge: React.FC<StatusBadgeProps> = React.memo(({ status }) => {
   const styles = {
-    pending: {
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-800',
-      label: '未服薬',
-    },
-    completed: {
-      bg: 'bg-green-100',
-      text: 'text-green-800',
-      label: '服薬済み',
-    },
-    overdue: {
-      bg: 'bg-red-100',
-      text: 'text-red-800',
-      label: '時間超過',
-    },
+    pending: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '未服薬' },
+    completed: { bg: 'bg-green-100', text: 'text-green-800', label: '服薬済み' },
+    overdue: { bg: 'bg-red-100', text: 'text-red-800', label: '時間超過' },
   };
-
   const style = styles[status];
-
   return (
     <span
-      className={`px-3 py-1 rounded-full text-sm font-semibold ${style.bg} ${style.text}`}
+      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}
       role="status"
       aria-label={`ステータス: ${style.label}`}
     >
