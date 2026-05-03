@@ -19,6 +19,7 @@ function toExamination(row: {
   examinedAt: Date;
   nextScheduledDate: Date | null;
   notes: string | null;
+  imageData: string | null;
   createdAt: Date;
   member?: { name: string };
 }): Examination {
@@ -31,6 +32,7 @@ function toExamination(row: {
     examinedAt: row.examinedAt,
     nextScheduledDate: row.nextScheduledDate ?? undefined,
     notes: row.notes ?? undefined,
+    imageData: row.imageData ?? undefined,
     createdAt: row.createdAt,
   };
 }
@@ -64,6 +66,7 @@ export class PrismaExaminationRepository implements ExaminationRepository {
         examinedAt: new Date(input.examinedAt),
         nextScheduledDate: input.nextScheduledDate ? new Date(input.nextScheduledDate) : undefined,
         notes: input.notes,
+        imageData: input.imageData ?? undefined,
       },
       include: { member: { select: { name: true } } },
     });
@@ -85,6 +88,7 @@ export class PrismaExaminationRepository implements ExaminationRepository {
       data.nextScheduledDate = input.nextScheduledDate ? new Date(input.nextScheduledDate) : null;
     }
     if (input.notes !== undefined) data.notes = input.notes;
+    if (input.imageData !== undefined) data.imageData = input.imageData;
 
     const row = await prisma.examination.update({
       where: { id },

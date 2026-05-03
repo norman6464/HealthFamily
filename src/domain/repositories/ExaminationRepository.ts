@@ -6,6 +6,7 @@ export interface CreateExaminationInput {
   examinedAt: string;
   nextScheduledDate?: string;
   notes?: string;
+  imageData?: string;
 }
 
 export interface UpdateExaminationInput {
@@ -13,6 +14,7 @@ export interface UpdateExaminationInput {
   examinedAt?: string;
   nextScheduledDate?: string | null;
   notes?: string | null;
+  imageData?: string | null;
 }
 
 export interface ExaminationRepository {
