@@ -45,12 +45,18 @@ export const useTodaySchedules = (userId: string): UseTodaySchedulesResult => {
   }, [scheduleRepository, refetch]);
 
   const markMultipleCompleted = useCallback(async (scheduleIds: string[]) => {
-    try {
-      const now = new Date();
-      await Promise.all(scheduleIds.map((id) => scheduleRepository.markAsCompleted(id, now)));
-      await refetch();
-    } catch (err) {
-      setMarkError(err instanceof Error ? err : new Error('Unknown error'));
+    const now = new Date();
+    let failedCount = 0;
+    for (const id of scheduleIds) {
+      try {
+        await scheduleRepository.markAsCompleted(id, now);
+      } catch {
+        failedCount++;
+      }
+    }
+    await refetch();
+    if (failedCount > 0) {
+      setMarkError(new Error(`${failedCount}件の記録に失敗しました`));
     }
   }, [scheduleRepository, refetch]);
 
