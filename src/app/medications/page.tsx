@@ -6,6 +6,7 @@ import { useMembers } from '@/presentation/hooks/useMembers';
 import { useMedications } from '@/presentation/hooks/useMedications';
 import { MedicationList } from '@/components/medications/MedicationList';
 import { MedicationForm, MedicationFormData } from '@/components/medications/MedicationForm';
+import { ScheduleForm, ScheduleFormData } from '@/components/schedules/ScheduleForm';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
 import { MemberIcon } from '@/components/shared/MemberIcon';
 import { MemberEntity, Member } from '@/domain/entities/Member';
@@ -16,7 +17,7 @@ import { useSchedules } from '@/presentation/hooks/useSchedules';
 import { MedicationScheduleMap } from '@/components/medications/MedicationList';
 import { DayOfWeek } from '@/domain/entities/Schedule';
 import Link from 'next/link';
-import { Plus, ClipboardList, Clock } from 'lucide-react';
+import { Plus, ClipboardList, Clock, X, Check } from 'lucide-react';
 
 const DAY_LABELS: Record<DayOfWeek, string> = {
   mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日',
@@ -30,14 +31,18 @@ function getScheduleLabel(daysOfWeek: readonly DayOfWeek[], intervalDays?: numbe
   return DAY_ORDER.filter((d) => daysOfWeek.includes(d)).map((d) => DAY_LABELS[d]).join('・');
 }
 
-function MemberMedications({ member, categoryFilter }: { member: Member; categoryFilter: MedicationCategory | null }) {
-  const { medications, isLoading, updateMedication, deleteMedication, reorderMedications } = useMedications(member.id);
+function MemberMedications({ member, userId, categoryFilter }: { member: Member; userId: string; categoryFilter: MedicationCategory | null }) {
+  const { medications, isLoading, createMedication, updateMedication, deleteMedication, reorderMedications } = useMedications(member.id);
   const { markAsTaken, markAsTakenAt } = useMedicationRecordActions();
-  const { schedules } = useSchedules();
+  const { schedules, createSchedule } = useSchedules();
   const entity = new MemberEntity(member);
   const displayInfo = entity.getDisplayInfo();
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addedMedName, setAddedMedName] = useState<string | null>(null);
+  const [scheduleTargetName, setScheduleTargetName] = useState<string | null>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
+  const addFormRef = useRef<HTMLDivElement>(null);
 
   const scheduleMap = useMemo<MedicationScheduleMap>(() => {
     const map: MedicationScheduleMap = {};
@@ -59,6 +64,12 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
       editFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [editingMed]);
+
+  useEffect(() => {
+    if (showAddForm && addFormRef.current) {
+      addFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [showAddForm]);
 
   const filteredMedications = useMemo(
     () => categoryFilter ? medications.filter((m) => m.medication.category === categoryFilter) : medications,
@@ -90,6 +101,64 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
     setEditingMed(null);
   };
 
+  const handleCreate = async (data: MedicationFormData) => {
+    await createMedication({
+      memberId: member.id,
+      userId,
+      name: data.name,
+      category: data.category,
+      dosage: data.dosage,
+      frequency: data.frequency,
+      stockQuantity: data.stockQuantity,
+      stockAlertDate: data.stockAlertDate,
+      instructions: data.instructions,
+    });
+    setShowAddForm(false);
+    setAddedMedName(data.name);
+    setScheduleTargetName(data.name);
+  };
+
+  const scheduleTargetMed = useMemo(
+    () => scheduleTargetName
+      ? medications.find((m) => m.medication.name === scheduleTargetName) ?? null
+      : null,
+    [medications, scheduleTargetName],
+  );
+
+  const handleCreateSchedule = async (data: ScheduleFormData) => {
+    if (!scheduleTargetMed) return;
+    await createSchedule({
+      medicationId: scheduleTargetMed.medication.id,
+      userId,
+      memberId: member.id,
+      scheduledTime: data.scheduledTime,
+      daysOfWeek: data.daysOfWeek,
+      intervalDays: data.intervalDays,
+      startDate: data.startDate ? new Date(data.startDate) : undefined,
+      reminderMinutesBefore: data.reminderMinutesBefore,
+    });
+    setScheduleTargetName(null);
+    setAddedMedName(null);
+  };
+
+  const handleCreateMultipleSchedules = async (items: ScheduleFormData[]) => {
+    if (!scheduleTargetMed) return;
+    for (const data of items) {
+      await createSchedule({
+        medicationId: scheduleTargetMed.medication.id,
+        userId,
+        memberId: member.id,
+        scheduledTime: data.scheduledTime,
+        daysOfWeek: data.daysOfWeek,
+        intervalDays: data.intervalDays,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        reminderMinutesBefore: data.reminderMinutesBefore,
+      });
+    }
+    setScheduleTargetName(null);
+    setAddedMedName(null);
+  };
+
   return (
     <section className="mb-6">
       <div className="flex items-center justify-between mb-3">
@@ -110,15 +179,65 @@ function MemberMedications({ member, categoryFilter }: { member: Member; categor
             <Clock size={14} />
             <span>時間</span>
           </Link>
-          <Link
-            href={`/members/${member.id}/medications`}
+          <button
+            type="button"
+            onClick={() => { setShowAddForm((v) => !v); setAddedMedName(null); setScheduleTargetName(null); }}
             className="flex items-center space-x-1 text-sm text-primary-600 hover:text-primary-700 transition-colors"
+            aria-label={showAddForm ? '閉じる' : '薬を追加'}
           >
-            <Plus size={14} />
-            <span>追加</span>
-          </Link>
+            {showAddForm ? <X size={14} /> : <Plus size={14} />}
+            <span>{showAddForm ? 'キャンセル' : '追加'}</span>
+          </button>
         </div>
       </div>
+
+      {showAddForm && (
+        <div ref={addFormRef} className="mb-4 bg-white rounded-lg shadow-md p-4 border border-primary-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">薬を追加</h3>
+          <MedicationForm onSubmit={handleCreate} onCancel={() => setShowAddForm(false)} />
+        </div>
+      )}
+
+      {addedMedName && scheduleTargetMed && (
+        <div className="mb-4 bg-green-50 rounded-lg p-3 border border-green-200">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Check size={16} className="text-green-600 shrink-0" />
+              <p className="text-sm text-green-800 font-medium truncate">
+                「{addedMedName}」を追加しました
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setAddedMedName(null); setScheduleTargetName(null); }}
+              className="text-green-500 hover:text-green-700 shrink-0"
+              aria-label="閉じる"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-green-700 mt-1 ml-6">飲む時間を設定しますか？</p>
+          <div className="mt-3 ml-0">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
+                <Clock size={13} />
+                {addedMedName} のスケジュール
+              </span>
+              <button
+                type="button"
+                onClick={() => { setAddedMedName(null); setScheduleTargetName(null); }}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                後で設定する
+              </button>
+            </div>
+            <ScheduleForm
+              onSubmit={handleCreateSchedule}
+              onSubmitMultiple={handleCreateMultipleSchedules}
+            />
+          </div>
+        </div>
+      )}
 
       {editingMed && (
         <div ref={editFormRef} className="mb-3 bg-white rounded-lg shadow-md p-4 border border-primary-200">
@@ -189,7 +308,7 @@ export default function Medications() {
           </div>
         ) : (
           members.map((member) => (
-            <MemberMedications key={member.id} member={member} categoryFilter={selectedCategory} />
+            <MemberMedications key={member.id} member={member} userId={userId} categoryFilter={selectedCategory} />
           ))
         )}
       </main>
