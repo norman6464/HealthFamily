@@ -1,7 +1,7 @@
 import { Appointment } from '../../domain/entities/Appointment';
 import { Hospital } from '../../domain/entities/Hospital';
 import { Member, MemberType, PetType } from '../../domain/entities/Member';
-import { Medication, MedicationCategory } from '../../domain/entities/Medication';
+import { Medication, MedicationCategory, MedicationStatus } from '../../domain/entities/Medication';
 import { MedicationRecord } from '../../domain/entities/MedicationRecord';
 import { Schedule, DayOfWeek } from '../../domain/entities/Schedule';
 import { HealthLog, ConditionLevel, SymptomType, SYMPTOM_OPTIONS } from '../../domain/entities/HealthLog';
@@ -19,6 +19,7 @@ const VALID_SYMPTOMS: readonly string[] = [...SYMPTOM_OPTIONS];
 
 const VALID_MEMBER_TYPES: readonly string[] = ['human', 'pet'];
 const VALID_MEDICATION_CATEGORIES: readonly string[] = ['regular', 'supplement', 'prn', 'inhaler', 'eye_drops', 'patch', 'topical', 'flea_tick', 'heartworm'];
+const VALID_MEDICATION_STATUSES: readonly string[] = ['active', 'paused', 'discontinued'];
 const VALID_DAYS_OF_WEEK: readonly string[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const VALID_PET_TYPES: readonly string[] = ['dog', 'cat', 'rabbit', 'bird', 'other'];
 
@@ -50,6 +51,7 @@ export function toMedication(b: BackendMedication): Medication {
     instructions: b.instructions,
     displayOrder: b.displayOrder ?? 0,
     isActive: b.isActive ?? true,
+    status: b.status && VALID_MEDICATION_STATUSES.includes(b.status) ? (b.status as MedicationStatus) : 'active',
     createdAt: new Date(b.createdAt),
     updatedAt: new Date(b.updatedAt),
   };

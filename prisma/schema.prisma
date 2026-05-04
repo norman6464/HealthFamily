@@ -85,6 +85,7 @@ model Medication {
   instructions      String?
   displayOrder      Int      @default(0)
   isActive          Boolean  @default(true)
+  status            String   @default("active")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

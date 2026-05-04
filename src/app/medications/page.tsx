@@ -97,6 +97,7 @@ function MemberMedications({ member, userId, categoryFilter }: { member: Member;
       stockQuantity: data.stockQuantity,
       stockAlertDate: data.stockAlertDate,
       instructions: data.instructions,
+      status: data.status,
     });
     setEditingMed(null);
   };

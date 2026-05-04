@@ -2,7 +2,7 @@
  * 薬リポジトリインターフェース
  */
 
-import { Medication, MedicationCategory } from '../entities/Medication';
+import { Medication, MedicationCategory, MedicationStatus } from '../entities/Medication';
 import { MedicationSearchResult } from '../entities/MedicationSearchResult';
 import { StockAlert } from '../entities/StockAlert';
 
@@ -27,6 +27,7 @@ export interface UpdateMedicationInput {
   stockAlertDate?: string | null;
   instructions?: string | null;
   isActive?: boolean;
+  status?: MedicationStatus;
 }
 
 export interface MedicationRepository {

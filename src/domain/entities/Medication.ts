@@ -15,6 +15,8 @@ export type MedicationCategory =
   | 'flea_tick'
   | 'heartworm';
 
+export type MedicationStatus = 'active' | 'paused' | 'discontinued';
+
 export interface Medication {
   readonly id: string;
   readonly memberId: string;
@@ -29,6 +31,7 @@ export interface Medication {
   readonly instructions?: string;
   readonly displayOrder: number;
   readonly isActive: boolean;
+  readonly status: MedicationStatus;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -249,6 +252,23 @@ export class MedicationEntity {
    */
   static getActiveStatusLabel(isActive: boolean): string {
     return isActive ? '有効' : '無効';
+  }
+
+  private static readonly STATUS_LABELS: Record<MedicationStatus, string> = {
+    active: '服用中',
+    paused: '休薬',
+    discontinued: '中止',
+  };
+
+  static getStatusLabel(status: MedicationStatus): string {
+    return MedicationEntity.STATUS_LABELS[status] ?? status;
+  }
+
+  static getAllStatuses(): Array<{ id: MedicationStatus; label: string }> {
+    return Object.entries(MedicationEntity.STATUS_LABELS).map(([id, label]) => ({
+      id: id as MedicationStatus,
+      label,
+    }));
   }
 
   /**

@@ -133,7 +133,11 @@ export class PrismaScheduleRepository implements ScheduleRepository {
 
     const [schedules, todayRecords, members] = await Promise.all([
       prisma.schedule.findMany({
-        where: { userId: this.userId, isEnabled: true },
+        where: {
+          userId: this.userId,
+          isEnabled: true,
+          medication: { is: { status: 'active' } },
+        },
         include: {
           medication: { select: { id: true, name: true, displayOrder: true } },
         },
