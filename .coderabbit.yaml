@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "ja-JP"
+tone_instructions: "必ず日本語で回答してください。コードレビューコメント・要約・提案・walkthrough など、すべての出力を日本語で記述してください。丁寧な日本語で、若手エンジニアに教えるようなトーンでお願いします。"
+reviews:
+  profile: "chill"
+  high_level_summary: true
+  poem: false
+  review_status: false
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+chat:
+  auto_reply: true
