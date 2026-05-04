@@ -9,11 +9,19 @@ import {
   CreateMedicationInput,
   UpdateMedicationInput,
 } from '@/domain/repositories/MedicationRepository';
-import { Medication, MedicationCategory } from '@/domain/entities/Medication';
+import { Medication, MedicationCategory, MedicationStatus } from '@/domain/entities/Medication';
 import { MedicationSearchResult } from '@/domain/entities/MedicationSearchResult';
 import { StockAlert } from '@/domain/entities/StockAlert';
 import { StockAlertEntity } from '@/domain/entities/StockAlert';
 import { QUERY_LIMITS } from '@/lib/constants';
+
+const VALID_STATUSES: readonly MedicationStatus[] = ['active', 'paused', 'discontinued'];
+
+function toMedicationStatus(value: string | null | undefined): MedicationStatus {
+  return value && (VALID_STATUSES as readonly string[]).includes(value)
+    ? (value as MedicationStatus)
+    : 'active';
+}
 
 function toMedication(row: {
   id: string;
@@ -29,6 +37,7 @@ function toMedication(row: {
   instructions: string | null;
   displayOrder: number;
   isActive: boolean;
+  status?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }): Medication {
@@ -46,6 +55,7 @@ function toMedication(row: {
     instructions: row.instructions ?? undefined,
     displayOrder: row.displayOrder,
     isActive: row.isActive,
+    status: toMedicationStatus(row.status),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -101,6 +111,7 @@ export class PrismaMedicationRepository implements MedicationRepository {
     }
     if (input.instructions !== undefined) data.instructions = input.instructions;
     if (input.isActive !== undefined) data.isActive = input.isActive;
+    if (input.status !== undefined) data.status = input.status;
 
     const row = await prisma.medication.update({
       where: { id: medicationId },

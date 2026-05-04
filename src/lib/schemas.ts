@@ -58,6 +58,7 @@ export const updateMedicationSchema = z.object({
   stockAlertDate: dateString.optional().nullable(),
   instructions: z.string().trim().max(1000).optional().nullable(),
   isActive: z.boolean().optional(),
+  status: z.enum(['active', 'paused', 'discontinued']).optional(),
 }).refine((data) => Object.keys(data).length > 0, {
   message: '更新するフィールドがありません',
 });

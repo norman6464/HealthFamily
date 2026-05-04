@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pill, Check, Pencil, Clock, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react';
 import { Medication } from '../../domain/entities/Medication';
 import { MedicationViewModel } from '../../domain/usecases/ManageMedications';
@@ -29,6 +29,20 @@ interface MedicationListProps {
 }
 
 export const MedicationList: React.FC<MedicationListProps> = ({ medications, isLoading, onDelete, onMarkTaken, onMarkPastTaken, onEdit, onReorder, scheduleMap, scheduleEditUrl }) => {
+  // 並び替えの体感速度を上げるためにローカルで楽観的に更新する
+  const [localOrder, setLocalOrder] = useState<MedicationViewModel[]>(medications);
+  const reorderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlightRef = useRef(false);
+  const queuedOrderRef = useRef<string[] | null>(null);
+
+  useEffect(() => {
+    setLocalOrder(medications);
+  }, [medications]);
+
+  useEffect(() => () => {
+    if (reorderTimeoutRef.current) clearTimeout(reorderTimeoutRef.current);
+  }, []);
+
   if (isLoading) {
     return (
       <LoadingSpinner />
@@ -41,18 +55,40 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
     );
   }
 
-  const handleMove = async (index: number, direction: 'up' | 'down') => {
+  const flushReorder = async () => {
+    if (!onReorder || inFlightRef.current) return;
+    const payload = queuedOrderRef.current;
+    if (!payload) return;
+    queuedOrderRef.current = null;
+    inFlightRef.current = true;
+    try {
+      await onReorder(payload);
+    } catch {
+      queuedOrderRef.current = null;
+      setLocalOrder(medications);
+    } finally {
+      inFlightRef.current = false;
+      if (queuedOrderRef.current) void flushReorder();
+    }
+  };
+
+  const handleMove = (index: number, direction: 'up' | 'down') => {
     if (!onReorder) return;
-    const newList = [...medications];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newList.length) return;
+    if (targetIndex < 0 || targetIndex >= localOrder.length) return;
+    const newList = [...localOrder];
     [newList[index], newList[targetIndex]] = [newList[targetIndex], newList[index]];
-    await onReorder(newList.map((vm) => vm.medication.id));
+    setLocalOrder(newList);
+    if (reorderTimeoutRef.current) clearTimeout(reorderTimeoutRef.current);
+    reorderTimeoutRef.current = setTimeout(() => {
+      queuedOrderRef.current = newList.map((vm) => vm.medication.id);
+      void flushReorder();
+    }, 400);
   };
 
   return (
     <div className="space-y-3">
-      {medications.map((vm, index) => (
+      {localOrder.map((vm, index) => (
         <MedicationCard
           key={vm.medication.id}
           viewModel={vm}
@@ -61,7 +97,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
           onMarkPastTaken={onMarkPastTaken}
           onEdit={onEdit}
           onMoveUp={onReorder && index > 0 ? () => handleMove(index, 'up') : undefined}
-          onMoveDown={onReorder && index < medications.length - 1 ? () => handleMove(index, 'down') : undefined}
+          onMoveDown={onReorder && index < localOrder.length - 1 ? () => handleMove(index, 'down') : undefined}
           schedules={scheduleMap?.[vm.medication.id]}
           scheduleEditUrl={scheduleEditUrl}
         />
@@ -146,9 +182,19 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(({ viewModel, o
           </div>
         )}
         <div className="flex-1">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
             <Pill size={20} className="text-primary-600" />
             <p className="font-semibold text-gray-800">{displayInfo.name}</p>
+            {medication.status === 'paused' && (
+              <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-bold border border-red-300">
+                休薬
+              </span>
+            )}
+            {medication.status === 'discontinued' && (
+              <span className="px-2 py-0.5 bg-red-600 text-white text-xs rounded-full font-bold">
+                中止
+              </span>
+            )}
             {isLowStock && (
               <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
                 在庫少

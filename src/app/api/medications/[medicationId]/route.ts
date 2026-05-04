@@ -51,6 +51,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ medi
         stockAlertDate: parsed.data.stockAlertDate,
         instructions: parsed.data.instructions,
         isActive: parsed.data.isActive,
+        status: parsed.data.status,
       });
       return success(updated);
     } catch (error) {

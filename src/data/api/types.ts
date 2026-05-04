@@ -23,6 +23,7 @@ export interface BackendMedication {
   instructions?: string;
   displayOrder?: number;
   isActive?: boolean;
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }

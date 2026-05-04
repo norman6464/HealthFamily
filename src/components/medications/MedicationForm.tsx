@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Info } from 'lucide-react';
-import { Medication, MedicationCategory } from '../../domain/entities/Medication';
+import { Medication, MedicationCategory, MedicationStatus } from '../../domain/entities/Medication';
 import { MedicationInfoModal } from './MedicationInfoModal';
 
 export interface MedicationFormData {
@@ -11,6 +11,7 @@ export interface MedicationFormData {
   stockQuantity?: number;
   stockAlertDate?: string;
   instructions?: string;
+  status?: MedicationStatus;
 }
 
 interface MedicationFormProps {
@@ -32,6 +33,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
     initialData?.stockAlertDate ? new Date(initialData.stockAlertDate).toISOString().split('T')[0] : ''
   );
   const [instructions, setInstructions] = useState(initialData?.instructions || '');
+  const [status, setStatus] = useState<MedicationStatus>(initialData?.status || 'active');
   const hasOptionalData = !!(initialData?.stockQuantity || initialData?.stockAlertDate || initialData?.instructions);
   const [showOptional, setShowOptional] = useState(isEditing && hasOptionalData);
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -49,6 +51,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
       ...(stockQuantity ? { stockQuantity: parseInt(stockQuantity, 10) } : {}),
       ...(stockAlertDate ? { stockAlertDate } : {}),
       ...(instructions.trim() ? { instructions: instructions.trim() } : {}),
+      ...(isEditing ? { status } : {}),
     };
 
     onSubmit(data);
@@ -112,6 +115,32 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           <option value="heartworm">フィラリア薬</option>
         </select>
       </div>
+
+      {isEditing && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">服用状況</label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { id: 'active', label: '服用中', activeClass: 'bg-primary-600 text-white border-primary-600' },
+              { id: 'paused', label: '休薬', activeClass: 'bg-red-100 text-red-700 border-red-300' },
+              { id: 'discontinued', label: '中止', activeClass: 'bg-red-600 text-white border-red-600' },
+            ] as Array<{ id: MedicationStatus; label: string; activeClass: string }>).map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setStatus(opt.id)}
+                aria-pressed={status === opt.id}
+                className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                  status === opt.id ? opt.activeClass : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-1">休薬・中止にすると今日の予定からも除外されます</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
