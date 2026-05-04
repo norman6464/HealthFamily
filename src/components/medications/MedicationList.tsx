@@ -32,6 +32,8 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
   // 並び替えの体感速度を上げるためにローカルで楽観的に更新する
   const [localOrder, setLocalOrder] = useState<MedicationViewModel[]>(medications);
   const reorderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlightRef = useRef(false);
+  const queuedOrderRef = useRef<string[] | null>(null);
 
   useEffect(() => {
     setLocalOrder(medications);
@@ -53,6 +55,23 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
     );
   }
 
+  const flushReorder = async () => {
+    if (!onReorder || inFlightRef.current) return;
+    const payload = queuedOrderRef.current;
+    if (!payload) return;
+    queuedOrderRef.current = null;
+    inFlightRef.current = true;
+    try {
+      await onReorder(payload);
+    } catch {
+      queuedOrderRef.current = null;
+      setLocalOrder(medications);
+    } finally {
+      inFlightRef.current = false;
+      if (queuedOrderRef.current) void flushReorder();
+    }
+  };
+
   const handleMove = (index: number, direction: 'up' | 'down') => {
     if (!onReorder) return;
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -62,9 +81,8 @@ export const MedicationList: React.FC<MedicationListProps> = ({ medications, isL
     setLocalOrder(newList);
     if (reorderTimeoutRef.current) clearTimeout(reorderTimeoutRef.current);
     reorderTimeoutRef.current = setTimeout(() => {
-      onReorder(newList.map((vm) => vm.medication.id)).catch(() => {
-        setLocalOrder(medications);
-      });
+      queuedOrderRef.current = newList.map((vm) => vm.medication.id);
+      void flushReorder();
     }, 400);
   };
 

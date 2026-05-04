@@ -129,6 +129,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
                 key={opt.id}
                 type="button"
                 onClick={() => setStatus(opt.id)}
+                aria-pressed={status === opt.id}
                 className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
                   status === opt.id ? opt.activeClass : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
                 }`}
