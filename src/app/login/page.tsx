@@ -40,7 +40,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-pink-50/30 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Image src="/icon.png" alt="HealthFamily" width={80} height={80} className="mx-auto mb-2" />

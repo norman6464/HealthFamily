@@ -3,3 +3,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-pink-50/30;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-header {
+    background: linear-gradient(135deg, #f472b6 0%, #c084fc 100%);
+  }
+  .bg-gradient-card {
+    background: linear-gradient(135deg, #fdf2f8 0%, #faf5ff 100%);
+  }
+  .bg-gradient-nav {
+    background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 50%, #faf5ff 100%);
+  }
+  .bg-gradient-greeting {
+    background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
+  }
+  .shadow-soft {
+    box-shadow: 0 2px 12px rgba(236, 72, 153, 0.08);
+  }
+  .shadow-soft-lg {
+    box-shadow: 0 4px 20px rgba(236, 72, 153, 0.12);
+  }
+}
