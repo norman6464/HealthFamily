@@ -131,12 +131,11 @@ export class PrismaScheduleRepository implements ScheduleRepository {
     const jstToday = getJSTDate();
     const { todayStart, todayEnd } = getJSTDayBoundaries();
 
-    const [schedules, todayRecords, members] = await Promise.all([
+    const [schedulesRaw, todayRecords, members] = await Promise.all([
       prisma.schedule.findMany({
         where: {
           userId: this.userId,
           isEnabled: true,
-          medication: { is: { status: 'active' } },
         },
         include: {
           medication: { select: { id: true, name: true, displayOrder: true } },
@@ -160,6 +159,19 @@ export class PrismaScheduleRepository implements ScheduleRepository {
     const completedScheduleIds = new Set(
       todayRecords.filter((r) => r.scheduleId).map((r) => r.scheduleId as string)
     );
+
+    let inactiveMedicationIds = new Set<string>();
+    try {
+      const inactiveMeds = await prisma.medication.findMany({
+        where: { userId: this.userId, status: { not: 'active' } },
+        select: { id: true },
+      });
+      inactiveMedicationIds = new Set(inactiveMeds.map((m) => m.id));
+    } catch {
+      // status カラム未マイグレーション時は全件 active として扱う（フォールバック）
+    }
+
+    const schedules = schedulesRaw.filter((s) => !inactiveMedicationIds.has(s.medicationId));
 
     const activeSchedules = schedules.filter((s) =>
       isScheduleActiveToday(s, jstToday)
