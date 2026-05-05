@@ -23,6 +23,38 @@ function toMedicationStatus(value: string | null | undefined): MedicationStatus 
     : 'active';
 }
 
+const MEDICATION_SELECT = {
+  id: true,
+  memberId: true,
+  userId: true,
+  name: true,
+  category: true,
+  dosageAmount: true,
+  frequency: true,
+  stockQuantity: true,
+  stockAlertDate: true,
+  intervalHours: true,
+  instructions: true,
+  displayOrder: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+async function fetchStatusMap(ids: string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  try {
+    const rows = await prisma.medication.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, status: true },
+    });
+    return new Map(rows.map((r) => [r.id, r.status]));
+  } catch {
+    // status カラム未マイグレーション環境では空 Map を返し、全件 'active' 扱いとする
+    return new Map();
+  }
+}
+
 function toMedication(row: {
   id: string;
   memberId: string;
@@ -37,10 +69,9 @@ function toMedication(row: {
   instructions: string | null;
   displayOrder: number;
   isActive: boolean;
-  status?: string | null;
   createdAt: Date;
   updatedAt: Date;
-}): Medication {
+}, status: string | undefined): Medication {
   return {
     id: row.id,
     memberId: row.memberId,
@@ -55,7 +86,7 @@ function toMedication(row: {
     instructions: row.instructions ?? undefined,
     displayOrder: row.displayOrder,
     isActive: row.isActive,
-    status: toMedicationStatus(row.status),
+    status: toMedicationStatus(status),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -69,16 +100,20 @@ export class PrismaMedicationRepository implements MedicationRepository {
       where: { memberId, userId: this.userId },
       orderBy: { displayOrder: 'asc' },
       take: QUERY_LIMITS.APPOINTMENTS,
+      select: MEDICATION_SELECT,
     });
-    return rows.map(toMedication);
+    const statusMap = await fetchStatusMap(rows.map((r) => r.id));
+    return rows.map((row) => toMedication(row, statusMap.get(row.id)));
   }
 
   async getMedicationById(medicationId: string): Promise<Medication | null> {
     const row = await prisma.medication.findUnique({
       where: { id: medicationId },
+      select: MEDICATION_SELECT,
     });
     if (!row || row.userId !== this.userId) return null;
-    return toMedication(row);
+    const statusMap = await fetchStatusMap([row.id]);
+    return toMedication(row, statusMap.get(row.id));
   }
 
   async createMedication(input: CreateMedicationInput): Promise<Medication> {
@@ -95,8 +130,10 @@ export class PrismaMedicationRepository implements MedicationRepository {
         instructions: input.instructions,
         isActive: true,
       },
+      select: MEDICATION_SELECT,
     });
-    return toMedication(row);
+    const statusMap = await fetchStatusMap([row.id]);
+    return toMedication(row, statusMap.get(row.id));
   }
 
   async updateMedication(medicationId: string, input: UpdateMedicationInput): Promise<Medication> {
@@ -111,13 +148,25 @@ export class PrismaMedicationRepository implements MedicationRepository {
     }
     if (input.instructions !== undefined) data.instructions = input.instructions;
     if (input.isActive !== undefined) data.isActive = input.isActive;
-    if (input.status !== undefined) data.status = input.status;
+    if (input.status !== undefined) {
+      try {
+        await prisma.medication.update({
+          where: { id: medicationId },
+          data: { status: input.status },
+          select: { id: true },
+        });
+      } catch {
+        // status カラム未マイグレーション環境では status 更新を黙殺し、その他フィールドの更新は継続
+      }
+    }
 
     const row = await prisma.medication.update({
       where: { id: medicationId },
       data,
+      select: MEDICATION_SELECT,
     });
-    return toMedication(row);
+    const statusMap = await fetchStatusMap([row.id]);
+    return toMedication(row, statusMap.get(row.id));
   }
 
   async deleteMedication(medicationId: string): Promise<void> {
