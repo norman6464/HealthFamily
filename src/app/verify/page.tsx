@@ -78,7 +78,7 @@ function VerifyContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-pink-50/30 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-primary-600">HealthFamily</h1>
@@ -151,7 +151,7 @@ function VerifyContent() {
 export default function Verify() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-pink-50/30">
         <p className="text-gray-500">読み込み中...</p>
       </div>
     }>
