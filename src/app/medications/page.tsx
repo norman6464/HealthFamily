@@ -278,7 +278,7 @@ export default function Medications() {
           <h1 className="text-xl font-bold text-white tracking-wide">お薬</h1>
           <Link
             href="/history"
-            className="flex items-center space-x-1 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+            className="flex items-center space-x-1 text-sm text-white/80 hover:text-white transition-colors"
           >
             <ClipboardList size={16} />
             <span>履歴</span>

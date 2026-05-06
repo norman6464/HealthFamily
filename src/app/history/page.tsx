@@ -87,7 +87,7 @@ export default function HistoryPage() {
             <a
               href={`/api/records/export${selectedMemberId ? `?memberId=${encodeURIComponent(selectedMemberId)}` : ''}`}
               download
-              className="p-1.5 text-gray-500 hover:text-primary-600 transition-colors"
+              className="p-1.5 text-white/80 hover:text-white transition-colors"
               aria-label="CSVエクスポート"
             >
               <Download size={18} />
