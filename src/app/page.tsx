@@ -19,6 +19,7 @@ import { WeeklySummaryCard } from '@/components/dashboard/WeeklySummaryCard';
 import { GreetingCard } from '@/components/dashboard/GreetingCard';
 import { MemberFilter } from '@/components/shared/MemberFilter';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
+import { SectionTitle } from '@/components/shared/SectionTitle';
 
 function buildTakenAtISO(date: string, scheduledTime: string): string {
   return new Date(`${date}T${scheduledTime}:00+09:00`).toISOString();
@@ -88,7 +89,7 @@ export default function Dashboard() {
           onMarkMultipleAsTaken={handleMarkMultipleMissedAsTaken}
         />
 
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">今日の予定</h2>
+        <SectionTitle accentColor="pink" size="lg">今日の予定</SectionTitle>
         <div className="mb-4">
           <MemberFilter
             members={memberOptions}

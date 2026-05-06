@@ -9,6 +9,7 @@ import { CharacterSelector } from '@/components/character/CharacterSelector';
 import { EmergencyContactForm, EmergencyContactFormData } from '@/components/emergency-contacts/EmergencyContactForm';
 import { EmergencyContactList } from '@/components/emergency-contacts/EmergencyContactList';
 import { BottomNavigation } from '@/components/shared/BottomNavigation';
+import { SectionTitle } from '@/components/shared/SectionTitle';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { LogOut, Pencil, Check, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from 'lucide-react';
@@ -69,7 +70,7 @@ export default function Settings() {
 
       <main className="max-w-md mx-auto px-4 py-4 space-y-6">
         <section className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">アカウント</h2>
+          <SectionTitle accentColor="pink" size="lg">アカウント</SectionTitle>
           <div className="space-y-3">
             <div>
               <p className="text-xs text-gray-400">メールアドレス</p>
