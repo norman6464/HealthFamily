@@ -162,8 +162,11 @@ export class PrismaScheduleRepository implements ScheduleRepository {
 
     let inactiveMedicationIds = new Set<string>();
     try {
+      // 明示的に paused / discontinued を指定するホワイトリスト方式。
+      // status が NULL / 空文字 / 想定外の値だった場合も active として扱われ、
+      // 「お薬一覧に出ているのに今日の予定に出ない」事故を防ぐ。
       const inactiveMeds = await prisma.medication.findMany({
-        where: { userId: this.userId, status: { not: 'active' } },
+        where: { userId: this.userId, status: { in: ['paused', 'discontinued'] } },
         select: { id: true },
       });
       inactiveMedicationIds = new Set(inactiveMeds.map((m) => m.id));
