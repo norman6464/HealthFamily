@@ -275,10 +275,10 @@ export default function Medications() {
     <div className="min-h-screen pb-20">
       <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-white tracking-wide">お薬</h1>
+          <h1 className="text-xl font-bold text-ink-800 tracking-wide">お薬</h1>
           <Link
             href="/history"
-            className="flex items-center space-x-1 text-sm text-white/80 hover:text-white transition-colors"
+            className="flex items-center space-x-1 text-sm text-ink-600 hover:text-ink-800 transition-colors"
           >
             <ClipboardList size={16} />
             <span>履歴</span>

@@ -81,7 +81,7 @@ export default function HealthLogsPage() {
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Activity size={22} className="text-primary-600" />
-            <h1 className="text-xl font-bold text-white tracking-wide">体調記録</h1>
+            <h1 className="text-xl font-bold text-ink-800 tracking-wide">体調記録</h1>
           </div>
           {!showForm && (
             <button

@@ -63,7 +63,7 @@ export default function Settings() {
     <div className="min-h-screen pb-20">
       <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3">
-          <h1 className="text-xl font-bold text-white tracking-wide">設定</h1>
+          <h1 className="text-xl font-bold text-ink-800 tracking-wide">設定</h1>
         </div>
       </header>
 

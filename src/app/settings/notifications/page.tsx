@@ -20,7 +20,7 @@ export default function NotificationSettingsPage() {
           >
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-xl font-bold text-white tracking-wide">通知設定</h1>
+          <h1 className="text-xl font-bold text-ink-800 tracking-wide">通知設定</h1>
         </div>
       </header>
 

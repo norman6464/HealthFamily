@@ -91,7 +91,7 @@ export default function Medications() {
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-xl font-bold text-white tracking-wide">薬管理</h1>
+            <h1 className="text-xl font-bold text-ink-800 tracking-wide">薬管理</h1>
           </div>
           <button
             onClick={() => setShowMedForm(!showMedForm)}

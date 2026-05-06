@@ -217,7 +217,7 @@ export default function GuidePage() {
           >
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-xl font-bold text-white tracking-wide">使い方ガイド</h1>
+          <h1 className="text-xl font-bold text-ink-800 tracking-wide">使い方ガイド</h1>
         </div>
       </header>
 
