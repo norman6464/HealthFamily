@@ -27,8 +27,8 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         onClick={() => onSelect(null)}
         className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
           selectedCategory === null
-            ? 'bg-primary-600 text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ? 'bg-primary-700 text-white border border-primary-700'
+            : 'bg-white text-ink-700 border border-gray-300 hover:bg-primary-50'
         }`}
       >
         すべて
@@ -41,8 +41,8 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
           onClick={() => onSelect(cat.id)}
           className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
             selectedCategory === cat.id
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-primary-700 text-white border border-primary-700'
+              : 'bg-white text-ink-700 border border-gray-300 hover:bg-primary-50'
           }`}
         >
           {cat.label}

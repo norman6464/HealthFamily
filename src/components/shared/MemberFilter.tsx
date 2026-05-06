@@ -20,8 +20,8 @@ export const MemberFilter: React.FC<MemberFilterProps> = ({ members, selectedMem
         onClick={() => onSelect(null)}
         className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
           selectedMemberId === null
-            ? 'bg-primary-600 text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ? 'bg-primary-700 text-white border border-primary-700'
+            : 'bg-white text-ink-700 border border-gray-300 hover:bg-primary-50'
         }`}
         role="tab"
         aria-selected={selectedMemberId === null}
@@ -34,8 +34,8 @@ export const MemberFilter: React.FC<MemberFilterProps> = ({ members, selectedMem
           onClick={() => onSelect(member.id)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             selectedMemberId === member.id
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-primary-700 text-white border border-primary-700'
+              : 'bg-white text-ink-700 border border-gray-300 hover:bg-primary-50'
           }`}
           role="tab"
           aria-selected={selectedMemberId === member.id}

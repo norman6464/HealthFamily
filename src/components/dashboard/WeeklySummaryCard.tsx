@@ -26,8 +26,8 @@ export const WeeklySummaryCard: React.FC<WeeklySummaryCardProps> = React.memo(({
   const completionRate = Math.round((completed / total) * 100);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-gray-200">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">今日のまとめ</h3>
+    <div className="bg-white rounded-2xl shadow-soft p-4 mb-4 border border-gray-100">
+      <h3 className="text-sm font-semibold text-ink-800 mb-3">今日のまとめ</h3>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">
           <CheckCircle2 size={16} className="text-green-500" />
