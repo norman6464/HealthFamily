@@ -28,6 +28,7 @@ export interface ScheduleWithDetails {
 export interface MissedDose {
   date: string;
   scheduleId: string;
+  medicationId: string;
   medicationName: string;
   memberName: string;
   memberId: string;

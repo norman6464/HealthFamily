@@ -108,6 +108,7 @@ export const GET = withAuth(async (userId) => {
   interface MissedDose {
     date: string;
     scheduleId: string;
+    medicationId: string;
     medicationName: string;
     memberName: string;
     memberId: string;
@@ -147,6 +148,7 @@ export const GET = withAuth(async (userId) => {
         missed.push({
           date: dateKey,
           scheduleId: s.id,
+          medicationId: s.medicationId,
           medicationName: s.medication.name,
           memberName: memberMap.get(s.memberId) || '',
           memberId: s.memberId,

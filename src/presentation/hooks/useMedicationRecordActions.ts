@@ -10,6 +10,13 @@ import { getDIContainer } from '../../infrastructure/DIContainer';
 export interface UseMedicationRecordActionsResult {
   markAsTaken: (memberId: string, medicationId: string, notes?: string) => Promise<void>;
   markAsTakenAt: (memberId: string, medicationId: string, takenAt: string, notes?: string) => Promise<void>;
+  markScheduleAsTakenAt: (
+    memberId: string,
+    medicationId: string,
+    scheduleId: string,
+    takenAt: string,
+    notes?: string,
+  ) => Promise<void>;
   isLoading: boolean;
   error: Error | null;
 }
@@ -51,5 +58,25 @@ export const useMedicationRecordActions = (): UseMedicationRecordActionsResult =
     }
   }, [useCase]);
 
-  return { markAsTaken, markAsTakenAt, isLoading, error };
+  const markScheduleAsTakenAt = useCallback(async (
+    memberId: string,
+    medicationId: string,
+    scheduleId: string,
+    takenAt: string,
+    notes?: string,
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await useCase.execute({ memberId, medicationId, scheduleId, takenAt, notes });
+    } catch (err) {
+      const e = err instanceof Error ? err : new Error('記録に失敗しました');
+      setError(e);
+      throw e;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [useCase]);
+
+  return { markAsTaken, markAsTakenAt, markScheduleAsTakenAt, isLoading, error };
 };
