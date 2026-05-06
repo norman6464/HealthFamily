@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ExaminationForm } from '@/components/examinations/ExaminationForm';
 import { Member } from '@/domain/entities/Member';
 
@@ -85,11 +85,13 @@ describe('ExaminationForm', () => {
     expect(screen.getByDisplayValue('CT検査')).toBeInTheDocument();
   });
 
-  it('送信後にフォームがリセットされる（新規登録時）', () => {
+  it('送信後にフォームがリセットされる（新規登録時）', async () => {
     render(<ExaminationForm members={members} onSubmit={mockOnSubmit} />);
     fireEvent.change(screen.getByLabelText('メンバー'), { target: { value: 'member-1' } });
     fireEvent.change(screen.getByLabelText('検査の種類'), { target: { value: 'テスト' } });
     fireEvent.click(screen.getByText('登録する'));
-    expect((screen.getByLabelText('検査の種類') as HTMLInputElement).value).toBe('');
+    await waitFor(() => {
+      expect((screen.getByLabelText('検査の種類') as HTMLInputElement).value).toBe('');
+    });
   });
 });

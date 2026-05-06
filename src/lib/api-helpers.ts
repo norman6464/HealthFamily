@@ -115,7 +115,7 @@ export async function safeParseJson(request: Request): Promise<{ data: unknown }
   }
 }
 
-const MAX_BODY_SIZE = 100 * 1024; // 100KB
+const MAX_BODY_SIZE = 2 * 1024 * 1024; // 2MB (検査記録の画像 base64 を許容)
 
 export function validateBodySize(request: Request): Response | null {
   const contentLength = request.headers.get('content-length');
