@@ -32,7 +32,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ activePath }
               href={path}
               {...(isActive && { 'aria-current': 'page' as const })}
               className={`flex flex-col items-center text-xs transition-colors ${
-                isActive ? 'text-primary-600 font-semibold' : 'text-gray-500 hover:text-navy-700'
+                isActive ? 'text-navy-700 font-semibold' : 'text-gray-400 hover:text-navy-600'
               }`}
             >
               {React.createElement(icon, { size: 20, className: 'mb-0.5' })}
