@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       examinedAt: parsed.data.examinedAt,
       nextScheduledDate: parsed.data.nextScheduledDate,
       notes: parsed.data.notes,
+      imageData: parsed.data.imageData ?? undefined,
     });
     return created(examination);
   })();

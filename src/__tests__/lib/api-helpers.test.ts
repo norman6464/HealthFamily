@@ -203,7 +203,7 @@ describe('validateBodySize', () => {
   it('Content-Lengthが制限を超える場合413を返す', () => {
     const request = new Request('http://localhost', {
       method: 'POST',
-      headers: { 'content-length': String(200 * 1024) },
+      headers: { 'content-length': String(3 * 1024 * 1024) },
     });
     const result = validateBodySize(request);
     expect(result).not.toBeNull();

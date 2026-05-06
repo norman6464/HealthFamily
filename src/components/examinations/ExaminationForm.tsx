@@ -15,7 +15,7 @@ export interface ExaminationFormData {
 
 interface ExaminationFormProps {
   members: Member[];
-  onSubmit: (data: ExaminationFormData) => void;
+  onSubmit: (data: ExaminationFormData) => Promise<void> | void;
   onCancel?: () => void;
   initialData?: {
     memberId: string;
@@ -72,6 +72,8 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [imageData, setImageData] = useState<string | null>(initialData?.imageData ?? null);
   const [imageError, setImageError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -94,25 +96,34 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
     e.target.value = '';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!memberId || !examinationType.trim() || !examinedAt) return;
+    if (isSubmitting) return;
 
-    onSubmit({
-      memberId,
-      examinationType: examinationType.trim(),
-      examinedAt: new Date(examinedAt).toISOString(),
-      nextScheduledDate: nextScheduledDate ? new Date(nextScheduledDate).toISOString() : undefined,
-      notes: notes.trim() || undefined,
-      imageData: imageData ?? undefined,
-    });
+    setSubmitError('');
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        memberId,
+        examinationType: examinationType.trim(),
+        examinedAt: new Date(examinedAt).toISOString(),
+        nextScheduledDate: nextScheduledDate ? new Date(nextScheduledDate).toISOString() : undefined,
+        notes: notes.trim() || undefined,
+        imageData: imageData ?? undefined,
+      });
 
-    if (!initialData) {
-      setExaminationType('');
-      setExaminedAt(new Date().toISOString().split('T')[0]);
-      setNextScheduledDate('');
-      setNotes('');
-      setImageData(null);
+      if (!initialData) {
+        setExaminationType('');
+        setExaminedAt(new Date().toISOString().split('T')[0]);
+        setNextScheduledDate('');
+        setNotes('');
+        setImageData(null);
+      }
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : '登録に失敗しました');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -227,18 +238,26 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
         {imageError && <p className="text-xs text-red-500 mt-1">{imageError}</p>}
       </div>
 
+      {submitError && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {submitError}
+        </p>
+      )}
+
       <div className="flex space-x-2">
         <button
           type="submit"
-          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+          disabled={isSubmitting}
+          className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {initialData ? '更新する' : '登録する'}
+          {isSubmitting ? '送信中...' : initialData ? '更新する' : '登録する'}
         </button>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+            disabled={isSubmitting}
+            className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-60"
           >
             キャンセル
           </button>
