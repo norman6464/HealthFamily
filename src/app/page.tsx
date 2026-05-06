@@ -72,7 +72,7 @@ export default function Dashboard() {
     <div className="min-h-screen pb-20">
       <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3">
-          <h1 className="text-xl font-bold text-white tracking-wide">HealthFamily</h1>
+          <h1 className="text-xl font-bold text-ink-800 tracking-wide">HealthFamily</h1>
         </div>
       </header>
 

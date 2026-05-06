@@ -165,7 +165,7 @@ export default function AppointmentsPage() {
     <div className="min-h-screen pb-20">
       <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-white tracking-wide">通院管理</h1>
+          <h1 className="text-xl font-bold text-ink-800 tracking-wide">通院管理</h1>
           <button
             onClick={handleToggleForm}
             className="bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors"

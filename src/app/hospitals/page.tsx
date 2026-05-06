@@ -34,7 +34,7 @@ export default function HospitalsPage() {
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-xl font-bold text-white tracking-wide">かかりつけ医(病院)</h1>
+            <h1 className="text-xl font-bold text-ink-800 tracking-wide">かかりつけ医(病院)</h1>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
