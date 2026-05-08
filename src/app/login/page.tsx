@@ -43,7 +43,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-pink-50/30 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <Image src="/icon.svg" alt="HealthFamily" width={80} height={80} className="mx-auto mb-2" unoptimized />
+          <Image src="/icon.svg" alt="HealthFamily" width={80} height={80} className="mx-auto mb-2 rounded-2xl" unoptimized />
           <h1 className="text-3xl font-bold text-primary-600">HealthFamily</h1>
           <p className="mt-2 text-gray-500">ログイン</p>
         </div>
