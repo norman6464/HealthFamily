@@ -4,20 +4,20 @@ import "time"
 
 // User はアカウント
 type User struct {
-	ID                  string     `json:"id"`
-	Email               string     `json:"email"`
-	Password            string     `json:"-"`
-	DisplayName         *string    `json:"displayName"`
-	CharacterType       string     `json:"characterType"`
-	CharacterName       *string    `json:"characterName"`
-	EmailVerified       bool       `json:"emailVerified"`
-	VerificationCode    *string    `json:"-"`
-	VerificationExpiry  *time.Time `json:"-"`
-	VerificationAttempts int       `json:"-"`
-	ResetCode           *string    `json:"-"`
-	ResetCodeExpiry     *time.Time `json:"-"`
-	CreatedAt           time.Time  `json:"createdAt"`
-	UpdatedAt           time.Time  `json:"updatedAt"`
+	ID                   string     `json:"id"`
+	Email                string     `json:"email"`
+	Password             string     `json:"-"`
+	DisplayName          *string    `json:"displayName"`
+	CharacterType        string     `json:"characterType"`
+	CharacterName        *string    `json:"characterName"`
+	EmailVerified        bool       `json:"emailVerified"`
+	VerificationCode     *string    `json:"-"`
+	VerificationExpiry   *time.Time `json:"-"`
+	VerificationAttempts int        `json:"-"`
+	ResetCode            *string    `json:"-"`
+	ResetCodeExpiry      *time.Time `json:"-"`
+	CreatedAt            time.Time  `json:"createdAt"`
+	UpdatedAt            time.Time  `json:"updatedAt"`
 }
 
 // Member は家族・ペットのメンバー

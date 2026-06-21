@@ -13,7 +13,7 @@ import (
 	"healthfamily/internal/pkg/auth"
 )
 
-// ScheduleRepository は schedules テーブルの生SQL実装
+// ScheduleRepository は "Schedule" テーブルの生SQL実装
 type ScheduleRepository struct {
 	db *database.DB
 }
@@ -22,8 +22,8 @@ func NewScheduleRepository(db *database.DB) *ScheduleRepository {
 	return &ScheduleRepository{db: db}
 }
 
-const scheduleColumns = `id, medication_id, user_id, member_id, scheduled_time, days_of_week,
-	interval_days, start_date, is_enabled, reminder_minutes_before, created_at`
+const scheduleColumns = `"id", "medicationId", "userId", "memberId", "scheduledTime", "daysOfWeek",
+	"intervalDays", "startDate", "isEnabled", "reminderMinutesBefore", "createdAt"`
 
 func scanSchedule(row pgx.Row) (*entity.Schedule, error) {
 	var s entity.Schedule
@@ -40,7 +40,7 @@ func scanSchedule(row pgx.Row) (*entity.Schedule, error) {
 
 func (r *ScheduleRepository) ListByUser(ctx context.Context, userID string) ([]entity.Schedule, error) {
 	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+scheduleColumns+` FROM schedules WHERE user_id=$1 ORDER BY scheduled_time ASC`, userID)
+		`SELECT `+scheduleColumns+` FROM "Schedule" WHERE "userId"=$1 ORDER BY "scheduledTime" ASC`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (r *ScheduleRepository) ListByUser(ctx context.Context, userID string) ([]e
 }
 
 func (r *ScheduleRepository) FindByID(ctx context.Context, id string) (*entity.Schedule, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+scheduleColumns+` FROM schedules WHERE id=$1`, id)
+	row := r.db.Pool.QueryRow(ctx, `SELECT `+scheduleColumns+` FROM "Schedule" WHERE "id"=$1`, id)
 	return scanSchedule(row)
 }
 
@@ -69,8 +69,8 @@ func (r *ScheduleRepository) Create(ctx context.Context, in repository.CreateSch
 		days = []string{}
 	}
 	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO schedules (id, medication_id, user_id, member_id, scheduled_time, days_of_week,
-			interval_days, start_date, is_enabled, reminder_minutes_before, created_at)
+		`INSERT INTO "Schedule" ("id", "medicationId", "userId", "memberId", "scheduledTime", "daysOfWeek",
+			"intervalDays", "startDate", "isEnabled", "reminderMinutesBefore", "createdAt")
 		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now())
 		 RETURNING `+scheduleColumns,
 		id, in.MedicationID, in.UserID, in.MemberID, in.ScheduledTime, days,
@@ -80,21 +80,21 @@ func (r *ScheduleRepository) Create(ctx context.Context, in repository.CreateSch
 
 func (r *ScheduleRepository) Update(ctx context.Context, id string, in repository.UpdateScheduleInput) (*entity.Schedule, error) {
 	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE schedules SET
-			scheduled_time = COALESCE($2, scheduled_time),
-			days_of_week = COALESCE($3, days_of_week),
-			interval_days = COALESCE($4, interval_days),
-			start_date = COALESCE($5, start_date),
-			is_enabled = COALESCE($6, is_enabled),
-			reminder_minutes_before = COALESCE($7, reminder_minutes_before)
-		 WHERE id=$1
+		`UPDATE "Schedule" SET
+			"scheduledTime" = COALESCE($2, "scheduledTime"),
+			"daysOfWeek" = COALESCE($3, "daysOfWeek"),
+			"intervalDays" = COALESCE($4, "intervalDays"),
+			"startDate" = COALESCE($5, "startDate"),
+			"isEnabled" = COALESCE($6, "isEnabled"),
+			"reminderMinutesBefore" = COALESCE($7, "reminderMinutesBefore")
+		 WHERE "id"=$1
 		 RETURNING `+scheduleColumns,
 		id, in.ScheduledTime, in.DaysOfWeek, in.IntervalDays, in.StartDate, in.IsEnabled, in.ReminderMinutesBefore)
 	return scanSchedule(row)
 }
 
 func (r *ScheduleRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM schedules WHERE id=$1`, id)
+	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Schedule" WHERE "id"=$1`, id)
 	return err
 }
 
@@ -107,18 +107,18 @@ func (r *ScheduleRepository) GetTodaySchedules(ctx context.Context, userID strin
 
 	rows, err := r.db.Pool.Query(ctx,
 		`SELECT `+prefixCols("s", scheduleColumns)+`,
-			m.name, mem.name, mem.member_type, m.display_order,
+			m."name", mem."name", mem."memberType", m."displayOrder",
 			EXISTS(
-				SELECT 1 FROM medication_records r
-				WHERE r.schedule_id = s.id AND r.taken_at >= $3 AND r.taken_at < $4
+				SELECT 1 FROM "MedicationRecord" r
+				WHERE r."scheduleId" = s."id" AND r."takenAt" >= $3 AND r."takenAt" < $4
 			) AS is_completed
-		 FROM schedules s
-		 JOIN medications m ON m.id = s.medication_id
-		 JOIN members mem ON mem.id = s.member_id
-		 WHERE s.user_id = $1
-		   AND s.is_enabled = TRUE
-		   AND (array_length(s.days_of_week, 1) IS NULL OR $2 = ANY(s.days_of_week))
-		 ORDER BY s.scheduled_time ASC`,
+		 FROM "Schedule" s
+		 JOIN "Medication" m ON m."id" = s."medicationId"
+		 JOIN "Member" mem ON mem."id" = s."memberId"
+		 WHERE s."userId" = $1
+		   AND s."isEnabled" = TRUE
+		   AND (array_length(s."daysOfWeek", 1) IS NULL OR $2 = ANY(s."daysOfWeek"))
+		 ORDER BY s."scheduledTime" ASC`,
 		userID, weekday, dayStart, dayEnd)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,8 @@ func (r *ScheduleRepository) GetTodaySchedules(ctx context.Context, userID strin
 	return list, rows.Err()
 }
 
-// prefixCols は "id, name" を "s.id, s.name" の形に変換する
+// prefixCols は `"id", "name"` を `s."id", s."name"` の形に変換する。
+// 引用済みの camelCase カラム名をエイリアスで前置する。
 func prefixCols(alias, cols string) string {
 	parts := strings.Split(cols, ",")
 	out := make([]string, 0, len(parts))

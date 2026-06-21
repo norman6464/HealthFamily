@@ -1,243 +1,252 @@
 -- HealthFamily 初期スキーマ (生SQL / PostgreSQL)
--- Prisma schema.prisma と同等のテーブル構成。ID は text(UUID), 配列は text[]。
+-- Prisma schema.prisma と完全に一致するテーブル構成。
+-- テーブル名は PascalCase、カラム名は camelCase でダブルクォート必須（Prisma が大文字小文字を保持して作成しているため）。
+-- ID は TEXT(cuid, アプリ生成), 配列は TEXT[]。
+-- 既存DB(Supabase)に対して安全に no-op となるよう CREATE TABLE IF NOT EXISTS を使用する。
 
-CREATE TABLE IF NOT EXISTS users (
-    id                    TEXT PRIMARY KEY,
-    email                 TEXT NOT NULL UNIQUE,
-    password              TEXT NOT NULL,
-    display_name          TEXT,
-    character_type        TEXT NOT NULL DEFAULT 'cat',
-    character_name        TEXT,
-    email_verified        BOOLEAN NOT NULL DEFAULT FALSE,
-    verification_code     TEXT,
-    verification_expiry   TIMESTAMPTZ,
-    verification_attempts INTEGER NOT NULL DEFAULT 0,
-    reset_code            TEXT,
-    reset_code_expiry     TIMESTAMPTZ,
-    created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "User" (
+    "id"                   TEXT PRIMARY KEY,
+    "email"                TEXT NOT NULL UNIQUE,
+    "password"             TEXT NOT NULL,
+    "displayName"          TEXT,
+    "characterType"        TEXT NOT NULL DEFAULT 'cat',
+    "characterName"        TEXT,
+    "emailVerified"        BOOLEAN NOT NULL DEFAULT FALSE,
+    "verificationCode"     TEXT,
+    "verificationExpiry"   TIMESTAMPTZ,
+    "verificationAttempts" INTEGER NOT NULL DEFAULT 0,
+    "resetCode"            TEXT,
+    "resetCodeExpiry"      TIMESTAMPTZ,
+    "createdAt"            TIMESTAMPTZ NOT NULL DEFAULT now(),
+    "updatedAt"            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS members (
-    id          TEXT PRIMARY KEY,
-    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_type TEXT NOT NULL DEFAULT 'human',
-    name        TEXT NOT NULL,
-    pet_type    TEXT,
-    photo_url   TEXT,
-    birth_date  TIMESTAMPTZ,
-    notes       TEXT,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Member" (
+    "id"         TEXT PRIMARY KEY,
+    "userId"     TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberType" TEXT NOT NULL DEFAULT 'human',
+    "name"       TEXT NOT NULL,
+    "petType"    TEXT,
+    "photoUrl"   TEXT,
+    "birthDate"  TIMESTAMPTZ,
+    "notes"      TEXT,
+    "createdAt"  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    "updatedAt"  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_members_user_id ON members(user_id);
+CREATE INDEX IF NOT EXISTS "Member_userId_idx" ON "Member"("userId");
 
-CREATE TABLE IF NOT EXISTS medications (
-    id               TEXT PRIMARY KEY,
-    member_id        TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    user_id          TEXT NOT NULL,
-    name             TEXT NOT NULL,
-    category         TEXT NOT NULL DEFAULT 'regular',
-    dosage_amount    TEXT,
-    frequency        TEXT,
-    stock_quantity   INTEGER,
-    stock_alert_date TIMESTAMPTZ,
-    interval_hours   INTEGER,
-    instructions     TEXT,
-    display_order    INTEGER NOT NULL DEFAULT 0,
-    is_active        BOOLEAN NOT NULL DEFAULT TRUE,
-    status           TEXT NOT NULL DEFAULT 'active',
-    created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Medication" (
+    "id"             TEXT PRIMARY KEY,
+    "memberId"       TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "userId"         TEXT NOT NULL,
+    "name"           TEXT NOT NULL,
+    "category"       TEXT NOT NULL DEFAULT 'regular',
+    "dosageAmount"   TEXT,
+    "frequency"      TEXT,
+    "stockQuantity"  INTEGER,
+    "stockAlertDate" TIMESTAMPTZ,
+    "intervalHours"  INTEGER,
+    "instructions"   TEXT,
+    "displayOrder"   INTEGER NOT NULL DEFAULT 0,
+    "isActive"       BOOLEAN NOT NULL DEFAULT TRUE,
+    "status"         TEXT NOT NULL DEFAULT 'active',
+    "createdAt"      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    "updatedAt"      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_medications_member_id ON medications(member_id);
-CREATE INDEX IF NOT EXISTS idx_medications_user_id ON medications(user_id);
+CREATE INDEX IF NOT EXISTS "Medication_memberId_idx" ON "Medication"("memberId");
+CREATE INDEX IF NOT EXISTS "Medication_userId_idx" ON "Medication"("userId");
 
-CREATE TABLE IF NOT EXISTS schedules (
-    id                      TEXT PRIMARY KEY,
-    medication_id           TEXT NOT NULL REFERENCES medications(id) ON DELETE CASCADE,
-    user_id                 TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id               TEXT NOT NULL,
-    scheduled_time          TEXT NOT NULL,
-    days_of_week            TEXT[] NOT NULL DEFAULT '{}',
-    interval_days           INTEGER,
-    start_date              TIMESTAMPTZ,
-    is_enabled              BOOLEAN NOT NULL DEFAULT TRUE,
-    reminder_minutes_before INTEGER NOT NULL DEFAULT 5,
-    created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Schedule" (
+    "id"                    TEXT PRIMARY KEY,
+    "medicationId"          TEXT NOT NULL REFERENCES "Medication"("id") ON DELETE CASCADE,
+    "userId"                TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"              TEXT NOT NULL,
+    "scheduledTime"         TEXT NOT NULL,
+    "daysOfWeek"            TEXT[] NOT NULL DEFAULT '{}',
+    "intervalDays"          INTEGER,
+    "startDate"             TIMESTAMPTZ,
+    "isEnabled"             BOOLEAN NOT NULL DEFAULT TRUE,
+    "reminderMinutesBefore" INTEGER NOT NULL DEFAULT 5,
+    "createdAt"             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_schedules_user_id ON schedules(user_id);
-CREATE INDEX IF NOT EXISTS idx_schedules_medication_id ON schedules(medication_id);
+CREATE INDEX IF NOT EXISTS "Schedule_userId_idx" ON "Schedule"("userId");
+CREATE INDEX IF NOT EXISTS "Schedule_medicationId_idx" ON "Schedule"("medicationId");
 
-CREATE TABLE IF NOT EXISTS medication_records (
-    id            TEXT PRIMARY KEY,
-    member_id     TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    medication_id TEXT NOT NULL REFERENCES medications(id) ON DELETE CASCADE,
-    user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    schedule_id   TEXT,
-    taken_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    notes         TEXT,
-    dosage_amount TEXT
+CREATE TABLE IF NOT EXISTS "MedicationRecord" (
+    "id"           TEXT PRIMARY KEY,
+    "memberId"     TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "medicationId" TEXT NOT NULL REFERENCES "Medication"("id") ON DELETE CASCADE,
+    "userId"       TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "scheduleId"   TEXT,
+    "takenAt"      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    "notes"        TEXT,
+    "dosageAmount" TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_medication_records_user_id ON medication_records(user_id);
-CREATE INDEX IF NOT EXISTS idx_medication_records_member_id ON medication_records(member_id);
+CREATE INDEX IF NOT EXISTS "MedicationRecord_userId_idx" ON "MedicationRecord"("userId");
+CREATE INDEX IF NOT EXISTS "MedicationRecord_memberId_idx" ON "MedicationRecord"("memberId");
 
-CREATE TABLE IF NOT EXISTS hospitals (
-    id            TEXT PRIMARY KEY,
-    user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name          TEXT NOT NULL,
-    hospital_type TEXT,
-    address       TEXT,
-    phone_number  TEXT,
-    department    TEXT,
-    doctor_name   TEXT,
-    notes         TEXT,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Hospital" (
+    "id"           TEXT PRIMARY KEY,
+    "userId"       TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "name"         TEXT NOT NULL,
+    "hospitalType" TEXT,
+    "address"      TEXT,
+    "phoneNumber"  TEXT,
+    "department"   TEXT,
+    "doctorName"   TEXT,
+    "notes"        TEXT,
+    "createdAt"    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_hospitals_user_id ON hospitals(user_id);
+CREATE INDEX IF NOT EXISTS "Hospital_userId_idx" ON "Hospital"("userId");
 
-CREATE TABLE IF NOT EXISTS health_logs (
-    id              TEXT PRIMARY KEY,
-    member_id       TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    condition_level INTEGER NOT NULL,
-    symptoms        TEXT[] NOT NULL DEFAULT '{}',
-    notes           TEXT,
-    recorded_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "HealthLog" (
+    "id"             TEXT PRIMARY KEY,
+    "memberId"       TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "userId"         TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "conditionLevel" INTEGER NOT NULL,
+    "symptoms"       TEXT[] NOT NULL DEFAULT '{}',
+    "notes"          TEXT,
+    "recordedAt"     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_health_logs_user_id ON health_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_health_logs_member_id ON health_logs(member_id);
+CREATE INDEX IF NOT EXISTS "HealthLog_userId_idx" ON "HealthLog"("userId");
+CREATE INDEX IF NOT EXISTS "HealthLog_memberId_idx" ON "HealthLog"("memberId");
 
-CREATE TABLE IF NOT EXISTS appointments (
-    id                   TEXT PRIMARY KEY,
-    user_id              TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id            TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    hospital_id          TEXT REFERENCES hospitals(id),
-    appointment_type     TEXT,
-    appointment_date     TIMESTAMPTZ NOT NULL,
-    description          TEXT,
-    test_results         TEXT,
-    cost                 DOUBLE PRECISION,
-    reminder_enabled     BOOLEAN NOT NULL DEFAULT TRUE,
-    reminder_days_before INTEGER NOT NULL DEFAULT 1,
-    created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Appointment" (
+    "id"                 TEXT PRIMARY KEY,
+    "userId"             TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"           TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "hospitalId"         TEXT REFERENCES "Hospital"("id"),
+    "appointmentType"    TEXT,
+    "appointmentDate"    TIMESTAMPTZ NOT NULL,
+    "description"        TEXT,
+    "testResults"        TEXT,
+    "cost"               DOUBLE PRECISION,
+    "reminderEnabled"    BOOLEAN NOT NULL DEFAULT TRUE,
+    "reminderDaysBefore" INTEGER NOT NULL DEFAULT 1,
+    "createdAt"          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON appointments(user_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_member_id ON appointments(member_id);
+CREATE INDEX IF NOT EXISTS "Appointment_userId_idx" ON "Appointment"("userId");
+CREATE INDEX IF NOT EXISTS "Appointment_memberId_idx" ON "Appointment"("memberId");
 
-CREATE TABLE IF NOT EXISTS vaccinations (
-    id                  TEXT PRIMARY KEY,
-    user_id             TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id           TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    vaccine_name        TEXT NOT NULL,
-    vaccinated_at       TIMESTAMPTZ NOT NULL,
-    next_scheduled_date TIMESTAMPTZ,
-    notes               TEXT,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Vaccination" (
+    "id"                TEXT PRIMARY KEY,
+    "userId"            TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"          TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "vaccineName"       TEXT NOT NULL,
+    "vaccinatedAt"      TIMESTAMPTZ NOT NULL,
+    "nextScheduledDate" TIMESTAMPTZ,
+    "notes"             TEXT,
+    "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_vaccinations_user_id ON vaccinations(user_id);
-CREATE INDEX IF NOT EXISTS idx_vaccinations_member_id ON vaccinations(member_id);
+CREATE INDEX IF NOT EXISTS "Vaccination_userId_idx" ON "Vaccination"("userId");
+CREATE INDEX IF NOT EXISTS "Vaccination_memberId_idx" ON "Vaccination"("memberId");
 
-CREATE TABLE IF NOT EXISTS examinations (
-    id                  TEXT PRIMARY KEY,
-    user_id             TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id           TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    examination_type    TEXT NOT NULL,
-    examined_at         TIMESTAMPTZ NOT NULL,
-    next_scheduled_date TIMESTAMPTZ,
-    notes               TEXT,
-    image_data          TEXT,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Examination" (
+    "id"                TEXT PRIMARY KEY,
+    "userId"            TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"          TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "examinationType"   TEXT NOT NULL,
+    "examinedAt"        TIMESTAMPTZ NOT NULL,
+    "nextScheduledDate" TIMESTAMPTZ,
+    "notes"             TEXT,
+    "imageData"         TEXT,
+    "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_examinations_user_id ON examinations(user_id);
-CREATE INDEX IF NOT EXISTS idx_examinations_member_id ON examinations(member_id);
+CREATE INDEX IF NOT EXISTS "Examination_userId_idx" ON "Examination"("userId");
+CREATE INDEX IF NOT EXISTS "Examination_memberId_idx" ON "Examination"("memberId");
 
-CREATE TABLE IF NOT EXISTS insurances (
-    id             TEXT PRIMARY KEY,
-    user_id        TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id      TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    insurance_type TEXT NOT NULL,
-    provider_name  TEXT,
-    policy_number  TEXT,
-    notes          TEXT,
-    created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Insurance" (
+    "id"            TEXT PRIMARY KEY,
+    "userId"        TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"      TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "insuranceType" TEXT NOT NULL,
+    "providerName"  TEXT,
+    "policyNumber"  TEXT,
+    "notes"         TEXT,
+    "createdAt"     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_insurances_user_id ON insurances(user_id);
-CREATE INDEX IF NOT EXISTS idx_insurances_member_id ON insurances(member_id);
+CREATE INDEX IF NOT EXISTS "Insurance_userId_idx" ON "Insurance"("userId");
+CREATE INDEX IF NOT EXISTS "Insurance_memberId_idx" ON "Insurance"("memberId");
 
-CREATE TABLE IF NOT EXISTS allergies (
-    id            TEXT PRIMARY KEY,
-    user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id     TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    allergen_name TEXT NOT NULL,
-    allergy_type  TEXT NOT NULL,
-    severity      TEXT NOT NULL,
-    symptoms      TEXT,
-    diagnosed_at  TIMESTAMPTZ,
-    notes         TEXT,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Allergy" (
+    "id"           TEXT PRIMARY KEY,
+    "userId"       TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"     TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "allergenName" TEXT NOT NULL,
+    "allergyType"  TEXT NOT NULL,
+    "severity"     TEXT NOT NULL,
+    "symptoms"     TEXT,
+    "diagnosedAt"  TIMESTAMPTZ,
+    "notes"        TEXT,
+    "createdAt"    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_allergies_user_id ON allergies(user_id);
-CREATE INDEX IF NOT EXISTS idx_allergies_member_id ON allergies(member_id);
+CREATE INDEX IF NOT EXISTS "Allergy_userId_idx" ON "Allergy"("userId");
+CREATE INDEX IF NOT EXISTS "Allergy_memberId_idx" ON "Allergy"("memberId");
 
-CREATE TABLE IF NOT EXISTS body_measurements (
-    id          TEXT PRIMARY KEY,
-    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id   TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    weight      DOUBLE PRECISION,
-    height      DOUBLE PRECISION,
-    recorded_at TIMESTAMPTZ NOT NULL,
-    notes       TEXT,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "BodyMeasurement" (
+    "id"         TEXT PRIMARY KEY,
+    "userId"     TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"   TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "weight"     DOUBLE PRECISION,
+    "height"     DOUBLE PRECISION,
+    "recordedAt" TIMESTAMPTZ NOT NULL,
+    "notes"      TEXT,
+    "createdAt"  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_body_measurements_user_id ON body_measurements(user_id);
-CREATE INDEX IF NOT EXISTS idx_body_measurements_member_id ON body_measurements(member_id);
+CREATE INDEX IF NOT EXISTS "BodyMeasurement_userId_idx" ON "BodyMeasurement"("userId");
+CREATE INDEX IF NOT EXISTS "BodyMeasurement_memberId_idx" ON "BodyMeasurement"("memberId");
 
-CREATE TABLE IF NOT EXISTS temperature_records (
-    id          TEXT PRIMARY KEY,
-    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id   TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    temperature DOUBLE PRECISION NOT NULL,
-    measured_at TIMESTAMPTZ NOT NULL,
-    notes       TEXT,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "TemperatureRecord" (
+    "id"          TEXT PRIMARY KEY,
+    "userId"      TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"    TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "temperature" DOUBLE PRECISION NOT NULL,
+    "measuredAt"  TIMESTAMPTZ NOT NULL,
+    "notes"       TEXT,
+    "createdAt"   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_temperature_records_user_id ON temperature_records(user_id);
-CREATE INDEX IF NOT EXISTS idx_temperature_records_member_id ON temperature_records(member_id);
-CREATE INDEX IF NOT EXISTS idx_temperature_records_member_measured ON temperature_records(member_id, measured_at);
+CREATE INDEX IF NOT EXISTS "TemperatureRecord_userId_idx" ON "TemperatureRecord"("userId");
+CREATE INDEX IF NOT EXISTS "TemperatureRecord_memberId_idx" ON "TemperatureRecord"("memberId");
+CREATE INDEX IF NOT EXISTS "TemperatureRecord_memberId_measuredAt_idx" ON "TemperatureRecord"("memberId", "measuredAt");
 
-CREATE TABLE IF NOT EXISTS emergency_contacts (
-    id           TEXT PRIMARY KEY,
-    user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id    TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    contact_name TEXT NOT NULL,
-    phone_number TEXT NOT NULL,
-    relationship TEXT,
-    notes        TEXT,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "EmergencyContact" (
+    "id"           TEXT PRIMARY KEY,
+    "userId"       TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"     TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "contactName"  TEXT NOT NULL,
+    "phoneNumber"  TEXT NOT NULL,
+    "relationship" TEXT,
+    "notes"        TEXT,
+    "createdAt"    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_emergency_contacts_user_id ON emergency_contacts(user_id);
-CREATE INDEX IF NOT EXISTS idx_emergency_contacts_member_id ON emergency_contacts(member_id);
+CREATE INDEX IF NOT EXISTS "EmergencyContact_userId_idx" ON "EmergencyContact"("userId");
+CREATE INDEX IF NOT EXISTS "EmergencyContact_memberId_idx" ON "EmergencyContact"("memberId");
 
-CREATE TABLE IF NOT EXISTS prescriptions (
-    id          TEXT PRIMARY KEY,
-    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    member_id   TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    name        TEXT NOT NULL,
-    image_data  TEXT,
-    notes       TEXT,
-    prescribed_at TIMESTAMPTZ,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "Prescription" (
+    "id"               TEXT PRIMARY KEY,
+    "userId"           TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+    "memberId"         TEXT NOT NULL REFERENCES "Member"("id") ON DELETE CASCADE,
+    "prescriptionName" TEXT NOT NULL,
+    "prescribedBy"     TEXT,
+    "prescribedAt"     TIMESTAMPTZ NOT NULL,
+    "expiresAt"        TIMESTAMPTZ,
+    "pharmacyName"     TEXT,
+    "notes"            TEXT,
+    "createdAt"        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_prescriptions_user_id ON prescriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_prescriptions_member_id ON prescriptions(member_id);
+CREATE INDEX IF NOT EXISTS "Prescription_userId_idx" ON "Prescription"("userId");
+CREATE INDEX IF NOT EXISTS "Prescription_memberId_idx" ON "Prescription"("memberId");
 
-CREATE TABLE IF NOT EXISTS notification_settings (
-    id                    TEXT PRIMARY KEY,
-    user_id               TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    push_enabled          BOOLEAN NOT NULL DEFAULT FALSE,
-    email_enabled         BOOLEAN NOT NULL DEFAULT FALSE,
-    reminder_enabled      BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
+CREATE TABLE IF NOT EXISTS "NotificationSetting" (
+    "id"                                   TEXT PRIMARY KEY,
+    "userId"                               TEXT NOT NULL UNIQUE REFERENCES "User"("id") ON DELETE CASCADE,
+    "medicationReminderEnabled"            BOOLEAN NOT NULL DEFAULT TRUE,
+    "missedMedicationEnabled"              BOOLEAN NOT NULL DEFAULT TRUE,
+    "appointmentReminderEnabled"           BOOLEAN NOT NULL DEFAULT TRUE,
+    "lowStockAlertEnabled"                 BOOLEAN NOT NULL DEFAULT TRUE,
+    "defaultReminderMinutesBefore"         INTEGER NOT NULL DEFAULT 5,
+    "defaultAppointmentReminderDaysBefore" INTEGER NOT NULL DEFAULT 1,
+    "emailNotificationEnabled"             BOOLEAN NOT NULL DEFAULT TRUE,
+    "createdAt"                            TIMESTAMPTZ NOT NULL DEFAULT now(),
+    "updatedAt"                            TIMESTAMPTZ NOT NULL DEFAULT now()
 );

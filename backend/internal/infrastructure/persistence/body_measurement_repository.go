@@ -11,7 +11,7 @@ import (
 	"healthfamily/internal/pkg/auth"
 )
 
-// BodyMeasurementRepository は body_measurements テーブルの生SQL実装
+// BodyMeasurementRepository は "BodyMeasurement" テーブルの生SQL実装
 type BodyMeasurementRepository struct {
 	db *database.DB
 }
@@ -20,7 +20,7 @@ func NewBodyMeasurementRepository(db *database.DB) *BodyMeasurementRepository {
 	return &BodyMeasurementRepository{db: db}
 }
 
-const bodyMeasurementColumns = `id, user_id, member_id, weight, height, recorded_at, notes, created_at`
+const bodyMeasurementColumns = `"id", "userId", "memberId", "weight", "height", "recordedAt", "notes", "createdAt"`
 
 func scanBodyMeasurement(row pgx.Row) (*entity.BodyMeasurement, error) {
 	var b entity.BodyMeasurement
@@ -36,7 +36,7 @@ func scanBodyMeasurement(row pgx.Row) (*entity.BodyMeasurement, error) {
 
 func (r *BodyMeasurementRepository) List(ctx context.Context, userID string) ([]entity.BodyMeasurement, error) {
 	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+bodyMeasurementColumns+` FROM body_measurements WHERE user_id=$1 ORDER BY recorded_at DESC`, userID)
+		`SELECT `+bodyMeasurementColumns+` FROM "BodyMeasurement" WHERE "userId"=$1 ORDER BY "recordedAt" DESC`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,14 +53,14 @@ func (r *BodyMeasurementRepository) List(ctx context.Context, userID string) ([]
 }
 
 func (r *BodyMeasurementRepository) FindByID(ctx context.Context, id string) (*entity.BodyMeasurement, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+bodyMeasurementColumns+` FROM body_measurements WHERE id=$1`, id)
+	row := r.db.Pool.QueryRow(ctx, `SELECT `+bodyMeasurementColumns+` FROM "BodyMeasurement" WHERE "id"=$1`, id)
 	return scanBodyMeasurement(row)
 }
 
 func (r *BodyMeasurementRepository) Create(ctx context.Context, in repository.CreateBodyMeasurementInput) (*entity.BodyMeasurement, error) {
 	id := auth.NewID()
 	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO body_measurements (id, user_id, member_id, weight, height, recorded_at, notes, created_at)
+		`INSERT INTO "BodyMeasurement" ("id", "userId", "memberId", "weight", "height", "recordedAt", "notes", "createdAt")
 		 VALUES ($1,$2,$3,$4,$5,$6,$7, now())
 		 RETURNING `+bodyMeasurementColumns,
 		id, in.UserID, in.MemberID, in.Weight, in.Height, in.RecordedAt, in.Notes)
@@ -69,18 +69,18 @@ func (r *BodyMeasurementRepository) Create(ctx context.Context, in repository.Cr
 
 func (r *BodyMeasurementRepository) Update(ctx context.Context, id string, in repository.UpdateBodyMeasurementInput) (*entity.BodyMeasurement, error) {
 	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE body_measurements SET
-			weight = COALESCE($2, weight),
-			height = COALESCE($3, height),
-			recorded_at = COALESCE($4, recorded_at),
-			notes = COALESCE($5, notes)
-		 WHERE id=$1
+		`UPDATE "BodyMeasurement" SET
+			"weight" = COALESCE($2, "weight"),
+			"height" = COALESCE($3, "height"),
+			"recordedAt" = COALESCE($4, "recordedAt"),
+			"notes" = COALESCE($5, "notes")
+		 WHERE "id"=$1
 		 RETURNING `+bodyMeasurementColumns,
 		id, in.Weight, in.Height, in.RecordedAt, in.Notes)
 	return scanBodyMeasurement(row)
 }
 
 func (r *BodyMeasurementRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM body_measurements WHERE id=$1`, id)
+	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "BodyMeasurement" WHERE "id"=$1`, id)
 	return err
 }

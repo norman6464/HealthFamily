@@ -38,27 +38,36 @@ func (h *PrescriptionHandler) Get(c *gin.Context) {
 }
 
 type createPrescriptionRequest struct {
-	MemberID     string  `json:"memberId" binding:"required"`
-	Name         string  `json:"name" binding:"required"`
-	ImageData    *string `json:"imageData"`
-	Notes        *string `json:"notes"`
-	PrescribedAt *string `json:"prescribedAt"`
+	MemberID         string  `json:"memberId" binding:"required"`
+	PrescriptionName string  `json:"prescriptionName" binding:"required"`
+	PrescribedBy     *string `json:"prescribedBy"`
+	PrescribedAt     *string `json:"prescribedAt" binding:"required"`
+	ExpiresAt        *string `json:"expiresAt"`
+	PharmacyName     *string `json:"pharmacyName"`
+	Notes            *string `json:"notes"`
 }
 
 func (h *PrescriptionHandler) Create(c *gin.Context) {
 	userID := middleware.UserID(c)
 	var req createPrescriptionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, 400, "メンバーIDと名称は必須です")
+		response.Error(c, 400, "メンバーID・名称・処方日は必須です")
+		return
+	}
+	prescribedAt := parseDate(req.PrescribedAt)
+	if prescribedAt == nil {
+		response.Error(c, 400, "処方日の形式が正しくありません")
 		return
 	}
 	v, err := h.uc.Create(c.Request.Context(), repository.CreatePrescriptionInput{
-		UserID:       userID,
-		MemberID:     req.MemberID,
-		Name:         req.Name,
-		ImageData:    req.ImageData,
-		Notes:        req.Notes,
-		PrescribedAt: parseDate(req.PrescribedAt),
+		UserID:           userID,
+		MemberID:         req.MemberID,
+		PrescriptionName: req.PrescriptionName,
+		PrescribedBy:     req.PrescribedBy,
+		PrescribedAt:     *prescribedAt,
+		ExpiresAt:        parseDate(req.ExpiresAt),
+		PharmacyName:     req.PharmacyName,
+		Notes:            req.Notes,
 	})
 	if err != nil {
 		response.HandleDomainError(c, err)
@@ -68,10 +77,12 @@ func (h *PrescriptionHandler) Create(c *gin.Context) {
 }
 
 type updatePrescriptionRequest struct {
-	Name         *string `json:"name"`
-	ImageData    *string `json:"imageData"`
-	Notes        *string `json:"notes"`
-	PrescribedAt *string `json:"prescribedAt"`
+	PrescriptionName *string `json:"prescriptionName"`
+	PrescribedBy     *string `json:"prescribedBy"`
+	PrescribedAt     *string `json:"prescribedAt"`
+	ExpiresAt        *string `json:"expiresAt"`
+	PharmacyName     *string `json:"pharmacyName"`
+	Notes            *string `json:"notes"`
 }
 
 func (h *PrescriptionHandler) Update(c *gin.Context) {
@@ -82,10 +93,12 @@ func (h *PrescriptionHandler) Update(c *gin.Context) {
 		return
 	}
 	v, err := h.uc.Update(c.Request.Context(), userID, c.Param("prescriptionId"), repository.UpdatePrescriptionInput{
-		Name:         req.Name,
-		ImageData:    req.ImageData,
-		Notes:        req.Notes,
-		PrescribedAt: parseDate(req.PrescribedAt),
+		PrescriptionName: req.PrescriptionName,
+		PrescribedBy:     req.PrescribedBy,
+		PrescribedAt:     parseDate(req.PrescribedAt),
+		ExpiresAt:        parseDate(req.ExpiresAt),
+		PharmacyName:     req.PharmacyName,
+		Notes:            req.Notes,
 	})
 	if err != nil {
 		response.HandleDomainError(c, err)

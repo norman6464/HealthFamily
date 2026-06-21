@@ -11,7 +11,7 @@ import (
 	"healthfamily/internal/pkg/auth"
 )
 
-// PrescriptionRepository は prescriptions テーブルの生SQL実装
+// PrescriptionRepository は "Prescription" テーブルの生SQL実装
 type PrescriptionRepository struct {
 	db *database.DB
 }
@@ -20,11 +20,11 @@ func NewPrescriptionRepository(db *database.DB) *PrescriptionRepository {
 	return &PrescriptionRepository{db: db}
 }
 
-const prescriptionColumns = `id, user_id, member_id, name, image_data, notes, prescribed_at, created_at`
+const prescriptionColumns = `"id", "userId", "memberId", "prescriptionName", "prescribedBy", "prescribedAt", "expiresAt", "pharmacyName", "notes", "createdAt"`
 
 func scanPrescription(row pgx.Row) (*entity.Prescription, error) {
 	var p entity.Prescription
-	err := row.Scan(&p.ID, &p.UserID, &p.MemberID, &p.Name, &p.ImageData, &p.Notes, &p.PrescribedAt, &p.CreatedAt)
+	err := row.Scan(&p.ID, &p.UserID, &p.MemberID, &p.PrescriptionName, &p.PrescribedBy, &p.PrescribedAt, &p.ExpiresAt, &p.PharmacyName, &p.Notes, &p.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
@@ -36,7 +36,7 @@ func scanPrescription(row pgx.Row) (*entity.Prescription, error) {
 
 func (r *PrescriptionRepository) List(ctx context.Context, userID string) ([]entity.Prescription, error) {
 	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+prescriptionColumns+` FROM prescriptions WHERE user_id=$1 ORDER BY created_at DESC`, userID)
+		`SELECT `+prescriptionColumns+` FROM "Prescription" WHERE "userId"=$1 ORDER BY "createdAt" DESC`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (r *PrescriptionRepository) List(ctx context.Context, userID string) ([]ent
 	list := make([]entity.Prescription, 0)
 	for rows.Next() {
 		var p entity.Prescription
-		if err := rows.Scan(&p.ID, &p.UserID, &p.MemberID, &p.Name, &p.ImageData, &p.Notes, &p.PrescribedAt, &p.CreatedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.UserID, &p.MemberID, &p.PrescriptionName, &p.PrescribedBy, &p.PrescribedAt, &p.ExpiresAt, &p.PharmacyName, &p.Notes, &p.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, p)
@@ -53,34 +53,36 @@ func (r *PrescriptionRepository) List(ctx context.Context, userID string) ([]ent
 }
 
 func (r *PrescriptionRepository) FindByID(ctx context.Context, id string) (*entity.Prescription, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+prescriptionColumns+` FROM prescriptions WHERE id=$1`, id)
+	row := r.db.Pool.QueryRow(ctx, `SELECT `+prescriptionColumns+` FROM "Prescription" WHERE "id"=$1`, id)
 	return scanPrescription(row)
 }
 
 func (r *PrescriptionRepository) Create(ctx context.Context, in repository.CreatePrescriptionInput) (*entity.Prescription, error) {
 	id := auth.NewID()
 	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO prescriptions (id, user_id, member_id, name, image_data, notes, prescribed_at, created_at)
-		 VALUES ($1,$2,$3,$4,$5,$6,$7, now())
+		`INSERT INTO "Prescription" ("id", "userId", "memberId", "prescriptionName", "prescribedBy", "prescribedAt", "expiresAt", "pharmacyName", "notes", "createdAt")
+		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now())
 		 RETURNING `+prescriptionColumns,
-		id, in.UserID, in.MemberID, in.Name, in.ImageData, in.Notes, in.PrescribedAt)
+		id, in.UserID, in.MemberID, in.PrescriptionName, in.PrescribedBy, in.PrescribedAt, in.ExpiresAt, in.PharmacyName, in.Notes)
 	return scanPrescription(row)
 }
 
 func (r *PrescriptionRepository) Update(ctx context.Context, id string, in repository.UpdatePrescriptionInput) (*entity.Prescription, error) {
 	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE prescriptions SET
-			name = COALESCE($2, name),
-			image_data = COALESCE($3, image_data),
-			notes = COALESCE($4, notes),
-			prescribed_at = COALESCE($5, prescribed_at)
-		 WHERE id=$1
+		`UPDATE "Prescription" SET
+			"prescriptionName" = COALESCE($2, "prescriptionName"),
+			"prescribedBy" = COALESCE($3, "prescribedBy"),
+			"prescribedAt" = COALESCE($4, "prescribedAt"),
+			"expiresAt" = COALESCE($5, "expiresAt"),
+			"pharmacyName" = COALESCE($6, "pharmacyName"),
+			"notes" = COALESCE($7, "notes")
+		 WHERE "id"=$1
 		 RETURNING `+prescriptionColumns,
-		id, in.Name, in.ImageData, in.Notes, in.PrescribedAt)
+		id, in.PrescriptionName, in.PrescribedBy, in.PrescribedAt, in.ExpiresAt, in.PharmacyName, in.Notes)
 	return scanPrescription(row)
 }
 
 func (r *PrescriptionRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM prescriptions WHERE id=$1`, id)
+	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Prescription" WHERE "id"=$1`, id)
 	return err
 }
