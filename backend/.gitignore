@@ -1,0 +1,10 @@
+# コンパイル済みバイナリ
+app
+/app
+*.exe
+
+# 環境変数
+.env
+.env.local
+
+.DS_Store

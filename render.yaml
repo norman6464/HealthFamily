@@ -1,0 +1,55 @@
+# Render Blueprint: Go/Gin バックエンド + React Router(SPA) フロントエンド + PostgreSQL
+# 使い方:
+#   1) このファイルを main に push
+#   2) Render ダッシュボード「New > Blueprint」または `render blueprint launch` で取り込む
+#   3) sync:false の環境変数（ALLOWED_ORIGINS / VITE_API_URL / RESEND_API_KEY）をデプロイ後に設定
+
+databases:
+  - name: healthfamily-db
+    databaseName: healthfamily
+    region: singapore
+    plan: free
+
+services:
+  # ---------- バックエンド (Go / Gin / 生SQL) ----------
+  - type: web
+    name: healthfamily-api
+    runtime: go
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: go build -tags netgo -ldflags '-s -w' -o app ./cmd/server
+    startCommand: ./app
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: healthfamily-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MIGRATIONS_DIR
+        value: migrations
+      - key: MAIL_FROM
+        value: HealthFamily <onboarding@resend.dev>
+      - key: ALLOWED_ORIGINS
+        sync: false # 例: https://healthfamily-web.onrender.com
+      - key: RESEND_API_KEY
+        sync: false # 任意（未設定ならメール送信はスキップ）
+
+  # ---------- フロントエンド (React Router SPA / 静的サイト) ----------
+  - type: web
+    name: healthfamily-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: build/client
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        sync: false # 例: https://healthfamily-api.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
