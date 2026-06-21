@@ -131,23 +131,29 @@ type EmergencyContact struct {
 
 // Prescription は処方箋
 type Prescription struct {
-	ID           string     `json:"id"`
-	UserID       string     `json:"userId"`
-	MemberID     string     `json:"memberId"`
-	Name         string     `json:"name"`
-	ImageData    *string    `json:"imageData"`
-	Notes        *string    `json:"notes"`
-	PrescribedAt *time.Time `json:"prescribedAt"`
-	CreatedAt    time.Time  `json:"createdAt"`
+	ID               string     `json:"id"`
+	UserID           string     `json:"userId"`
+	MemberID         string     `json:"memberId"`
+	PrescriptionName string     `json:"prescriptionName"`
+	PrescribedBy     *string    `json:"prescribedBy"`
+	PrescribedAt     time.Time  `json:"prescribedAt"`
+	ExpiresAt        *time.Time `json:"expiresAt"`
+	PharmacyName     *string    `json:"pharmacyName"`
+	Notes            *string    `json:"notes"`
+	CreatedAt        time.Time  `json:"createdAt"`
 }
 
 // NotificationSetting は通知設定（user スコープ・UNIQUE）
 type NotificationSetting struct {
-	ID              string    `json:"id"`
-	UserID          string    `json:"userId"`
-	PushEnabled     bool      `json:"pushEnabled"`
-	EmailEnabled    bool      `json:"emailEnabled"`
-	ReminderEnabled bool      `json:"reminderEnabled"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
+	ID                                   string    `json:"id"`
+	UserID                               string    `json:"userId"`
+	MedicationReminderEnabled            bool      `json:"medicationReminderEnabled"`
+	MissedMedicationEnabled              bool      `json:"missedMedicationEnabled"`
+	AppointmentReminderEnabled           bool      `json:"appointmentReminderEnabled"`
+	LowStockAlertEnabled                 bool      `json:"lowStockAlertEnabled"`
+	DefaultReminderMinutesBefore         int       `json:"defaultReminderMinutesBefore"`
+	DefaultAppointmentReminderDaysBefore int       `json:"defaultAppointmentReminderDaysBefore"`
+	EmailNotificationEnabled             bool      `json:"emailNotificationEnabled"`
+	CreatedAt                            time.Time `json:"createdAt"`
+	UpdatedAt                            time.Time `json:"updatedAt"`
 }

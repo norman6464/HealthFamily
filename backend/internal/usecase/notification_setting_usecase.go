@@ -24,10 +24,14 @@ func (uc *NotificationSettingUsecase) Get(ctx context.Context, userID string) (*
 	}
 	if s == nil {
 		return &entity.NotificationSetting{
-			UserID:          userID,
-			PushEnabled:     false,
-			EmailEnabled:    false,
-			ReminderEnabled: true,
+			UserID:                               userID,
+			MedicationReminderEnabled:            true,
+			MissedMedicationEnabled:              true,
+			AppointmentReminderEnabled:           true,
+			LowStockAlertEnabled:                 true,
+			DefaultReminderMinutesBefore:         5,
+			DefaultAppointmentReminderDaysBefore: 1,
+			EmailNotificationEnabled:             true,
 		}, nil
 	}
 	return s, nil

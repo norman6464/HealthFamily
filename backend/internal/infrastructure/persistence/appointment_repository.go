@@ -11,7 +11,7 @@ import (
 	"healthfamily/internal/pkg/auth"
 )
 
-// AppointmentRepository は appointments テーブルの生SQL実装
+// AppointmentRepository は "Appointment" テーブルの生SQL実装
 type AppointmentRepository struct {
 	db *database.DB
 }
@@ -20,7 +20,7 @@ func NewAppointmentRepository(db *database.DB) *AppointmentRepository {
 	return &AppointmentRepository{db: db}
 }
 
-const appointmentColumns = `id, user_id, member_id, hospital_id, appointment_type, appointment_date, description, test_results, cost, reminder_enabled, reminder_days_before, created_at`
+const appointmentColumns = `"id", "userId", "memberId", "hospitalId", "appointmentType", "appointmentDate", "description", "testResults", "cost", "reminderEnabled", "reminderDaysBefore", "createdAt"`
 
 func scanAppointment(row pgx.Row) (*entity.Appointment, error) {
 	var a entity.Appointment
@@ -37,7 +37,7 @@ func scanAppointment(row pgx.Row) (*entity.Appointment, error) {
 
 func (r *AppointmentRepository) List(ctx context.Context, userID string) ([]entity.Appointment, error) {
 	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+appointmentColumns+` FROM appointments WHERE user_id=$1 ORDER BY appointment_date DESC`, userID)
+		`SELECT `+appointmentColumns+` FROM "Appointment" WHERE "userId"=$1 ORDER BY "appointmentDate" DESC`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,14 +55,14 @@ func (r *AppointmentRepository) List(ctx context.Context, userID string) ([]enti
 }
 
 func (r *AppointmentRepository) FindByID(ctx context.Context, id string) (*entity.Appointment, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+appointmentColumns+` FROM appointments WHERE id=$1`, id)
+	row := r.db.Pool.QueryRow(ctx, `SELECT `+appointmentColumns+` FROM "Appointment" WHERE "id"=$1`, id)
 	return scanAppointment(row)
 }
 
 func (r *AppointmentRepository) Create(ctx context.Context, in repository.CreateAppointmentInput) (*entity.Appointment, error) {
 	id := auth.NewID()
 	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO appointments (id, user_id, member_id, hospital_id, appointment_type, appointment_date, description, test_results, cost, reminder_enabled, reminder_days_before, created_at)
+		`INSERT INTO "Appointment" ("id", "userId", "memberId", "hospitalId", "appointmentType", "appointmentDate", "description", "testResults", "cost", "reminderEnabled", "reminderDaysBefore", "createdAt")
 		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, COALESCE($10, TRUE), COALESCE($11, 1), now())
 		 RETURNING `+appointmentColumns,
 		id, in.UserID, in.MemberID, in.HospitalID, in.AppointmentType, in.AppointmentDate, in.Description,
@@ -72,16 +72,16 @@ func (r *AppointmentRepository) Create(ctx context.Context, in repository.Create
 
 func (r *AppointmentRepository) Update(ctx context.Context, id string, in repository.UpdateAppointmentInput) (*entity.Appointment, error) {
 	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE appointments SET
-			hospital_id = COALESCE($2, hospital_id),
-			appointment_type = COALESCE($3, appointment_type),
-			appointment_date = COALESCE($4, appointment_date),
-			description = COALESCE($5, description),
-			test_results = COALESCE($6, test_results),
-			cost = COALESCE($7, cost),
-			reminder_enabled = COALESCE($8, reminder_enabled),
-			reminder_days_before = COALESCE($9, reminder_days_before)
-		 WHERE id=$1
+		`UPDATE "Appointment" SET
+			"hospitalId" = COALESCE($2, "hospitalId"),
+			"appointmentType" = COALESCE($3, "appointmentType"),
+			"appointmentDate" = COALESCE($4, "appointmentDate"),
+			"description" = COALESCE($5, "description"),
+			"testResults" = COALESCE($6, "testResults"),
+			"cost" = COALESCE($7, "cost"),
+			"reminderEnabled" = COALESCE($8, "reminderEnabled"),
+			"reminderDaysBefore" = COALESCE($9, "reminderDaysBefore")
+		 WHERE "id"=$1
 		 RETURNING `+appointmentColumns,
 		id, in.HospitalID, in.AppointmentType, in.AppointmentDate, in.Description, in.TestResults,
 		in.Cost, in.ReminderEnabled, in.ReminderDaysBefore)
@@ -89,6 +89,6 @@ func (r *AppointmentRepository) Update(ctx context.Context, id string, in reposi
 }
 
 func (r *AppointmentRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM appointments WHERE id=$1`, id)
+	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Appointment" WHERE "id"=$1`, id)
 	return err
 }
