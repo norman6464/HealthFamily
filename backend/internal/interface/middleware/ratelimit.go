@@ -16,10 +16,10 @@ type rateEntry struct {
 }
 
 type rateLimiter struct {
-	mu      sync.Mutex
-	store   map[string]*rateEntry
-	max     int
-	window  time.Duration
+	mu     sync.Mutex
+	store  map[string]*rateEntry
+	max    int
+	window time.Duration
 }
 
 var limiters sync.Map // name -> *rateLimiter

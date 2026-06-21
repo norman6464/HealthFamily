@@ -28,9 +28,13 @@ func (h *NotificationSettingHandler) Get(c *gin.Context) {
 }
 
 type upsertNotificationSettingRequest struct {
-	PushEnabled     *bool `json:"pushEnabled"`
-	EmailEnabled    *bool `json:"emailEnabled"`
-	ReminderEnabled *bool `json:"reminderEnabled"`
+	MedicationReminderEnabled            *bool `json:"medicationReminderEnabled"`
+	MissedMedicationEnabled              *bool `json:"missedMedicationEnabled"`
+	AppointmentReminderEnabled           *bool `json:"appointmentReminderEnabled"`
+	LowStockAlertEnabled                 *bool `json:"lowStockAlertEnabled"`
+	DefaultReminderMinutesBefore         *int  `json:"defaultReminderMinutesBefore"`
+	DefaultAppointmentReminderDaysBefore *int  `json:"defaultAppointmentReminderDaysBefore"`
+	EmailNotificationEnabled             *bool `json:"emailNotificationEnabled"`
 }
 
 func (h *NotificationSettingHandler) Upsert(c *gin.Context) {
@@ -41,10 +45,14 @@ func (h *NotificationSettingHandler) Upsert(c *gin.Context) {
 		return
 	}
 	v, err := h.uc.Upsert(c.Request.Context(), repository.UpsertNotificationSettingInput{
-		UserID:          userID,
-		PushEnabled:     req.PushEnabled,
-		EmailEnabled:    req.EmailEnabled,
-		ReminderEnabled: req.ReminderEnabled,
+		UserID:                               userID,
+		MedicationReminderEnabled:            req.MedicationReminderEnabled,
+		MissedMedicationEnabled:              req.MissedMedicationEnabled,
+		AppointmentReminderEnabled:           req.AppointmentReminderEnabled,
+		LowStockAlertEnabled:                 req.LowStockAlertEnabled,
+		DefaultReminderMinutesBefore:         req.DefaultReminderMinutesBefore,
+		DefaultAppointmentReminderDaysBefore: req.DefaultAppointmentReminderDaysBefore,
+		EmailNotificationEnabled:             req.EmailNotificationEnabled,
 	})
 	if err != nil {
 		response.HandleDomainError(c, err)

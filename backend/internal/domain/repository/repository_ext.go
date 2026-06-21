@@ -288,19 +288,23 @@ type EmergencyContactRepository interface {
 // ---- Prescription ----
 
 type CreatePrescriptionInput struct {
-	UserID       string
-	MemberID     string
-	Name         string
-	ImageData    *string
-	Notes        *string
-	PrescribedAt *time.Time
+	UserID           string
+	MemberID         string
+	PrescriptionName string
+	PrescribedBy     *string
+	PrescribedAt     time.Time
+	ExpiresAt        *time.Time
+	PharmacyName     *string
+	Notes            *string
 }
 
 type UpdatePrescriptionInput struct {
-	Name         *string
-	ImageData    *string
-	Notes        *string
-	PrescribedAt *time.Time
+	PrescriptionName *string
+	PrescribedBy     *string
+	PrescribedAt     *time.Time
+	ExpiresAt        *time.Time
+	PharmacyName     *string
+	Notes            *string
 }
 
 type PrescriptionRepository interface {
@@ -314,10 +318,14 @@ type PrescriptionRepository interface {
 // ---- NotificationSetting ----
 
 type UpsertNotificationSettingInput struct {
-	UserID          string
-	PushEnabled     *bool
-	EmailEnabled    *bool
-	ReminderEnabled *bool
+	UserID                               string
+	MedicationReminderEnabled            *bool
+	MissedMedicationEnabled              *bool
+	AppointmentReminderEnabled           *bool
+	LowStockAlertEnabled                 *bool
+	DefaultReminderMinutesBefore         *int
+	DefaultAppointmentReminderDaysBefore *int
+	EmailNotificationEnabled             *bool
 }
 
 type NotificationSettingRepository interface {
