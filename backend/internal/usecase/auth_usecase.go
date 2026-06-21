@@ -1,0 +1,171 @@
+package usecase
+
+import (
+	"context"
+	"strings"
+	"time"
+
+	"healthfamily/internal/domain"
+	"healthfamily/internal/domain/entity"
+	"healthfamily/internal/domain/repository"
+	"healthfamily/internal/pkg/auth"
+	"healthfamily/internal/pkg/mailer"
+)
+
+// AuthUsecase は認証関連のビジネスロジック
+type AuthUsecase struct {
+	users  repository.UserRepository
+	tokens *auth.TokenManager
+	mail   mailer.Mailer
+	now    func() time.Time
+}
+
+func NewAuthUsecase(users repository.UserRepository, tokens *auth.TokenManager, mail mailer.Mailer) *AuthUsecase {
+	return &AuthUsecase{users: users, tokens: tokens, mail: mail, now: time.Now}
+}
+
+// SignUp は新規登録し、認証コードをメール送信する。
+// ユーザー列挙攻撃を防ぐため、既存の認証済みユーザーでも同じ結果を返す。
+func (uc *AuthUsecase) SignUp(ctx context.Context, email, password string, displayName *string) error {
+	email = strings.ToLower(strings.TrimSpace(email))
+	code := auth.NewVerificationCode()
+	expiry := uc.now().Add(10 * time.Minute)
+	hashed, err := auth.HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	existing, err := uc.users.FindByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	if existing != nil {
+		if existing.EmailVerified {
+			return nil // 列挙防止: 何もせず成功扱い
+		}
+		existing.Password = hashed
+		existing.DisplayName = displayName
+		existing.VerificationCode = &code
+		existing.VerificationExpiry = &expiry
+		if err := uc.users.Update(ctx, existing); err != nil {
+			return err
+		}
+		return uc.mail.SendVerificationCode(ctx, email, code)
+	}
+
+	u := &entity.User{
+		ID:                 auth.NewID(),
+		Email:              email,
+		Password:           hashed,
+		DisplayName:        displayName,
+		CharacterType:      "cat",
+		EmailVerified:      false,
+		VerificationCode:   &code,
+		VerificationExpiry: &expiry,
+	}
+	if err := uc.users.Create(ctx, u); err != nil {
+		return err
+	}
+	return uc.mail.SendVerificationCode(ctx, email, code)
+}
+
+// Verify は認証コードを検証しメールアドレスを有効化する
+func (uc *AuthUsecase) Verify(ctx context.Context, email, code string) (string, *entity.User, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	u, err := uc.users.FindByEmail(ctx, email)
+	if err != nil {
+		return "", nil, err
+	}
+	if u == nil {
+		return "", nil, domain.NewValidation("認証コードが正しくありません")
+	}
+	if u.EmailVerified {
+		token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+		return token, u, err
+	}
+	if u.VerificationCode == nil || u.VerificationExpiry == nil ||
+		*u.VerificationCode != code || uc.now().After(*u.VerificationExpiry) {
+		return "", nil, domain.NewValidation("認証コードが正しくないか、有効期限が切れています")
+	}
+
+	u.EmailVerified = true
+	u.VerificationCode = nil
+	u.VerificationExpiry = nil
+	if err := uc.users.Update(ctx, u); err != nil {
+		return "", nil, err
+	}
+	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	return token, u, err
+}
+
+// Login はメール・パスワードを検証しJWTを発行する
+func (uc *AuthUsecase) Login(ctx context.Context, email, password string) (string, *entity.User, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	u, err := uc.users.FindByEmail(ctx, email)
+	if err != nil {
+		return "", nil, err
+	}
+	if u == nil || !auth.VerifyPassword(u.Password, password) {
+		return "", nil, domain.NewValidation("メールアドレスまたはパスワードが正しくありません")
+	}
+	if !u.EmailVerified {
+		return "", nil, domain.NewForbidden("メールアドレスが認証されていません")
+	}
+	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	return token, u, err
+}
+
+// ResendCode は認証コードを再送する
+func (uc *AuthUsecase) ResendCode(ctx context.Context, email string) error {
+	email = strings.ToLower(strings.TrimSpace(email))
+	u, err := uc.users.FindByEmail(ctx, email)
+	if err != nil || u == nil || u.EmailVerified {
+		return nil // 列挙防止
+	}
+	code := auth.NewVerificationCode()
+	expiry := uc.now().Add(10 * time.Minute)
+	u.VerificationCode = &code
+	u.VerificationExpiry = &expiry
+	if err := uc.users.Update(ctx, u); err != nil {
+		return err
+	}
+	return uc.mail.SendVerificationCode(ctx, email, code)
+}
+
+// ForgotPassword はパスワード再設定コードを送信する
+func (uc *AuthUsecase) ForgotPassword(ctx context.Context, email string) error {
+	email = strings.ToLower(strings.TrimSpace(email))
+	u, err := uc.users.FindByEmail(ctx, email)
+	if err != nil || u == nil {
+		return nil // 列挙防止
+	}
+	code := auth.NewVerificationCode()
+	expiry := uc.now().Add(10 * time.Minute)
+	u.ResetCode = &code
+	u.ResetCodeExpiry = &expiry
+	if err := uc.users.Update(ctx, u); err != nil {
+		return err
+	}
+	return uc.mail.SendResetCode(ctx, email, code)
+}
+
+// ResetPassword は再設定コードを検証し新パスワードを設定する
+func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPassword string) error {
+	email = strings.ToLower(strings.TrimSpace(email))
+	u, err := uc.users.FindByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	if u == nil || u.ResetCode == nil || u.ResetCodeExpiry == nil ||
+		*u.ResetCode != code || uc.now().After(*u.ResetCodeExpiry) {
+		return domain.NewValidation("再設定コードが正しくないか、有効期限が切れています")
+	}
+	hashed, err := auth.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	u.Password = hashed
+	u.ResetCode = nil
+	u.ResetCodeExpiry = nil
+	return uc.users.Update(ctx, u)
+}

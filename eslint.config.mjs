@@ -10,6 +10,8 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // リプレイス版（Goバックエンド/React Routerフロント/E2E）は各自のツールで検査する
+  { ignores: ['frontend/**', 'backend/**', 'e2e/**'] },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
     rules: {
