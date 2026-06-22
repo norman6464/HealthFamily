@@ -1,4 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { SlidersHorizontal } from "lucide-react";
+import { api } from "@/lib/api";
+import type { DashboardPreference } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { useDashboardData, useMarkRecord, type MissedDose } from "@/hooks/dashboard";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
@@ -8,8 +12,34 @@ import { TodayScheduleList } from "@/components/dashboard/TodayScheduleList";
 import { StockAlertList } from "@/components/dashboard/StockAlertList";
 import { AdherenceStatsCard } from "@/components/dashboard/AdherenceStatsCard";
 import { UpcomingAppointments } from "@/components/dashboard/UpcomingAppointments";
+import {
+  DashboardSettings,
+  ORDERABLE_CARD_KEYS,
+  type DashboardCardKey,
+} from "@/components/dashboard/DashboardSettings";
 import { MemberFilter } from "@/components/shared/MemberFilter";
 import { SectionTitle } from "@/components/shared/SectionTitle";
+
+const EMPTY_PREFERENCE: DashboardPreference = {
+  userId: "",
+  hiddenCards: [],
+  cardOrder: [],
+  defaultMemberId: null,
+};
+
+// 保存済み cardOrder を並び替え対象キーの確定順序に解決する。
+function resolveCardOrder(savedOrder: string[]): DashboardCardKey[] {
+  const orderable = new Set<DashboardCardKey>(ORDERABLE_CARD_KEYS);
+  const result: DashboardCardKey[] = [];
+  for (const key of savedOrder) {
+    const k = key as DashboardCardKey;
+    if (orderable.has(k) && !result.includes(k)) result.push(k);
+  }
+  for (const key of ORDERABLE_CARD_KEYS) {
+    if (!result.includes(key)) result.push(key);
+  }
+  return result;
+}
 
 function buildTakenAtISO(date: string, scheduledTime: string): string {
   return new Date(`${date}T${scheduledTime}:00+09:00`).toISOString();
@@ -35,6 +65,32 @@ export default function Home() {
 
   const markRecord = useMarkRecord();
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  // defaultMemberId の初期反映は一度だけ行い、以降のユーザー操作を上書きしない
+  const [defaultApplied, setDefaultApplied] = useState(false);
+
+  const { data: preference = EMPTY_PREFERENCE } = useQuery({
+    queryKey: ["dashboard-preferences"],
+    queryFn: () => api.get<DashboardPreference>("/dashboard-preferences"),
+    enabled: !!userId,
+  });
+
+  const hiddenCards = useMemo(
+    () => new Set(preference.hiddenCards),
+    [preference.hiddenCards],
+  );
+  const cardOrder = useMemo(
+    () => resolveCardOrder(preference.cardOrder),
+    [preference.cardOrder],
+  );
+
+  useEffect(() => {
+    if (defaultApplied) return;
+    if (preference.defaultMemberId) {
+      setSelectedMemberId(preference.defaultMemberId);
+    }
+    setDefaultApplied(true);
+  }, [preference.defaultMemberId, defaultApplied]);
 
   const handleMarkCompleted = useCallback(
     async (scheduleId: string, options?: { takenAt?: string; notes?: string }) => {
@@ -111,46 +167,86 @@ export default function Home() {
     [members],
   );
 
+  const bottomCards: Record<DashboardCardKey, ReactNode> = {
+    weeklySummary: <></>,
+    missedDoses: <></>,
+    todaySchedule: <></>,
+    stockAlerts: <StockAlertList alerts={stockAlerts} isLoading={stockLoading} />,
+    adherence: <AdherenceStatsCard stats={adherenceStats} isLoading={adherenceLoading} />,
+    upcomingAppointments: (
+      <UpcomingAppointments appointments={appointments} isLoading={appointmentsLoading} />
+    ),
+  };
+
   return (
     <div className="space-y-0">
+      <div className="mb-3 flex items-center justify-end">
+        <button
+          onClick={() => setShowSettings((v) => !v)}
+          className="flex items-center gap-1.5 rounded-xl bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 transition hover:bg-primary-100"
+          aria-expanded={showSettings}
+        >
+          <SlidersHorizontal size={16} />
+          表示設定
+        </button>
+      </div>
+
+      {showSettings && (
+        <div className="mb-4">
+          <DashboardSettings
+            preference={preference}
+            members={members}
+            onClose={() => setShowSettings(false)}
+          />
+        </div>
+      )}
+
       <GreetingCard
         displayName={user?.displayName ?? ""}
         weeklyRate={adherenceStats?.overall.weeklyRate}
       />
 
-      <WeeklySummaryCard schedules={todaySchedules} isLoading={todayLoading} />
+      {!hiddenCards.has("weeklySummary") && (
+        <WeeklySummaryCard schedules={todaySchedules} isLoading={todayLoading} />
+      )}
 
-      <MissedDosesAlert
-        missedDoses={missedDoses}
-        isLoading={missedLoading}
-        onMarkAsTaken={handleMarkMissedAsTaken}
-        onMarkMultipleAsTaken={handleMarkMultipleMissedAsTaken}
-      />
-
-      <SectionTitle accentColor="primary" size="lg">
-        今日の予定
-      </SectionTitle>
-      <div className="mb-4">
-        <MemberFilter
-          members={memberOptions}
-          selectedMemberId={selectedMemberId}
-          onSelect={setSelectedMemberId}
+      {!hiddenCards.has("missedDoses") && (
+        <MissedDosesAlert
+          missedDoses={missedDoses}
+          isLoading={missedLoading}
+          onMarkAsTaken={handleMarkMissedAsTaken}
+          onMarkMultipleAsTaken={handleMarkMultipleMissedAsTaken}
         />
-      </div>
-      <TodayScheduleList
-        schedules={filteredSchedules}
-        isLoading={todayLoading}
-        onMarkCompleted={handleMarkCompleted}
-        onMarkMultipleCompleted={handleMarkMultipleCompleted}
-        hasMembers={members.length > 0}
-      />
+      )}
+
+      {!hiddenCards.has("todaySchedule") && (
+        <>
+          <SectionTitle accentColor="primary" size="lg">
+            今日の予定
+          </SectionTitle>
+          <div className="mb-4">
+            <MemberFilter
+              members={memberOptions}
+              selectedMemberId={selectedMemberId}
+              onSelect={setSelectedMemberId}
+            />
+          </div>
+          <TodayScheduleList
+            schedules={filteredSchedules}
+            isLoading={todayLoading}
+            onMarkCompleted={handleMarkCompleted}
+            onMarkMultipleCompleted={handleMarkMultipleCompleted}
+            hasMembers={members.length > 0}
+          />
+        </>
+      )}
 
       <div className="mt-6 grid items-start gap-4 md:grid-cols-2">
-        <StockAlertList alerts={stockAlerts} isLoading={stockLoading} />
-
-        <AdherenceStatsCard stats={adherenceStats} isLoading={adherenceLoading} />
-
-        <UpcomingAppointments appointments={appointments} isLoading={appointmentsLoading} />
+        {cardOrder
+          .filter((key) => !hiddenCards.has(key))
+          .map((key) => (
+            <div key={key}>{bottomCards[key]}</div>
+          ))}
       </div>
     </div>
   );

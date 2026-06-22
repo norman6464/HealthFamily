@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { api } from "@/lib/api";
-import type { Member } from "@/lib/types";
+import type { Medication, Member } from "@/lib/types";
 import { CategoryFilter, type MedicationCategory } from "@/components/shared/CategoryFilter";
 import { MemberMedications } from "@/components/medications/MemberMedications";
+import { InteractionWarning } from "@/components/medications/InteractionWarning";
+import { checkInteractions } from "@/lib/interactions";
 
 export default function Medications() {
   const [selectedCategory, setSelectedCategory] = useState<MedicationCategory | null>(null);
@@ -14,13 +16,30 @@ export default function Medications() {
     queryFn: () => api.get<Member[]>("/members"),
   });
 
+  const { data: allMedications = [] } = useQuery({
+    queryKey: ["medications"],
+    queryFn: () => api.get<Medication[]>("/medications"),
+  });
+
   const hasMembers = useMemo(() => members.length > 0, [members]);
+
+  const interactionWarnings = useMemo(
+    () =>
+      checkInteractions(
+        allMedications.filter((m) => m.isActive).map((m) => ({ name: m.name })),
+      ),
+    [allMedications],
+  );
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-ink-800 tracking-wide">お薬</h1>
       </div>
+
+      {!isLoading && hasMembers && (
+        <InteractionWarning warnings={interactionWarnings} />
+      )}
 
       {!isLoading && hasMembers && (
         <CategoryFilter selectedCategory={selectedCategory} onSelect={setSelectedCategory} />

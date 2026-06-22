@@ -2,12 +2,14 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
+	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
-// BudgetHandler は月次予算エンドポイント
+// BudgetHandler は月次予算・カテゴリ別予算・予算超過アラートのエンドポイント
 type BudgetHandler struct {
 	uc *usecase.BudgetUsecase
 }
@@ -26,8 +28,15 @@ func (h *BudgetHandler) Get(c *gin.Context) {
 	response.Success(c, b)
 }
 
+type categoryBudgetReq struct {
+	Category      string `json:"category"`
+	MonthlyAmount int    `json:"monthlyAmount"`
+}
+
 type setBudgetRequest struct {
-	MonthlyAmount int `json:"monthlyAmount"`
+	MonthlyAmount int                 `json:"monthlyAmount"`
+	AlertEnabled  *bool               `json:"alertEnabled"`
+	Categories    []categoryBudgetReq `json:"categories"`
 }
 
 func (h *BudgetHandler) Set(c *gin.Context) {
@@ -37,10 +46,33 @@ func (h *BudgetHandler) Set(c *gin.Context) {
 		response.Error(c, 400, "入力内容が正しくありません")
 		return
 	}
-	b, err := h.uc.Set(c.Request.Context(), userID, req.MonthlyAmount)
+	alertEnabled := true
+	if req.AlertEnabled != nil {
+		alertEnabled = *req.AlertEnabled
+	}
+	cats := make([]entity.CategoryBudget, 0, len(req.Categories))
+	for _, c := range req.Categories {
+		cats = append(cats, entity.CategoryBudget{Category: c.Category, MonthlyAmount: c.MonthlyAmount})
+	}
+	b, err := h.uc.Set(c.Request.Context(), userID, repository.SetBudgetInput{
+		MonthlyAmount: req.MonthlyAmount,
+		AlertEnabled:  alertEnabled,
+		Categories:    cats,
+	})
 	if err != nil {
 		response.HandleDomainError(c, err)
 		return
 	}
 	response.Success(c, b)
+}
+
+// Alert は当月の予算超過を判定し、必要ならメール通知する。
+func (h *BudgetHandler) Alert(c *gin.Context) {
+	userID := middleware.UserID(c)
+	status, err := h.uc.CheckAlert(c.Request.Context(), userID)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Success(c, status)
 }

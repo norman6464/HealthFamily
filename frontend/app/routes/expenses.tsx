@@ -1,19 +1,38 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Plus, X } from "lucide-react";
+import { AlertTriangle, Download, Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Budget, Expense, ExpenseSummary, Member } from "@/lib/types";
+import type {
+  Budget,
+  BudgetAlertStatus,
+  Expense,
+  ExpenseSummary,
+  Member,
+} from "@/lib/types";
 import { SectionTitle } from "@/components/shared/SectionTitle";
 import { MemberFilter } from "@/components/shared/MemberFilter";
-import { ExpenseForm, type ExpenseFormData } from "@/components/expenses/ExpenseForm";
+import {
+  ExpenseForm,
+  EXPENSE_CATEGORIES,
+  type ExpenseFormData,
+} from "@/components/expenses/ExpenseForm";
 import {
   ExpenseList,
   type UpdateExpenseInput,
 } from "@/components/expenses/ExpenseList";
 import { ExpenseSummaryCard } from "@/components/expenses/ExpenseSummaryCard";
-import { BudgetCard } from "@/components/expenses/BudgetCard";
+import {
+  BudgetCard,
+  type BudgetSavePayload,
+} from "@/components/expenses/BudgetCard";
 
 const YEAR_OPTIONS_COUNT = 5;
+
+const currency = new Intl.NumberFormat("ja-JP", {
+  style: "currency",
+  currency: "JPY",
+  maximumFractionDigits: 0,
+});
 
 export default function Expenses() {
   const qc = useQueryClient();
@@ -53,9 +72,18 @@ export default function Expenses() {
   });
 
   const saveBudgetMutation = useMutation({
-    mutationFn: (monthlyAmount: number) =>
-      api.put<Budget>("/budget", { monthlyAmount }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["budget"] }),
+    mutationFn: (payload: BudgetSavePayload) =>
+      api.put<Budget>("/budget", payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["budget"] });
+      qc.invalidateQueries({ queryKey: ["budget", "alert"] });
+    },
+  });
+
+  // ページ表示時に予算超過を判定（メールアラート連動）
+  const { data: alertStatus } = useQuery({
+    queryKey: ["budget", "alert"],
+    queryFn: () => api.post<BudgetAlertStatus>("/budget/alert"),
   });
 
   const invalidateAll = () => {
@@ -133,11 +161,39 @@ export default function Expenses() {
     URL.revokeObjectURL(url);
   };
 
+  const categoryLabel = (value: string): string =>
+    EXPENSE_CATEGORIES.find((c) => c.value === value)?.label ?? value;
+
   return (
     <div className="space-y-5">
       <SectionTitle accentColor="primary" size="lg">
         医療費・家計
       </SectionTitle>
+
+      {alertStatus?.overBudget && (
+        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
+          <AlertTriangle size={20} className="mt-0.5 shrink-0 text-red-500" />
+          <div className="space-y-1">
+            <p className="text-sm font-bold">今月の医療費が予算を超えています</p>
+            <p className="text-xs text-red-600">
+              今月の支出 {currency.format(alertStatus.monthTotal)} / 予算{" "}
+              {currency.format(alertStatus.monthlyAmount)}
+            </p>
+            {alertStatus.overCategories.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {alertStatus.overCategories.map((cat) => (
+                  <span
+                    key={cat}
+                    className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700"
+                  >
+                    {categoryLabel(cat)}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <label htmlFor="expense-year" className="text-sm font-medium text-ink-600">
@@ -172,7 +228,7 @@ export default function Expenses() {
         budget={budget}
         summary={summary}
         isLoading={budgetLoading}
-        onSave={(amount) => saveBudgetMutation.mutate(amount)}
+        onSave={(payload) => saveBudgetMutation.mutate(payload)}
       />
 
       <MemberFilter

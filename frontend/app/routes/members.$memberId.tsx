@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router";
-import { Pill, Plus, X, ChevronLeft } from "lucide-react";
+import { Pill, Plus, X, ChevronLeft, FileText } from "lucide-react";
 import { api } from "@/lib/api";
 import type {
   Member,
@@ -119,13 +119,22 @@ export default function MemberDetail() {
               <p className="text-sm text-ink-500">{typeLabel}</p>
             </div>
           </div>
-          <Link
-            to={`/members/${member.id}/medications`}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-dark transition-colors"
-          >
-            <Pill size={16} />
-            <span>お薬管理</span>
-          </Link>
+          <div className="flex items-center space-x-2">
+            <Link
+              to={`/members/${member.id}/report`}
+              className="flex items-center space-x-1 px-3 py-1.5 bg-primary-50 text-primary text-sm rounded-xl hover:bg-primary-100 transition-colors"
+            >
+              <FileText size={16} />
+              <span>医師共有用サマリー</span>
+            </Link>
+            <Link
+              to={`/members/${member.id}/medications`}
+              className="flex items-center space-x-1 px-3 py-1.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-dark transition-colors"
+            >
+              <Pill size={16} />
+              <span>お薬管理</span>
+            </Link>
+          </div>
         </div>
       </div>
 
