@@ -21,6 +21,7 @@ type Handlers struct {
 	Record     *handler.RecordHandler
 	Expense    *handler.ExpenseHandler
 	Budget     *handler.BudgetHandler
+	Dashboard  *handler.DashboardPreferenceHandler
 }
 
 // Setup はGinエンジンを構築する
@@ -97,9 +98,14 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 		authed.PATCH("/expenses/:expenseId", h.Expense.Update)
 		authed.DELETE("/expenses/:expenseId", h.Expense.Delete)
 
-		// 月次予算（パーソナライズ）
+		// 月次予算（カテゴリ別・アラート含むパーソナライズ）
 		authed.GET("/budget", h.Budget.Get)
 		authed.PUT("/budget", h.Budget.Set)
+		authed.POST("/budget/alert", h.Budget.Alert)
+
+		// ダッシュボードのパーソナライズ設定
+		authed.GET("/dashboard-preferences", h.Dashboard.Get)
+		authed.PUT("/dashboard-preferences", h.Dashboard.Set)
 
 		// 残りリソース（病院・予約・健康ログ・予防接種・検査・保険・アレルギー・
 		// 身体測定・体温・緊急連絡先・処方箋・通知設定・ユーザープロフィール）

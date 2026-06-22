@@ -51,6 +51,7 @@ func main() {
 	recordRepo := persistence.NewMedicationRecordRepository(db)
 	expenseRepo := persistence.NewExpenseRepository(db)
 	budgetRepo := persistence.NewBudgetRepository(db)
+	dashboardPrefRepo := persistence.NewDashboardPreferenceRepository(db)
 
 	handlers := &router.Handlers{
 		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(userRepo, tm, mail)),
@@ -59,7 +60,8 @@ func main() {
 		Schedule:   handler.NewScheduleHandler(usecase.NewScheduleUsecase(schedRepo, medRepo)),
 		Record:     handler.NewRecordHandler(usecase.NewRecordUsecase(recordRepo, medRepo, memberRepo)),
 		Expense:    handler.NewExpenseHandler(usecase.NewExpenseUsecase(expenseRepo, memberRepo)),
-		Budget:     handler.NewBudgetHandler(usecase.NewBudgetUsecase(budgetRepo)),
+		Budget:     handler.NewBudgetHandler(usecase.NewBudgetUsecase(budgetRepo, expenseRepo, userRepo, mail)),
+		Dashboard:  handler.NewDashboardPreferenceHandler(usecase.NewDashboardPreferenceUsecase(dashboardPrefRepo)),
 	}
 
 	engine := router.Setup(handlers, tm, db, cfg.AllowedOrigins)

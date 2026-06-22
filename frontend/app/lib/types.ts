@@ -34,13 +34,39 @@ export interface MonthlyTotal {
   total: number;
 }
 
+// カテゴリ別の月次予算
+export interface CategoryBudget {
+  category: string;
+  monthlyAmount: number;
+}
+
 // 医療費の月次予算（ユーザー単位のパーソナライズ）
 export interface Budget {
   id: string;
   userId: string;
   monthlyAmount: number;
+  alertEnabled: boolean;
+  lastAlertedMonth: string | null;
+  categories: CategoryBudget[];
   createdAt: string;
   updatedAt: string;
+}
+
+// 予算超過判定の結果
+export interface BudgetAlertStatus {
+  overBudget: boolean;
+  monthTotal: number;
+  monthlyAmount: number;
+  overCategories: string[];
+  emailSent: boolean;
+}
+
+// ダッシュボードのパーソナライズ設定
+export interface DashboardPreference {
+  userId: string;
+  hiddenCards: string[];
+  cardOrder: string[];
+  defaultMemberId: string | null;
 }
 
 export interface ExpenseSummary {

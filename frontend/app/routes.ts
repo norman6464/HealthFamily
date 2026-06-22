@@ -8,6 +8,9 @@ export default [
   route("forgot-password", "routes/forgot-password.tsx"),
   route("reset-password", "routes/reset-password.tsx"),
 
+  // 医師共有用の印刷最適化レポート（サイドバー等を出さない独立ページ）
+  route("members/:memberId/report", "routes/members.$memberId.report.tsx"),
+
   // 認証済みレイアウト配下
   layout("routes/_authed.tsx", [
     index("routes/home.tsx"),
