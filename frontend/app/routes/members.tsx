@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Appointment, Medication, Member } from "@/lib/types";
+import type { Appointment, Member, MemberWithCounts } from "@/lib/types";
 import { MemberList } from "@/components/members/MemberList";
 import { MemberForm, type MemberFormData } from "@/components/members/MemberForm";
 import type { MemberSummary } from "@/components/members/MemberSummaryCard";
@@ -28,14 +28,10 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
 
+  // サーバ集計の /members/summary を使用（全medications取得＋クライアント集計のN+1を解消）
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["members"],
-    queryFn: () => api.get<Member[]>("/members"),
-  });
-
-  const { data: medications = [] } = useQuery({
-    queryKey: ["medications"],
-    queryFn: () => api.get<Medication[]>("/medications"),
+    queryFn: () => api.get<MemberWithCounts[]>("/members/summary"),
   });
 
   const { data: appointments = [] } = useQuery({
@@ -43,13 +39,11 @@ export default function Members() {
     queryFn: () => api.get<Appointment[]>("/appointments"),
   });
 
-  // /members/summary が無いためクライアント側で集計する
+  // サーバ集計(activeMedicationCount)＋直近予約をビューモデルに合成する
   const summaries = useMemo<MemberSummary[]>(() => {
     const now = new Date();
     return members.map((member) => {
-      const medicationCount = medications.filter(
-        (med) => med.memberId === member.id && med.isActive,
-      ).length;
+      const medicationCount = member.activeMedicationCount;
       const upcoming = appointments
         .filter(
           (a) => a.memberId === member.id && new Date(a.appointmentDate).getTime() >= now.getTime(),
@@ -66,7 +60,7 @@ export default function Members() {
         nextAppointmentDate: upcoming[0]?.appointmentDate ?? null,
       };
     });
-  }, [members, medications, appointments]);
+  }, [members, appointments]);
 
   const createMutation = useMutation({
     mutationFn: (body: CreateMemberBody) => api.post<Member>("/members", body),

@@ -27,6 +27,16 @@ func (h *MemberHandler) List(c *gin.Context) {
 	response.Success(c, members)
 }
 
+func (h *MemberHandler) Summary(c *gin.Context) {
+	userID := middleware.UserID(c)
+	list, err := h.uc.ListSummary(c.Request.Context(), userID)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Success(c, list)
+}
+
 func (h *MemberHandler) Get(c *gin.Context) {
 	userID := middleware.UserID(c)
 	m, err := h.uc.Get(c.Request.Context(), userID, c.Param("memberId"))

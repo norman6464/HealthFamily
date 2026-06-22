@@ -36,6 +36,7 @@ type UpdateMemberInput struct {
 // MemberRepository はメンバー永続化の抽象
 type MemberRepository interface {
 	List(ctx context.Context, userID string) ([]entity.Member, error)
+	ListSummary(ctx context.Context, userID string) ([]entity.MemberSummary, error)
 	FindByID(ctx context.Context, id string) (*entity.Member, error)
 	Create(ctx context.Context, in CreateMemberInput) (*entity.Member, error)
 	Update(ctx context.Context, id string, in UpdateMemberInput) (*entity.Member, error)
@@ -73,6 +74,7 @@ type MedicationRepository interface {
 	ListByMember(ctx context.Context, memberID string) ([]entity.Medication, error)
 	ListByUser(ctx context.Context, userID string) ([]entity.Medication, error)
 	FindByID(ctx context.Context, id string) (*entity.Medication, error)
+	ListAlerts(ctx context.Context, userID string) ([]entity.Medication, error)
 	Create(ctx context.Context, in CreateMedicationInput) (*entity.Medication, error)
 	Update(ctx context.Context, id string, in UpdateMedicationInput) (*entity.Medication, error)
 	UpdateStock(ctx context.Context, id string, quantity int) (*entity.Medication, error)
@@ -124,9 +126,18 @@ type CreateRecordInput struct {
 	TakenAt      *time.Time
 }
 
+// RecordFilter は服薬記録の絞り込み条件（任意。ゼロ値は無指定）
+type RecordFilter struct {
+	MemberID string     // 空なら全メンバー
+	From     *time.Time // takenAt >= From
+	To       *time.Time // takenAt <  To
+	Limit    int        // 0なら無制限
+}
+
 // MedicationRecordRepository は服薬記録永続化の抽象
 type MedicationRecordRepository interface {
 	ListByUser(ctx context.Context, userID string) ([]entity.MedicationRecord, error)
+	ListByUserFiltered(ctx context.Context, userID string, f RecordFilter) ([]entity.MedicationRecord, error)
 	ListByMember(ctx context.Context, memberID string) ([]entity.MedicationRecord, error)
 	FindByID(ctx context.Context, id string) (*entity.MedicationRecord, error)
 	Create(ctx context.Context, in CreateRecordInput) (*entity.MedicationRecord, error)

@@ -81,6 +81,13 @@ type MedicationRecord struct {
 	DosageAmount *string   `json:"dosageAmount"`
 }
 
+// MemberSummary はメンバーと薬数の集計（一覧画面向けの読み取りモデル、N+1回避）
+type MemberSummary struct {
+	Member
+	MedicationCount       int `json:"medicationCount"`
+	ActiveMedicationCount int `json:"activeMedicationCount"`
+}
+
 // TodaySchedule は今日の服薬予定（薬・メンバー情報を結合した読み取りモデル）
 type TodaySchedule struct {
 	Schedule

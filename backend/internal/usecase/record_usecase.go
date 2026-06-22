@@ -23,6 +23,23 @@ func (uc *RecordUsecase) ListByUser(ctx context.Context, userID string) ([]entit
 	return uc.records.ListByUser(ctx, userID)
 }
 
+// ListFiltered はメンバー/期間/件数で絞り込んで記録を返す。memberId指定時は所有権を確認する。
+func (uc *RecordUsecase) ListFiltered(ctx context.Context, userID string, f repository.RecordFilter) ([]entity.MedicationRecord, error) {
+	if f.MemberID != "" {
+		m, err := uc.members.FindByID(ctx, f.MemberID)
+		if err != nil {
+			return nil, err
+		}
+		if m == nil {
+			return nil, domain.NewNotFound("メンバー")
+		}
+		if m.UserID != userID {
+			return nil, domain.NewForbidden("このメンバーにアクセスする権限がありません")
+		}
+	}
+	return uc.records.ListByUserFiltered(ctx, userID, f)
+}
+
 func (uc *RecordUsecase) ListByMember(ctx context.Context, userID, memberID string) ([]entity.MedicationRecord, error) {
 	m, err := uc.members.FindByID(ctx, memberID)
 	if err != nil {

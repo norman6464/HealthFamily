@@ -27,6 +27,16 @@ func (h *MedicationHandler) ListByUser(c *gin.Context) {
 	response.Success(c, list)
 }
 
+func (h *MedicationHandler) Alerts(c *gin.Context) {
+	userID := middleware.UserID(c)
+	list, err := h.uc.ListAlerts(c.Request.Context(), userID)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Success(c, list)
+}
+
 func (h *MedicationHandler) ListByMember(c *gin.Context) {
 	userID := middleware.UserID(c)
 	list, err := h.uc.ListByMember(c.Request.Context(), userID, c.Param("memberId"))
