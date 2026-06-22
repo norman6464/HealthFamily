@@ -109,7 +109,7 @@ export default function Settings() {
       <h1 className="text-xl font-bold text-ink-800">設定</h1>
 
       <section className="bg-white rounded-lg shadow-md p-4 border border-primary-100">
-        <SectionTitle accentColor="pink" size="lg">
+        <SectionTitle accentColor="primary" size="lg">
           アカウント
         </SectionTitle>
         <div className="space-y-3">

@@ -127,7 +127,7 @@ export default function Home() {
         onMarkMultipleAsTaken={handleMarkMultipleMissedAsTaken}
       />
 
-      <SectionTitle accentColor="pink" size="lg">
+      <SectionTitle accentColor="primary" size="lg">
         今日の予定
       </SectionTitle>
       <div className="mb-4">

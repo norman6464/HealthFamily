@@ -2,15 +2,15 @@ import React from "react";
 
 interface SectionTitleProps {
   children: React.ReactNode;
-  accentColor?: "pink" | "mint" | "ink";
+  accentColor?: "primary" | "accent" | "ink";
   size?: "sm" | "md" | "lg";
   className?: string;
   rightAction?: React.ReactNode;
 }
 
 const ACCENT_CLASS: Record<NonNullable<SectionTitleProps["accentColor"]>, string> = {
-  pink: "bg-primary-500",
-  mint: "bg-accent-300",
+  primary: "bg-primary",
+  accent: "bg-accent",
   ink: "bg-ink-700",
 };
 
@@ -22,7 +22,7 @@ const SIZE_CLASS: Record<NonNullable<SectionTitleProps["size"]>, string> = {
 
 export const SectionTitle: React.FC<SectionTitleProps> = ({
   children,
-  accentColor = "pink",
+  accentColor = "primary",
   size = "md",
   className = "",
   rightAction,
