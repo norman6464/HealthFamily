@@ -40,6 +40,10 @@ export interface ExpenseSummary {
   deductibleTotal: number;
   byCategory: Record<string, number>;
   byMonth: MonthlyTotal[];
+  // 2制度シミュレーション（簡易）
+  regularDeduction: number;
+  selfMedicationDeduction: number;
+  recommendedScheme: "regular" | "selfmed" | "none";
 }
 
 export interface User {

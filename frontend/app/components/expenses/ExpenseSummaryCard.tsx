@@ -39,7 +39,15 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
     );
   }
 
-  const { year, total, deductibleTotal, byCategory } = summary;
+  const {
+    year,
+    total,
+    deductibleTotal,
+    byCategory,
+    regularDeduction,
+    selfMedicationDeduction,
+    recommendedScheme,
+  } = summary;
   const reachedThreshold = deductibleTotal >= DEDUCTION_THRESHOLD;
   const progressRatio = Math.min(deductibleTotal / DEDUCTION_THRESHOLD, 1);
   const progressPercent = Math.round(progressRatio * 100);
@@ -99,6 +107,49 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
             あと{currencyFormatter.format(DEDUCTION_THRESHOLD - deductibleTotal)}で控除対象
           </p>
         )}
+      </div>
+
+      <div className="space-y-2 border-t border-ink-400/10 pt-3">
+        <p className="text-xs font-semibold text-ink-600">医療費控除シミュレーション（概算）</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div
+            className={`rounded-xl border p-2.5 ${
+              recommendedScheme === "regular"
+                ? "border-primary bg-primary-50"
+                : "border-ink-400/10"
+            }`}
+          >
+            <p className="text-xs text-ink-500">通常医療費控除</p>
+            <p className="mt-0.5 text-sm font-bold text-ink-800">
+              {currencyFormatter.format(regularDeduction)}
+            </p>
+            {recommendedScheme === "regular" && (
+              <span className="mt-1 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-white">
+                おすすめ
+              </span>
+            )}
+          </div>
+          <div
+            className={`rounded-xl border p-2.5 ${
+              recommendedScheme === "selfmed"
+                ? "border-primary bg-primary-50"
+                : "border-ink-400/10"
+            }`}
+          >
+            <p className="text-xs text-ink-500">セルフメディケーション税制</p>
+            <p className="mt-0.5 text-sm font-bold text-ink-800">
+              {currencyFormatter.format(selfMedicationDeduction)}
+            </p>
+            {recommendedScheme === "selfmed" && (
+              <span className="mt-1 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-white">
+                おすすめ
+              </span>
+            )}
+          </div>
+        </div>
+        <p className="text-[11px] leading-relaxed text-ink-400">
+          ※2制度は選択適用（併用不可）。所得による足切り(5%)は未考慮の概算です。セルフメディケーションは薬局(OTC)購入分から試算しています。
+        </p>
       </div>
 
       {categoryEntries.length > 0 && (

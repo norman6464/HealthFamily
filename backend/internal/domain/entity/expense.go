@@ -28,4 +28,8 @@ type ExpenseSummary struct {
 	DeductibleTotal int            `json:"deductibleTotal"`
 	ByCategory      map[string]int `json:"byCategory"`
 	ByMonth         []MonthlyTotal `json:"byMonth"`
+	// 2制度シミュレーション（簡易。所得の5%ルールは所得不明のため10万円固定で概算）
+	RegularDeduction        int    `json:"regularDeduction"`        // 通常医療費控除の控除対象額(10万円超過分)
+	SelfMedicationDeduction int    `json:"selfMedicationDeduction"` // セルフメディケーション税制の控除対象額
+	RecommendedScheme       string `json:"recommendedScheme"`       // "regular" | "selfmed" | "none"
 }

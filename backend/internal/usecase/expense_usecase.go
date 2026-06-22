@@ -74,7 +74,28 @@ func (uc *ExpenseUsecase) Summary(ctx context.Context, userID string, year int) 
 	if year <= 0 {
 		return nil, domain.NewValidation("集計対象の年を指定してください")
 	}
-	return uc.expenses.Summary(ctx, userID, year)
+	s, err := uc.expenses.Summary(ctx, userID, year)
+	if err != nil {
+		return nil, err
+	}
+	// 2制度シミュレーション（簡易）
+	const (
+		regularThreshold = 100000 // 通常医療費控除の足切り(所得200万未満は所得5%だが所得不明のため固定)
+		selfMedFloor     = 12000  // セルフメディケーション税制の足切り
+		selfMedCap       = 88000  // セルフメディケーション税制の上限
+	)
+	s.RegularDeduction = max(0, s.DeductibleTotal-regularThreshold)
+	pharmacy := s.ByCategory["pharmacy"] // 薬局(OTC)購入分をセルフメディケーション対象の概算に使う
+	s.SelfMedicationDeduction = min(selfMedCap, max(0, pharmacy-selfMedFloor))
+	switch {
+	case s.RegularDeduction == 0 && s.SelfMedicationDeduction == 0:
+		s.RecommendedScheme = "none"
+	case s.RegularDeduction >= s.SelfMedicationDeduction:
+		s.RecommendedScheme = "regular"
+	default:
+		s.RecommendedScheme = "selfmed"
+	}
+	return s, nil
 }
 
 // Create は入力を検証し、不完全/不正なら保存せず ValidationError を返す。

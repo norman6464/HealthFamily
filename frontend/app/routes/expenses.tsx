@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, X } from "lucide-react";
+import { Download, Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Expense, ExpenseSummary, Member } from "@/lib/types";
 import { SectionTitle } from "@/components/shared/SectionTitle";
@@ -80,6 +80,47 @@ export default function Expenses() {
     deleteMutation.mutate(id);
   };
 
+  // 国税庁「医療費控除の明細書」風の区分にカテゴリをマッピング
+  const TAX_DIVISION: Record<string, string> = {
+    hospital: "診療・治療",
+    checkup: "診療・治療",
+    medication: "医薬品購入",
+    pharmacy: "医薬品購入",
+    transport: "その他の医療費",
+    insurance: "その他の医療費",
+    pet: "その他の医療費",
+    other: "その他の医療費",
+  };
+
+  const memberNameMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const mem of members) m.set(mem.id, mem.name);
+    return m;
+  }, [members]);
+
+  const handleExportCsv = () => {
+    if (expenses.length === 0) return;
+    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const header = ["医療を受けた人", "支払先", "医療費の区分", "支払った金額", "支払日", "控除対象"];
+    const rows = expenses.map((e) => [
+      e.memberId ? (memberNameMap.get(e.memberId) ?? "") : "世帯",
+      e.description ?? "",
+      TAX_DIVISION[e.category] ?? "その他の医療費",
+      String(e.amount),
+      e.expenseDate.slice(0, 10),
+      e.isDeductible ? "対象" : "対象外",
+    ]);
+    const csv = [header, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+    // Excel での文字化け防止に UTF-8 BOM を付与
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `医療費控除明細書_${year}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-5">
       <SectionTitle accentColor="primary" size="lg">
@@ -102,6 +143,15 @@ export default function Expenses() {
             </option>
           ))}
         </select>
+        <button
+          onClick={handleExportCsv}
+          disabled={expenses.length === 0}
+          className="ml-auto flex items-center gap-1.5 rounded-xl bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 transition hover:bg-primary-100 disabled:opacity-50"
+          title="医療費控除の明細書(CSV)をダウンロード"
+        >
+          <Download size={16} />
+          明細書CSV
+        </button>
       </div>
 
       <ExpenseSummaryCard summary={summary} isLoading={summaryLoading} />
