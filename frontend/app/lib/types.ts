@@ -30,6 +30,12 @@ export interface Member {
   updatedAt: string;
 }
 
+// /members/summary のレスポンス（Member + 薬数。N+1回避のサーバ集計）
+export interface MemberWithCounts extends Member {
+  medicationCount: number;
+  activeMedicationCount: number;
+}
+
 export interface Medication {
   id: string;
   memberId: string;

@@ -36,6 +36,11 @@ func (uc *MemberUsecase) List(ctx context.Context, userID string) ([]entity.Memb
 	return uc.members.List(ctx, userID)
 }
 
+// ListSummary はメンバー＋薬数の集計を返す（N+1回避）
+func (uc *MemberUsecase) ListSummary(ctx context.Context, userID string) ([]entity.MemberSummary, error) {
+	return uc.members.ListSummary(ctx, userID)
+}
+
 func (uc *MemberUsecase) Get(ctx context.Context, userID, memberID string) (*entity.Member, error) {
 	return uc.ensureOwner(ctx, userID, memberID)
 }

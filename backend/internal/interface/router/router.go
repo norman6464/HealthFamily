@@ -61,6 +61,7 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 	authed.Use(middleware.RateLimit("api", 120, time.Minute, middleware.PerUser))
 	{
 		authed.GET("/members", h.Member.List)
+		authed.GET("/members/summary", h.Member.Summary)
 		authed.POST("/members", h.Member.Create)
 		authed.GET("/members/:memberId", h.Member.Get)
 		authed.PATCH("/members/:memberId", h.Member.Update)
@@ -69,6 +70,7 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 		authed.GET("/members/:memberId/records", h.Record.ListByMember)
 
 		authed.GET("/medications", h.Medication.ListByUser)
+		authed.GET("/medications/alerts", h.Medication.Alerts)
 		authed.POST("/medications", h.Medication.Create)
 		authed.POST("/medications/reorder", h.Medication.Reorder)
 		authed.GET("/medications/:medicationId", h.Medication.Get)

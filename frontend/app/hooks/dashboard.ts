@@ -217,9 +217,11 @@ export function useDashboardData(userId: string | null) {
     queryFn: () => api.get<Schedule[]>("/schedules"),
     enabled,
   });
+  // ダッシュボードの集計は週次/月次のみ。全件ではなく直近40日に絞って取得する。
+  // (invalidateQueries({queryKey:["records"]}) はプレフィックス一致でこのキーも無効化する)
   const recordsQuery = useQuery({
-    queryKey: ["records"],
-    queryFn: () => api.get<MedicationRecord[]>("/records"),
+    queryKey: ["records", "window", 40],
+    queryFn: () => api.get<MedicationRecord[]>("/records?days=40"),
     enabled,
   });
   const medicationsQuery = useQuery({

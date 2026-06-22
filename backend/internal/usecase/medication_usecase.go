@@ -57,6 +57,11 @@ func (uc *MedicationUsecase) ListByUser(ctx context.Context, userID string) ([]e
 	return uc.medications.ListByUser(ctx, userID)
 }
 
+// ListAlerts は在庫僅少の薬を返す
+func (uc *MedicationUsecase) ListAlerts(ctx context.Context, userID string) ([]entity.Medication, error) {
+	return uc.medications.ListAlerts(ctx, userID)
+}
+
 func (uc *MedicationUsecase) Get(ctx context.Context, userID, medID string) (*entity.Medication, error) {
 	return uc.ensureMedOwner(ctx, userID, medID)
 }
