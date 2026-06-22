@@ -34,6 +34,15 @@ export interface MonthlyTotal {
   total: number;
 }
 
+// 医療費の月次予算（ユーザー単位のパーソナライズ）
+export interface Budget {
+  id: string;
+  userId: string;
+  monthlyAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ExpenseSummary {
   year: number;
   total: number;
