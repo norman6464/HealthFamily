@@ -84,7 +84,10 @@ const MemberCard: React.FC<MemberCardProps> = React.memo(({ member, onDelete, on
       data-testid="member-item"
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+        <Link
+          to={`/members/${member.id}`}
+          className="flex items-center space-x-3 flex-1 min-w-0 rounded-md hover:bg-primary-50 transition-colors -m-1 p-1"
+        >
           <MemberIcon
             memberType={member.memberType as MemberType}
             petType={(member.petType ?? undefined) as PetType | undefined}
@@ -98,7 +101,7 @@ const MemberCard: React.FC<MemberCardProps> = React.memo(({ member, onDelete, on
               {age !== null && <span>{age}歳</span>}
             </div>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center space-x-2">
           <Link
             to={`/members/${member.id}/medications`}
