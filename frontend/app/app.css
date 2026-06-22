@@ -4,6 +4,7 @@
 
 html,
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
-  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  @apply text-ink-700 antialiased;
+  background-color: #f5f2f2;
+  font-family: "Noto Sans JP", system-ui, -apple-system, sans-serif;
 }

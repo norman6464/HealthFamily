@@ -16,7 +16,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#e8d4dc" />
         <title>HealthFamily</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        />
         <Meta />
         <Links />
       </head>
@@ -47,7 +54,7 @@ export default function App() {
 
 export function HydrateFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center text-slate-500">
+    <div className="flex min-h-screen items-center justify-center text-ink-500">
       読み込み中...
     </div>
   );

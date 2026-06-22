@@ -81,3 +81,147 @@ export interface MedicationRecord {
   notes: string | null;
   dosageAmount: string | null;
 }
+
+export interface Hospital {
+  id: string;
+  userId: string;
+  name: string;
+  hospitalType: string | null;
+  address: string | null;
+  phoneNumber: string | null;
+  department: string | null;
+  doctorName: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface Appointment {
+  id: string;
+  userId: string;
+  memberId: string;
+  hospitalId: string | null;
+  appointmentType: string | null;
+  appointmentDate: string;
+  description: string | null;
+  testResults: string | null;
+  cost: number | null;
+  reminderEnabled: boolean;
+  reminderDaysBefore: number;
+  createdAt: string;
+}
+
+export interface HealthLog {
+  id: string;
+  userId: string;
+  memberId: string;
+  conditionLevel: number;
+  symptoms: string[];
+  notes: string | null;
+  recordedAt: string;
+}
+
+export interface Vaccination {
+  id: string;
+  userId: string;
+  memberId: string;
+  vaccineName: string;
+  vaccinatedAt: string;
+  nextScheduledDate: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface Examination {
+  id: string;
+  userId: string;
+  memberId: string;
+  examinationType: string;
+  examinedAt: string;
+  nextScheduledDate: string | null;
+  notes: string | null;
+  imageData: string | null;
+  createdAt: string;
+}
+
+export interface Insurance {
+  id: string;
+  userId: string;
+  memberId: string;
+  insuranceType: string;
+  providerName: string | null;
+  policyNumber: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface Allergy {
+  id: string;
+  userId: string;
+  memberId: string;
+  allergenName: string;
+  allergyType: string;
+  severity: string;
+  symptoms: string | null;
+  diagnosedAt: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface BodyMeasurement {
+  id: string;
+  userId: string;
+  memberId: string;
+  weight: number | null;
+  height: number | null;
+  recordedAt: string;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface TemperatureRecord {
+  id: string;
+  userId: string;
+  memberId: string;
+  temperature: number;
+  measuredAt: string;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface EmergencyContact {
+  id: string;
+  userId: string;
+  memberId: string;
+  contactName: string;
+  phoneNumber: string;
+  relationship: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface Prescription {
+  id: string;
+  userId: string;
+  memberId: string;
+  prescriptionName: string;
+  prescribedBy: string | null;
+  prescribedAt: string;
+  expiresAt: string | null;
+  pharmacyName: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface NotificationSetting {
+  id: string;
+  userId: string;
+  medicationReminderEnabled: boolean;
+  missedMedicationEnabled: boolean;
+  appointmentReminderEnabled: boolean;
+  lowStockAlertEnabled: boolean;
+  defaultReminderMinutesBefore: number;
+  defaultAppointmentReminderDaysBefore: number;
+  emailNotificationEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

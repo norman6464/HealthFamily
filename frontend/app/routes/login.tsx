@@ -54,7 +54,7 @@ export default function Login() {
             {submitting ? "ログイン中..." : "ログイン"}
           </Button>
         </form>
-        <div className="mt-4 flex justify-between text-sm text-slate-500">
+        <div className="mt-4 flex justify-between text-sm text-ink-500">
           <Link to="/signup" className="hover:text-primary">
             新規登録
           </Link>

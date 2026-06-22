@@ -1,12 +1,29 @@
 import { NavLink, Outlet } from "react-router";
 import { clsx } from "clsx";
-import { CalendarCheck, Home, Pill, Users } from "lucide-react";
+import {
+  Activity,
+  Calendar,
+  CalendarCheck,
+  Home,
+  Pill,
+  Settings,
+  type LucideIcon,
+} from "lucide-react";
 import { useAuth, useRequireAuth } from "@/lib/auth";
 
-const navItems = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end: boolean;
+}
+
+const navItems: NavItem[] = [
   { to: "/", label: "ホーム", icon: Home, end: true },
-  { to: "/members", label: "メンバー", icon: Users, end: false },
-  { to: "/medications", label: "おくすり", icon: Pill, end: false },
+  { to: "/medications", label: "お薬", icon: Pill, end: false },
+  { to: "/health-logs", label: "体調", icon: Activity, end: false },
+  { to: "/appointments", label: "通院", icon: Calendar, end: false },
+  { to: "/settings", label: "設定", icon: Settings, end: false },
 ];
 
 export default function AuthedLayout() {
@@ -15,7 +32,7 @@ export default function AuthedLayout() {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-slate-500">
+      <div className="flex min-h-screen items-center justify-center text-ink-500">
         読み込み中...
       </div>
     );
@@ -23,12 +40,12 @@ export default function AuthedLayout() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
-      <header className="flex items-center justify-between border-b border-slate-100 bg-white px-4 py-3">
+      <header className="flex items-center justify-between border-b border-primary-100 bg-white px-4 py-3">
         <div className="flex items-center gap-2 font-semibold text-primary">
           <CalendarCheck className="h-5 w-5" />
           HealthFamily
         </div>
-        <button onClick={logout} className="text-sm text-slate-500 hover:text-slate-700">
+        <button onClick={logout} className="text-sm text-ink-500 hover:text-ink-700">
           ログアウト
         </button>
       </header>
@@ -37,7 +54,7 @@ export default function AuthedLayout() {
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 mx-auto flex max-w-2xl justify-around border-t border-slate-100 bg-white py-2">
+      <nav className="fixed inset-x-0 bottom-0 mx-auto flex max-w-2xl justify-around border-t border-primary-100 bg-white py-2">
         {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -46,7 +63,7 @@ export default function AuthedLayout() {
             className={({ isActive }) =>
               clsx(
                 "flex flex-col items-center gap-1 px-4 py-1 text-xs",
-                isActive ? "text-primary" : "text-slate-400",
+                isActive ? "text-primary" : "text-ink-400",
               )
             }
           >
