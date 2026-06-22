@@ -11,3 +11,18 @@ coverage/
 CLAUDE.md
 .vercel
 .env.production
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+.last-run.json
+
+# Go backend
+backend/app
+
+# frontend build/deps
+frontend/node_modules/
+frontend/build/
+frontend/.react-router/
