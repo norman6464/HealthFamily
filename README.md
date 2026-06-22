@@ -29,37 +29,39 @@
 
 ## 技術スタック
 
-| カテゴリ | 技術 |
-|---------|------|
-| フレームワーク | Next.js 15 (App Router) |
-| 言語 | TypeScript |
-| データベース | PostgreSQL |
-| ORM | Prisma |
-| 認証 | NextAuth.js v5 (Auth.js) - Credentials Provider |
-| スタイリング | Tailwind CSS |
-| アイコン | lucide-react |
-| 状態管理 | Zustand（キャラクター選択） |
-| バリデーション | Zod |
-| テスト | Vitest + React Testing Library |
-| デプロイ | Vercel |
-| CI | GitHub Actions |
+モノレポ構成。フロントエンドとバックエンドを分離しています。
+
+| カテゴリ | 技術 | デプロイ |
+|---------|------|---------|
+| フロントエンド | React Router v7 (SPA) / TypeScript / Tailwind CSS / TanStack Query / Zustand / Zod / lucide-react | Vercel |
+| バックエンド | Go / Gin / 生SQL (pgx) / クリーンアーキテクチャ / JWT | Render |
+| データベース | PostgreSQL | Supabase |
+| CI | GitHub Actions | — |
+
+> 旧 Next.js 15 + Prisma + NextAuth 実装からリプレイス済み。
 
 ### アーキテクチャ
 
-クリーンアーキテクチャを採用し、以下のレイヤーに分離しています。
+```
+frontend/   React Router v7 (SPA)
+  app/
+    routes/        ページ（_authed レイアウト配下に主要画面）
+    components/    機能別UIコンポーネント（shared 共通UI含む）
+    lib/           api クライアント / 型 / 認証 / Character 設定
+    stores/        Zustand ストア
 
+backend/    Go / Gin / 生SQL / クリーンアーキテクチャ
+  cmd/server/      エントリ（DI 組み立て）
+  internal/
+    domain/        エンティティ・リポジトリIF・ドメイン例外
+    usecase/       ユースケース（所有権チェック等）
+    infrastructure/ pgx・生SQLリポジトリ・起動時マイグレーション
+    interface/     Ginハンドラ・ミドルウェア・ルーティング
+    pkg/           auth(JWT/bcrypt) / mailer / response
+  migrations/      *.sql（起動時に冪等適用）
 ```
-src/
-├── domain/          # エンティティ、リポジトリインターフェース、ユースケース
-├── data/            # APIクライアント、リポジトリ実装
-├── presentation/    # カスタムフック（ViewModel）
-├── components/      # UIコンポーネント
-├── app/             # Next.js App Router（ページ、APIルート）
-├── lib/             # Prisma、NextAuth設定、Zodスキーマ
-├── stores/          # Zustandストア
-├── hooks/           # 共通フック
-└── infrastructure/  # DIコンテナ
-```
+
+詳細なデプロイ手順は [DEPLOY.md](DEPLOY.md) を参照。
 
 ---
 
@@ -67,37 +69,34 @@ src/
 
 ### 前提条件
 
-- Node.js 20以上
-- Docker / Docker Compose
+- Go 1.26 以上
+- Node.js 20 以上
+- PostgreSQL（ローカル or Supabase）
 
-### インストール
+### バックエンド (:8080)
 
 ```bash
-# 依存関係インストール
-npm install
-
-# PostgreSQL起動（Docker）
-docker compose up -d
-
-# 環境変数設定
-cp .env.local.example .env.local
-
-# データベースマイグレーション
-npx prisma migrate dev
-
-# 開発サーバー起動
-npm run dev
+cd backend
+cp .env.example .env   # DATABASE_URL / JWT_SECRET を設定
+go run ./cmd/server
 ```
 
-### 開発コマンド
+### フロントエンド (:5173)
 
 ```bash
-npm run dev              # 開発サーバー起動
-npm run build            # 本番ビルド
-npm run lint             # リント実行
-npx vitest run           # テスト実行
-docker compose up -d     # DB起動
-docker compose down      # DB停止
+cd frontend
+cp .env.example .env   # VITE_API_URL=http://localhost:8080
+npm install && npm run dev
+```
+
+### テスト / ビルド
+
+```bash
+# backend
+cd backend && go build ./... && go vet ./... && go test ./...
+
+# frontend
+cd frontend && npm run typecheck && npm run build
 ```
 
 ---
