@@ -19,6 +19,7 @@ type Handlers struct {
 	Medication *handler.MedicationHandler
 	Schedule   *handler.ScheduleHandler
 	Record     *handler.RecordHandler
+	Expense    *handler.ExpenseHandler
 }
 
 // Setup はGinエンジンを構築する
@@ -87,6 +88,13 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 		authed.GET("/records", h.Record.ListByUser)
 		authed.POST("/records", h.Record.Create)
 		authed.DELETE("/records/:recordId", h.Record.Delete)
+
+		// 医療費・健康支出管理(医療費控除対応)
+		authed.GET("/expenses", h.Expense.List)
+		authed.GET("/expenses/summary", h.Expense.Summary)
+		authed.POST("/expenses", h.Expense.Create)
+		authed.PATCH("/expenses/:expenseId", h.Expense.Update)
+		authed.DELETE("/expenses/:expenseId", h.Expense.Delete)
 
 		// 残りリソース（病院・予約・健康ログ・予防接種・検査・保険・アレルギー・
 		// 身体測定・体温・緊急連絡先・処方箋・通知設定・ユーザープロフィール）

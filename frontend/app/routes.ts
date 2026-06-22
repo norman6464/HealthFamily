@@ -21,6 +21,7 @@ export default [
     route("appointments", "routes/appointments.tsx"),
     route("hospitals", "routes/hospitals.tsx"),
     route("health-logs", "routes/health-logs.tsx"),
+    route("expenses", "routes/expenses.tsx"),
     route("history", "routes/history.tsx"),
     route("settings", "routes/settings.tsx"),
     route("settings/notifications", "routes/settings.notifications.tsx"),

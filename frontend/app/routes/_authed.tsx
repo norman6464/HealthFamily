@@ -11,6 +11,7 @@ import {
   Pill,
   Settings,
   Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth, useRequireAuth } from "@/lib/auth";
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
   { to: "/health-logs", label: "体調", icon: Activity, end: false },
   { to: "/appointments", label: "通院", icon: Calendar, end: false },
   { to: "/hospitals", label: "病院", icon: Building2, end: false },
+  { to: "/expenses", label: "医療費", icon: Wallet, end: false },
   { to: "/history", label: "履歴", icon: History, end: false },
   { to: "/settings", label: "設定", icon: Settings, end: false },
 ];

@@ -6,6 +6,42 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// 医療費・健康支出（医療費控除対応）
+export type ExpenseCategory =
+  | "medication"
+  | "hospital"
+  | "pharmacy"
+  | "insurance"
+  | "checkup"
+  | "pet"
+  | "transport"
+  | "other";
+
+export interface Expense {
+  id: string;
+  userId: string;
+  memberId: string | null;
+  category: string;
+  amount: number; // 円(整数)
+  description: string | null;
+  expenseDate: string;
+  isDeductible: boolean;
+  createdAt: string;
+}
+
+export interface MonthlyTotal {
+  month: number;
+  total: number;
+}
+
+export interface ExpenseSummary {
+  year: number;
+  total: number;
+  deductibleTotal: number;
+  byCategory: Record<string, number>;
+  byMonth: MonthlyTotal[];
+}
+
 export interface User {
   id: string;
   email: string;
