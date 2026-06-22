@@ -8,7 +8,6 @@ import {
 } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./lib/auth";
-import { BackendGate } from "./components/BackendGate";
 import "./app.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -46,11 +45,9 @@ export default function App() {
   );
   return (
     <QueryClientProvider client={queryClient}>
-      <BackendGate>
-        <AuthProvider>
-          <Outlet />
-        </AuthProvider>
-      </BackendGate>
+      <AuthProvider>
+        <Outlet />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

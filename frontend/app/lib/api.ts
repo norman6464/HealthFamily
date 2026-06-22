@@ -6,26 +6,6 @@ const API_BASE =
 
 const TOKEN_KEY = "hf_token";
 
-/**
- * バックエンドのヘルスチェック。指定タイムアウト内に 200 が返れば true。
- * コールドスタート中/到達不能時は false（呼び出し側でリトライ/メンテ表示する）。
- */
-export async function pingHealth(timeoutMs = 8000): Promise<boolean> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${API_BASE}/health`, {
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    return res.ok;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   return window.localStorage.getItem(TOKEN_KEY);
