@@ -5,6 +5,11 @@
 html,
 body {
   @apply text-ink-700 antialiased;
-  background-color: #f5f2f2;
+  background-color: #f8faf9;
   font-family: "Noto Sans JP", system-ui, -apple-system, sans-serif;
+}
+
+/* スクロール時のヘッダー/ナビの質感を少し上げる */
+* {
+  -webkit-tap-highlight-color: transparent;
 }

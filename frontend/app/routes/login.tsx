@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { HeartPulse } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Button, Card, ErrorText, Input } from "@/components/ui";
@@ -31,10 +32,17 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <h1 className="mb-6 text-center text-xl font-semibold text-primary">HealthFamily ログイン</h1>
-        <form onSubmit={onSubmit} className="space-y-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-primary-50 to-[#f8faf9] px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-card">
+            <HeartPulse className="h-7 w-7" />
+          </span>
+          <h1 className="text-2xl font-bold text-ink-800">HealthFamily</h1>
+          <p className="mt-1 text-sm text-ink-500">家族とペットの健康をひとつに</p>
+        </div>
+        <Card className="w-full">
+          <form onSubmit={onSubmit} className="space-y-4">
           <Input
             type="email"
             placeholder="メールアドレス"
@@ -53,13 +61,15 @@ export default function Login() {
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? "ログイン中..." : "ログイン"}
           </Button>
-        </form>
-        <div className="mt-4 flex justify-between text-sm text-ink-500">
-          <Link to="/signup" className="hover:text-primary">
-            新規登録
-          </Link>
-        </div>
-      </Card>
+          </form>
+          <div className="mt-5 text-center text-sm text-ink-500">
+            アカウントをお持ちでない方は{" "}
+            <Link to="/signup" className="font-semibold text-primary hover:text-primary-dark">
+              新規登録
+            </Link>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

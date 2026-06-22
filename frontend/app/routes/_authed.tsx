@@ -3,8 +3,9 @@ import { clsx } from "clsx";
 import {
   Activity,
   Calendar,
-  CalendarCheck,
+  HeartPulse,
   Home,
+  LogOut,
   Pill,
   Settings,
   type LucideIcon,
@@ -40,37 +41,56 @@ export default function AuthedLayout() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
-      <header className="flex items-center justify-between border-b border-primary-100 bg-white px-4 py-3">
-        <div className="flex items-center gap-2 font-semibold text-primary">
-          <CalendarCheck className="h-5 w-5" />
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-ink-400/10 bg-white/80 px-4 py-3 backdrop-blur-md">
+        <div className="flex items-center gap-2 font-bold text-ink-800">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-white shadow-soft">
+            <HeartPulse className="h-5 w-5" />
+          </span>
           HealthFamily
         </div>
-        <button onClick={logout} className="text-sm text-ink-500 hover:text-ink-700">
+        <button
+          onClick={logout}
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-ink-500 transition hover:bg-ink-400/10 hover:text-ink-700"
+        >
+          <LogOut className="h-4 w-4" />
           ログアウト
         </button>
       </header>
 
-      <main className="flex-1 px-4 py-5 pb-24">
+      <main className="flex-1 px-4 py-6 pb-28">
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 mx-auto flex max-w-2xl justify-around border-t border-primary-100 bg-white py-2">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              clsx(
-                "flex flex-col items-center gap-1 px-4 py-1 text-xs",
-                isActive ? "text-primary" : "text-ink-400",
-              )
-            }
-          >
-            <Icon className="h-5 w-5" />
-            {label}
-          </NavLink>
-        ))}
+      <nav className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-2xl border-t border-ink-400/10 bg-white/90 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
+        <div className="flex justify-around py-2">
+          {navItems.map(({ to, label, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                clsx(
+                  "flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition",
+                  isActive ? "text-primary" : "text-ink-400 hover:text-ink-600",
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={clsx(
+                      "flex h-9 w-12 items-center justify-center rounded-full transition",
+                      isActive && "bg-primary-50",
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  {label}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
       </nav>
     </div>
   );
