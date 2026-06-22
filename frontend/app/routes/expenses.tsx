@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Expense, ExpenseSummary, Member } from "@/lib/types";
+import type { Budget, Expense, ExpenseSummary, Member } from "@/lib/types";
 import { SectionTitle } from "@/components/shared/SectionTitle";
 import { MemberFilter } from "@/components/shared/MemberFilter";
 import { ExpenseForm, type ExpenseFormData } from "@/components/expenses/ExpenseForm";
@@ -11,6 +11,7 @@ import {
   type UpdateExpenseInput,
 } from "@/components/expenses/ExpenseList";
 import { ExpenseSummaryCard } from "@/components/expenses/ExpenseSummaryCard";
+import { BudgetCard } from "@/components/expenses/BudgetCard";
 
 const YEAR_OPTIONS_COUNT = 5;
 
@@ -44,6 +45,17 @@ export default function Expenses() {
   const { data: summary, isLoading: summaryLoading } = useQuery({
     queryKey: ["expenses", "summary", year],
     queryFn: () => api.get<ExpenseSummary>(`/expenses/summary?year=${year}`),
+  });
+
+  const { data: budget, isLoading: budgetLoading } = useQuery({
+    queryKey: ["budget"],
+    queryFn: () => api.get<Budget>("/budget"),
+  });
+
+  const saveBudgetMutation = useMutation({
+    mutationFn: (monthlyAmount: number) =>
+      api.put<Budget>("/budget", { monthlyAmount }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["budget"] }),
   });
 
   const invalidateAll = () => {
@@ -155,6 +167,13 @@ export default function Expenses() {
       </div>
 
       <ExpenseSummaryCard summary={summary} isLoading={summaryLoading} />
+
+      <BudgetCard
+        budget={budget}
+        summary={summary}
+        isLoading={budgetLoading}
+        onSave={(amount) => saveBudgetMutation.mutate(amount)}
+      />
 
       <MemberFilter
         members={members}

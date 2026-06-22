@@ -20,6 +20,7 @@ type Handlers struct {
 	Schedule   *handler.ScheduleHandler
 	Record     *handler.RecordHandler
 	Expense    *handler.ExpenseHandler
+	Budget     *handler.BudgetHandler
 }
 
 // Setup はGinエンジンを構築する
@@ -95,6 +96,10 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 		authed.POST("/expenses", h.Expense.Create)
 		authed.PATCH("/expenses/:expenseId", h.Expense.Update)
 		authed.DELETE("/expenses/:expenseId", h.Expense.Delete)
+
+		// 月次予算（パーソナライズ）
+		authed.GET("/budget", h.Budget.Get)
+		authed.PUT("/budget", h.Budget.Set)
 
 		// 残りリソース（病院・予約・健康ログ・予防接種・検査・保険・アレルギー・
 		// 身体測定・体温・緊急連絡先・処方箋・通知設定・ユーザープロフィール）
