@@ -55,7 +55,7 @@ export default function Signup() {
             {submitting ? "登録中..." : "登録して認証コードを送る"}
           </Button>
         </form>
-        <div className="mt-4 text-center text-sm text-slate-500">
+        <div className="mt-4 text-center text-sm text-ink-500">
           <Link to="/login" className="hover:text-primary">
             ログインへ戻る
           </Link>

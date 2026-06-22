@@ -46,7 +46,7 @@ export default function Verify() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <h1 className="mb-2 text-center text-xl font-semibold text-primary">メール認証</h1>
-        <p className="mb-6 text-center text-sm text-slate-500">
+        <p className="mb-6 text-center text-sm text-ink-500">
           メールに届いた6桁のコードを入力してください
         </p>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -69,7 +69,7 @@ export default function Verify() {
             {submitting ? "認証中..." : "認証する"}
           </Button>
         </form>
-        <button onClick={resend} className="mt-4 w-full text-center text-sm text-slate-500 hover:text-primary">
+        <button onClick={resend} className="mt-4 w-full text-center text-sm text-ink-500 hover:text-primary">
           コードを再送する
         </button>
       </Card>

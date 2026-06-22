@@ -1,0 +1,186 @@
+import React, { useState } from "react";
+import { Pencil, Trash2, Check, X } from "lucide-react";
+import type { Insurance } from "@/lib/types";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
+import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+
+export type InsuranceWithMember = Insurance & { memberName?: string };
+
+export interface UpdateInsuranceInput {
+  insuranceType?: string;
+  providerName?: string | null;
+  policyNumber?: string | null;
+  notes?: string | null;
+}
+
+interface InsuranceListProps {
+  insurances: InsuranceWithMember[];
+  isLoading: boolean;
+  onUpdate: (id: string, input: UpdateInsuranceInput) => Promise<void>;
+  onDelete: (id: string) => void;
+}
+
+export const InsuranceList: React.FC<InsuranceListProps> = ({ insurances, isLoading, onUpdate, onDelete }) => {
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (insurances.length === 0) {
+    return <EmptyStatePrompt message="保険が登録されていません" subMessage="上の＋ボタンから保険情報を追加できます" />;
+  }
+
+  return (
+    <div className="space-y-2">
+      {insurances.map((insurance) => (
+        <InsuranceCard key={insurance.id} insurance={insurance} onUpdate={onUpdate} onDelete={onDelete} />
+      ))}
+    </div>
+  );
+};
+
+interface InsuranceCardProps {
+  insurance: InsuranceWithMember;
+  onUpdate: (id: string, input: UpdateInsuranceInput) => Promise<void>;
+  onDelete: (id: string) => void;
+}
+
+const InsuranceCard: React.FC<InsuranceCardProps> = React.memo(({ insurance, onUpdate, onDelete }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [editType, setEditType] = useState(insurance.insuranceType);
+  const [editProvider, setEditProvider] = useState(insurance.providerName || "");
+  const [editPolicy, setEditPolicy] = useState(insurance.policyNumber || "");
+  const [editNotes, setEditNotes] = useState(insurance.notes || "");
+
+  const handleSave = async () => {
+    if (!editType.trim()) return;
+    await onUpdate(insurance.id, {
+      insuranceType: editType.trim(),
+      providerName: editProvider.trim() || null,
+      policyNumber: editPolicy.trim() || null,
+      notes: editNotes.trim() || null,
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditType(insurance.insuranceType);
+    setEditProvider(insurance.providerName || "");
+    setEditPolicy(insurance.policyNumber || "");
+    setEditNotes(insurance.notes || "");
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-200 space-y-3">
+        <div>
+          <label className="block text-xs text-ink-500 mb-1">保険の種類</label>
+          <input
+            type="text"
+            value={editType}
+            onChange={(e) => setEditType(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-ink-500 mb-1">保険会社名</label>
+          <input
+            type="text"
+            value={editProvider}
+            onChange={(e) => setEditProvider(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+            placeholder="保険会社名を入力"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-ink-500 mb-1">証券番号</label>
+          <input
+            type="text"
+            value={editPolicy}
+            onChange={(e) => setEditPolicy(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+            placeholder="証券番号を入力"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-ink-500 mb-1">メモ</label>
+          <textarea
+            value={editNotes}
+            onChange={(e) => setEditNotes(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+            rows={2}
+          />
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleSave}
+            disabled={!editType.trim()}
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary text-white py-1.5 rounded-lg text-sm hover:bg-primary-dark transition-colors disabled:opacity-50"
+          >
+            <Check size={14} />
+            <span>保存</span>
+          </button>
+          <button
+            onClick={handleCancel}
+            className="flex-1 flex items-center justify-center space-x-1 bg-primary-50 text-ink-700 py-1.5 rounded-lg text-sm hover:bg-primary-100 transition-colors"
+          >
+            <X size={14} />
+            <span>キャンセル</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-3 border border-primary-100">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2">
+            <p className="font-medium text-ink-800 text-sm">{insurance.insuranceType}</p>
+            {insurance.memberName && (
+              <span className="text-xs bg-primary-50 text-ink-600 px-1.5 py-0.5 rounded">{insurance.memberName}</span>
+            )}
+          </div>
+          <div className="text-xs text-ink-500 mt-1 space-y-0.5">
+            {insurance.providerName && <p>{insurance.providerName}</p>}
+            {insurance.policyNumber && <p>証券番号: {insurance.policyNumber}</p>}
+            {insurance.notes && <p className="text-ink-400">{insurance.notes}</p>}
+          </div>
+        </div>
+        <div className="flex items-center space-x-1 flex-shrink-0">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="text-ink-400 hover:text-primary-500 p-1 transition-colors"
+            aria-label="編集"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="text-ink-400 hover:text-red-500 p-1 transition-colors"
+            aria-label="削除"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+      <ConfirmationDialog
+        title="保険の削除"
+        message={`「${insurance.insuranceType}」を削除しますか？この操作は取り消せません。`}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={() => {
+          setIsDeleteDialogOpen(false);
+          onDelete(insurance.id);
+        }}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isDangerous
+      />
+    </div>
+  );
+});
+
+InsuranceCard.displayName = "InsuranceCard";
