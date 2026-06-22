@@ -1,0 +1,23 @@
+name: Keep Render API warm
+
+# Render の無料インスタンスは無アクセス15分でスリープし、次回アクセスで
+# 50秒級のコールドスタートが発生する。定期的に /health を叩いてウォーム維持する。
+on:
+  schedule:
+    - cron: "*/10 * * * *" # 10分毎（GitHub cron は遅延し得るが概ねスリープを防げる）
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" -m 90 https://healthfamily-api.onrender.com/health || echo 000)
+            echo "attempt $i -> HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          # ウォームアップ目的のため、失敗してもワークフローは落とさない
+          exit 0
