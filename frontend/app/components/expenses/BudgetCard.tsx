@@ -3,13 +3,8 @@ import { PiggyBank, Pencil, Check, X, Bell, BellOff } from "lucide-react";
 import type { Budget, CategoryBudget, ExpenseSummary } from "@/lib/types";
 import { Card } from "@/components/ui";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EXPENSE_CATEGORIES } from "@/components/expenses/ExpenseForm";
-
-const currency = new Intl.NumberFormat("ja-JP", {
-  style: "currency",
-  currency: "JPY",
-  maximumFractionDigits: 0,
-});
+import { EXPENSE_CATEGORIES, getExpenseCategoryLabel } from "@/lib/categories";
+import { formatCurrency } from "@/lib/format";
 
 const MONTH_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
@@ -217,7 +212,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
             <>
               <div className="flex items-baseline justify-between">
                 <span className="text-2xl font-bold text-ink-800">
-                  {currency.format(monthly)}
+                  {formatCurrency(monthly)}
                 </span>
                 <span className="flex items-center gap-2 text-xs text-ink-500">
                   {alertEnabled ? (
@@ -239,7 +234,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-ink-500">
                   <span>
-                    {summary?.year}年の消化（年間予算 {currency.format(annualBudget)}）
+                    {summary?.year}年の消化（年間予算 {formatCurrency(annualBudget)}）
                   </span>
                   <span>{Math.round(annualRatio * 100)}%</span>
                 </div>
@@ -268,7 +263,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
                         <div
                           className={`w-full rounded-t ${over ? "bg-red-400" : "bg-primary/70"}`}
                           style={{ height: `${Math.max(h, spend > 0 ? 3 : 0)}px` }}
-                          title={`${label}月: ${currency.format(spend)}`}
+                          title={`${label}月: ${formatCurrency(spend)}`}
                         />
                         <span className="text-[9px] text-ink-400">{label}</span>
                       </div>
@@ -287,9 +282,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
               </p>
               <div className="space-y-2">
                 {categoryBudgets.map((cb) => {
-                  const label =
-                    EXPENSE_CATEGORIES.find((c) => c.value === cb.category)?.label ??
-                    cb.category;
+                  const label = getExpenseCategoryLabel(cb.category);
                   const used = byCategory[cb.category] ?? 0;
                   // カテゴリ別の年間予算 = 月次 * 12
                   const annualCatBudget = cb.monthlyAmount * 12;
@@ -301,7 +294,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-ink-700">{label}</span>
                         <span className="text-ink-500">
-                          {currency.format(used)} / {currency.format(annualCatBudget)}
+                          {formatCurrency(used)} / {formatCurrency(annualCatBudget)}
                         </span>
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-ink-400/10">

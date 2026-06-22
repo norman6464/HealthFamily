@@ -18,20 +18,6 @@ func NewMedicationUsecase(medications repository.MedicationRepository, members r
 	return &MedicationUsecase{medications: medications, members: members}
 }
 
-func (uc *MedicationUsecase) ensureMemberOwner(ctx context.Context, userID, memberID string) error {
-	m, err := uc.members.FindByID(ctx, memberID)
-	if err != nil {
-		return err
-	}
-	if m == nil {
-		return domain.NewNotFound("メンバー")
-	}
-	if m.UserID != userID {
-		return domain.NewForbidden("このメンバーにアクセスする権限がありません")
-	}
-	return nil
-}
-
 func (uc *MedicationUsecase) ensureMedOwner(ctx context.Context, userID, medID string) (*entity.Medication, error) {
 	m, err := uc.medications.FindByID(ctx, medID)
 	if err != nil {
@@ -47,7 +33,7 @@ func (uc *MedicationUsecase) ensureMedOwner(ctx context.Context, userID, medID s
 }
 
 func (uc *MedicationUsecase) ListByMember(ctx context.Context, userID, memberID string) ([]entity.Medication, error) {
-	if err := uc.ensureMemberOwner(ctx, userID, memberID); err != nil {
+	if err := ensureMemberOwner(ctx, uc.members, userID, memberID); err != nil {
 		return nil, err
 	}
 	return uc.medications.ListByMember(ctx, memberID)
@@ -67,7 +53,7 @@ func (uc *MedicationUsecase) Get(ctx context.Context, userID, medID string) (*en
 }
 
 func (uc *MedicationUsecase) Create(ctx context.Context, in repository.CreateMedicationInput) (*entity.Medication, error) {
-	if err := uc.ensureMemberOwner(ctx, in.UserID, in.MemberID); err != nil {
+	if err := ensureMemberOwner(ctx, uc.members, in.UserID, in.MemberID); err != nil {
 		return nil, err
 	}
 	if in.Category == "" {

@@ -1,17 +1,9 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { Medication } from "@/lib/types";
+import type { MedicationCategory } from "@/lib/categories";
 
-export type MedicationCategory =
-  | "regular"
-  | "supplement"
-  | "prn"
-  | "inhaler"
-  | "eye_drops"
-  | "patch"
-  | "topical"
-  | "flea_tick"
-  | "heartworm";
+export type { MedicationCategory };
 
 export type MedicationStatus = "active" | "paused" | "discontinued";
 

@@ -3,19 +3,10 @@ import { TrendingUp, Wallet, ShieldCheck } from "lucide-react";
 import type { ExpenseSummary } from "@/lib/types";
 import { Card } from "@/components/ui";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EXPENSE_CATEGORIES } from "./ExpenseForm";
+import { getExpenseCategoryLabel } from "@/lib/categories";
+import { formatCurrency } from "@/lib/format";
 
 const DEDUCTION_THRESHOLD = 100000;
-
-const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
-  EXPENSE_CATEGORIES.map((c) => [c.value, c.label]),
-);
-
-const currencyFormatter = new Intl.NumberFormat("ja-JP", {
-  style: "currency",
-  currency: "JPY",
-  maximumFractionDigits: 0,
-});
 
 interface ExpenseSummaryCardProps {
   summary: ExpenseSummary | undefined;
@@ -68,7 +59,7 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
             <Wallet size={12} className="text-primary" />
             合計
           </p>
-          <p className="mt-1 text-lg font-bold text-ink-800">{currencyFormatter.format(total)}</p>
+          <p className="mt-1 text-lg font-bold text-ink-800">{formatCurrency(total)}</p>
         </div>
         <div className="rounded-xl bg-accent-50 p-3">
           <p className="flex items-center gap-1 text-xs text-ink-500">
@@ -76,7 +67,7 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
             控除対象合計
           </p>
           <p className="mt-1 text-lg font-bold text-ink-800">
-            {currencyFormatter.format(deductibleTotal)}
+            {formatCurrency(deductibleTotal)}
           </p>
         </div>
       </div>
@@ -85,7 +76,7 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
         <div className="flex items-center justify-between text-xs text-ink-500">
           <span className="flex items-center gap-1">
             <TrendingUp size={12} className="text-primary" />
-            医療費控除ライン（{currencyFormatter.format(DEDUCTION_THRESHOLD)}）
+            医療費控除ライン（{formatCurrency(DEDUCTION_THRESHOLD)}）
           </span>
           <span>{progressPercent}%</span>
         </div>
@@ -99,12 +90,12 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
         </div>
         {reachedThreshold ? (
           <p className="text-sm font-medium text-accent-700">
-            控除対象見込み: {currencyFormatter.format(deductibleTotal - DEDUCTION_THRESHOLD)}
+            控除対象見込み: {formatCurrency(deductibleTotal - DEDUCTION_THRESHOLD)}
             （10万円超過分）
           </p>
         ) : (
           <p className="text-sm text-ink-600">
-            あと{currencyFormatter.format(DEDUCTION_THRESHOLD - deductibleTotal)}で控除対象
+            あと{formatCurrency(DEDUCTION_THRESHOLD - deductibleTotal)}で控除対象
           </p>
         )}
       </div>
@@ -121,7 +112,7 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
           >
             <p className="text-xs text-ink-500">通常医療費控除</p>
             <p className="mt-0.5 text-sm font-bold text-ink-800">
-              {currencyFormatter.format(regularDeduction)}
+              {formatCurrency(regularDeduction)}
             </p>
             {recommendedScheme === "regular" && (
               <span className="mt-1 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-white">
@@ -138,7 +129,7 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
           >
             <p className="text-xs text-ink-500">セルフメディケーション税制</p>
             <p className="mt-0.5 text-sm font-bold text-ink-800">
-              {currencyFormatter.format(selfMedicationDeduction)}
+              {formatCurrency(selfMedicationDeduction)}
             </p>
             {recommendedScheme === "selfmed" && (
               <span className="mt-1 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-white">
@@ -158,8 +149,8 @@ export const ExpenseSummaryCard: React.FC<ExpenseSummaryCardProps> = ({ summary,
           <ul className="space-y-1">
             {categoryEntries.map(([category, value]) => (
               <li key={category} className="flex items-center justify-between text-sm">
-                <span className="text-ink-600">{CATEGORY_LABELS[category] ?? category}</span>
-                <span className="font-medium text-ink-800">{currencyFormatter.format(value)}</span>
+                <span className="text-ink-600">{getExpenseCategoryLabel(category)}</span>
+                <span className="font-medium text-ink-800">{formatCurrency(value)}</span>
               </li>
             ))}
           </ul>

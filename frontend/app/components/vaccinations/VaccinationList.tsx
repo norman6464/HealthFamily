@@ -4,6 +4,7 @@ import type { Vaccination } from "@/lib/types";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import { formatDateLong } from "@/lib/format";
 
 export type VaccinationWithMember = Vaccination & { memberName?: string };
 
@@ -13,9 +14,6 @@ export interface UpdateVaccinationInput {
   nextScheduledDate?: string | null;
   notes?: string | null;
 }
-
-const formatDateJP = (value: string): string =>
-  new Date(value).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
 
 const toDateInput = (value: string | null | undefined): string => {
   if (!value) return "";
@@ -159,7 +157,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
           <div className="text-xs text-ink-500 mt-1 space-y-0.5">
             <p className="flex items-center space-x-1">
               <Calendar size={10} />
-              <span>接種日: {formatDateJP(vaccination.vaccinatedAt)}</span>
+              <span>接種日: {formatDateLong(vaccination.vaccinatedAt)}</span>
             </p>
             {vaccination.nextScheduledDate && (
               <p
@@ -168,7 +166,7 @@ const VaccinationCard: React.FC<VaccinationCardProps> = React.memo(({ vaccinatio
                 }`}
               >
                 <Calendar size={10} />
-                <span>次回予定: {formatDateJP(vaccination.nextScheduledDate)}</span>
+                <span>次回予定: {formatDateLong(vaccination.nextScheduledDate)}</span>
                 {isNextDatePast && <span>(期限切れ)</span>}
               </p>
             )}

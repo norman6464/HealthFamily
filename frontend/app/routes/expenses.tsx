@@ -13,7 +13,6 @@ import { SectionTitle } from "@/components/shared/SectionTitle";
 import { MemberFilter } from "@/components/shared/MemberFilter";
 import {
   ExpenseForm,
-  EXPENSE_CATEGORIES,
   type ExpenseFormData,
 } from "@/components/expenses/ExpenseForm";
 import {
@@ -25,14 +24,10 @@ import {
   BudgetCard,
   type BudgetSavePayload,
 } from "@/components/expenses/BudgetCard";
+import { getExpenseCategoryLabel } from "@/lib/categories";
+import { formatCurrency } from "@/lib/format";
 
 const YEAR_OPTIONS_COUNT = 5;
-
-const currency = new Intl.NumberFormat("ja-JP", {
-  style: "currency",
-  currency: "JPY",
-  maximumFractionDigits: 0,
-});
 
 export default function Expenses() {
   const qc = useQueryClient();
@@ -161,8 +156,7 @@ export default function Expenses() {
     URL.revokeObjectURL(url);
   };
 
-  const categoryLabel = (value: string): string =>
-    EXPENSE_CATEGORIES.find((c) => c.value === value)?.label ?? value;
+  const categoryLabel = getExpenseCategoryLabel;
 
   return (
     <div className="space-y-5">
@@ -176,8 +170,8 @@ export default function Expenses() {
           <div className="space-y-1">
             <p className="text-sm font-bold">今月の医療費が予算を超えています</p>
             <p className="text-xs text-red-600">
-              今月の支出 {currency.format(alertStatus.monthTotal)} / 予算{" "}
-              {currency.format(alertStatus.monthlyAmount)}
+              今月の支出 {formatCurrency(alertStatus.monthTotal)} / 予算{" "}
+              {formatCurrency(alertStatus.monthlyAmount)}
             </p>
             {alertStatus.overCategories.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">

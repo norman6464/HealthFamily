@@ -12,29 +12,16 @@ import {
 import {
   MedicationForm,
   type MedicationFormData,
-  type MedicationCategory,
 } from "@/components/medications/MedicationForm";
 import {
   ScheduleForm,
   type ScheduleFormData,
   type DayOfWeek,
 } from "@/components/medications/ScheduleForm";
-
-const CATEGORY_LABELS: Record<MedicationCategory, string> = {
-  regular: "常用薬",
-  supplement: "サプリメント",
-  prn: "頓服薬",
-  inhaler: "吸入薬",
-  eye_drops: "目薬",
-  patch: "湿布",
-  topical: "塗り薬",
-  flea_tick: "ノミ・ダニ薬",
-  heartworm: "フィラリア薬",
-};
-
-function getCategoryLabel(category: string): string {
-  return CATEGORY_LABELS[category as MedicationCategory] ?? category;
-}
+import {
+  getMedicationCategoryLabel,
+  type MedicationCategory,
+} from "@/lib/categories";
 
 const DAY_LABELS: Record<DayOfWeek, string> = {
   mon: "月",
@@ -81,7 +68,7 @@ function toViewModel(medication: Medication): MedicationViewModel {
     isLowStock: computeIsLowStock(medication),
     displayInfo: {
       name: medication.name,
-      categoryLabel: getCategoryLabel(medication.category),
+      categoryLabel: getMedicationCategoryLabel(medication.category),
       dosageInfo,
     },
   };

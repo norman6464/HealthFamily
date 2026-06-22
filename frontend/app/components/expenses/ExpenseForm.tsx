@@ -1,17 +1,9 @@
 import React, { useState } from "react";
-import type { Member, ExpenseCategory } from "@/lib/types";
+import type { Member } from "@/lib/types";
 import { ErrorText } from "@/components/ui";
+import { EXPENSE_CATEGORIES } from "@/lib/categories";
 
-export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
-  { value: "medication", label: "薬・処方" },
-  { value: "hospital", label: "診察・治療" },
-  { value: "pharmacy", label: "薬局" },
-  { value: "insurance", label: "保険料" },
-  { value: "checkup", label: "健診・検査" },
-  { value: "pet", label: "ペット医療" },
-  { value: "transport", label: "通院交通費" },
-  { value: "other", label: "その他" },
-];
+export { EXPENSE_CATEGORIES };
 
 export interface ExpenseFormData {
   memberId: string | null;
