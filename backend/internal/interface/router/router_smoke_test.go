@@ -21,6 +21,7 @@ func TestSetupRegistersWithoutPanic(t *testing.T) {
 		Medication: handler.NewMedicationHandler(usecase.NewMedicationUsecase(nil, nil)),
 		Schedule:   handler.NewScheduleHandler(usecase.NewScheduleUsecase(nil, nil)),
 		Record:     handler.NewRecordHandler(usecase.NewRecordUsecase(nil, nil, nil)),
+		Expense:    handler.NewExpenseHandler(usecase.NewExpenseUsecase(nil, nil)),
 	}
 	engine := Setup(h, tm, db, []string{"http://localhost:5173"})
 	if engine == nil {
