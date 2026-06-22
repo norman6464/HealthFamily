@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { api, clearToken, getToken, setToken } from "./api";
+import { api, ApiError, clearToken, getToken, setToken } from "./api";
 import type { User } from "./types";
 
 interface AuthState {
@@ -26,7 +26,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api
       .get<User>("/users/me")
       .then(setUser)
-      .catch(() => clearToken())
+      .catch((err) => {
+        // 401(認証切れ)のみログアウト。コールドスタート等の一時的失敗では
+        // トークンを保持し、リロードでセッションを回復できるようにする。
+        if (err instanceof ApiError && err.status === 401) {
+          clearToken();
+          setUser(null);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 

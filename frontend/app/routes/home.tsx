@@ -145,7 +145,7 @@ export default function Home() {
         hasMembers={members.length > 0}
       />
 
-      <div className="mt-6">
+      <div className="mt-6 grid items-start gap-4 md:grid-cols-2">
         <StockAlertList alerts={stockAlerts} isLoading={stockLoading} />
 
         <AdherenceStatsCard stats={adherenceStats} isLoading={adherenceLoading} />
