@@ -4,6 +4,7 @@ import type { Examination } from "@/lib/types";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import { formatDateLong } from "@/lib/format";
 
 export type ExaminationWithMember = Examination & { memberName?: string };
 
@@ -14,9 +15,6 @@ export interface UpdateExaminationInput {
   notes?: string | null;
   imageData?: string | null;
 }
-
-const formatDateJP = (value: string): string =>
-  new Date(value).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" });
 
 const toDateInput = (value: string | null | undefined): string => {
   if (!value) return "";
@@ -250,7 +248,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
           <div className="text-xs text-ink-500 mt-1 space-y-0.5">
             <p className="flex items-center space-x-1">
               <Calendar size={10} />
-              <span>検査日: {formatDateJP(examination.examinedAt)}</span>
+              <span>検査日: {formatDateLong(examination.examinedAt)}</span>
             </p>
             {examination.nextScheduledDate && (
               <p
@@ -259,7 +257,7 @@ const ExaminationCard: React.FC<ExaminationCardProps> = React.memo(({ examinatio
                 }`}
               >
                 <Calendar size={10} />
-                <span>次回予定: {formatDateJP(examination.nextScheduledDate)}</span>
+                <span>次回予定: {formatDateLong(examination.nextScheduledDate)}</span>
                 {isNextDatePast && <span>(期限切れ)</span>}
               </p>
             )}

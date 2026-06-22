@@ -4,6 +4,7 @@ import type { Prescription } from "@/lib/types";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import { formatDateShort } from "@/lib/format";
 
 export type PrescriptionWithMember = Prescription & { memberName?: string };
 
@@ -159,10 +160,10 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
             )}
           </div>
           <div className="text-xs text-ink-500 mt-1 space-y-0.5">
-            <p>処方日: {new Date(prescription.prescribedAt).toLocaleDateString("ja-JP")}</p>
+            <p>処方日: {formatDateShort(prescription.prescribedAt)}</p>
             {prescription.prescribedBy && <p>処方医: {prescription.prescribedBy}</p>}
             {prescription.expiresAt && (
-              <p>有効期限: {new Date(prescription.expiresAt).toLocaleDateString("ja-JP")}</p>
+              <p>有効期限: {formatDateShort(prescription.expiresAt)}</p>
             )}
             {prescription.pharmacyName && <p>薬局: {prescription.pharmacyName}</p>}
             {prescription.notes && <p className="text-ink-400">{prescription.notes}</p>}

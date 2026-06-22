@@ -1,32 +1,15 @@
 import React from "react";
+import {
+  MEDICATION_CATEGORY_LABELS,
+  type MedicationCategory,
+} from "@/lib/categories";
 
-export type MedicationCategory =
-  | "regular"
-  | "supplement"
-  | "prn"
-  | "inhaler"
-  | "eye_drops"
-  | "patch"
-  | "topical"
-  | "flea_tick"
-  | "heartworm";
-
-const CATEGORY_LABELS: Record<MedicationCategory, string> = {
-  regular: "常用薬",
-  supplement: "サプリメント",
-  prn: "頓服薬",
-  inhaler: "吸入薬",
-  eye_drops: "目薬",
-  patch: "湿布",
-  topical: "塗り薬",
-  flea_tick: "ノミ・ダニ薬",
-  heartworm: "フィラリア薬",
-};
+export type { MedicationCategory };
 
 export function getAllMedicationCategories(): Array<{ id: MedicationCategory; label: string }> {
-  return (Object.entries(CATEGORY_LABELS) as Array<[MedicationCategory, string]>).map(
-    ([id, label]) => ({ id, label }),
-  );
+  return (
+    Object.entries(MEDICATION_CATEGORY_LABELS) as Array<[MedicationCategory, string]>
+  ).map(([id, label]) => ({ id, label }));
 }
 
 interface CategoryFilterProps {

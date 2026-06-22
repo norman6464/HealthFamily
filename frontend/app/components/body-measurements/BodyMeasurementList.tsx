@@ -7,6 +7,7 @@ import type {
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import { formatDateShort } from "@/lib/format";
 
 interface BodyMeasurementListProps {
   measurements: BodyMeasurementView[];
@@ -152,7 +153,7 @@ const MeasurementCard: React.FC<MeasurementCardProps> = React.memo(
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2 flex-wrap gap-y-1">
               <p className="text-xs text-ink-500">
-                {new Date(measurement.recordedAt).toLocaleDateString("ja-JP")}
+                {formatDateShort(measurement.recordedAt)}
               </p>
               {measurement.memberName && (
                 <span className="text-xs bg-primary-50 text-ink-600 px-1.5 py-0.5 rounded">

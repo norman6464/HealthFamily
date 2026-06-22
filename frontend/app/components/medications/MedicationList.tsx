@@ -4,6 +4,7 @@ import type { Medication } from "@/lib/types";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
+import { formatDateShort } from "@/lib/format";
 
 export interface MedicationViewModel {
   medication: Medication;
@@ -240,7 +241,7 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
                 <p>在庫: {medication.stockQuantity}日分</p>
               )}
               {medication.stockAlertDate && (
-                <p>警告日: {new Date(medication.stockAlertDate).toLocaleDateString("ja-JP")}</p>
+                <p>警告日: {formatDateShort(medication.stockAlertDate)}</p>
               )}
             </div>
           </div>

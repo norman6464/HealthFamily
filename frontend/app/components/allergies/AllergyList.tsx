@@ -4,6 +4,7 @@ import type { Allergy } from "@/lib/types";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import { formatDateShort } from "@/lib/format";
 
 export type AllergyWithMember = Allergy & { memberName?: string };
 
@@ -202,7 +203,7 @@ const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate,
           </div>
           <div className="text-xs text-ink-500 mt-1 space-y-0.5">
             {allergy.symptoms && <p>{allergy.symptoms}</p>}
-            {allergy.diagnosedAt && <p>診断日: {new Date(allergy.diagnosedAt).toLocaleDateString("ja-JP")}</p>}
+            {allergy.diagnosedAt && <p>診断日: {formatDateShort(allergy.diagnosedAt)}</p>}
             {allergy.notes && <p className="text-ink-400">{allergy.notes}</p>}
           </div>
         </div>
