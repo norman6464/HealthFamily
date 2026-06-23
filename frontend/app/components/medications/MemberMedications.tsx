@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Clock, X, Check } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Medication, Member, Schedule } from "@/lib/types";
 import { MemberIcon, type MemberType, type PetType } from "@/components/shared/MemberIcon";
 import {
@@ -89,17 +90,19 @@ export function MemberMedications({ member, categoryFilter }: MemberMedicationsP
   const addFormRef = useRef<HTMLDivElement>(null);
 
   const { data: medications = [], isLoading } = useQuery({
-    queryKey: ["medications", member.id],
+    queryKey: queryKeys.medications.byMember(member.id),
     queryFn: () => api.get<Medication[]>(`/members/${member.id}/medications`),
   });
 
   const { data: schedules = [] } = useQuery({
-    queryKey: ["schedules"],
+    queryKey: queryKeys.schedules.all,
     queryFn: () => api.get<Schedule[]>("/schedules"),
   });
 
-  const invalidateMeds = () => qc.invalidateQueries({ queryKey: ["medications", member.id] });
-  const invalidateSchedules = () => qc.invalidateQueries({ queryKey: ["schedules"] });
+  const invalidateMeds = () =>
+    qc.invalidateQueries({ queryKey: queryKeys.medications.byMember(member.id) });
+  const invalidateSchedules = () =>
+    qc.invalidateQueries({ queryKey: queryKeys.schedules.all });
 
   const createMedication = useMutation({
     mutationFn: (data: MedicationFormData) =>

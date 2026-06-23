@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   BodyMeasurement,
   HealthLog,
@@ -269,7 +270,7 @@ function memberNameOf(members: Member[] | undefined, memberId: string): string {
 
 export function useMembersQuery() {
   return useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 }
@@ -285,7 +286,7 @@ export function useHealthLogs(members: Member[] | undefined) {
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["health-logs"],
+    queryKey: queryKeys.healthLogs.all,
     queryFn: () => api.get<HealthLog[]>("/health-logs"),
   });
 
@@ -310,12 +311,12 @@ export function useHealthLogs(members: Member[] | undefined) {
         notes: input.notes,
         recordedAt: new Date().toISOString(),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["health-logs"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.healthLogs.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/health-logs/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["health-logs"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.healthLogs.all }),
   });
 
   return {
@@ -339,7 +340,7 @@ export function useTemperatureRecords(members: Member[] | undefined) {
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["temperature-records"],
+    queryKey: queryKeys.temperatureRecords.all,
     queryFn: () => api.get<TemperatureRecord[]>("/temperature-records"),
   });
 
@@ -362,12 +363,14 @@ export function useTemperatureRecords(members: Member[] | undefined) {
         measuredAt: input.measuredAt,
         notes: input.notes,
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["temperature-records"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.temperatureRecords.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/temperature-records/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["temperature-records"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.temperatureRecords.all }),
   });
 
   return {
@@ -397,7 +400,7 @@ export function useBodyMeasurements(members: Member[] | undefined) {
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["body-measurements"],
+    queryKey: queryKeys.bodyMeasurements.all,
     queryFn: () => api.get<BodyMeasurement[]>("/body-measurements"),
   });
 
@@ -425,7 +428,8 @@ export function useBodyMeasurements(members: Member[] | undefined) {
         recordedAt: new Date(input.recordedAt).toISOString(),
         notes: input.notes,
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["body-measurements"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.bodyMeasurements.all }),
   });
 
   const updateMutation = useMutation({
@@ -436,12 +440,14 @@ export function useBodyMeasurements(members: Member[] | undefined) {
       id: string;
       input: UpdateBodyMeasurementInput;
     }) => api.patch<BodyMeasurement>(`/body-measurements/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["body-measurements"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.bodyMeasurements.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/body-measurements/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["body-measurements"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.bodyMeasurements.all }),
   });
 
   return {

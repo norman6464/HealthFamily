@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { NotificationSetting } from "@/lib/types";
 import {
   NotificationSettingsForm,
@@ -12,14 +13,15 @@ export default function NotificationSettingsPage() {
   const qc = useQueryClient();
 
   const { data: setting = null, isLoading, error } = useQuery({
-    queryKey: ["notification-settings"],
+    queryKey: queryKeys.notificationSettings.all,
     queryFn: () => api.get<NotificationSetting>("/notification-settings"),
   });
 
   const updateMutation = useMutation({
     mutationFn: (input: UpdateNotificationSettingInput) =>
       api.put<NotificationSetting>("/notification-settings", input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notification-settings"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.notificationSettings.all }),
   });
 
   const handleSave = async (input: UpdateNotificationSettingInput) => {

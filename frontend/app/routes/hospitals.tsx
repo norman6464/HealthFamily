@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Hospital } from "@/lib/types";
 import { HospitalList, type UpdateHospitalInput } from "@/components/hospitals/HospitalList";
 import { HospitalForm, type HospitalFormData } from "@/components/hospitals/HospitalForm";
@@ -13,7 +14,7 @@ export default function Hospitals() {
   const [showForm, setShowForm] = useState(false);
 
   const { data: hospitals = [], isLoading } = useQuery({
-    queryKey: ["hospitals"],
+    queryKey: queryKeys.hospitals.all,
     queryFn: () => api.get<Hospital[]>("/hospitals"),
   });
 
@@ -29,19 +30,19 @@ export default function Hospitals() {
       }),
     onSuccess: () => {
       setShowForm(false);
-      qc.invalidateQueries({ queryKey: ["hospitals"] });
+      qc.invalidateQueries({ queryKey: queryKeys.hospitals.all });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateHospitalInput }) =>
       api.patch<Hospital>(`/hospitals/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["hospitals"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.hospitals.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/hospitals/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["hospitals"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.hospitals.all }),
   });
 
   const handleCreate = (data: HospitalFormData) => {

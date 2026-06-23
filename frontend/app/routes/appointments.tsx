@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { MapPin, Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Appointment, Hospital, Member } from "@/lib/types";
 import { TabSwitch } from "@/components/shared/TabSwitch";
 import { MiniCalendar } from "@/components/appointments/MiniCalendar";
@@ -22,17 +23,17 @@ export default function Appointments() {
   const editFormRef = useRef<HTMLDivElement>(null);
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 
   const { data: appointments = [], isLoading } = useQuery({
-    queryKey: ["appointments"],
+    queryKey: queryKeys.appointments.all,
     queryFn: () => api.get<Appointment[]>("/appointments"),
   });
 
   const { data: hospitals = [] } = useQuery({
-    queryKey: ["hospitals"],
+    queryKey: queryKeys.hospitals.all,
     queryFn: () => api.get<Hospital[]>("/hospitals"),
   });
 
@@ -67,7 +68,7 @@ export default function Appointments() {
       }),
     onSuccess: () => {
       setShowForm(false);
-      qc.invalidateQueries({ queryKey: ["appointments"] });
+      qc.invalidateQueries({ queryKey: queryKeys.appointments.all });
     },
   });
 
@@ -81,14 +82,15 @@ export default function Appointments() {
       }),
     onSuccess: () => {
       setEditingAppointment(null);
-      qc.invalidateQueries({ queryKey: ["appointments"] });
+      qc.invalidateQueries({ queryKey: queryKeys.appointments.all });
     },
     onError: () => setUpdateError("更新に失敗しました。もう一度お試しください。"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/appointments/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.appointments.all }),
   });
 
   const handleCreate = (data: AppointmentFormData) => {

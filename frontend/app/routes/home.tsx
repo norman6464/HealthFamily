@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useQuery } from "@tanstack/react-query";
 import { SlidersHorizontal } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { DashboardPreference } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { useDashboardData, useMarkRecord, type MissedDose } from "@/hooks/dashboard";
@@ -70,7 +71,7 @@ export default function Home() {
   const [defaultApplied, setDefaultApplied] = useState(false);
 
   const { data: preference = EMPTY_PREFERENCE } = useQuery({
-    queryKey: ["dashboard-preferences"],
+    queryKey: queryKeys.dashboardPreferences.all,
     queryFn: () => api.get<DashboardPreference>("/dashboard-preferences"),
     enabled: !!userId,
   });

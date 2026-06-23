@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { MedicationRecord, Member, Medication, HealthLog } from "@/lib/types";
 
 /** 表示用に氏名・薬名を付与した服薬記録 */
@@ -85,22 +86,22 @@ export function useMedicationHistory(): UseMedicationHistoryResult {
   const qc = useQueryClient();
 
   const { data: rawRecords, isLoading: recordsLoading } = useQuery({
-    queryKey: ["records"],
+    queryKey: queryKeys.records.all,
     queryFn: () => api.get<MedicationRecord[]>("/records"),
   });
 
   const { data: members } = useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 
   const { data: medications } = useQuery({
-    queryKey: ["medications"],
+    queryKey: queryKeys.medications.all,
     queryFn: () => api.get<Medication[]>("/medications"),
   });
 
   const { data: healthLogs } = useQuery({
-    queryKey: ["health-logs"],
+    queryKey: queryKeys.healthLogs.all,
     queryFn: () => api.get<HealthLog[]>("/health-logs"),
   });
 
@@ -124,12 +125,12 @@ export function useMedicationHistory(): UseMedicationHistoryResult {
 
   const deleteMutation = useMutation({
     mutationFn: (recordId: string) => api.delete(`/records/${recordId}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["records"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.records.all }),
   });
 
   const createMutation = useMutation({
     mutationFn: (input: CreateRecordInput) => api.post("/records", input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["records"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.records.all }),
   });
 
   return {

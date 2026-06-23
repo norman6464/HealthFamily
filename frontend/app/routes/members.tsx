@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Appointment, Member, MemberWithCounts } from "@/lib/types";
 import { MemberList } from "@/components/members/MemberList";
 import { MemberForm, type MemberFormData } from "@/components/members/MemberForm";
@@ -30,12 +31,12 @@ export default function Members() {
 
   // サーバ集計の /members/summary を使用（全medications取得＋クライアント集計のN+1を解消）
   const { data: members = [], isLoading } = useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<MemberWithCounts[]>("/members/summary"),
   });
 
   const { data: appointments = [] } = useQuery({
-    queryKey: ["appointments"],
+    queryKey: queryKeys.appointments.all,
     queryFn: () => api.get<Appointment[]>("/appointments"),
   });
 
@@ -66,7 +67,7 @@ export default function Members() {
     mutationFn: (body: CreateMemberBody) => api.post<Member>("/members", body),
     onSuccess: () => {
       setShowForm(false);
-      qc.invalidateQueries({ queryKey: ["members"] });
+      qc.invalidateQueries({ queryKey: queryKeys.members.all });
     },
   });
 
@@ -75,13 +76,13 @@ export default function Members() {
       api.patch<Member>(`/members/${id}`, body),
     onSuccess: () => {
       setEditingMember(null);
-      qc.invalidateQueries({ queryKey: ["members"] });
+      qc.invalidateQueries({ queryKey: queryKeys.members.all });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/members/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["members"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.members.all }),
   });
 
   const handleCreate = (data: MemberFormData) => {
