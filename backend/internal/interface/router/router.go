@@ -95,6 +95,7 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 		authed.GET("/expenses", h.Expense.List)
 		authed.GET("/expenses/summary", h.Expense.Summary)
 		authed.POST("/expenses", h.Expense.Create)
+		authed.POST("/expenses/import", h.Expense.Import)
 		authed.PATCH("/expenses/:expenseId", h.Expense.Update)
 		authed.DELETE("/expenses/:expenseId", h.Expense.Delete)
 

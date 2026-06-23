@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Download, Plus, X } from "lucide-react";
+import { AlertTriangle, Download, Plus, Upload, X } from "lucide-react";
 import { api } from "@/lib/api";
 import type {
   Budget,
@@ -24,6 +24,7 @@ import {
   BudgetCard,
   type BudgetSavePayload,
 } from "@/components/expenses/BudgetCard";
+import { ExpenseImport } from "@/components/expenses/ExpenseImport";
 import { getExpenseCategoryLabel } from "@/lib/categories";
 import { formatCurrency } from "@/lib/format";
 
@@ -36,6 +37,7 @@ export default function Expenses() {
   const [year, setYear] = useState<number>(currentYear);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const yearOptions = useMemo(
     () => Array.from({ length: YEAR_OPTIONS_COUNT }, (_, i) => currentYear - i),
@@ -206,15 +208,52 @@ export default function Expenses() {
           ))}
         </select>
         <button
+          onClick={() => setShowImport(true)}
+          className="ml-auto flex items-center gap-1.5 rounded-xl bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 transition hover:bg-primary-100"
+          title="医療費CSVを取り込む"
+        >
+          <Upload size={16} />
+          CSV取込
+        </button>
+        <button
           onClick={handleExportCsv}
           disabled={expenses.length === 0}
-          className="ml-auto flex items-center gap-1.5 rounded-xl bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 transition hover:bg-primary-100 disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-xl bg-primary-50 px-3 py-1.5 text-sm font-medium text-primary-700 transition hover:bg-primary-100 disabled:opacity-50"
           title="医療費控除の明細書(CSV)をダウンロード"
         >
           <Download size={16} />
           明細書CSV
         </button>
       </div>
+
+      {showImport && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-ink-900/40 p-0 sm:items-center sm:p-4"
+          onClick={() => setShowImport(false)}
+        >
+          <div
+            className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-t-2xl bg-white p-5 shadow-card sm:rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-base font-bold text-ink-800">医療費CSV取込</h3>
+              <button
+                onClick={() => setShowImport(false)}
+                className="rounded-lg p-1 text-ink-500 transition hover:bg-ink-400/10"
+                aria-label="閉じる"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <ExpenseImport
+              onImported={() => {
+                invalidateAll();
+                qc.invalidateQueries({ queryKey: ["budget", "alert"] });
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <ExpenseSummaryCard summary={summary} isLoading={summaryLoading} />
 

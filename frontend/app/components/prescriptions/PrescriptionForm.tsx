@@ -8,6 +8,7 @@ export interface PrescriptionFormData {
   prescribedAt: string;
   expiresAt?: string;
   pharmacyName?: string;
+  electronicCode?: string;
   notes?: string;
 }
 
@@ -22,6 +23,7 @@ interface PrescriptionFormProps {
     prescribedAt: string;
     expiresAt?: string;
     pharmacyName?: string;
+    electronicCode?: string;
     notes?: string;
   };
 }
@@ -42,6 +44,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
   );
   const [expiresAt, setExpiresAt] = useState(toDateInput(initialData?.expiresAt));
   const [pharmacyName, setPharmacyName] = useState(initialData?.pharmacyName || "");
+  const [electronicCode, setElectronicCode] = useState(initialData?.electronicCode || "");
   const [notes, setNotes] = useState(initialData?.notes || "");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,6 +58,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
       prescribedAt: new Date(prescribedAt).toISOString(),
       expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
       pharmacyName: pharmacyName.trim() || undefined,
+      electronicCode: electronicCode.trim() || undefined,
       notes: notes.trim() || undefined,
     });
 
@@ -63,6 +67,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
       setPrescribedBy("");
       setExpiresAt("");
       setPharmacyName("");
+      setElectronicCode("");
       setNotes("");
     }
   };
@@ -157,6 +162,20 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
           onChange={(e) => setPharmacyName(e.target.value)}
           className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           placeholder="例: 調剤薬局ABC"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="rx-ecode" className="block text-sm font-medium text-ink-700 mb-1">
+          電子処方箋コード/引換番号（任意）
+        </label>
+        <input
+          id="rx-ecode"
+          type="text"
+          value={electronicCode}
+          onChange={(e) => setElectronicCode(e.target.value)}
+          className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          placeholder="例: 1234-5678-9012"
         />
       </div>
 

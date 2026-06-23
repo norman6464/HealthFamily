@@ -124,6 +124,55 @@ func (h *ExpenseHandler) Update(c *gin.Context) {
 	response.Success(c, e)
 }
 
+type importExpenseRow struct {
+	MemberID     *string `json:"memberId"`
+	Category     string  `json:"category"`
+	Amount       int     `json:"amount"`
+	Description  *string `json:"description"`
+	ExpenseDate  string  `json:"expenseDate"`
+	IsDeductible *bool   `json:"isDeductible"`
+}
+
+type importExpensesRequest struct {
+	Expenses []importExpenseRow `json:"expenses" binding:"required"`
+}
+
+// Import は CSV/医療費通知から変換した支出を一括登録する。
+func (h *ExpenseHandler) Import(c *gin.Context) {
+	userID := middleware.UserID(c)
+	var req importExpensesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, 400, "取込データが正しくありません")
+		return
+	}
+	inputs := make([]repository.CreateExpenseInput, 0, len(req.Expenses))
+	for _, row := range req.Expenses {
+		date := parseDate(&row.ExpenseDate)
+		if date == nil {
+			continue // 日付不正はスキップ
+		}
+		deductible := true
+		if row.IsDeductible != nil {
+			deductible = *row.IsDeductible
+		}
+		inputs = append(inputs, repository.CreateExpenseInput{
+			UserID:       userID,
+			MemberID:     row.MemberID,
+			Category:     row.Category,
+			Amount:       row.Amount,
+			Description:  row.Description,
+			ExpenseDate:  *date,
+			IsDeductible: deductible,
+		})
+	}
+	imported, skipped, err := h.uc.ImportMany(c.Request.Context(), inputs)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Created(c, gin.H{"imported": imported, "skipped": skipped})
+}
+
 func (h *ExpenseHandler) Delete(c *gin.Context) {
 	userID := middleware.UserID(c)
 	if err := h.uc.Delete(c.Request.Context(), userID, c.Param("expenseId")); err != nil {

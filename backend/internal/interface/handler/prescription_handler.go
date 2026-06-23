@@ -44,6 +44,7 @@ type createPrescriptionRequest struct {
 	PrescribedAt     *string `json:"prescribedAt" binding:"required"`
 	ExpiresAt        *string `json:"expiresAt"`
 	PharmacyName     *string `json:"pharmacyName"`
+	ElectronicCode   *string `json:"electronicCode"`
 	Notes            *string `json:"notes"`
 }
 
@@ -67,6 +68,7 @@ func (h *PrescriptionHandler) Create(c *gin.Context) {
 		PrescribedAt:     *prescribedAt,
 		ExpiresAt:        parseDate(req.ExpiresAt),
 		PharmacyName:     req.PharmacyName,
+		ElectronicCode:   req.ElectronicCode,
 		Notes:            req.Notes,
 	})
 	if err != nil {
@@ -82,6 +84,7 @@ type updatePrescriptionRequest struct {
 	PrescribedAt     *string `json:"prescribedAt"`
 	ExpiresAt        *string `json:"expiresAt"`
 	PharmacyName     *string `json:"pharmacyName"`
+	ElectronicCode   *string `json:"electronicCode"`
 	Notes            *string `json:"notes"`
 }
 
@@ -98,6 +101,7 @@ func (h *PrescriptionHandler) Update(c *gin.Context) {
 		PrescribedAt:     parseDate(req.PrescribedAt),
 		ExpiresAt:        parseDate(req.ExpiresAt),
 		PharmacyName:     req.PharmacyName,
+		ElectronicCode:   req.ElectronicCode,
 		Notes:            req.Notes,
 	})
 	if err != nil {
