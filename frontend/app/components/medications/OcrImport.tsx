@@ -226,7 +226,10 @@ export function OcrImport({ onPick }: OcrImportProps) {
 
       // tesseract.js は重いため遅延読込する
       const Tesseract = await import("tesseract.js");
+      // 言語データは自前ホスティング(public/tessdata)から読み込む(外部CDN非依存)
       const worker = await Tesseract.createWorker("jpn+eng", undefined, {
+        langPath: "/tessdata",
+        gzip: true,
         logger: (m: { status: string; progress: number }) => {
           if (m.status === "recognizing text") {
             setProgress(Math.round(m.progress * 100));

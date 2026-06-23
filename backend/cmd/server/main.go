@@ -54,7 +54,7 @@ func main() {
 	dashboardPrefRepo := persistence.NewDashboardPreferenceRepository(db)
 
 	handlers := &router.Handlers{
-		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(userRepo, tm, mail)),
+		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(userRepo, tm, mail), cfg.E2ETestLoginSecret),
 		Member:     handler.NewMemberHandler(usecase.NewMemberUsecase(memberRepo)),
 		Medication: handler.NewMedicationHandler(usecase.NewMedicationUsecase(medRepo, memberRepo)),
 		Schedule:   handler.NewScheduleHandler(usecase.NewScheduleUsecase(schedRepo, medRepo)),
