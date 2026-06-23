@@ -295,6 +295,7 @@ type CreatePrescriptionInput struct {
 	PrescribedAt     time.Time
 	ExpiresAt        *time.Time
 	PharmacyName     *string
+	ElectronicCode   *string
 	Notes            *string
 }
 
@@ -304,6 +305,7 @@ type UpdatePrescriptionInput struct {
 	PrescribedAt     *time.Time
 	ExpiresAt        *time.Time
 	PharmacyName     *string
+	ElectronicCode   *string
 	Notes            *string
 }
 

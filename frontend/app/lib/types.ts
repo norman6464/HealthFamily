@@ -289,6 +289,7 @@ export interface Prescription {
   prescribedAt: string;
   expiresAt: string | null;
   pharmacyName: string | null;
+  electronicCode: string | null;
   notes: string | null;
   createdAt: string;
 }

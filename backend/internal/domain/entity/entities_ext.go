@@ -139,6 +139,7 @@ type Prescription struct {
 	PrescribedAt     time.Time  `json:"prescribedAt"`
 	ExpiresAt        *time.Time `json:"expiresAt"`
 	PharmacyName     *string    `json:"pharmacyName"`
+	ElectronicCode   *string    `json:"electronicCode"` // 電子処方箋の引換番号/アクセスコード
 	Notes            *string    `json:"notes"`
 	CreatedAt        time.Time  `json:"createdAt"`
 }

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { Pencil, Trash2, Check, X } from "lucide-react";
-import type { Prescription } from "@/lib/types";
+import { useMutation } from "@tanstack/react-query";
+import { Pencil, Trash2, Check, X, QrCode, PillBottle } from "lucide-react";
+import type { Medication, Prescription } from "@/lib/types";
+import { api } from "@/lib/api";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
@@ -54,10 +56,19 @@ interface PrescriptionCardProps {
 const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescription, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
   const [editName, setEditName] = useState(prescription.prescriptionName);
   const [editDoctor, setEditDoctor] = useState(prescription.prescribedBy || "");
   const [editPharmacy, setEditPharmacy] = useState(prescription.pharmacyName || "");
   const [editNotes, setEditNotes] = useState(prescription.notes || "");
+
+  const registerMedicationMutation = useMutation({
+    mutationFn: () =>
+      api.post<Medication>("/medications", {
+        memberId: prescription.memberId,
+        name: prescription.prescriptionName,
+      }),
+  });
 
   const now = new Date();
   const expiresDate = prescription.expiresAt ? new Date(prescription.expiresAt) : null;
@@ -168,6 +179,29 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
             {prescription.pharmacyName && <p>薬局: {prescription.pharmacyName}</p>}
             {prescription.notes && <p className="text-ink-400">{prescription.notes}</p>}
           </div>
+          {prescription.electronicCode && (
+            <div className="mt-2 inline-flex items-center gap-1.5 bg-primary-50 text-primary-700 px-2 py-1 rounded-md">
+              <QrCode size={14} className="flex-shrink-0" />
+              <span className="text-xs font-mono tracking-wide break-all">{prescription.electronicCode}</span>
+            </div>
+          )}
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => setIsRegisterDialogOpen(true)}
+              disabled={registerMedicationMutation.isPending}
+              className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors disabled:opacity-50"
+            >
+              <PillBottle size={14} />
+              <span>{registerMedicationMutation.isPending ? "登録中..." : "この処方箋からお薬を登録"}</span>
+            </button>
+            {registerMedicationMutation.isSuccess && (
+              <p className="mt-1 text-xs text-primary-600">お薬を登録しました</p>
+            )}
+            {registerMedicationMutation.isError && (
+              <p className="mt-1 text-xs text-red-600">登録に失敗しました。もう一度お試しください</p>
+            )}
+          </div>
         </div>
         <div className="flex items-center space-x-1 flex-shrink-0">
           <button
@@ -196,6 +230,16 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
         }}
         onCancel={() => setIsDeleteDialogOpen(false)}
         isDangerous
+      />
+      <ConfirmationDialog
+        title="お薬を登録"
+        message={`「${prescription.prescriptionName}」を服薬管理のお薬として登録しますか？`}
+        isOpen={isRegisterDialogOpen}
+        onConfirm={() => {
+          setIsRegisterDialogOpen(false);
+          registerMedicationMutation.mutate();
+        }}
+        onCancel={() => setIsRegisterDialogOpen(false)}
       />
     </div>
   );

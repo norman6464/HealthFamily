@@ -115,6 +115,26 @@ func (uc *ExpenseUsecase) Create(ctx context.Context, in repository.CreateExpens
 	return uc.expenses.Create(ctx, in)
 }
 
+// ImportMany は複数の支出を一括登録する（CSV/医療費通知の取込用）。
+// 不正な行はスキップし、登録件数とスキップ件数を返す。
+func (uc *ExpenseUsecase) ImportMany(ctx context.Context, inputs []repository.CreateExpenseInput) (imported int, skipped int, err error) {
+	for _, in := range inputs {
+		if in.Amount <= 0 || !validExpenseCategories[in.Category] || in.ExpenseDate.IsZero() {
+			skipped++
+			continue
+		}
+		if e := uc.ensureMemberOwner(ctx, in.UserID, in.MemberID); e != nil {
+			skipped++
+			continue
+		}
+		if _, e := uc.expenses.Create(ctx, in); e != nil {
+			return imported, skipped, e
+		}
+		imported++
+	}
+	return imported, skipped, nil
+}
+
 // Update は所有権確認と、指定された項目のみの検証を行う。
 func (uc *ExpenseUsecase) Update(ctx context.Context, userID, id string, in repository.UpdateExpenseInput) (*entity.Expense, error) {
 	if _, err := uc.ensureOwner(ctx, userID, id); err != nil {

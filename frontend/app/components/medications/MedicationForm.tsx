@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ScanText } from "lucide-react";
 import type { Medication } from "@/lib/types";
 import type { MedicationCategory } from "@/lib/categories";
+import { OcrImport } from "./OcrImport";
 
 export type { MedicationCategory };
 
@@ -50,6 +51,7 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
     initialData?.instructions
   );
   const [showOptional, setShowOptional] = useState(isEditing && hasOptionalData);
+  const [showOcr, setShowOcr] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,9 +85,24 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="med-name" className="block text-sm font-medium text-ink-700 mb-1">
-          薬の名前
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label htmlFor="med-name" className="block text-sm font-medium text-ink-700">
+            薬の名前
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowOcr((v) => !v)}
+            aria-pressed={showOcr}
+            className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors ${
+              showOcr
+                ? "bg-primary-600 text-white"
+                : "bg-primary-50 text-primary-700 hover:bg-primary-100"
+            }`}
+          >
+            <ScanText size={14} />
+            画像から読み取り(OCR)
+          </button>
+        </div>
         <input
           id="med-name"
           type="text"
@@ -94,6 +111,11 @@ export const MedicationForm: React.FC<MedicationFormProps> = ({ onSubmit, initia
           className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500"
           placeholder="薬の名前を入力"
         />
+        {showOcr && (
+          <div className="mt-2">
+            <OcrImport onPick={(text) => setName(text)} />
+          </div>
+        )}
       </div>
 
       <div>
