@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Check, Eye, EyeOff, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { DashboardPreference, Member } from "@/lib/types";
 import { Button, Card, ErrorText } from "@/components/ui";
 
@@ -67,7 +68,7 @@ export function DashboardSettings({ preference, members, onClose }: DashboardSet
       defaultMemberId: string | null;
     }) => api.put<DashboardPreference>("/dashboard-preferences", input),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dashboard-preferences"] });
+      qc.invalidateQueries({ queryKey: queryKeys.dashboardPreferences.all });
       onClose();
     },
   });

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Medication, Member } from "@/lib/types";
 import { CategoryFilter, type MedicationCategory } from "@/components/shared/CategoryFilter";
 import { MemberMedications } from "@/components/medications/MemberMedications";
@@ -12,12 +13,12 @@ export default function Medications() {
   const [selectedCategory, setSelectedCategory] = useState<MedicationCategory | null>(null);
 
   const { data: members = [], isLoading } = useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 
   const { data: allMedications = [] } = useQuery({
-    queryKey: ["medications"],
+    queryKey: queryKeys.medications.all,
     queryFn: () => api.get<Medication[]>("/medications"),
   });
 

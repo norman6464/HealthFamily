@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { ChevronLeft, Printer } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import { useRequireAuth } from "@/lib/auth";
 import type {
   Member,
@@ -51,38 +52,38 @@ export default function MemberReport() {
   const { user, loading: authLoading } = useRequireAuth();
 
   const { data: member, isLoading: memberLoading } = useQuery({
-    queryKey: ["members", memberId],
+    queryKey: queryKeys.members.detail(memberId),
     queryFn: () => api.get<Member>(`/members/${memberId}`),
     enabled: !!memberId && !!user,
     retry: false,
   });
 
   const { data: medications = [], isLoading: medsLoading } = useQuery({
-    queryKey: ["members", memberId, "medications"],
+    queryKey: queryKeys.members.medications(memberId),
     queryFn: () => api.get<Medication[]>(`/members/${memberId}/medications`),
     enabled: !!memberId && !!user,
   });
 
   const { data: allergies = [] } = useQuery({
-    queryKey: ["allergies"],
+    queryKey: queryKeys.allergies.all,
     queryFn: () => api.get<Allergy[]>("/allergies"),
     enabled: !!user,
   });
 
   const { data: vaccinations = [] } = useQuery({
-    queryKey: ["vaccinations"],
+    queryKey: queryKeys.vaccinations.all,
     queryFn: () => api.get<Vaccination[]>("/vaccinations"),
     enabled: !!user,
   });
 
   const { data: examinations = [] } = useQuery({
-    queryKey: ["examinations"],
+    queryKey: queryKeys.examinations.all,
     queryFn: () => api.get<Examination[]>("/examinations"),
     enabled: !!user,
   });
 
   const { data: appointments = [] } = useQuery({
-    queryKey: ["appointments"],
+    queryKey: queryKeys.appointments.all,
     queryFn: () => api.get<Appointment[]>("/appointments"),
     enabled: !!user,
   });

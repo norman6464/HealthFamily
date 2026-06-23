@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router";
 import { Pill, Plus, X, ChevronLeft, FileText } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   Member,
   Allergy,
@@ -78,7 +79,7 @@ export default function MemberDetail() {
     isLoading: memberLoading,
     isError: memberError,
   } = useQuery({
-    queryKey: ["members", memberId],
+    queryKey: queryKeys.members.detail(memberId),
     queryFn: () => api.get<Member>(`/members/${memberId}`),
     enabled: !!memberId,
     retry: false,
@@ -216,24 +217,24 @@ function AllergiesSection({ member, members, qc }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
   const { data: allergies = [], isLoading } = useQuery({
-    queryKey: ["allergies"],
+    queryKey: queryKeys.allergies.all,
     queryFn: () => api.get<Allergy[]>("/allergies"),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: AllergyFormData) => api.post<Allergy>("/allergies", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["allergies"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allergies.all }),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateAllergyInput }) =>
       api.patch<Allergy>(`/allergies/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["allergies"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allergies.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/allergies/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["allergies"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allergies.all }),
   });
 
   const items: AllergyWithMember[] = allergies
@@ -270,24 +271,27 @@ function VaccinationsSection({ member, members, qc }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
   const { data: vaccinations = [], isLoading } = useQuery({
-    queryKey: ["vaccinations"],
+    queryKey: queryKeys.vaccinations.all,
     queryFn: () => api.get<Vaccination[]>("/vaccinations"),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: VaccinationFormData) => api.post<Vaccination>("/vaccinations", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["vaccinations"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.vaccinations.all }),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateVaccinationInput }) =>
       api.patch<Vaccination>(`/vaccinations/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["vaccinations"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.vaccinations.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/vaccinations/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["vaccinations"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.vaccinations.all }),
   });
 
   const items: VaccinationWithMember[] = vaccinations
@@ -329,24 +333,27 @@ function ExaminationsSection({ member, members, qc }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
   const { data: examinations = [], isLoading } = useQuery({
-    queryKey: ["examinations"],
+    queryKey: queryKeys.examinations.all,
     queryFn: () => api.get<Examination[]>("/examinations"),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: ExaminationFormData) => api.post<Examination>("/examinations", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["examinations"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.examinations.all }),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateExaminationInput }) =>
       api.patch<Examination>(`/examinations/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["examinations"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.examinations.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/examinations/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["examinations"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.examinations.all }),
   });
 
   const items: ExaminationWithMember[] = examinations
@@ -388,24 +395,24 @@ function InsurancesSection({ member, members, qc }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
   const { data: insurances = [], isLoading } = useQuery({
-    queryKey: ["insurances"],
+    queryKey: queryKeys.insurances.all,
     queryFn: () => api.get<Insurance[]>("/insurances"),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: InsuranceFormData) => api.post<Insurance>("/insurances", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["insurances"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.insurances.all }),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateInsuranceInput }) =>
       api.patch<Insurance>(`/insurances/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["insurances"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.insurances.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/insurances/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["insurances"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.insurances.all }),
   });
 
   const items: InsuranceWithMember[] = insurances
@@ -447,24 +454,27 @@ function PrescriptionsSection({ member, members, qc }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
   const { data: prescriptions = [], isLoading } = useQuery({
-    queryKey: ["prescriptions"],
+    queryKey: queryKeys.prescriptions.all,
     queryFn: () => api.get<Prescription[]>("/prescriptions"),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: PrescriptionFormData) => api.post<Prescription>("/prescriptions", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["prescriptions"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.prescriptions.all }),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdatePrescriptionInput }) =>
       api.patch<Prescription>(`/prescriptions/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["prescriptions"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.prescriptions.all }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/prescriptions/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["prescriptions"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.prescriptions.all }),
   });
 
   const items: PrescriptionWithMember[] = prescriptions

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Download, Plus, Upload, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   Budget,
   BudgetAlertStatus,
@@ -45,12 +46,12 @@ export default function Expenses() {
   );
 
   const { data: members = [] } = useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 
   const { data: expenses = [], isLoading: expensesLoading } = useQuery({
-    queryKey: ["expenses", year, selectedMemberId],
+    queryKey: queryKeys.expenses.list(year, selectedMemberId),
     queryFn: () => {
       const params = new URLSearchParams({ year: String(year) });
       if (selectedMemberId) params.set("memberId", selectedMemberId);
@@ -59,12 +60,12 @@ export default function Expenses() {
   });
 
   const { data: summary, isLoading: summaryLoading } = useQuery({
-    queryKey: ["expenses", "summary", year],
+    queryKey: queryKeys.expenses.summary(year),
     queryFn: () => api.get<ExpenseSummary>(`/expenses/summary?year=${year}`),
   });
 
   const { data: budget, isLoading: budgetLoading } = useQuery({
-    queryKey: ["budget"],
+    queryKey: queryKeys.budget.all,
     queryFn: () => api.get<Budget>("/budget"),
   });
 
@@ -72,20 +73,20 @@ export default function Expenses() {
     mutationFn: (payload: BudgetSavePayload) =>
       api.put<Budget>("/budget", payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["budget"] });
-      qc.invalidateQueries({ queryKey: ["budget", "alert"] });
+      qc.invalidateQueries({ queryKey: queryKeys.budget.all });
+      qc.invalidateQueries({ queryKey: queryKeys.budget.alert });
     },
   });
 
   // ページ表示時に予算超過を判定（メールアラート連動）
   const { data: alertStatus } = useQuery({
-    queryKey: ["budget", "alert"],
+    queryKey: queryKeys.budget.alert,
     queryFn: () => api.post<BudgetAlertStatus>("/budget/alert"),
   });
 
   const invalidateAll = () => {
-    qc.invalidateQueries({ queryKey: ["expenses"] });
-    qc.invalidateQueries({ queryKey: ["expenses", "summary", year] });
+    qc.invalidateQueries({ queryKey: queryKeys.expenses.all });
+    qc.invalidateQueries({ queryKey: queryKeys.expenses.summary(year) });
   };
 
   const createMutation = useMutation({
@@ -248,7 +249,7 @@ export default function Expenses() {
             <ExpenseImport
               onImported={() => {
                 invalidateAll();
-                qc.invalidateQueries({ queryKey: ["budget", "alert"] });
+                qc.invalidateQueries({ queryKey: queryKeys.budget.alert });
               }}
             />
           </div>

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { LogOut, Pencil, Check, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/lib/auth";
 import type { User, Member, EmergencyContact } from "@/lib/types";
 import { CharacterSelector } from "@/components/character/CharacterSelector";
@@ -23,17 +24,17 @@ export default function Settings() {
   const { user, logout } = useAuth();
 
   const { data: profile } = useQuery({
-    queryKey: ["users", "me"],
+    queryKey: queryKeys.users.me,
     queryFn: () => api.get<User>("/users/me"),
   });
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
-    queryKey: ["emergency-contacts"],
+    queryKey: queryKeys.emergencyContacts.all,
     queryFn: () => api.get<EmergencyContact[]>("/emergency-contacts"),
   });
 
@@ -49,24 +50,27 @@ export default function Settings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: (input: { displayName: string }) => api.patch<User>("/users/me", input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users", "me"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.users.me }),
   });
 
   const createContactMutation = useMutation({
     mutationFn: (data: EmergencyContactFormData) =>
       api.post<EmergencyContact>("/emergency-contacts", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["emergency-contacts"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.emergencyContacts.all }),
   });
 
   const updateContactMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateEmergencyContactInput }) =>
       api.patch<EmergencyContact>(`/emergency-contacts/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["emergency-contacts"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.emergencyContacts.all }),
   });
 
   const deleteContactMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/emergency-contacts/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["emergency-contacts"] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.emergencyContacts.all }),
   });
 
   const contactsWithMember: EmergencyContactWithMember[] = contacts.map((c) => ({

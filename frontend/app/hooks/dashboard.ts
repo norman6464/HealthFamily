@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   Appointment,
   Hospital,
@@ -208,39 +209,39 @@ export function useDashboardData(userId: string | null) {
   const enabled = !!userId;
 
   const todayQuery = useQuery({
-    queryKey: ["schedules", "today"],
+    queryKey: queryKeys.schedules.today,
     queryFn: () => api.get<TodaySchedule[]>("/schedules/today"),
     enabled,
   });
   const schedulesQuery = useQuery({
-    queryKey: ["schedules"],
+    queryKey: queryKeys.schedules.all,
     queryFn: () => api.get<Schedule[]>("/schedules"),
     enabled,
   });
   // ダッシュボードの集計は週次/月次のみ。全件ではなく直近40日に絞って取得する。
   // (invalidateQueries({queryKey:["records"]}) はプレフィックス一致でこのキーも無効化する)
   const recordsQuery = useQuery({
-    queryKey: ["records", "window", 40],
+    queryKey: queryKeys.records.window(40),
     queryFn: () => api.get<MedicationRecord[]>("/records?days=40"),
     enabled,
   });
   const medicationsQuery = useQuery({
-    queryKey: ["medications"],
+    queryKey: queryKeys.medications.all,
     queryFn: () => api.get<Medication[]>("/medications"),
     enabled,
   });
   const membersQuery = useQuery({
-    queryKey: ["members"],
+    queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
     enabled,
   });
   const appointmentsQuery = useQuery({
-    queryKey: ["appointments"],
+    queryKey: queryKeys.appointments.all,
     queryFn: () => api.get<Appointment[]>("/appointments"),
     enabled,
   });
   const hospitalsQuery = useQuery({
-    queryKey: ["hospitals"],
+    queryKey: queryKeys.hospitals.all,
     queryFn: () => api.get<Hospital[]>("/hospitals"),
     enabled,
   });
@@ -460,8 +461,8 @@ export function useMarkRecord() {
         ...(input.notes ? { notes: input.notes } : {}),
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["schedules", "today"] });
-      qc.invalidateQueries({ queryKey: ["records"] });
+      qc.invalidateQueries({ queryKey: queryKeys.schedules.today });
+      qc.invalidateQueries({ queryKey: queryKeys.records.all });
     },
   });
 }

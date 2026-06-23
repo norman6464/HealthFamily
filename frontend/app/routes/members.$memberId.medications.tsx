@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Plus, X, Clock, Pill, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Medication, Schedule } from "@/lib/types";
 import { Button, Card, ErrorText, Input } from "@/components/ui";
 import { BottomNavigation } from "@/components/shared/BottomNavigation";
@@ -54,13 +55,13 @@ export default function MemberMedications() {
   const [scheduleError, setScheduleError] = useState<string | null>(null);
 
   const { data: medications = [], isLoading } = useQuery({
-    queryKey: ["members", memberId, "medications"],
+    queryKey: queryKeys.members.medications(memberId),
     queryFn: () => api.get<Medication[]>(`/members/${memberId}/medications`),
     enabled: !!memberId,
   });
 
   const { data: allSchedules = [], isLoading: schedulesLoading } = useQuery({
-    queryKey: ["schedules"],
+    queryKey: queryKeys.schedules.all,
     queryFn: () => api.get<Schedule[]>("/schedules"),
   });
 
@@ -81,8 +82,8 @@ export default function MemberMedications() {
       setMedInstructions("");
       setMedError(null);
       setShowMedForm(false);
-      qc.invalidateQueries({ queryKey: ["members", memberId, "medications"] });
-      qc.invalidateQueries({ queryKey: ["medications"] });
+      qc.invalidateQueries({ queryKey: queryKeys.members.medications(memberId) });
+      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
     },
     onError: (e: Error) => setMedError(e.message),
   });
@@ -90,8 +91,8 @@ export default function MemberMedications() {
   const deleteMedMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/medications/${id}`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["members", memberId, "medications"] });
-      qc.invalidateQueries({ queryKey: ["medications"] });
+      qc.invalidateQueries({ queryKey: queryKeys.members.medications(memberId) });
+      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
     },
   });
 
@@ -102,14 +103,14 @@ export default function MemberMedications() {
       setScheduledTime("08:00");
       setReminderMinutes("10");
       setScheduleError(null);
-      qc.invalidateQueries({ queryKey: ["schedules"] });
+      qc.invalidateQueries({ queryKey: queryKeys.schedules.all });
     },
     onError: (e: Error) => setScheduleError(e.message),
   });
 
   const deleteScheduleMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/schedules/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["schedules"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.schedules.all }),
   });
 
   const handleCreateMedication = () => {
