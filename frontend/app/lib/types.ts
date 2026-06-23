@@ -291,7 +291,19 @@ export interface Prescription {
   pharmacyName: string | null;
   electronicCode: string | null;
   notes: string | null;
+  items: PrescriptionItem[];
   createdAt: string;
+}
+
+// 処方明細（処方箋の行データ）
+export interface PrescriptionItem {
+  id: string;
+  prescriptionId: string;
+  name: string;
+  dosage: string | null;
+  frequency: string | null;
+  days: number | null;
+  sortOrder: number;
 }
 
 export interface NotificationSetting {

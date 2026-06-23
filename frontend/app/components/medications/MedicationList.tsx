@@ -30,6 +30,7 @@ interface MedicationListProps {
   onMarkPastTaken?: (medicationId: string, takenAt: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
   onReorder?: (medicationIds: string[]) => Promise<void>;
+  onChangeStatus?: (medicationId: string, status: "active" | "paused") => Promise<void>;
   scheduleMap?: MedicationScheduleMap;
   scheduleEditUrl?: string;
 }
@@ -42,6 +43,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({
   onMarkPastTaken,
   onEdit,
   onReorder,
+  onChangeStatus,
   scheduleMap,
   scheduleEditUrl,
 }) => {
@@ -116,6 +118,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({
           onMarkTaken={onMarkTaken}
           onMarkPastTaken={onMarkPastTaken}
           onEdit={onEdit}
+          onChangeStatus={onChangeStatus}
           onMoveUp={onReorder && index > 0 ? () => handleMove(index, "up") : undefined}
           onMoveDown={onReorder && index < localOrder.length - 1 ? () => handleMove(index, "down") : undefined}
           schedules={scheduleMap?.[vm.medication.id]}
@@ -132,6 +135,7 @@ export interface MedicationCardProps {
   onMarkTaken?: (medicationId: string) => Promise<void>;
   onMarkPastTaken?: (medicationId: string, takenAt: string) => Promise<void>;
   onEdit?: (medication: Medication) => void;
+  onChangeStatus?: (medicationId: string, status: "active" | "paused") => Promise<void>;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   schedules?: MedicationScheduleInfo[];
@@ -145,6 +149,7 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
     onMarkTaken,
     onMarkPastTaken,
     onEdit,
+    onChangeStatus,
     onMoveUp,
     onMoveDown,
     schedules,
@@ -153,6 +158,19 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
     const { medication, isLowStock, displayInfo } = viewModel;
     const [isTaken, setIsTaken] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isStatusSubmitting, setIsStatusSubmitting] = useState(false);
+    const isPaused = medication.status === "paused";
+    const isDiscontinued = medication.status === "discontinued";
+
+    const handleChangeStatus = async (status: "active" | "paused") => {
+      if (!onChangeStatus || isStatusSubmitting) return;
+      setIsStatusSubmitting(true);
+      try {
+        await onChangeStatus(medication.id, status);
+      } finally {
+        setIsStatusSubmitting(false);
+      }
+    };
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isPastRecordOpen, setIsPastRecordOpen] = useState(false);
     const [pastDate, setPastDate] = useState("");
@@ -189,8 +207,14 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
       }
     };
 
+    const isDimmed = isPaused || isDiscontinued;
+
     return (
-      <div className="bg-white rounded-lg shadow-md p-4 border border-primary-100">
+      <div
+        className={`bg-white rounded-lg shadow-md p-4 border border-primary-100${
+          isDimmed ? " opacity-60" : ""
+        }`}
+      >
         <div className="flex items-center justify-between">
           {(onMoveUp || onMoveDown) && (
             <div className="flex flex-col mr-2 -my-1">
@@ -220,13 +244,15 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
               <Pill size={20} className="text-primary-600" />
               <p className="font-semibold text-ink-800">{displayInfo.name}</p>
-              {medication.status === "paused" && (
-                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-bold border border-red-300">
-                  休薬
+              {isPaused && (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-bold border border-amber-300">
+                  休薬中
                 </span>
               )}
-              {medication.status === "discontinued" && (
-                <span className="px-2 py-0.5 bg-red-600 text-white text-xs rounded-full font-bold">中止</span>
+              {isDiscontinued && (
+                <span className="px-2 py-0.5 bg-ink-100 text-ink-600 text-xs rounded-full font-bold border border-ink-200">
+                  中止
+                </span>
               )}
               {isLowStock && (
                 <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
@@ -280,6 +306,20 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
                   {isSubmitting ? "記録中..." : "飲んだ"}
                 </button>
               ))}
+            {onChangeStatus && !isDiscontinued && (
+              <button
+                onClick={() => handleChangeStatus(isPaused ? "active" : "paused")}
+                disabled={isStatusSubmitting}
+                className={`text-sm px-3 py-1 rounded-full font-medium transition-colors disabled:opacity-50 ${
+                  isPaused
+                    ? "bg-primary-500 text-white hover:bg-primary-600"
+                    : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                }`}
+                aria-label={isPaused ? "再開する" : "休薬する"}
+              >
+                {isStatusSubmitting ? "変更中..." : isPaused ? "再開する" : "休薬する"}
+              </button>
+            )}
             <button
               onClick={() => setIsDeleteDialogOpen(true)}
               className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded-md hover:bg-red-50 transition-colors"

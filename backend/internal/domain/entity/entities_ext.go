@@ -131,17 +131,29 @@ type EmergencyContact struct {
 
 // Prescription は処方箋
 type Prescription struct {
-	ID               string     `json:"id"`
-	UserID           string     `json:"userId"`
-	MemberID         string     `json:"memberId"`
-	PrescriptionName string     `json:"prescriptionName"`
-	PrescribedBy     *string    `json:"prescribedBy"`
-	PrescribedAt     time.Time  `json:"prescribedAt"`
-	ExpiresAt        *time.Time `json:"expiresAt"`
-	PharmacyName     *string    `json:"pharmacyName"`
-	ElectronicCode   *string    `json:"electronicCode"` // 電子処方箋の引換番号/アクセスコード
-	Notes            *string    `json:"notes"`
-	CreatedAt        time.Time  `json:"createdAt"`
+	ID               string             `json:"id"`
+	UserID           string             `json:"userId"`
+	MemberID         string             `json:"memberId"`
+	PrescriptionName string             `json:"prescriptionName"`
+	PrescribedBy     *string            `json:"prescribedBy"`
+	PrescribedAt     time.Time          `json:"prescribedAt"`
+	ExpiresAt        *time.Time         `json:"expiresAt"`
+	PharmacyName     *string            `json:"pharmacyName"`
+	ElectronicCode   *string            `json:"electronicCode"` // 電子処方箋の引換番号/アクセスコード
+	Notes            *string            `json:"notes"`
+	Items            []PrescriptionItem `json:"items"` // 処方明細（行データ）
+	CreatedAt        time.Time          `json:"createdAt"`
+}
+
+// PrescriptionItem は処方箋の1行（薬ごとの用量/頻度/日数）
+type PrescriptionItem struct {
+	ID             string  `json:"id"`
+	PrescriptionID string  `json:"prescriptionId"`
+	Name           string  `json:"name"`
+	Dosage         *string `json:"dosage"`
+	Frequency      *string `json:"frequency"`
+	Days           *int    `json:"days"`
+	SortOrder      int     `json:"sortOrder"`
 }
 
 // NotificationSetting は通知設定（user スコープ・UNIQUE）

@@ -315,6 +315,7 @@ type PrescriptionRepository interface {
 	Create(ctx context.Context, in CreatePrescriptionInput) (*entity.Prescription, error)
 	Update(ctx context.Context, id string, in UpdatePrescriptionInput) (*entity.Prescription, error)
 	Delete(ctx context.Context, id string) error
+	ReplaceItems(ctx context.Context, prescriptionID string, items []entity.PrescriptionItem) error
 }
 
 // ---- NotificationSetting ----
