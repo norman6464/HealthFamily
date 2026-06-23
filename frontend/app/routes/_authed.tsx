@@ -41,11 +41,6 @@ const navItems: NavItem[] = [
   { to: "/guide", label: "使い方ガイド", icon: BookOpen, end: false },
 ];
 
-// ボトムナビ(スマホ)は主要5項目。それ以外はハンバーガーメニューから。
-const bottomNavItems = navItems.filter((n) =>
-  ["/", "/medications", "/health-logs", "/appointments", "/settings"].includes(n.to),
-);
-
 function Brand() {
   return (
     <div className="flex items-center gap-2 font-bold text-ink-800">
@@ -128,7 +123,7 @@ export default function AuthedLayout() {
           <span className="w-9" aria-hidden />
         </header>
 
-        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 pb-28 md:max-w-5xl md:px-8 md:py-8 md:pb-10">
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 md:max-w-5xl md:px-8 md:py-8">
           <Outlet />
         </main>
       </div>
@@ -171,38 +166,6 @@ export default function AuthedLayout() {
         </div>
       )}
 
-      {/* ===== スマホ: ボトムナビ(主要5) ===== */}
-      <nav className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-2xl border-t border-ink-400/10 bg-white/90 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
-        <div className="flex justify-around py-2">
-          {bottomNavItems.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                clsx(
-                  "flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition",
-                  isActive ? "text-primary" : "text-ink-400 hover:text-ink-600",
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <span
-                    className={clsx(
-                      "flex h-9 w-12 items-center justify-center rounded-full transition",
-                      isActive && "bg-primary-50",
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  {label}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
     </div>
   );
 }
