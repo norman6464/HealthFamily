@@ -257,6 +257,46 @@ function applyMapping(
   return { rows: result, skipped };
 }
 
+// CSVマッピングのプリセット(localStorage)。列順が違うCSVでも再適用できるよう
+// 「項目→ヘッダ名」で保存する。
+const PRESET_KEY = "hf_csv_mapping_preset";
+
+function loadPreset(): Partial<Record<TargetField, string>> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PRESET_KEY);
+    return raw ? (JSON.parse(raw) as Partial<Record<TargetField, string>>) : null;
+  } catch {
+    return null;
+  }
+}
+
+function savePreset(headers: string[], mapping: Record<TargetField, number>) {
+  const preset: Partial<Record<TargetField, string>> = {};
+  for (const f of TARGET_FIELDS) {
+    const idx = mapping[f.key];
+    if (idx >= 0 && headers[idx] != null) preset[f.key] = headers[idx];
+  }
+  window.localStorage.setItem(PRESET_KEY, JSON.stringify(preset));
+}
+
+function applyPreset(
+  headers: string[],
+  base: Record<TargetField, number>,
+): Record<TargetField, number> {
+  const preset = loadPreset();
+  if (!preset) return base;
+  const next = { ...base };
+  for (const f of TARGET_FIELDS) {
+    const h = preset[f.key];
+    if (h != null) {
+      const idx = headers.indexOf(h);
+      if (idx >= 0) next[f.key] = idx;
+    }
+  }
+  return next;
+}
+
 export function ExpenseImport({ onImported }: ExpenseImportProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -264,6 +304,7 @@ export function ExpenseImport({ onImported }: ExpenseImportProps) {
   const [mapping, setMapping] = useState<Record<TargetField, number> | null>(null);
   const [parseMessage, setParseMessage] = useState<string>("");
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [presetSaved, setPresetSaved] = useState(false);
 
   // 現在のマッピングからプレビュー行を導出
   const preview = useMemo(() => {
@@ -283,6 +324,7 @@ export function ExpenseImport({ onImported }: ExpenseImportProps) {
   const handleFile = async (file: File) => {
     setResult(null);
     setParseMessage("");
+    setPresetSaved(false);
     setFileName(file.name);
     try {
       const text = await file.text();
@@ -296,7 +338,8 @@ export function ExpenseImport({ onImported }: ExpenseImportProps) {
         return;
       }
       setCsv(parsed);
-      setMapping(inferMapping(parsed.headers));
+      // 保存済みプリセットがあれば優先適用、無い項目は自動推定
+      setMapping(applyPreset(parsed.headers, inferMapping(parsed.headers)));
     } catch {
       setCsv(null);
       setMapping(null);
@@ -379,6 +422,25 @@ export function ExpenseImport({ onImported }: ExpenseImportProps) {
                   </select>
                 </label>
               ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (csv && mapping) {
+                    savePreset(csv.headers, mapping);
+                    setPresetSaved(true);
+                  }
+                }}
+                className="rounded-lg bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 transition hover:bg-primary-100"
+              >
+                このマッピングをプリセット保存
+              </button>
+              {presetSaved && (
+                <span className="text-xs text-primary-700">
+                  保存しました（次回のCSVに自動適用されます）
+                </span>
+              )}
             </div>
           </div>
 

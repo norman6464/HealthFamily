@@ -15,17 +15,20 @@ type Config struct {
 	ResendAPIKey   string
 	MailFrom       string
 	AppBaseURL     string
+	// E2Eテスト用ログインバイパスの共有シークレット。空なら無効(本番)。
+	E2ETestLoginSecret string
 }
 
 // Load は環境変数から設定を読み込む
 func Load() (*Config, error) {
 	cfg := &Config{
-		Port:         getEnv("PORT", "8080"),
-		DatabaseURL:  os.Getenv("DATABASE_URL"),
-		JWTSecret:    os.Getenv("JWT_SECRET"),
-		ResendAPIKey: os.Getenv("RESEND_API_KEY"),
-		MailFrom:     getEnv("MAIL_FROM", "HealthFamily <onboarding@resend.dev>"),
-		AppBaseURL:   getEnv("APP_BASE_URL", "http://localhost:5173"),
+		Port:               getEnv("PORT", "8080"),
+		DatabaseURL:        os.Getenv("DATABASE_URL"),
+		JWTSecret:          os.Getenv("JWT_SECRET"),
+		ResendAPIKey:       os.Getenv("RESEND_API_KEY"),
+		MailFrom:           getEnv("MAIL_FROM", "HealthFamily <onboarding@resend.dev>"),
+		AppBaseURL:         getEnv("APP_BASE_URL", "http://localhost:5173"),
+		E2ETestLoginSecret: os.Getenv("E2E_TEST_LOGIN_SECRET"),
 	}
 
 	origins := getEnv("ALLOWED_ORIGINS", "http://localhost:5173")

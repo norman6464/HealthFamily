@@ -115,6 +115,39 @@ func (uc *AuthUsecase) Login(ctx context.Context, email, password string) (strin
 	return token, u, err
 }
 
+// TestLogin はE2Eテスト用のログインバイパス。指定メールの検証済みユーザーを
+// 取得（無ければ作成）してJWTを発行する。ハンドラ側でシークレット検証済み前提。
+func (uc *AuthUsecase) TestLogin(ctx context.Context, email string) (string, *entity.User, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email == "" {
+		return "", nil, domain.NewValidation("メールアドレスが必要です")
+	}
+	u, err := uc.users.FindByEmail(ctx, email)
+	if err != nil {
+		return "", nil, err
+	}
+	if u == nil {
+		hashed, herr := auth.HashPassword(auth.NewID())
+		if herr != nil {
+			return "", nil, herr
+		}
+		name := "E2E Test User"
+		u = &entity.User{
+			ID:            auth.NewID(),
+			Email:         email,
+			Password:      hashed,
+			DisplayName:   &name,
+			CharacterType: "cat",
+			EmailVerified: true,
+		}
+		if err := uc.users.Create(ctx, u); err != nil {
+			return "", nil, err
+		}
+	}
+	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	return token, u, err
+}
+
 // ResendCode は認証コードを再送する
 func (uc *AuthUsecase) ResendCode(ctx context.Context, email string) error {
 	email = strings.ToLower(strings.TrimSpace(email))
