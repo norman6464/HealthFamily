@@ -97,12 +97,14 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/emergency-contacts/:contactId", contactH.Delete)
 
 	// --- Prescription ---
-	prescriptionH := handler.NewPrescriptionHandler(usecase.NewPrescriptionUsecase(persistence.NewPrescriptionRepository(db), memberRepo))
+	prescriptionH := handler.NewPrescriptionHandler(usecase.NewPrescriptionUsecase(persistence.NewPrescriptionRepository(db), memberRepo, persistence.NewMedicationRepository(db)))
 	authed.GET("/prescriptions", prescriptionH.List)
 	authed.POST("/prescriptions", prescriptionH.Create)
 	authed.GET("/prescriptions/:prescriptionId", prescriptionH.Get)
 	authed.PATCH("/prescriptions/:prescriptionId", prescriptionH.Update)
 	authed.DELETE("/prescriptions/:prescriptionId", prescriptionH.Delete)
+	authed.PUT("/prescriptions/:prescriptionId/items", prescriptionH.SetItems)
+	authed.POST("/prescriptions/:prescriptionId/dispense", prescriptionH.Dispense)
 
 	// --- NotificationSetting ---
 	notifH := handler.NewNotificationSettingHandler(usecase.NewNotificationSettingUsecase(persistence.NewNotificationSettingRepository(db)))

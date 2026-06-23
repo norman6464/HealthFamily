@@ -1,12 +1,28 @@
 import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Pencil, Trash2, Check, X, QrCode, PillBottle } from "lucide-react";
-import type { Medication, Prescription } from "@/lib/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Pencil, Trash2, Check, X, QrCode, PillBottle, Plus, ListChecks } from "lucide-react";
+import type { Medication, Prescription, PrescriptionItem } from "@/lib/types";
 import { api } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
 import { formatDateShort } from "@/lib/format";
+
+// 処方明細の編集用ローカル行（入力中は文字列で保持し、保存時に整形する）
+interface ItemDraft {
+  name: string;
+  dosage: string;
+  frequency: string;
+  days: string;
+}
+
+interface SaveItemsPayload {
+  name: string;
+  dosage?: string;
+  frequency?: string;
+  days?: number;
+}
 
 export type PrescriptionWithMember = Prescription & { memberName?: string };
 
@@ -53,14 +69,26 @@ interface PrescriptionCardProps {
   onDelete: (id: string) => void;
 }
 
+const itemToDraft = (item: PrescriptionItem): ItemDraft => ({
+  name: item.name,
+  dosage: item.dosage ?? "",
+  frequency: item.frequency ?? "",
+  days: item.days != null ? String(item.days) : "",
+});
+
 const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescription, onUpdate, onDelete }) => {
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
+  const [isDispenseDialogOpen, setIsDispenseDialogOpen] = useState(false);
   const [editName, setEditName] = useState(prescription.prescriptionName);
   const [editDoctor, setEditDoctor] = useState(prescription.prescribedBy || "");
   const [editPharmacy, setEditPharmacy] = useState(prescription.pharmacyName || "");
   const [editNotes, setEditNotes] = useState(prescription.notes || "");
+
+  const [isEditingItems, setIsEditingItems] = useState(false);
+  const [itemDrafts, setItemDrafts] = useState<ItemDraft[]>([]);
 
   const registerMedicationMutation = useMutation({
     mutationFn: () =>
@@ -69,6 +97,54 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
         name: prescription.prescriptionName,
       }),
   });
+
+  const saveItemsMutation = useMutation({
+    mutationFn: (items: SaveItemsPayload[]) =>
+      api.put<Prescription>(`/prescriptions/${prescription.id}/items`, { items }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptions.all });
+      setIsEditingItems(false);
+    },
+  });
+
+  const dispenseMutation = useMutation({
+    mutationFn: () => api.post<Medication[]>(`/prescriptions/${prescription.id}/dispense`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medications.all });
+    },
+  });
+
+  const startEditingItems = () => {
+    const drafts = prescription.items.length > 0 ? prescription.items.map(itemToDraft) : [{ name: "", dosage: "", frequency: "", days: "" }];
+    setItemDrafts(drafts);
+    setIsEditingItems(true);
+  };
+
+  const updateItemDraft = (index: number, field: keyof ItemDraft, value: string) => {
+    setItemDrafts((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
+  };
+
+  const addItemDraft = () => {
+    setItemDrafts((prev) => [...prev, { name: "", dosage: "", frequency: "", days: "" }]);
+  };
+
+  const removeItemDraft = (index: number) => {
+    setItemDrafts((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const validItemDrafts = itemDrafts.filter((d) => d.name.trim() !== "");
+
+  const handleSaveItems = () => {
+    const items: SaveItemsPayload[] = validItemDrafts.map((d) => {
+      const payload: SaveItemsPayload = { name: d.name.trim() };
+      if (d.dosage.trim()) payload.dosage = d.dosage.trim();
+      if (d.frequency.trim()) payload.frequency = d.frequency.trim();
+      const daysNum = Number(d.days.trim());
+      if (d.days.trim() && Number.isFinite(daysNum)) payload.days = daysNum;
+      return payload;
+    });
+    saveItemsMutation.mutate(items);
+  };
 
   const now = new Date();
   const expiresDate = prescription.expiresAt ? new Date(prescription.expiresAt) : null;
@@ -185,6 +261,154 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
               <span className="text-xs font-mono tracking-wide break-all">{prescription.electronicCode}</span>
             </div>
           )}
+
+          {/* 処方明細セクション */}
+          <div className="mt-3 border-t border-primary-100 pt-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-ink-700">処方明細</p>
+              {!isEditingItems && (
+                <button
+                  type="button"
+                  onClick={startEditingItems}
+                  className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  <Pencil size={12} />
+                  <span>明細を編集</span>
+                </button>
+              )}
+            </div>
+
+            {!isEditingItems && (
+              <>
+                {prescription.items.length === 0 ? (
+                  <p className="mt-1 text-xs text-ink-400">明細はまだ登録されていません</p>
+                ) : (
+                  <ul className="mt-1 space-y-1">
+                    {prescription.items.map((item) => (
+                      <li key={item.id} className="text-xs text-ink-600">
+                        <span className="font-medium text-ink-700">{item.name}</span>
+                        {(item.dosage || item.frequency || item.days != null) && (
+                          <span className="text-ink-400">
+                            {" "}
+                            {[item.dosage, item.frequency, item.days != null ? `${item.days}日分` : null]
+                              .filter(Boolean)
+                              .join(" / ")}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {prescription.items.length > 0 && (
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsDispenseDialogOpen(true)}
+                      disabled={dispenseMutation.isPending}
+                      className="inline-flex items-center gap-1 bg-primary text-white px-2.5 py-1 rounded-lg text-xs font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+                    >
+                      <ListChecks size={14} />
+                      <span>{dispenseMutation.isPending ? "登録中..." : "この処方明細からお薬を登録"}</span>
+                    </button>
+                    {dispenseMutation.isSuccess && (
+                      <p className="mt-1 text-xs text-primary-600">
+                        {dispenseMutation.data.length}件のお薬を登録しました
+                      </p>
+                    )}
+                    {dispenseMutation.isError && (
+                      <p className="mt-1 text-xs text-red-600">登録に失敗しました。もう一度お試しください</p>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {isEditingItems && (
+              <div className="mt-2 space-y-2">
+                {itemDrafts.map((draft, index) => (
+                  <div key={index} className="rounded-lg border border-primary-200 p-2 space-y-1.5">
+                    <div className="flex items-start gap-1.5">
+                      <input
+                        type="text"
+                        value={draft.name}
+                        onChange={(e) => updateItemDraft(index, "name", e.target.value)}
+                        placeholder="薬名（必須）"
+                        className="flex-1 px-2 py-1 border border-primary-200 rounded text-xs focus:ring-2 focus:ring-primary-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeItemDraft(index)}
+                        className="text-ink-400 hover:text-red-500 p-1 transition-colors flex-shrink-0"
+                        aria-label="明細行を削除"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <input
+                        type="text"
+                        value={draft.dosage}
+                        onChange={(e) => updateItemDraft(index, "dosage", e.target.value)}
+                        placeholder="用量"
+                        className="px-2 py-1 border border-primary-200 rounded text-xs focus:ring-2 focus:ring-primary-500"
+                      />
+                      <input
+                        type="text"
+                        value={draft.frequency}
+                        onChange={(e) => updateItemDraft(index, "frequency", e.target.value)}
+                        placeholder="頻度"
+                        className="px-2 py-1 border border-primary-200 rounded text-xs focus:ring-2 focus:ring-primary-500"
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        value={draft.days}
+                        onChange={(e) => updateItemDraft(index, "days", e.target.value)}
+                        placeholder="日数"
+                        className="px-2 py-1 border border-primary-200 rounded text-xs focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addItemDraft}
+                  className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  <Plus size={14} />
+                  <span>明細行を追加</span>
+                </button>
+
+                {saveItemsMutation.isError && (
+                  <p className="text-xs text-red-600">保存に失敗しました。もう一度お試しください</p>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSaveItems}
+                    disabled={saveItemsMutation.isPending}
+                    className="flex-1 flex items-center justify-center gap-1 bg-primary text-white py-1.5 rounded-lg text-xs hover:bg-primary-dark transition-colors disabled:opacity-50"
+                  >
+                    <Check size={14} />
+                    <span>{saveItemsMutation.isPending ? "保存中..." : "明細を保存"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingItems(false)}
+                    disabled={saveItemsMutation.isPending}
+                    className="flex-1 flex items-center justify-center gap-1 bg-primary-50 text-ink-700 py-1.5 rounded-lg text-xs hover:bg-primary-100 transition-colors disabled:opacity-50"
+                  >
+                    <X size={14} />
+                    <span>キャンセル</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="mt-2">
             <button
               type="button"
@@ -240,6 +464,16 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
           registerMedicationMutation.mutate();
         }}
         onCancel={() => setIsRegisterDialogOpen(false)}
+      />
+      <ConfirmationDialog
+        title="明細からお薬を登録"
+        message={`「${prescription.prescriptionName}」の処方明細（${prescription.items.length}件）から服薬管理のお薬を一括登録しますか？`}
+        isOpen={isDispenseDialogOpen}
+        onConfirm={() => {
+          setIsDispenseDialogOpen(false);
+          dispenseMutation.mutate();
+        }}
+        onCancel={() => setIsDispenseDialogOpen(false)}
       />
     </div>
   );

@@ -10,12 +10,13 @@ import (
 
 // PrescriptionUsecase は処方箋のビジネスロジック
 type PrescriptionUsecase struct {
-	repo    repository.PrescriptionRepository
-	members repository.MemberRepository
+	repo        repository.PrescriptionRepository
+	members     repository.MemberRepository
+	medications repository.MedicationRepository
 }
 
-func NewPrescriptionUsecase(repo repository.PrescriptionRepository, members repository.MemberRepository) *PrescriptionUsecase {
-	return &PrescriptionUsecase{repo: repo, members: members}
+func NewPrescriptionUsecase(repo repository.PrescriptionRepository, members repository.MemberRepository, medications repository.MedicationRepository) *PrescriptionUsecase {
+	return &PrescriptionUsecase{repo: repo, members: members, medications: medications}
 }
 
 func (uc *PrescriptionUsecase) ensureOwner(ctx context.Context, userID, id string) (*entity.Prescription, error) {
@@ -59,4 +60,47 @@ func (uc *PrescriptionUsecase) Delete(ctx context.Context, userID, id string) er
 		return err
 	}
 	return uc.repo.Delete(ctx, id)
+}
+
+// SetItems は処方明細(行データ)を置き換える。
+func (uc *PrescriptionUsecase) SetItems(ctx context.Context, userID, id string, items []entity.PrescriptionItem) (*entity.Prescription, error) {
+	if _, err := uc.ensureOwner(ctx, userID, id); err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		if it.Name == "" {
+			return nil, domain.NewValidation("薬の名前は必須です")
+		}
+	}
+	if err := uc.repo.ReplaceItems(ctx, id, items); err != nil {
+		return nil, err
+	}
+	return uc.repo.FindByID(ctx, id)
+}
+
+// Dispense は処方明細から服薬管理(Medication)を一括作成する(電子処方箋→調剤の橋渡し)。
+func (uc *PrescriptionUsecase) Dispense(ctx context.Context, userID, id string) ([]entity.Medication, error) {
+	p, err := uc.ensureOwner(ctx, userID, id)
+	if err != nil {
+		return nil, err
+	}
+	if len(p.Items) == 0 {
+		return nil, domain.NewValidation("処方明細がありません")
+	}
+	created := make([]entity.Medication, 0, len(p.Items))
+	for _, it := range p.Items {
+		m, err := uc.medications.Create(ctx, repository.CreateMedicationInput{
+			UserID:       userID,
+			MemberID:     p.MemberID,
+			Name:         it.Name,
+			Category:     "regular",
+			DosageAmount: it.Dosage,
+			Frequency:    it.Frequency,
+		})
+		if err != nil {
+			return nil, err
+		}
+		created = append(created, *m)
+	}
+	return created, nil
 }

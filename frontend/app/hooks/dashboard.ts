@@ -308,6 +308,8 @@ export function useDashboardData(userId: string | null) {
         if (recordedKeys.has(`${dateKey}-${s.id}`)) continue;
 
         const med = medMap.get(s.medicationId);
+        // 休薬中・中止の薬は飲み忘れ集計から除外する (status が active 以外)
+        if (med && med.status !== "active") continue;
         result.push({
           date: dateKey,
           scheduleId: s.id,
@@ -444,6 +446,24 @@ export interface MarkRecordInput {
   scheduleId: string;
   takenAt?: string;
   notes?: string;
+}
+
+export type MedicationStatus = "active" | "paused" | "discontinued";
+
+/**
+ * 薬のステータス(休薬中トグル等)を変更し、関連クエリを無効化する。
+ */
+export function useUpdateMedicationStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ medicationId, status }: { medicationId: string; status: MedicationStatus }) =>
+      api.patch<Medication>(`/medications/${medicationId}`, { status }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
+      qc.invalidateQueries({ queryKey: queryKeys.schedules.today });
+      qc.invalidateQueries({ queryKey: queryKeys.schedules.all });
+    },
+  });
 }
 
 /**

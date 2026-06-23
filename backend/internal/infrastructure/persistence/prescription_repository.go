@@ -49,12 +49,98 @@ func (r *PrescriptionRepository) List(ctx context.Context, userID string) ([]ent
 		}
 		list = append(list, p)
 	}
-	return list, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	// 明細をまとめて取得して各処方箋へ割り当て（N+1回避）
+	ids := make([]string, len(list))
+	for i := range list {
+		ids[i] = list[i].ID
+		list[i].Items = []entity.PrescriptionItem{}
+	}
+	if len(ids) > 0 {
+		itemRows, err := r.db.Pool.Query(ctx,
+			`SELECT "id", "prescriptionId", "name", "dosage", "frequency", "days", "sortOrder"
+			 FROM "PrescriptionItem" WHERE "prescriptionId" = ANY($1) ORDER BY "sortOrder", "createdAt"`, ids)
+		if err != nil {
+			return nil, err
+		}
+		defer itemRows.Close()
+		byPid := map[string]int{}
+		for i := range list {
+			byPid[list[i].ID] = i
+		}
+		for itemRows.Next() {
+			var it entity.PrescriptionItem
+			if err := itemRows.Scan(&it.ID, &it.PrescriptionID, &it.Name, &it.Dosage, &it.Frequency, &it.Days, &it.SortOrder); err != nil {
+				return nil, err
+			}
+			if idx, ok := byPid[it.PrescriptionID]; ok {
+				list[idx].Items = append(list[idx].Items, it)
+			}
+		}
+		if err := itemRows.Err(); err != nil {
+			return nil, err
+		}
+	}
+	return list, nil
+}
+
+func (r *PrescriptionRepository) loadItems(ctx context.Context, prescriptionID string) ([]entity.PrescriptionItem, error) {
+	rows, err := r.db.Pool.Query(ctx,
+		`SELECT "id", "prescriptionId", "name", "dosage", "frequency", "days", "sortOrder"
+		 FROM "PrescriptionItem" WHERE "prescriptionId"=$1 ORDER BY "sortOrder", "createdAt"`, prescriptionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := make([]entity.PrescriptionItem, 0)
+	for rows.Next() {
+		var it entity.PrescriptionItem
+		if err := rows.Scan(&it.ID, &it.PrescriptionID, &it.Name, &it.Dosage, &it.Frequency, &it.Days, &it.SortOrder); err != nil {
+			return nil, err
+		}
+		items = append(items, it)
+	}
+	return items, rows.Err()
 }
 
 func (r *PrescriptionRepository) FindByID(ctx context.Context, id string) (*entity.Prescription, error) {
 	row := r.db.Pool.QueryRow(ctx, `SELECT `+prescriptionColumns+` FROM "Prescription" WHERE "id"=$1`, id)
-	return scanPrescription(row)
+	p, err := scanPrescription(row)
+	if err != nil || p == nil {
+		return p, err
+	}
+	items, err := r.loadItems(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	p.Items = items
+	return p, nil
+}
+
+// ReplaceItems は処方明細を指定内容で置き換える。
+func (r *PrescriptionRepository) ReplaceItems(ctx context.Context, prescriptionID string, items []entity.PrescriptionItem) error {
+	tx, err := r.db.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+	if _, err := tx.Exec(ctx, `DELETE FROM "PrescriptionItem" WHERE "prescriptionId"=$1`, prescriptionID); err != nil {
+		return err
+	}
+	for i, it := range items {
+		if it.Name == "" {
+			continue
+		}
+		if _, err := tx.Exec(ctx,
+			`INSERT INTO "PrescriptionItem" ("id", "prescriptionId", "name", "dosage", "frequency", "days", "sortOrder", "createdAt")
+			 VALUES ($1,$2,$3,$4,$5,$6,$7, now())`,
+			auth.NewID(), prescriptionID, it.Name, it.Dosage, it.Frequency, it.Days, i); err != nil {
+			return err
+		}
+	}
+	return tx.Commit(ctx)
 }
 
 func (r *PrescriptionRepository) Create(ctx context.Context, in repository.CreatePrescriptionInput) (*entity.Prescription, error) {

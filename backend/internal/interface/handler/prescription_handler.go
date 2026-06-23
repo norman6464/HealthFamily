@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
@@ -109,6 +110,50 @@ func (h *PrescriptionHandler) Update(c *gin.Context) {
 		return
 	}
 	response.Success(c, v)
+}
+
+type prescriptionItemReq struct {
+	Name      string  `json:"name"`
+	Dosage    *string `json:"dosage"`
+	Frequency *string `json:"frequency"`
+	Days      *int    `json:"days"`
+}
+
+type setItemsRequest struct {
+	Items []prescriptionItemReq `json:"items"`
+}
+
+// SetItems は処方明細を置き換える。
+func (h *PrescriptionHandler) SetItems(c *gin.Context) {
+	userID := middleware.UserID(c)
+	var req setItemsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, 400, "明細の内容が正しくありません")
+		return
+	}
+	items := make([]entity.PrescriptionItem, 0, len(req.Items))
+	for _, it := range req.Items {
+		items = append(items, entity.PrescriptionItem{
+			Name: it.Name, Dosage: it.Dosage, Frequency: it.Frequency, Days: it.Days,
+		})
+	}
+	p, err := h.uc.SetItems(c.Request.Context(), userID, c.Param("prescriptionId"), items)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Success(c, p)
+}
+
+// Dispense は処方明細から服薬管理を一括作成する。
+func (h *PrescriptionHandler) Dispense(c *gin.Context) {
+	userID := middleware.UserID(c)
+	meds, err := h.uc.Dispense(c.Request.Context(), userID, c.Param("prescriptionId"))
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Created(c, meds)
 }
 
 func (h *PrescriptionHandler) Delete(c *gin.Context) {

@@ -117,6 +117,8 @@ func (r *ScheduleRepository) GetTodaySchedules(ctx context.Context, userID strin
 		 JOIN "Member" mem ON mem."id" = s."memberId"
 		 WHERE s."userId" = $1
 		   AND s."isEnabled" = TRUE
+		   AND m."isActive" = TRUE
+		   AND m."status" NOT IN ('paused', 'discontinued')
 		   AND (array_length(s."daysOfWeek", 1) IS NULL OR $2 = ANY(s."daysOfWeek"))
 		 ORDER BY s."scheduledTime" ASC`,
 		userID, weekday, dayStart, dayEnd)
