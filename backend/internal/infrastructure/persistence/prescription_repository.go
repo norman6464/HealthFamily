@@ -22,6 +22,21 @@ func NewPrescriptionRepository(db *database.DB) *PrescriptionRepository {
 
 const prescriptionColumns = `"id", "userId", "memberId", "prescriptionName", "prescribedBy", "prescribedAt", "expiresAt", "pharmacyName", "electronicCode", "notes", "createdAt"`
 
+const prescriptionItemColumns = `"id", "prescriptionId", "name", "dosage", "frequency", "days", "sortOrder"`
+
+// scanPrescriptionItems は prescriptionItemColumns 順の行群を PrescriptionItem に変換する。
+func scanPrescriptionItems(rows pgx.Rows) ([]entity.PrescriptionItem, error) {
+	items := make([]entity.PrescriptionItem, 0)
+	for rows.Next() {
+		var it entity.PrescriptionItem
+		if err := rows.Scan(&it.ID, &it.PrescriptionID, &it.Name, &it.Dosage, &it.Frequency, &it.Days, &it.SortOrder); err != nil {
+			return nil, err
+		}
+		items = append(items, it)
+	}
+	return items, rows.Err()
+}
+
 func scanPrescription(row pgx.Row) (*entity.Prescription, error) {
 	var p entity.Prescription
 	err := row.Scan(&p.ID, &p.UserID, &p.MemberID, &p.PrescriptionName, &p.PrescribedBy, &p.PrescribedAt, &p.ExpiresAt, &p.PharmacyName, &p.ElectronicCode, &p.Notes, &p.CreatedAt)
@@ -60,27 +75,24 @@ func (r *PrescriptionRepository) List(ctx context.Context, userID string) ([]ent
 	}
 	if len(ids) > 0 {
 		itemRows, err := r.db.Pool.Query(ctx,
-			`SELECT "id", "prescriptionId", "name", "dosage", "frequency", "days", "sortOrder"
+			`SELECT `+prescriptionItemColumns+`
 			 FROM "PrescriptionItem" WHERE "prescriptionId" = ANY($1) ORDER BY "sortOrder", "createdAt"`, ids)
 		if err != nil {
 			return nil, err
 		}
 		defer itemRows.Close()
+		items, err := scanPrescriptionItems(itemRows)
+		if err != nil {
+			return nil, err
+		}
 		byPid := map[string]int{}
 		for i := range list {
 			byPid[list[i].ID] = i
 		}
-		for itemRows.Next() {
-			var it entity.PrescriptionItem
-			if err := itemRows.Scan(&it.ID, &it.PrescriptionID, &it.Name, &it.Dosage, &it.Frequency, &it.Days, &it.SortOrder); err != nil {
-				return nil, err
-			}
+		for _, it := range items {
 			if idx, ok := byPid[it.PrescriptionID]; ok {
 				list[idx].Items = append(list[idx].Items, it)
 			}
-		}
-		if err := itemRows.Err(); err != nil {
-			return nil, err
 		}
 	}
 	return list, nil
@@ -88,21 +100,13 @@ func (r *PrescriptionRepository) List(ctx context.Context, userID string) ([]ent
 
 func (r *PrescriptionRepository) loadItems(ctx context.Context, prescriptionID string) ([]entity.PrescriptionItem, error) {
 	rows, err := r.db.Pool.Query(ctx,
-		`SELECT "id", "prescriptionId", "name", "dosage", "frequency", "days", "sortOrder"
+		`SELECT `+prescriptionItemColumns+`
 		 FROM "PrescriptionItem" WHERE "prescriptionId"=$1 ORDER BY "sortOrder", "createdAt"`, prescriptionID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := make([]entity.PrescriptionItem, 0)
-	for rows.Next() {
-		var it entity.PrescriptionItem
-		if err := rows.Scan(&it.ID, &it.PrescriptionID, &it.Name, &it.Dosage, &it.Frequency, &it.Days, &it.SortOrder); err != nil {
-			return nil, err
-		}
-		items = append(items, it)
-	}
-	return items, rows.Err()
+	return scanPrescriptionItems(rows)
 }
 
 func (r *PrescriptionRepository) FindByID(ctx context.Context, id string) (*entity.Prescription, error) {

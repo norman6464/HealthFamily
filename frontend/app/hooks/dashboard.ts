@@ -81,7 +81,7 @@ interface ScheduleLike {
   isEnabled: boolean;
 }
 
-function isActiveOnDay(s: ScheduleLike, scheduledTime: string, date: Date): boolean {
+function isActiveOnDay(s: ScheduleLike, date: Date): boolean {
   if (!s.isEnabled) return false;
   if (s.intervalDays === -1) return false;
   if (s.intervalDays && s.intervalDays > 0 && s.startDate) {
@@ -304,7 +304,7 @@ export function useDashboardData(userId: string | null) {
 
       for (const s of allSchedules) {
         if (!s.isEnabled) continue;
-        if (!isActiveOnDay(s, s.scheduledTime, target)) continue;
+        if (!isActiveOnDay(s, target)) continue;
         if (recordedKeys.has(`${dateKey}-${s.id}`)) continue;
 
         const med = medMap.get(s.medicationId);
