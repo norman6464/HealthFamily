@@ -5,58 +5,54 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// BudgetRepository は "Budget" / "CategoryBudget" テーブルの生SQL実装
+// BudgetRepository は "Budget" / "CategoryBudget" テーブルのリポジトリ。
+// 検索系(Get)は sqlc、書き込み系(Set/MarkAlerted)は GORM を使う。
 type BudgetRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewBudgetRepository(db *database.DB) *BudgetRepository {
-	return &BudgetRepository{db: db}
+	return &BudgetRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const budgetColumns = `"id", "userId", "monthlyAmount", "alertEnabled", "lastAlertedMonth", "createdAt", "updatedAt"`
+func (r *BudgetRepository) loadCategories(ctx context.Context, userID string) ([]entity.CategoryBudget, error) {
+	rows, err := r.q.ListCategoryBudgets(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.CategoryBudget, 0, len(rows))
+	for _, c := range rows {
+		list = append(list, entity.CategoryBudget{Category: c.Category, MonthlyAmount: int(c.MonthlyAmount)})
+	}
+	return list, nil
+}
 
-func scanBudget(row pgx.Row) (*entity.Budget, error) {
-	var b entity.Budget
-	err := row.Scan(&b.ID, &b.UserID, &b.MonthlyAmount, &b.AlertEnabled, &b.LastAlertedMonth, &b.CreatedAt, &b.UpdatedAt)
+func (r *BudgetRepository) Get(ctx context.Context, userID string) (*entity.Budget, error) {
+	row, err := r.q.GetBudgetByUserID(ctx, userID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &b, nil
-}
-
-func (r *BudgetRepository) loadCategories(ctx context.Context, userID string) ([]entity.CategoryBudget, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT "category", "monthlyAmount" FROM "CategoryBudget" WHERE "userId"=$1 ORDER BY "category"`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.CategoryBudget, 0)
-	for rows.Next() {
-		var c entity.CategoryBudget
-		if err := rows.Scan(&c.Category, &c.MonthlyAmount); err != nil {
-			return nil, err
-		}
-		list = append(list, c)
-	}
-	return list, rows.Err()
-}
-
-func (r *BudgetRepository) Get(ctx context.Context, userID string) (*entity.Budget, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+budgetColumns+` FROM "Budget" WHERE "userId"=$1`, userID)
-	b, err := scanBudget(row)
-	if err != nil || b == nil {
-		return b, err
+	b := &entity.Budget{
+		ID:               row.ID,
+		UserID:           row.UserId,
+		MonthlyAmount:    int(row.MonthlyAmount),
+		AlertEnabled:     row.AlertEnabled,
+		LastAlertedMonth: row.LastAlertedMonth,
+		CreatedAt:        row.CreatedAt,
+		UpdatedAt:        row.UpdatedAt,
 	}
 	cats, err := r.loadCategories(ctx, userID)
 	if err != nil {
@@ -67,51 +63,41 @@ func (r *BudgetRepository) Get(ctx context.Context, userID string) (*entity.Budg
 }
 
 func (r *BudgetRepository) Set(ctx context.Context, userID string, in repository.SetBudgetInput) (*entity.Budget, error) {
-	tx, err := r.db.Pool.Begin(ctx)
+	err := r.gdb.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Budget は userId 単位の upsert
+		rec := gormBudget{ID: auth.NewID(), UserID: userID, MonthlyAmount: in.MonthlyAmount, AlertEnabled: in.AlertEnabled}
+		if err := tx.Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "userId"}},
+			DoUpdates: clause.Assignments(map[string]any{
+				"monthlyAmount": in.MonthlyAmount,
+				"alertEnabled":  in.AlertEnabled,
+				"updatedAt":     gorm.Expr("now()"),
+			}),
+		}).Create(&rec).Error; err != nil {
+			return err
+		}
+		// カテゴリ別予算は指定内容で置き換え
+		if err := tx.Where(`"userId" = ?`, userID).Delete(&gormCategoryBudget{}).Error; err != nil {
+			return err
+		}
+		for _, c := range in.Categories {
+			if c.MonthlyAmount <= 0 {
+				continue
+			}
+			cat := gormCategoryBudget{ID: auth.NewID(), UserID: userID, Category: c.Category, MonthlyAmount: c.MonthlyAmount}
+			if err := tx.Create(&cat).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback(ctx) //nolint:errcheck
-
-	id := auth.NewID()
-	row := tx.QueryRow(ctx,
-		`INSERT INTO "Budget" ("id", "userId", "monthlyAmount", "alertEnabled", "createdAt", "updatedAt")
-		 VALUES ($1, $2, $3, $4, now(), now())
-		 ON CONFLICT ("userId") DO UPDATE
-		   SET "monthlyAmount" = EXCLUDED."monthlyAmount",
-		       "alertEnabled" = EXCLUDED."alertEnabled",
-		       "updatedAt" = now()
-		 RETURNING `+budgetColumns,
-		id, userID, in.MonthlyAmount, in.AlertEnabled)
-	b, err := scanBudget(row)
-	if err != nil {
-		return nil, err
-	}
-
-	// カテゴリ別予算は指定内容で置き換え
-	if _, err := tx.Exec(ctx, `DELETE FROM "CategoryBudget" WHERE "userId"=$1`, userID); err != nil {
-		return nil, err
-	}
-	for _, c := range in.Categories {
-		if c.MonthlyAmount <= 0 {
-			continue
-		}
-		if _, err := tx.Exec(ctx,
-			`INSERT INTO "CategoryBudget" ("id", "userId", "category", "monthlyAmount", "createdAt", "updatedAt")
-			 VALUES ($1,$2,$3,$4, now(), now())`,
-			auth.NewID(), userID, c.Category, c.MonthlyAmount); err != nil {
-			return nil, err
-		}
-	}
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-	b.Categories, err = r.loadCategories(ctx, userID)
-	return b, err
+	return r.Get(ctx, userID)
 }
 
 func (r *BudgetRepository) MarkAlerted(ctx context.Context, userID, month string) error {
-	_, err := r.db.Pool.Exec(ctx,
-		`UPDATE "Budget" SET "lastAlertedMonth"=$2, "updatedAt"=now() WHERE "userId"=$1`, userID, month)
-	return err
+	return r.gdb.WithContext(ctx).Model(&gormBudget{}).Where(`"userId" = ?`, userID).
+		Updates(map[string]any{"lastAlertedMonth": month, "updatedAt": gorm.Expr("now()")}).Error
 }
