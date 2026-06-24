@@ -6,6 +6,46 @@ import "time"
 // 既存スキーマ(PascalCaseテーブル・camelCase列)に合わせて column タグを明示する。
 // createdAt は DB 既定値(now())を使うため default タグを付け、ゼロ値時は INSERT から除外させる。
 
+type gormMember struct {
+	ID         string     `gorm:"column:id;primaryKey"`
+	UserID     string     `gorm:"column:userId"`
+	MemberType string     `gorm:"column:memberType"`
+	Name       string     `gorm:"column:name"`
+	PetType    *string    `gorm:"column:petType"`
+	PhotoURL   *string    `gorm:"column:photoUrl"`
+	BirthDate  *time.Time `gorm:"column:birthDate"`
+	Notes      *string    `gorm:"column:notes"`
+	CreatedAt  time.Time  `gorm:"column:createdAt;default:now()"`
+	UpdatedAt  time.Time  `gorm:"column:updatedAt;default:now()"`
+}
+
+func (gormMember) TableName() string { return "Member" }
+
+type gormMedicationRecord struct {
+	ID           string    `gorm:"column:id;primaryKey"`
+	MemberID     string    `gorm:"column:memberId"`
+	MedicationID string    `gorm:"column:medicationId"`
+	UserID       string    `gorm:"column:userId"`
+	ScheduleID   *string   `gorm:"column:scheduleId"`
+	TakenAt      time.Time `gorm:"column:takenAt;default:now()"`
+	Notes        *string   `gorm:"column:notes"`
+	DosageAmount *string   `gorm:"column:dosageAmount"`
+}
+
+func (gormMedicationRecord) TableName() string { return "MedicationRecord" }
+
+type gormTemperatureRecord struct {
+	ID          string    `gorm:"column:id;primaryKey"`
+	UserID      string    `gorm:"column:userId"`
+	MemberID    string    `gorm:"column:memberId"`
+	Temperature float64   `gorm:"column:temperature"`
+	MeasuredAt  time.Time `gorm:"column:measuredAt"`
+	Notes       *string   `gorm:"column:notes"`
+	CreatedAt   time.Time `gorm:"column:createdAt;default:now()"`
+}
+
+func (gormTemperatureRecord) TableName() string { return "TemperatureRecord" }
+
 type gormHospital struct {
 	ID           string    `gorm:"column:id;primaryKey"`
 	UserID       string    `gorm:"column:userId"`

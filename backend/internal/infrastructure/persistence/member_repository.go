@@ -5,86 +5,105 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// MemberRepository は "Member" テーブルの生SQL実装
+// MemberRepository は "Member" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
+// pool は集計/動的クエリ(ListSummary 等、aggregate_queries.go)で生SQLに利用する。
 type MemberRepository struct {
-	db *database.DB
+	gdb  *gorm.DB
+	q    *sqlcgen.Queries
+	pool *pgxpool.Pool
 }
 
 func NewMemberRepository(db *database.DB) *MemberRepository {
-	return &MemberRepository{db: db}
+	return &MemberRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool), pool: db.Pool}
 }
 
-const memberColumns = `"id", "userId", "memberType", "name", "petType", "photoUrl", "birthDate", "notes", "createdAt", "updatedAt"`
+func memberFromSqlc(m sqlcgen.Member) entity.Member {
+	return entity.Member{
+		ID:         m.ID,
+		UserID:     m.UserId,
+		MemberType: m.MemberType,
+		Name:       m.Name,
+		PetType:    m.PetType,
+		PhotoURL:   m.PhotoUrl,
+		BirthDate:  m.BirthDate,
+		Notes:      m.Notes,
+		CreatedAt:  m.CreatedAt,
+		UpdatedAt:  m.UpdatedAt,
+	}
+}
 
-func scanMember(row pgx.Row) (*entity.Member, error) {
-	var m entity.Member
-	err := row.Scan(&m.ID, &m.UserID, &m.MemberType, &m.Name, &m.PetType, &m.PhotoURL,
-		&m.BirthDate, &m.Notes, &m.CreatedAt, &m.UpdatedAt)
+func (r *MemberRepository) List(ctx context.Context, userID string) ([]entity.Member, error) {
+	rows, err := r.q.ListMembers(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	members := make([]entity.Member, 0, len(rows))
+	for _, m := range rows {
+		members = append(members, memberFromSqlc(m))
+	}
+	return members, nil
+}
+
+func (r *MemberRepository) FindByID(ctx context.Context, id string) (*entity.Member, error) {
+	m, err := r.q.GetMember(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &m, nil
-}
-
-func (r *MemberRepository) List(ctx context.Context, userID string) ([]entity.Member, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+memberColumns+` FROM "Member" WHERE "userId"=$1 ORDER BY "createdAt" ASC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	members := make([]entity.Member, 0)
-	for rows.Next() {
-		var m entity.Member
-		if err := rows.Scan(&m.ID, &m.UserID, &m.MemberType, &m.Name, &m.PetType, &m.PhotoURL,
-			&m.BirthDate, &m.Notes, &m.CreatedAt, &m.UpdatedAt); err != nil {
-			return nil, err
-		}
-		members = append(members, m)
-	}
-	return members, rows.Err()
-}
-
-func (r *MemberRepository) FindByID(ctx context.Context, id string) (*entity.Member, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+memberColumns+` FROM "Member" WHERE "id"=$1`, id)
-	return scanMember(row)
+	e := memberFromSqlc(m)
+	return &e, nil
 }
 
 func (r *MemberRepository) Create(ctx context.Context, in repository.CreateMemberInput) (*entity.Member, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "Member" ("id", "userId", "memberType", "name", "petType", "birthDate", "notes", "createdAt", "updatedAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7, now(), now())
-		 RETURNING `+memberColumns,
-		id, in.UserID, in.MemberType, in.Name, in.PetType, in.BirthDate, in.Notes)
-	return scanMember(row)
+	m := gormMember{
+		ID:         auth.NewID(),
+		UserID:     in.UserID,
+		MemberType: in.MemberType,
+		Name:       in.Name,
+		PetType:    in.PetType,
+		BirthDate:  in.BirthDate,
+		Notes:      in.Notes,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *MemberRepository) Update(ctx context.Context, id string, in repository.UpdateMemberInput) (*entity.Member, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Member" SET
-			"name" = COALESCE($2, "name"),
-			"petType" = COALESCE($3, "petType"),
-			"birthDate" = COALESCE($4, "birthDate"),
-			"notes" = COALESCE($5, "notes"),
-			"updatedAt" = now()
-		 WHERE "id"=$1
-		 RETURNING `+memberColumns,
-		id, in.Name, in.PetType, in.BirthDate, in.Notes)
-	return scanMember(row)
+	// 旧実装は更新の有無に関わらず updatedAt を常に now() で更新する。
+	fields := map[string]any{"updatedAt": gorm.Expr("now()")}
+	if in.Name != nil {
+		fields["name"] = *in.Name
+	}
+	if in.PetType != nil {
+		fields["petType"] = *in.PetType
+	}
+	if in.BirthDate != nil {
+		fields["birthDate"] = *in.BirthDate
+	}
+	if in.Notes != nil {
+		fields["notes"] = *in.Notes
+	}
+	if err := r.gdb.WithContext(ctx).Model(&gormMember{}).
+		Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *MemberRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Member" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormMember{}).Error
 }
