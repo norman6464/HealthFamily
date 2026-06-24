@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type insuranceUC = usecase.MemberScopedCRUD[entity.Insurance, repository.CreateInsuranceInput, repository.UpdateInsuranceInput]
+
 // InsuranceHandler は保険エンドポイント
 type InsuranceHandler struct {
-	uc *usecase.InsuranceUsecase
+	uc *insuranceUC
 }
 
-func NewInsuranceHandler(uc *usecase.InsuranceUsecase) *InsuranceHandler {
+func NewInsuranceHandler(uc *insuranceUC) *InsuranceHandler {
 	return &InsuranceHandler{uc: uc}
 }
 

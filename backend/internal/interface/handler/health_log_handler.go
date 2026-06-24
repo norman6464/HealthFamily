@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type healthLogUC = usecase.MemberScopedCRUD[entity.HealthLog, repository.CreateHealthLogInput, repository.UpdateHealthLogInput]
+
 // HealthLogHandler は体調ログエンドポイント
 type HealthLogHandler struct {
-	uc *usecase.HealthLogUsecase
+	uc *healthLogUC
 }
 
-func NewHealthLogHandler(uc *usecase.HealthLogUsecase) *HealthLogHandler {
+func NewHealthLogHandler(uc *healthLogUC) *HealthLogHandler {
 	return &HealthLogHandler{uc: uc}
 }
 

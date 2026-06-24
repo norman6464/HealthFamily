@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type allergyUC = usecase.MemberScopedCRUD[entity.Allergy, repository.CreateAllergyInput, repository.UpdateAllergyInput]
+
 // AllergyHandler はアレルギーエンドポイント
 type AllergyHandler struct {
-	uc *usecase.AllergyUsecase
+	uc *allergyUC
 }
 
-func NewAllergyHandler(uc *usecase.AllergyUsecase) *AllergyHandler {
+func NewAllergyHandler(uc *allergyUC) *AllergyHandler {
 	return &AllergyHandler{uc: uc}
 }
 

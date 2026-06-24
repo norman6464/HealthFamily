@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type examinationUC = usecase.MemberScopedCRUD[entity.Examination, repository.CreateExaminationInput, repository.UpdateExaminationInput]
+
 // ExaminationHandler は検査エンドポイント
 type ExaminationHandler struct {
-	uc *usecase.ExaminationUsecase
+	uc *examinationUC
 }
 
-func NewExaminationHandler(uc *usecase.ExaminationUsecase) *ExaminationHandler {
+func NewExaminationHandler(uc *examinationUC) *ExaminationHandler {
 	return &ExaminationHandler{uc: uc}
 }
 

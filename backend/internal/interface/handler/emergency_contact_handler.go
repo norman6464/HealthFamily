@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type emergencyContactUC = usecase.MemberScopedCRUD[entity.EmergencyContact, repository.CreateEmergencyContactInput, repository.UpdateEmergencyContactInput]
+
 // EmergencyContactHandler は緊急連絡先エンドポイント
 type EmergencyContactHandler struct {
-	uc *usecase.EmergencyContactUsecase
+	uc *emergencyContactUC
 }
 
-func NewEmergencyContactHandler(uc *usecase.EmergencyContactUsecase) *EmergencyContactHandler {
+func NewEmergencyContactHandler(uc *emergencyContactUC) *EmergencyContactHandler {
 	return &EmergencyContactHandler{uc: uc}
 }
 
