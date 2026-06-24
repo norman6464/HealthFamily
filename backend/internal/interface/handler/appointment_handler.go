@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type appointmentUC = usecase.MemberScopedCRUD[entity.Appointment, repository.CreateAppointmentInput, repository.UpdateAppointmentInput]
+
 // AppointmentHandler は通院予定エンドポイント
 type AppointmentHandler struct {
-	uc *usecase.AppointmentUsecase
+	uc *appointmentUC
 }
 
-func NewAppointmentHandler(uc *usecase.AppointmentUsecase) *AppointmentHandler {
+func NewAppointmentHandler(uc *appointmentUC) *AppointmentHandler {
 	return &AppointmentHandler{uc: uc}
 }
 

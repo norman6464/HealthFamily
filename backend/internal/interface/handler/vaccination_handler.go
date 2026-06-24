@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type vaccinationUC = usecase.MemberScopedCRUD[entity.Vaccination, repository.CreateVaccinationInput, repository.UpdateVaccinationInput]
+
 // VaccinationHandler は予防接種エンドポイント
 type VaccinationHandler struct {
-	uc *usecase.VaccinationUsecase
+	uc *vaccinationUC
 }
 
-func NewVaccinationHandler(uc *usecase.VaccinationUsecase) *VaccinationHandler {
+func NewVaccinationHandler(uc *vaccinationUC) *VaccinationHandler {
 	return &VaccinationHandler{uc: uc}
 }
 

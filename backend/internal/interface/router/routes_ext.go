@@ -2,6 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
+	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
 	"healthfamily/internal/infrastructure/persistence"
 	"healthfamily/internal/interface/handler"
@@ -24,7 +26,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/hospitals/:hospitalId", hospitalH.Delete)
 
 	// --- Appointment ---
-	appointmentH := handler.NewAppointmentHandler(usecase.NewAppointmentUsecase(persistence.NewAppointmentRepository(db), memberRepo))
+	appointmentH := handler.NewAppointmentHandler(usecase.NewMemberScopedCRUD[entity.Appointment, repository.CreateAppointmentInput, repository.UpdateAppointmentInput](persistence.NewAppointmentRepository(db), memberRepo, "通院予定", "この通院予定にアクセスする権限がありません", func(e *entity.Appointment) string { return e.UserID }, func(c repository.CreateAppointmentInput) string { return c.UserID }, func(c repository.CreateAppointmentInput) string { return c.MemberID }))
 	authed.GET("/appointments", appointmentH.List)
 	authed.POST("/appointments", appointmentH.Create)
 	authed.GET("/appointments/:appointmentId", appointmentH.Get)
@@ -32,7 +34,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/appointments/:appointmentId", appointmentH.Delete)
 
 	// --- HealthLog ---
-	healthLogH := handler.NewHealthLogHandler(usecase.NewHealthLogUsecase(persistence.NewHealthLogRepository(db), memberRepo))
+	healthLogH := handler.NewHealthLogHandler(usecase.NewMemberScopedCRUD[entity.HealthLog, repository.CreateHealthLogInput, repository.UpdateHealthLogInput](persistence.NewHealthLogRepository(db), memberRepo, "体調ログ", "この体調ログにアクセスする権限がありません", func(e *entity.HealthLog) string { return e.UserID }, func(c repository.CreateHealthLogInput) string { return c.UserID }, func(c repository.CreateHealthLogInput) string { return c.MemberID }))
 	authed.GET("/health-logs", healthLogH.List)
 	authed.POST("/health-logs", healthLogH.Create)
 	authed.GET("/health-logs/:logId", healthLogH.Get)
@@ -40,7 +42,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/health-logs/:logId", healthLogH.Delete)
 
 	// --- Vaccination ---
-	vaccinationH := handler.NewVaccinationHandler(usecase.NewVaccinationUsecase(persistence.NewVaccinationRepository(db), memberRepo))
+	vaccinationH := handler.NewVaccinationHandler(usecase.NewMemberScopedCRUD[entity.Vaccination, repository.CreateVaccinationInput, repository.UpdateVaccinationInput](persistence.NewVaccinationRepository(db), memberRepo, "予防接種", "この予防接種にアクセスする権限がありません", func(e *entity.Vaccination) string { return e.UserID }, func(c repository.CreateVaccinationInput) string { return c.UserID }, func(c repository.CreateVaccinationInput) string { return c.MemberID }))
 	authed.GET("/vaccinations", vaccinationH.List)
 	authed.POST("/vaccinations", vaccinationH.Create)
 	authed.GET("/vaccinations/:vaccinationId", vaccinationH.Get)
@@ -48,7 +50,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/vaccinations/:vaccinationId", vaccinationH.Delete)
 
 	// --- Examination ---
-	examinationH := handler.NewExaminationHandler(usecase.NewExaminationUsecase(persistence.NewExaminationRepository(db), memberRepo))
+	examinationH := handler.NewExaminationHandler(usecase.NewMemberScopedCRUD[entity.Examination, repository.CreateExaminationInput, repository.UpdateExaminationInput](persistence.NewExaminationRepository(db), memberRepo, "検査", "この検査にアクセスする権限がありません", func(e *entity.Examination) string { return e.UserID }, func(c repository.CreateExaminationInput) string { return c.UserID }, func(c repository.CreateExaminationInput) string { return c.MemberID }))
 	authed.GET("/examinations", examinationH.List)
 	authed.POST("/examinations", examinationH.Create)
 	authed.GET("/examinations/:examinationId", examinationH.Get)
@@ -56,7 +58,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/examinations/:examinationId", examinationH.Delete)
 
 	// --- Insurance ---
-	insuranceH := handler.NewInsuranceHandler(usecase.NewInsuranceUsecase(persistence.NewInsuranceRepository(db), memberRepo))
+	insuranceH := handler.NewInsuranceHandler(usecase.NewMemberScopedCRUD[entity.Insurance, repository.CreateInsuranceInput, repository.UpdateInsuranceInput](persistence.NewInsuranceRepository(db), memberRepo, "保険", "この保険にアクセスする権限がありません", func(e *entity.Insurance) string { return e.UserID }, func(c repository.CreateInsuranceInput) string { return c.UserID }, func(c repository.CreateInsuranceInput) string { return c.MemberID }))
 	authed.GET("/insurances", insuranceH.List)
 	authed.POST("/insurances", insuranceH.Create)
 	authed.GET("/insurances/:insuranceId", insuranceH.Get)
@@ -64,7 +66,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/insurances/:insuranceId", insuranceH.Delete)
 
 	// --- Allergy ---
-	allergyH := handler.NewAllergyHandler(usecase.NewAllergyUsecase(persistence.NewAllergyRepository(db), memberRepo))
+	allergyH := handler.NewAllergyHandler(usecase.NewMemberScopedCRUD[entity.Allergy, repository.CreateAllergyInput, repository.UpdateAllergyInput](persistence.NewAllergyRepository(db), memberRepo, "アレルギー", "このアレルギー情報にアクセスする権限がありません", func(e *entity.Allergy) string { return e.UserID }, func(c repository.CreateAllergyInput) string { return c.UserID }, func(c repository.CreateAllergyInput) string { return c.MemberID }))
 	authed.GET("/allergies", allergyH.List)
 	authed.POST("/allergies", allergyH.Create)
 	authed.GET("/allergies/:allergyId", allergyH.Get)
@@ -72,7 +74,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/allergies/:allergyId", allergyH.Delete)
 
 	// --- BodyMeasurement ---
-	bodyH := handler.NewBodyMeasurementHandler(usecase.NewBodyMeasurementUsecase(persistence.NewBodyMeasurementRepository(db), memberRepo))
+	bodyH := handler.NewBodyMeasurementHandler(usecase.NewMemberScopedCRUD[entity.BodyMeasurement, repository.CreateBodyMeasurementInput, repository.UpdateBodyMeasurementInput](persistence.NewBodyMeasurementRepository(db), memberRepo, "身体測定記録", "この身体測定記録にアクセスする権限がありません", func(e *entity.BodyMeasurement) string { return e.UserID }, func(c repository.CreateBodyMeasurementInput) string { return c.UserID }, func(c repository.CreateBodyMeasurementInput) string { return c.MemberID }))
 	authed.GET("/body-measurements", bodyH.List)
 	authed.POST("/body-measurements", bodyH.Create)
 	authed.GET("/body-measurements/:measurementId", bodyH.Get)
@@ -89,7 +91,7 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/temperature-records/:recordId", tempH.Delete)
 
 	// --- EmergencyContact ---
-	contactH := handler.NewEmergencyContactHandler(usecase.NewEmergencyContactUsecase(persistence.NewEmergencyContactRepository(db), memberRepo))
+	contactH := handler.NewEmergencyContactHandler(usecase.NewMemberScopedCRUD[entity.EmergencyContact, repository.CreateEmergencyContactInput, repository.UpdateEmergencyContactInput](persistence.NewEmergencyContactRepository(db), memberRepo, "緊急連絡先", "この緊急連絡先にアクセスする権限がありません", func(e *entity.EmergencyContact) string { return e.UserID }, func(c repository.CreateEmergencyContactInput) string { return c.UserID }, func(c repository.CreateEmergencyContactInput) string { return c.MemberID }))
 	authed.GET("/emergency-contacts", contactH.List)
 	authed.POST("/emergency-contacts", contactH.Create)
 	authed.GET("/emergency-contacts/:contactId", contactH.Get)

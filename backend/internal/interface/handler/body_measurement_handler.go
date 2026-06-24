@@ -2,18 +2,21 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
 
+type bodyMeasurementUC = usecase.MemberScopedCRUD[entity.BodyMeasurement, repository.CreateBodyMeasurementInput, repository.UpdateBodyMeasurementInput]
+
 // BodyMeasurementHandler は身体測定エンドポイント
 type BodyMeasurementHandler struct {
-	uc *usecase.BodyMeasurementUsecase
+	uc *bodyMeasurementUC
 }
 
-func NewBodyMeasurementHandler(uc *usecase.BodyMeasurementUsecase) *BodyMeasurementHandler {
+func NewBodyMeasurementHandler(uc *bodyMeasurementUC) *BodyMeasurementHandler {
 	return &BodyMeasurementHandler{uc: uc}
 }
 
