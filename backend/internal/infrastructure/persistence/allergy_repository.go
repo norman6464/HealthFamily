@@ -5,84 +5,111 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// AllergyRepository は "Allergy" テーブルの生SQL実装
+// AllergyRepository は "Allergy" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
 type AllergyRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewAllergyRepository(db *database.DB) *AllergyRepository {
-	return &AllergyRepository{db: db}
+	return &AllergyRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const allergyColumns = `"id", "userId", "memberId", "allergenName", "allergyType", "severity", "symptoms", "diagnosedAt", "notes", "createdAt"`
+func allergyFromSqlc(a sqlcgen.Allergy) entity.Allergy {
+	return entity.Allergy{
+		ID:           a.ID,
+		UserID:       a.UserId,
+		MemberID:     a.MemberId,
+		AllergenName: a.AllergenName,
+		AllergyType:  a.AllergyType,
+		Severity:     a.Severity,
+		Symptoms:     a.Symptoms,
+		DiagnosedAt:  a.DiagnosedAt,
+		Notes:        a.Notes,
+		CreatedAt:    a.CreatedAt,
+	}
+}
 
-func scanAllergy(row pgx.Row) (*entity.Allergy, error) {
-	var a entity.Allergy
-	err := row.Scan(&a.ID, &a.UserID, &a.MemberID, &a.AllergenName, &a.AllergyType, &a.Severity, &a.Symptoms, &a.DiagnosedAt, &a.Notes, &a.CreatedAt)
+func (r *AllergyRepository) List(ctx context.Context, userID string) ([]entity.Allergy, error) {
+	rows, err := r.q.ListAllergies(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.Allergy, 0, len(rows))
+	for _, a := range rows {
+		list = append(list, allergyFromSqlc(a))
+	}
+	return list, nil
+}
+
+func (r *AllergyRepository) FindByID(ctx context.Context, id string) (*entity.Allergy, error) {
+	a, err := r.q.GetAllergy(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &a, nil
-}
-
-func (r *AllergyRepository) List(ctx context.Context, userID string) ([]entity.Allergy, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+allergyColumns+` FROM "Allergy" WHERE "userId"=$1 ORDER BY "createdAt" DESC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.Allergy, 0)
-	for rows.Next() {
-		var a entity.Allergy
-		if err := rows.Scan(&a.ID, &a.UserID, &a.MemberID, &a.AllergenName, &a.AllergyType, &a.Severity, &a.Symptoms, &a.DiagnosedAt, &a.Notes, &a.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, a)
-	}
-	return list, rows.Err()
-}
-
-func (r *AllergyRepository) FindByID(ctx context.Context, id string) (*entity.Allergy, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+allergyColumns+` FROM "Allergy" WHERE "id"=$1`, id)
-	return scanAllergy(row)
+	e := allergyFromSqlc(a)
+	return &e, nil
 }
 
 func (r *AllergyRepository) Create(ctx context.Context, in repository.CreateAllergyInput) (*entity.Allergy, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "Allergy" ("id", "userId", "memberId", "allergenName", "allergyType", "severity", "symptoms", "diagnosedAt", "notes", "createdAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now())
-		 RETURNING `+allergyColumns,
-		id, in.UserID, in.MemberID, in.AllergenName, in.AllergyType, in.Severity, in.Symptoms, in.DiagnosedAt, in.Notes)
-	return scanAllergy(row)
+	m := gormAllergy{
+		ID:           auth.NewID(),
+		UserID:       in.UserID,
+		MemberID:     in.MemberID,
+		AllergenName: in.AllergenName,
+		AllergyType:  in.AllergyType,
+		Severity:     in.Severity,
+		Symptoms:     in.Symptoms,
+		DiagnosedAt:  in.DiagnosedAt,
+		Notes:        in.Notes,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *AllergyRepository) Update(ctx context.Context, id string, in repository.UpdateAllergyInput) (*entity.Allergy, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Allergy" SET
-			"allergenName" = COALESCE($2, "allergenName"),
-			"allergyType" = COALESCE($3, "allergyType"),
-			"severity" = COALESCE($4, "severity"),
-			"symptoms" = COALESCE($5, "symptoms"),
-			"diagnosedAt" = COALESCE($6, "diagnosedAt"),
-			"notes" = COALESCE($7, "notes")
-		 WHERE "id"=$1
-		 RETURNING `+allergyColumns,
-		id, in.AllergenName, in.AllergyType, in.Severity, in.Symptoms, in.DiagnosedAt, in.Notes)
-	return scanAllergy(row)
+	fields := map[string]any{}
+	if in.AllergenName != nil {
+		fields["allergenName"] = *in.AllergenName
+	}
+	if in.AllergyType != nil {
+		fields["allergyType"] = *in.AllergyType
+	}
+	if in.Severity != nil {
+		fields["severity"] = *in.Severity
+	}
+	if in.Symptoms != nil {
+		fields["symptoms"] = *in.Symptoms
+	}
+	if in.DiagnosedAt != nil {
+		fields["diagnosedAt"] = *in.DiagnosedAt
+	}
+	if in.Notes != nil {
+		fields["notes"] = *in.Notes
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormAllergy{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *AllergyRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Allergy" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormAllergy{}).Error
 }

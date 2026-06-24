@@ -5,82 +5,101 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// BodyMeasurementRepository は "BodyMeasurement" テーブルの生SQL実装
+// BodyMeasurementRepository は "BodyMeasurement" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
 type BodyMeasurementRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewBodyMeasurementRepository(db *database.DB) *BodyMeasurementRepository {
-	return &BodyMeasurementRepository{db: db}
+	return &BodyMeasurementRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const bodyMeasurementColumns = `"id", "userId", "memberId", "weight", "height", "recordedAt", "notes", "createdAt"`
+func bodyMeasurementFromSqlc(b sqlcgen.BodyMeasurement) entity.BodyMeasurement {
+	return entity.BodyMeasurement{
+		ID:         b.ID,
+		UserID:     b.UserId,
+		MemberID:   b.MemberId,
+		Weight:     b.Weight,
+		Height:     b.Height,
+		RecordedAt: b.RecordedAt,
+		Notes:      b.Notes,
+		CreatedAt:  b.CreatedAt,
+	}
+}
 
-func scanBodyMeasurement(row pgx.Row) (*entity.BodyMeasurement, error) {
-	var b entity.BodyMeasurement
-	err := row.Scan(&b.ID, &b.UserID, &b.MemberID, &b.Weight, &b.Height, &b.RecordedAt, &b.Notes, &b.CreatedAt)
+func (r *BodyMeasurementRepository) List(ctx context.Context, userID string) ([]entity.BodyMeasurement, error) {
+	rows, err := r.q.ListBodyMeasurements(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.BodyMeasurement, 0, len(rows))
+	for _, b := range rows {
+		list = append(list, bodyMeasurementFromSqlc(b))
+	}
+	return list, nil
+}
+
+func (r *BodyMeasurementRepository) FindByID(ctx context.Context, id string) (*entity.BodyMeasurement, error) {
+	b, err := r.q.GetBodyMeasurement(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &b, nil
-}
-
-func (r *BodyMeasurementRepository) List(ctx context.Context, userID string) ([]entity.BodyMeasurement, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+bodyMeasurementColumns+` FROM "BodyMeasurement" WHERE "userId"=$1 ORDER BY "recordedAt" DESC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.BodyMeasurement, 0)
-	for rows.Next() {
-		var b entity.BodyMeasurement
-		if err := rows.Scan(&b.ID, &b.UserID, &b.MemberID, &b.Weight, &b.Height, &b.RecordedAt, &b.Notes, &b.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, b)
-	}
-	return list, rows.Err()
-}
-
-func (r *BodyMeasurementRepository) FindByID(ctx context.Context, id string) (*entity.BodyMeasurement, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+bodyMeasurementColumns+` FROM "BodyMeasurement" WHERE "id"=$1`, id)
-	return scanBodyMeasurement(row)
+	e := bodyMeasurementFromSqlc(b)
+	return &e, nil
 }
 
 func (r *BodyMeasurementRepository) Create(ctx context.Context, in repository.CreateBodyMeasurementInput) (*entity.BodyMeasurement, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "BodyMeasurement" ("id", "userId", "memberId", "weight", "height", "recordedAt", "notes", "createdAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7, now())
-		 RETURNING `+bodyMeasurementColumns,
-		id, in.UserID, in.MemberID, in.Weight, in.Height, in.RecordedAt, in.Notes)
-	return scanBodyMeasurement(row)
+	m := gormBodyMeasurement{
+		ID:         auth.NewID(),
+		UserID:     in.UserID,
+		MemberID:   in.MemberID,
+		Weight:     in.Weight,
+		Height:     in.Height,
+		RecordedAt: in.RecordedAt,
+		Notes:      in.Notes,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *BodyMeasurementRepository) Update(ctx context.Context, id string, in repository.UpdateBodyMeasurementInput) (*entity.BodyMeasurement, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "BodyMeasurement" SET
-			"weight" = COALESCE($2, "weight"),
-			"height" = COALESCE($3, "height"),
-			"recordedAt" = COALESCE($4, "recordedAt"),
-			"notes" = COALESCE($5, "notes")
-		 WHERE "id"=$1
-		 RETURNING `+bodyMeasurementColumns,
-		id, in.Weight, in.Height, in.RecordedAt, in.Notes)
-	return scanBodyMeasurement(row)
+	fields := map[string]any{}
+	if in.Weight != nil {
+		fields["weight"] = *in.Weight
+	}
+	if in.Height != nil {
+		fields["height"] = *in.Height
+	}
+	if in.RecordedAt != nil {
+		fields["recordedAt"] = *in.RecordedAt
+	}
+	if in.Notes != nil {
+		fields["notes"] = *in.Notes
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormBodyMeasurement{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *BodyMeasurementRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "BodyMeasurement" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormBodyMeasurement{}).Error
 }
