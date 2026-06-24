@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
@@ -70,7 +71,7 @@ func (r *HealthLogRepository) Create(ctx context.Context, in repository.CreateHe
 		UserID:         in.UserID,
 		MemberID:       in.MemberID,
 		ConditionLevel: in.ConditionLevel,
-		Symptoms:       symptoms,
+		Symptoms:       pq.StringArray(symptoms),
 		Notes:          in.Notes,
 	}
 	// recordedAt 未指定なら DB 既定値(now())。
@@ -89,7 +90,7 @@ func (r *HealthLogRepository) Update(ctx context.Context, id string, in reposito
 		fields["conditionLevel"] = *in.ConditionLevel
 	}
 	if in.Symptoms != nil {
-		fields["symptoms"] = in.Symptoms
+		fields["symptoms"] = pq.StringArray(in.Symptoms)
 	}
 	if in.Notes != nil {
 		fields["notes"] = *in.Notes

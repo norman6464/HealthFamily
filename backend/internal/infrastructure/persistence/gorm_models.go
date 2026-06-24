@@ -1,6 +1,10 @@
 package persistence
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 // intPtr は sqlc が生成する *int32 を entity の *int へ変換する。
 func intPtr(p *int32) *int {
@@ -37,29 +41,29 @@ type gormMedication struct {
 func (gormMedication) TableName() string { return "Medication" }
 
 type gormHealthLog struct {
-	ID             string    `gorm:"column:id;primaryKey"`
-	UserID         string    `gorm:"column:userId"`
-	MemberID       string    `gorm:"column:memberId"`
-	ConditionLevel int       `gorm:"column:conditionLevel"`
-	Symptoms       []string  `gorm:"column:symptoms;type:text[]"`
-	Notes          *string   `gorm:"column:notes"`
-	RecordedAt     time.Time `gorm:"column:recordedAt;default:now()"`
+	ID             string         `gorm:"column:id;primaryKey"`
+	UserID         string         `gorm:"column:userId"`
+	MemberID       string         `gorm:"column:memberId"`
+	ConditionLevel int            `gorm:"column:conditionLevel"`
+	Symptoms       pq.StringArray `gorm:"column:symptoms;type:text[]"`
+	Notes          *string        `gorm:"column:notes"`
+	RecordedAt     time.Time      `gorm:"column:recordedAt;default:now()"`
 }
 
 func (gormHealthLog) TableName() string { return "HealthLog" }
 
 type gormSchedule struct {
-	ID                    string     `gorm:"column:id;primaryKey"`
-	MedicationID          string     `gorm:"column:medicationId"`
-	UserID                string     `gorm:"column:userId"`
-	MemberID              string     `gorm:"column:memberId"`
-	ScheduledTime         string     `gorm:"column:scheduledTime"`
-	DaysOfWeek            []string   `gorm:"column:daysOfWeek;type:text[]"`
-	IntervalDays          *int       `gorm:"column:intervalDays"`
-	StartDate             *time.Time `gorm:"column:startDate"`
-	IsEnabled             bool       `gorm:"column:isEnabled"`
-	ReminderMinutesBefore int        `gorm:"column:reminderMinutesBefore"`
-	CreatedAt             time.Time  `gorm:"column:createdAt;default:now()"`
+	ID                    string         `gorm:"column:id;primaryKey"`
+	MedicationID          string         `gorm:"column:medicationId"`
+	UserID                string         `gorm:"column:userId"`
+	MemberID              string         `gorm:"column:memberId"`
+	ScheduledTime         string         `gorm:"column:scheduledTime"`
+	DaysOfWeek            pq.StringArray `gorm:"column:daysOfWeek;type:text[]"`
+	IntervalDays          *int           `gorm:"column:intervalDays"`
+	StartDate             *time.Time     `gorm:"column:startDate"`
+	IsEnabled             bool           `gorm:"column:isEnabled"`
+	ReminderMinutesBefore int            `gorm:"column:reminderMinutesBefore"`
+	CreatedAt             time.Time      `gorm:"column:createdAt;default:now()"`
 }
 
 func (gormSchedule) TableName() string { return "Schedule" }

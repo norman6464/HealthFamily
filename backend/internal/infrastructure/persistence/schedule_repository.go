@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
@@ -84,7 +85,7 @@ func (r *ScheduleRepository) Create(ctx context.Context, in repository.CreateSch
 		UserID:                in.UserID,
 		MemberID:              in.MemberID,
 		ScheduledTime:         in.ScheduledTime,
-		DaysOfWeek:            days,
+		DaysOfWeek:            pq.StringArray(days),
 		IntervalDays:          in.IntervalDays,
 		StartDate:             in.StartDate,
 		IsEnabled:             in.IsEnabled,
@@ -102,7 +103,7 @@ func (r *ScheduleRepository) Update(ctx context.Context, id string, in repositor
 		fields["scheduledTime"] = *in.ScheduledTime
 	}
 	if in.DaysOfWeek != nil {
-		fields["daysOfWeek"] = in.DaysOfWeek
+		fields["daysOfWeek"] = pq.StringArray(in.DaysOfWeek)
 	}
 	if in.IntervalDays != nil {
 		fields["intervalDays"] = *in.IntervalDays
