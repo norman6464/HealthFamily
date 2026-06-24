@@ -5,69 +5,96 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 )
 
-// UserRepository は "User" テーブルの生SQL実装
+// UserRepository は "User" テーブルのリポジトリ。
+// 検索系(FindByEmail/FindByID)は sqlc、書き込み系(Create/Update)は GORM を使う。
 type UserRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewUserRepository(db *database.DB) *UserRepository {
-	return &UserRepository{db: db}
+	return &UserRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const userColumns = `"id", "email", "password", "displayName", "characterType", "characterName",
-	"emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",
-	"resetCode", "resetCodeExpiry", "createdAt", "updatedAt"`
+func userFromSqlc(u sqlcgen.User) entity.User {
+	return entity.User{
+		ID:                   u.ID,
+		Email:                u.Email,
+		Password:             u.Password,
+		DisplayName:          u.DisplayName,
+		CharacterType:        u.CharacterType,
+		CharacterName:        u.CharacterName,
+		EmailVerified:        u.EmailVerified,
+		VerificationCode:     u.VerificationCode,
+		VerificationExpiry:   u.VerificationExpiry,
+		VerificationAttempts: int(u.VerificationAttempts),
+		ResetCode:            u.ResetCode,
+		ResetCodeExpiry:      u.ResetCodeExpiry,
+		CreatedAt:            u.CreatedAt,
+		UpdatedAt:            u.UpdatedAt,
+	}
+}
 
-func scanUser(row pgx.Row) (*entity.User, error) {
-	var u entity.User
-	err := row.Scan(
-		&u.ID, &u.Email, &u.Password, &u.DisplayName, &u.CharacterType, &u.CharacterName,
-		&u.EmailVerified, &u.VerificationCode, &u.VerificationExpiry, &u.VerificationAttempts,
-		&u.ResetCode, &u.ResetCodeExpiry, &u.CreatedAt, &u.UpdatedAt,
-	)
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+	u, err := r.q.GetUserByEmail(ctx, email)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &u, nil
-}
-
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+userColumns+` FROM "User" WHERE "email" = $1`, email)
-	return scanUser(row)
+	e := userFromSqlc(u)
+	return &e, nil
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id string) (*entity.User, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+userColumns+` FROM "User" WHERE "id" = $1`, id)
-	return scanUser(row)
+	u, err := r.q.GetUserByID(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	e := userFromSqlc(u)
+	return &e, nil
 }
 
 func (r *UserRepository) Create(ctx context.Context, u *entity.User) error {
-	_, err := r.db.Pool.Exec(ctx,
-		`INSERT INTO "User" ("id", "email", "password", "displayName", "characterType", "emailVerified",
-			"verificationCode", "verificationExpiry", "createdAt", "updatedAt")
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now(), now())`,
-		u.ID, u.Email, u.Password, u.DisplayName, u.CharacterType, u.EmailVerified,
-		u.VerificationCode, u.VerificationExpiry,
-	)
-	return err
+	// 旧 INSERT 同様、characterName/verificationAttempts/resetCode 等は未指定(既定値/NULL)。
+	m := gormUser{
+		ID:                 u.ID,
+		Email:              u.Email,
+		Password:           u.Password,
+		DisplayName:        u.DisplayName,
+		CharacterType:      u.CharacterType,
+		EmailVerified:      u.EmailVerified,
+		VerificationCode:   u.VerificationCode,
+		VerificationExpiry: u.VerificationExpiry,
+	}
+	return r.gdb.WithContext(ctx).Create(&m).Error
 }
 
 func (r *UserRepository) Update(ctx context.Context, u *entity.User) error {
-	_, err := r.db.Pool.Exec(ctx,
-		`UPDATE "User" SET "email"=$2, "password"=$3, "displayName"=$4, "characterType"=$5, "characterName"=$6,
-			"emailVerified"=$7, "verificationCode"=$8, "verificationExpiry"=$9, "verificationAttempts"=$10,
-			"resetCode"=$11, "resetCodeExpiry"=$12, "updatedAt"=now()
-		 WHERE "id"=$1`,
-		u.ID, u.Email, u.Password, u.DisplayName, u.CharacterType, u.CharacterName,
-		u.EmailVerified, u.VerificationCode, u.VerificationExpiry, u.VerificationAttempts,
-		u.ResetCode, u.ResetCodeExpiry,
-	)
-	return err
+	// 旧実装は全列を無条件に上書きする(updatedAt は now())。
+	fields := map[string]any{
+		"email":                u.Email,
+		"password":             u.Password,
+		"displayName":          u.DisplayName,
+		"characterType":        u.CharacterType,
+		"characterName":        u.CharacterName,
+		"emailVerified":        u.EmailVerified,
+		"verificationCode":     u.VerificationCode,
+		"verificationExpiry":   u.VerificationExpiry,
+		"verificationAttempts": u.VerificationAttempts,
+		"resetCode":            u.ResetCode,
+		"resetCodeExpiry":      u.ResetCodeExpiry,
+		"updatedAt":            gorm.Expr("now()"),
+	}
+	return r.gdb.WithContext(ctx).Model(&gormUser{}).Where(`"id" = ?`, u.ID).Updates(fields).Error
 }

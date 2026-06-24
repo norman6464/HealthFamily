@@ -5,64 +5,110 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// NotificationSettingRepository は "NotificationSetting" テーブルの生SQL実装
+// NotificationSettingRepository は "NotificationSetting" テーブルのリポジトリ。
+// 検索系(FindByUserID)は sqlc、書き込み系(Upsert)は GORM(ON CONFLICT)を使う。
 type NotificationSettingRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewNotificationSettingRepository(db *database.DB) *NotificationSettingRepository {
-	return &NotificationSettingRepository{db: db}
+	return &NotificationSettingRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const notificationSettingColumns = `"id", "userId", "medicationReminderEnabled", "missedMedicationEnabled",
-	"appointmentReminderEnabled", "lowStockAlertEnabled", "defaultReminderMinutesBefore",
-	"defaultAppointmentReminderDaysBefore", "emailNotificationEnabled", "createdAt", "updatedAt"`
+func notificationSettingFromSqlc(n sqlcgen.NotificationSetting) entity.NotificationSetting {
+	return entity.NotificationSetting{
+		ID:                                   n.ID,
+		UserID:                               n.UserId,
+		MedicationReminderEnabled:            n.MedicationReminderEnabled,
+		MissedMedicationEnabled:              n.MissedMedicationEnabled,
+		AppointmentReminderEnabled:           n.AppointmentReminderEnabled,
+		LowStockAlertEnabled:                 n.LowStockAlertEnabled,
+		DefaultReminderMinutesBefore:         int(n.DefaultReminderMinutesBefore),
+		DefaultAppointmentReminderDaysBefore: int(n.DefaultAppointmentReminderDaysBefore),
+		EmailNotificationEnabled:             n.EmailNotificationEnabled,
+		CreatedAt:                            n.CreatedAt,
+		UpdatedAt:                            n.UpdatedAt,
+	}
+}
 
-func scanNotificationSetting(row pgx.Row) (*entity.NotificationSetting, error) {
-	var n entity.NotificationSetting
-	err := row.Scan(&n.ID, &n.UserID, &n.MedicationReminderEnabled, &n.MissedMedicationEnabled,
-		&n.AppointmentReminderEnabled, &n.LowStockAlertEnabled, &n.DefaultReminderMinutesBefore,
-		&n.DefaultAppointmentReminderDaysBefore, &n.EmailNotificationEnabled, &n.CreatedAt, &n.UpdatedAt)
+func (r *NotificationSettingRepository) FindByUserID(ctx context.Context, userID string) (*entity.NotificationSetting, error) {
+	n, err := r.q.GetNotificationSettingByUserID(ctx, userID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &n, nil
+	e := notificationSettingFromSqlc(n)
+	return &e, nil
 }
 
-func (r *NotificationSettingRepository) FindByUserID(ctx context.Context, userID string) (*entity.NotificationSetting, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+notificationSettingColumns+` FROM "NotificationSetting" WHERE "userId"=$1`, userID)
-	return scanNotificationSetting(row)
+func boolOr(p *bool, def bool) bool {
+	if p != nil {
+		return *p
+	}
+	return def
+}
+
+func intOr(p *int, def int) int {
+	if p != nil {
+		return *p
+	}
+	return def
 }
 
 func (r *NotificationSettingRepository) Upsert(ctx context.Context, in repository.UpsertNotificationSettingInput) (*entity.NotificationSetting, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "NotificationSetting" ("id", "userId", "medicationReminderEnabled", "missedMedicationEnabled",
-			"appointmentReminderEnabled", "lowStockAlertEnabled", "defaultReminderMinutesBefore",
-			"defaultAppointmentReminderDaysBefore", "emailNotificationEnabled", "createdAt", "updatedAt")
-		 VALUES ($1, $2, COALESCE($3, TRUE), COALESCE($4, TRUE), COALESCE($5, TRUE), COALESCE($6, TRUE),
-			COALESCE($7, 5), COALESCE($8, 1), COALESCE($9, TRUE), now(), now())
-		 ON CONFLICT ("userId") DO UPDATE SET
-			"medicationReminderEnabled" = COALESCE($3, "NotificationSetting"."medicationReminderEnabled"),
-			"missedMedicationEnabled" = COALESCE($4, "NotificationSetting"."missedMedicationEnabled"),
-			"appointmentReminderEnabled" = COALESCE($5, "NotificationSetting"."appointmentReminderEnabled"),
-			"lowStockAlertEnabled" = COALESCE($6, "NotificationSetting"."lowStockAlertEnabled"),
-			"defaultReminderMinutesBefore" = COALESCE($7, "NotificationSetting"."defaultReminderMinutesBefore"),
-			"defaultAppointmentReminderDaysBefore" = COALESCE($8, "NotificationSetting"."defaultAppointmentReminderDaysBefore"),
-			"emailNotificationEnabled" = COALESCE($9, "NotificationSetting"."emailNotificationEnabled"),
-			"updatedAt" = now()
-		 RETURNING `+notificationSettingColumns,
-		id, in.UserID, in.MedicationReminderEnabled, in.MissedMedicationEnabled,
-		in.AppointmentReminderEnabled, in.LowStockAlertEnabled, in.DefaultReminderMinutesBefore,
-		in.DefaultAppointmentReminderDaysBefore, in.EmailNotificationEnabled)
-	return scanNotificationSetting(row)
+	// INSERT 時は未指定を既定値(TRUE/5/1)で埋める。
+	rec := gormNotificationSetting{
+		ID:                                   auth.NewID(),
+		UserID:                               in.UserID,
+		MedicationReminderEnabled:            boolOr(in.MedicationReminderEnabled, true),
+		MissedMedicationEnabled:              boolOr(in.MissedMedicationEnabled, true),
+		AppointmentReminderEnabled:           boolOr(in.AppointmentReminderEnabled, true),
+		LowStockAlertEnabled:                 boolOr(in.LowStockAlertEnabled, true),
+		DefaultReminderMinutesBefore:         intOr(in.DefaultReminderMinutesBefore, 5),
+		DefaultAppointmentReminderDaysBefore: intOr(in.DefaultAppointmentReminderDaysBefore, 1),
+		EmailNotificationEnabled:             boolOr(in.EmailNotificationEnabled, true),
+	}
+	// CONFLICT 時は指定された項目のみ更新(未指定は既存値を維持)。
+	assignments := map[string]any{"updatedAt": gorm.Expr("now()")}
+	if in.MedicationReminderEnabled != nil {
+		assignments["medicationReminderEnabled"] = *in.MedicationReminderEnabled
+	}
+	if in.MissedMedicationEnabled != nil {
+		assignments["missedMedicationEnabled"] = *in.MissedMedicationEnabled
+	}
+	if in.AppointmentReminderEnabled != nil {
+		assignments["appointmentReminderEnabled"] = *in.AppointmentReminderEnabled
+	}
+	if in.LowStockAlertEnabled != nil {
+		assignments["lowStockAlertEnabled"] = *in.LowStockAlertEnabled
+	}
+	if in.DefaultReminderMinutesBefore != nil {
+		assignments["defaultReminderMinutesBefore"] = *in.DefaultReminderMinutesBefore
+	}
+	if in.DefaultAppointmentReminderDaysBefore != nil {
+		assignments["defaultAppointmentReminderDaysBefore"] = *in.DefaultAppointmentReminderDaysBefore
+	}
+	if in.EmailNotificationEnabled != nil {
+		assignments["emailNotificationEnabled"] = *in.EmailNotificationEnabled
+	}
+
+	if err := r.gdb.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "userId"}},
+		DoUpdates: clause.Assignments(assignments),
+	}).Create(&rec).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByUserID(ctx, in.UserID)
 }
