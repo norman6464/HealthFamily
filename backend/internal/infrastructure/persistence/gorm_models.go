@@ -2,9 +2,67 @@ package persistence
 
 import "time"
 
+// intPtr は sqlc が生成する *int32 を entity の *int へ変換する。
+func intPtr(p *int32) *int {
+	if p == nil {
+		return nil
+	}
+	v := int(*p)
+	return &v
+}
+
 // GORM 用モデル。書き込み系(Create/Update/Delete)で利用する。
 // 既存スキーマ(PascalCaseテーブル・camelCase列)に合わせて column タグを明示する。
 // createdAt は DB 既定値(now())を使うため default タグを付け、ゼロ値時は INSERT から除外させる。
+
+type gormMedication struct {
+	ID             string     `gorm:"column:id;primaryKey"`
+	MemberID       string     `gorm:"column:memberId"`
+	UserID         string     `gorm:"column:userId"`
+	Name           string     `gorm:"column:name"`
+	Category       string     `gorm:"column:category;default:regular"`
+	DosageAmount   *string    `gorm:"column:dosageAmount"`
+	Frequency      *string    `gorm:"column:frequency"`
+	StockQuantity  *int       `gorm:"column:stockQuantity"`
+	StockAlertDate *time.Time `gorm:"column:stockAlertDate"`
+	IntervalHours  *int       `gorm:"column:intervalHours"`
+	Instructions   *string    `gorm:"column:instructions"`
+	DisplayOrder   int        `gorm:"column:displayOrder;default:0"`
+	IsActive       bool       `gorm:"column:isActive;default:true"`
+	Status         string     `gorm:"column:status;default:active"`
+	CreatedAt      time.Time  `gorm:"column:createdAt;default:now()"`
+	UpdatedAt      time.Time  `gorm:"column:updatedAt;default:now()"`
+}
+
+func (gormMedication) TableName() string { return "Medication" }
+
+type gormHealthLog struct {
+	ID             string    `gorm:"column:id;primaryKey"`
+	UserID         string    `gorm:"column:userId"`
+	MemberID       string    `gorm:"column:memberId"`
+	ConditionLevel int       `gorm:"column:conditionLevel"`
+	Symptoms       []string  `gorm:"column:symptoms;type:text[]"`
+	Notes          *string   `gorm:"column:notes"`
+	RecordedAt     time.Time `gorm:"column:recordedAt;default:now()"`
+}
+
+func (gormHealthLog) TableName() string { return "HealthLog" }
+
+type gormSchedule struct {
+	ID                    string     `gorm:"column:id;primaryKey"`
+	MedicationID          string     `gorm:"column:medicationId"`
+	UserID                string     `gorm:"column:userId"`
+	MemberID              string     `gorm:"column:memberId"`
+	ScheduledTime         string     `gorm:"column:scheduledTime"`
+	DaysOfWeek            []string   `gorm:"column:daysOfWeek;type:text[]"`
+	IntervalDays          *int       `gorm:"column:intervalDays"`
+	StartDate             *time.Time `gorm:"column:startDate"`
+	IsEnabled             bool       `gorm:"column:isEnabled"`
+	ReminderMinutesBefore int        `gorm:"column:reminderMinutesBefore"`
+	CreatedAt             time.Time  `gorm:"column:createdAt;default:now()"`
+}
+
+func (gormSchedule) TableName() string { return "Schedule" }
 
 type gormMember struct {
 	ID         string     `gorm:"column:id;primaryKey"`

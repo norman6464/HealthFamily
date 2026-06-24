@@ -5,128 +5,168 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// MedicationRepository は "Medication" テーブルの生SQL実装
-type MedicationRepository struct {
-	db *database.DB
-}
-
-func NewMedicationRepository(db *database.DB) *MedicationRepository {
-	return &MedicationRepository{db: db}
-}
-
+// medColumns は Medication の列一覧(在庫アラート集計 aggregate_queries.go で利用)。
 const medColumns = `"id", "memberId", "userId", "name", "category", "dosageAmount", "frequency",
 	"stockQuantity", "stockAlertDate", "intervalHours", "instructions", "displayOrder",
 	"isActive", "status", "createdAt", "updatedAt"`
 
-func scanMedication(row pgx.Row) (*entity.Medication, error) {
-	var m entity.Medication
-	err := row.Scan(&m.ID, &m.MemberID, &m.UserID, &m.Name, &m.Category, &m.DosageAmount,
-		&m.Frequency, &m.StockQuantity, &m.StockAlertDate, &m.IntervalHours, &m.Instructions,
-		&m.DisplayOrder, &m.IsActive, &m.Status, &m.CreatedAt, &m.UpdatedAt)
+// MedicationRepository は "Medication" テーブルのリポジトリ。
+// 検索系(ListByMember/ListByUser/FindByID)は sqlc、書き込み系(Create/Update/UpdateStock/Reorder/Delete)は GORM。
+// pool は在庫アラート集計(ListAlerts, aggregate_queries.go)で生SQLに利用する。
+type MedicationRepository struct {
+	gdb  *gorm.DB
+	q    *sqlcgen.Queries
+	pool *pgxpool.Pool
+}
+
+func NewMedicationRepository(db *database.DB) *MedicationRepository {
+	return &MedicationRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool), pool: db.Pool}
+}
+
+func medicationFromSqlc(m sqlcgen.Medication) entity.Medication {
+	return entity.Medication{
+		ID:             m.ID,
+		MemberID:       m.MemberId,
+		UserID:         m.UserId,
+		Name:           m.Name,
+		Category:       m.Category,
+		DosageAmount:   m.DosageAmount,
+		Frequency:      m.Frequency,
+		StockQuantity:  intPtr(m.StockQuantity),
+		StockAlertDate: m.StockAlertDate,
+		IntervalHours:  intPtr(m.IntervalHours),
+		Instructions:   m.Instructions,
+		DisplayOrder:   int(m.DisplayOrder),
+		IsActive:       m.IsActive,
+		Status:         m.Status,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
+	}
+}
+
+func (r *MedicationRepository) ListByMember(ctx context.Context, memberID string) ([]entity.Medication, error) {
+	rows, err := r.q.ListMedicationsByMember(ctx, memberID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.Medication, 0, len(rows))
+	for _, m := range rows {
+		list = append(list, medicationFromSqlc(m))
+	}
+	return list, nil
+}
+
+func (r *MedicationRepository) ListByUser(ctx context.Context, userID string) ([]entity.Medication, error) {
+	rows, err := r.q.ListMedicationsByUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.Medication, 0, len(rows))
+	for _, m := range rows {
+		list = append(list, medicationFromSqlc(m))
+	}
+	return list, nil
+}
+
+func (r *MedicationRepository) FindByID(ctx context.Context, id string) (*entity.Medication, error) {
+	m, err := r.q.GetMedication(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &m, nil
-}
-
-func (r *MedicationRepository) queryList(ctx context.Context, where string, arg string) ([]entity.Medication, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+medColumns+` FROM "Medication" WHERE `+where+` ORDER BY "displayOrder" ASC, "createdAt" ASC`, arg)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.Medication, 0)
-	for rows.Next() {
-		var m entity.Medication
-		if err := rows.Scan(&m.ID, &m.MemberID, &m.UserID, &m.Name, &m.Category, &m.DosageAmount,
-			&m.Frequency, &m.StockQuantity, &m.StockAlertDate, &m.IntervalHours, &m.Instructions,
-			&m.DisplayOrder, &m.IsActive, &m.Status, &m.CreatedAt, &m.UpdatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, m)
-	}
-	return list, rows.Err()
-}
-
-func (r *MedicationRepository) ListByMember(ctx context.Context, memberID string) ([]entity.Medication, error) {
-	return r.queryList(ctx, `"memberId"=$1`, memberID)
-}
-
-func (r *MedicationRepository) ListByUser(ctx context.Context, userID string) ([]entity.Medication, error) {
-	return r.queryList(ctx, `"userId"=$1`, userID)
-}
-
-func (r *MedicationRepository) FindByID(ctx context.Context, id string) (*entity.Medication, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+medColumns+` FROM "Medication" WHERE "id"=$1`, id)
-	return scanMedication(row)
+	e := medicationFromSqlc(m)
+	return &e, nil
 }
 
 func (r *MedicationRepository) Create(ctx context.Context, in repository.CreateMedicationInput) (*entity.Medication, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "Medication" ("id", "memberId", "userId", "name", "category", "dosageAmount", "frequency",
-			"stockQuantity", "stockAlertDate", "instructions", "createdAt", "updatedAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, now(), now())
-		 RETURNING `+medColumns,
-		id, in.MemberID, in.UserID, in.Name, in.Category, in.DosageAmount, in.Frequency,
-		in.StockQuantity, in.StockAlertDate, in.Instructions)
-	return scanMedication(row)
+	// displayOrder/isActive/status は DB 既定値に委ねる(旧 INSERT 同様、未指定)。
+	m := gormMedication{
+		ID:             auth.NewID(),
+		MemberID:       in.MemberID,
+		UserID:         in.UserID,
+		Name:           in.Name,
+		Category:       in.Category,
+		DosageAmount:   in.DosageAmount,
+		Frequency:      in.Frequency,
+		StockQuantity:  in.StockQuantity,
+		StockAlertDate: in.StockAlertDate,
+		Instructions:   in.Instructions,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *MedicationRepository) Update(ctx context.Context, id string, in repository.UpdateMedicationInput) (*entity.Medication, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Medication" SET
-			"name" = COALESCE($2, "name"),
-			"category" = COALESCE($3, "category"),
-			"dosageAmount" = COALESCE($4, "dosageAmount"),
-			"frequency" = COALESCE($5, "frequency"),
-			"stockQuantity" = COALESCE($6, "stockQuantity"),
-			"stockAlertDate" = COALESCE($7, "stockAlertDate"),
-			"instructions" = COALESCE($8, "instructions"),
-			"isActive" = COALESCE($9, "isActive"),
-			"status" = COALESCE($10, "status"),
-			"updatedAt" = now()
-		 WHERE "id"=$1
-		 RETURNING `+medColumns,
-		id, in.Name, in.Category, in.DosageAmount, in.Frequency, in.StockQuantity,
-		in.StockAlertDate, in.Instructions, in.IsActive, in.Status)
-	return scanMedication(row)
+	// updatedAt は更新の有無に関わらず常に now()。
+	fields := map[string]any{"updatedAt": gorm.Expr("now()")}
+	if in.Name != nil {
+		fields["name"] = *in.Name
+	}
+	if in.Category != nil {
+		fields["category"] = *in.Category
+	}
+	if in.DosageAmount != nil {
+		fields["dosageAmount"] = *in.DosageAmount
+	}
+	if in.Frequency != nil {
+		fields["frequency"] = *in.Frequency
+	}
+	if in.StockQuantity != nil {
+		fields["stockQuantity"] = *in.StockQuantity
+	}
+	if in.StockAlertDate != nil {
+		fields["stockAlertDate"] = *in.StockAlertDate
+	}
+	if in.Instructions != nil {
+		fields["instructions"] = *in.Instructions
+	}
+	if in.IsActive != nil {
+		fields["isActive"] = *in.IsActive
+	}
+	if in.Status != nil {
+		fields["status"] = *in.Status
+	}
+	if err := r.gdb.WithContext(ctx).Model(&gormMedication{}).
+		Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *MedicationRepository) UpdateStock(ctx context.Context, id string, quantity int) (*entity.Medication, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Medication" SET "stockQuantity"=$2, "updatedAt"=now() WHERE "id"=$1 RETURNING `+medColumns,
-		id, quantity)
-	return scanMedication(row)
+	if err := r.gdb.WithContext(ctx).Model(&gormMedication{}).Where(`"id" = ?`, id).
+		Updates(map[string]any{"stockQuantity": quantity, "updatedAt": gorm.Expr("now()")}).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *MedicationRepository) Reorder(ctx context.Context, userID string, orderedIDs []string) error {
-	tx, err := r.db.Pool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx) //nolint:errcheck
-	for i, id := range orderedIDs {
-		if _, err := tx.Exec(ctx,
-			`UPDATE "Medication" SET "displayOrder"=$1, "updatedAt"=now() WHERE "id"=$2 AND "userId"=$3`,
-			i, id, userID); err != nil {
-			return err
+	return r.gdb.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for i, id := range orderedIDs {
+			if err := tx.Model(&gormMedication{}).
+				Where(`"id" = ? AND "userId" = ?`, id, userID).
+				Updates(map[string]any{"displayOrder": i, "updatedAt": gorm.Expr("now()")}).Error; err != nil {
+				return err
+			}
 		}
-	}
-	return tx.Commit(ctx)
+		return nil
+	})
 }
 
 func (r *MedicationRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Medication" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormMedication{}).Error
 }
