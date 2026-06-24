@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { useResource } from "@/lib/useResource";
 import type {
   BodyMeasurement,
   HealthLog,
@@ -283,14 +284,13 @@ export interface CreateHealthLogInput {
 }
 
 export function useHealthLogs(members: Member[] | undefined) {
-  const qc = useQueryClient();
-
-  const query = useQuery({
+  const { items, isLoading, create, remove } = useResource<HealthLog>({
     queryKey: queryKeys.healthLogs.all,
-    queryFn: () => api.get<HealthLog[]>("/health-logs"),
+    listPath: "/health-logs",
+    basePath: "/health-logs",
   });
 
-  const logs: HealthLogView[] = (query.data ?? []).map((h) => ({
+  const logs: HealthLogView[] = items.map((h) => ({
     id: h.id,
     memberId: h.memberId,
     memberName: memberNameOf(members, h.memberId),
@@ -302,30 +302,19 @@ export function useHealthLogs(members: Member[] | undefined) {
 
   const groups = groupByDate(logs);
 
-  const createMutation = useMutation({
-    mutationFn: (input: CreateHealthLogInput) =>
-      api.post<HealthLog>("/health-logs", {
+  return {
+    logs,
+    groups,
+    isLoading,
+    createLog: (input: CreateHealthLogInput) =>
+      create.mutateAsync({
         memberId: input.memberId,
         conditionLevel: input.conditionLevel,
         symptoms: input.symptoms,
         notes: input.notes,
         recordedAt: new Date().toISOString(),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.healthLogs.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/health-logs/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.healthLogs.all }),
-  });
-
-  return {
-    logs,
-    groups,
-    isLoading: query.isLoading,
-    createLog: (input: CreateHealthLogInput) =>
-      createMutation.mutateAsync(input),
-    deleteLog: (id: string) => deleteMutation.mutateAsync(id),
+    deleteLog: (id: string) => remove.mutateAsync(id),
   };
 }
 
@@ -337,14 +326,13 @@ export interface CreateTemperatureInput {
 }
 
 export function useTemperatureRecords(members: Member[] | undefined) {
-  const qc = useQueryClient();
-
-  const query = useQuery({
+  const { items, isLoading, create, remove } = useResource<TemperatureRecord>({
     queryKey: queryKeys.temperatureRecords.all,
-    queryFn: () => api.get<TemperatureRecord[]>("/temperature-records"),
+    listPath: "/temperature-records",
+    basePath: "/temperature-records",
   });
 
-  const records: TemperatureRecordView[] = (query.data ?? [])
+  const records: TemperatureRecordView[] = items
     .map((r) => ({
       id: r.id,
       memberId: r.memberId,
@@ -355,30 +343,17 @@ export function useTemperatureRecords(members: Member[] | undefined) {
     }))
     .sort((a, b) => b.measuredAt.getTime() - a.measuredAt.getTime());
 
-  const createMutation = useMutation({
-    mutationFn: (input: CreateTemperatureInput) =>
-      api.post<TemperatureRecord>("/temperature-records", {
+  return {
+    records,
+    isLoading,
+    createRecord: (input: CreateTemperatureInput) =>
+      create.mutateAsync({
         memberId: input.memberId,
         temperature: input.temperature,
         measuredAt: input.measuredAt,
         notes: input.notes,
       }),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.temperatureRecords.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/temperature-records/${id}`),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.temperatureRecords.all }),
-  });
-
-  return {
-    records,
-    isLoading: query.isLoading,
-    createRecord: (input: CreateTemperatureInput) =>
-      createMutation.mutateAsync(input),
-    deleteRecord: (id: string) => deleteMutation.mutateAsync(id),
+    deleteRecord: (id: string) => remove.mutateAsync(id),
   };
 }
 
@@ -397,14 +372,17 @@ export interface UpdateBodyMeasurementInput {
 }
 
 export function useBodyMeasurements(members: Member[] | undefined) {
-  const qc = useQueryClient();
-
-  const query = useQuery({
+  const { items, isLoading, create, update, remove } = useResource<
+    BodyMeasurement,
+    unknown,
+    UpdateBodyMeasurementInput
+  >({
     queryKey: queryKeys.bodyMeasurements.all,
-    queryFn: () => api.get<BodyMeasurement[]>("/body-measurements"),
+    listPath: "/body-measurements",
+    basePath: "/body-measurements",
   });
 
-  const measurements: BodyMeasurementView[] = (query.data ?? [])
+  const measurements: BodyMeasurementView[] = items
     .map((m) => ({
       id: m.id,
       memberId: m.memberId,
@@ -419,48 +397,23 @@ export function useBodyMeasurements(members: Member[] | undefined) {
         new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
     );
 
-  const createMutation = useMutation({
-    mutationFn: (input: CreateBodyMeasurementInput) =>
-      api.post<BodyMeasurement>("/body-measurements", {
+  return {
+    measurements,
+    isLoading,
+    createMeasurement: (input: CreateBodyMeasurementInput) =>
+      create.mutateAsync({
         memberId: input.memberId,
         weight: input.weight,
         height: input.height,
         recordedAt: new Date(input.recordedAt).toISOString(),
         notes: input.notes,
       }),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.bodyMeasurements.all }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      input,
-    }: {
-      id: string;
-      input: UpdateBodyMeasurementInput;
-    }) => api.patch<BodyMeasurement>(`/body-measurements/${id}`, input),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.bodyMeasurements.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/body-measurements/${id}`),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.bodyMeasurements.all }),
-  });
-
-  return {
-    measurements,
-    isLoading: query.isLoading,
-    createMeasurement: (input: CreateBodyMeasurementInput) =>
-      createMutation.mutateAsync(input),
     updateMeasurement: async (
       id: string,
       input: UpdateBodyMeasurementInput,
     ): Promise<void> => {
-      await updateMutation.mutateAsync({ id, input });
+      await update.mutateAsync({ id, input });
     },
-    deleteMeasurement: (id: string) => deleteMutation.mutateAsync(id),
+    deleteMeasurement: (id: string) => remove.mutateAsync(id),
   };
 }

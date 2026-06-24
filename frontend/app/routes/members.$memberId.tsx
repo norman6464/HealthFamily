@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router";
 import { Pill, Plus, X, ChevronLeft, FileText } from "lucide-react";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { useResource } from "@/lib/useResource";
 import type {
   Member,
   Allergy,
@@ -71,7 +72,6 @@ const memberTypeLabels: Record<string, string> = {
 
 export default function MemberDetail() {
   const { memberId } = useParams();
-  const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabKey>("allergies");
 
   const {
@@ -156,30 +156,27 @@ export default function MemberDetail() {
       </div>
 
       {activeTab === "allergies" && (
-        <AllergiesSection member={member} members={members} qc={qc} />
+        <AllergiesSection member={member} members={members} />
       )}
       {activeTab === "vaccinations" && (
-        <VaccinationsSection member={member} members={members} qc={qc} />
+        <VaccinationsSection member={member} members={members} />
       )}
       {activeTab === "examinations" && (
-        <ExaminationsSection member={member} members={members} qc={qc} />
+        <ExaminationsSection member={member} members={members} />
       )}
       {activeTab === "insurances" && (
-        <InsurancesSection member={member} members={members} qc={qc} />
+        <InsurancesSection member={member} members={members} />
       )}
       {activeTab === "prescriptions" && (
-        <PrescriptionsSection member={member} members={members} qc={qc} />
+        <PrescriptionsSection member={member} members={members} />
       )}
     </div>
   );
 }
 
-type QueryClientType = ReturnType<typeof useQueryClient>;
-
 interface SectionProps {
   member: Member;
   members: Member[];
-  qc: QueryClientType;
 }
 
 function SectionHeader({
@@ -213,28 +210,19 @@ function FormWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AllergiesSection({ member, members, qc }: SectionProps) {
+function AllergiesSection({ member, members }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
-  const { data: allergies = [], isLoading } = useQuery({
+  const {
+    items: allergies,
+    isLoading,
+    create,
+    update,
+    remove,
+  } = useResource<Allergy, AllergyFormData, UpdateAllergyInput>({
     queryKey: queryKeys.allergies.all,
-    queryFn: () => api.get<Allergy[]>("/allergies"),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: AllergyFormData) => api.post<Allergy>("/allergies", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allergies.all }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateAllergyInput }) =>
-      api.patch<Allergy>(`/allergies/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allergies.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/allergies/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.allergies.all }),
+    listPath: "/allergies",
+    basePath: "/allergies",
   });
 
   const items: AllergyWithMember[] = allergies
@@ -242,16 +230,16 @@ function AllergiesSection({ member, members, qc }: SectionProps) {
     .map((a) => ({ ...a, memberName: member.name }));
 
   const handleCreate = async (data: AllergyFormData) => {
-    await createMutation.mutateAsync(data);
+    await create.mutateAsync(data);
     setShowForm(false);
   };
 
   const handleUpdate = async (id: string, input: UpdateAllergyInput) => {
-    await updateMutation.mutateAsync({ id, input });
+    await update.mutateAsync({ id, input });
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    remove.mutate(id);
   };
 
   return (
@@ -267,31 +255,19 @@ function AllergiesSection({ member, members, qc }: SectionProps) {
   );
 }
 
-function VaccinationsSection({ member, members, qc }: SectionProps) {
+function VaccinationsSection({ member, members }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
-  const { data: vaccinations = [], isLoading } = useQuery({
+  const {
+    items: vaccinations,
+    isLoading,
+    create,
+    update,
+    remove,
+  } = useResource<Vaccination, VaccinationFormData, UpdateVaccinationInput>({
     queryKey: queryKeys.vaccinations.all,
-    queryFn: () => api.get<Vaccination[]>("/vaccinations"),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: VaccinationFormData) => api.post<Vaccination>("/vaccinations", data),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.vaccinations.all }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateVaccinationInput }) =>
-      api.patch<Vaccination>(`/vaccinations/${id}`, input),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.vaccinations.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/vaccinations/${id}`),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.vaccinations.all }),
+    listPath: "/vaccinations",
+    basePath: "/vaccinations",
   });
 
   const items: VaccinationWithMember[] = vaccinations
@@ -299,16 +275,16 @@ function VaccinationsSection({ member, members, qc }: SectionProps) {
     .map((v) => ({ ...v, memberName: member.name }));
 
   const handleCreate = async (data: VaccinationFormData) => {
-    await createMutation.mutateAsync(data);
+    await create.mutateAsync(data);
     setShowForm(false);
   };
 
   const handleUpdate = async (id: string, input: UpdateVaccinationInput) => {
-    await updateMutation.mutateAsync({ id, input });
+    await update.mutateAsync({ id, input });
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    remove.mutate(id);
   };
 
   return (
@@ -329,31 +305,19 @@ function VaccinationsSection({ member, members, qc }: SectionProps) {
   );
 }
 
-function ExaminationsSection({ member, members, qc }: SectionProps) {
+function ExaminationsSection({ member, members }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
-  const { data: examinations = [], isLoading } = useQuery({
+  const {
+    items: examinations,
+    isLoading,
+    create,
+    update,
+    remove,
+  } = useResource<Examination, ExaminationFormData, UpdateExaminationInput>({
     queryKey: queryKeys.examinations.all,
-    queryFn: () => api.get<Examination[]>("/examinations"),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: ExaminationFormData) => api.post<Examination>("/examinations", data),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.examinations.all }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateExaminationInput }) =>
-      api.patch<Examination>(`/examinations/${id}`, input),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.examinations.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/examinations/${id}`),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.examinations.all }),
+    listPath: "/examinations",
+    basePath: "/examinations",
   });
 
   const items: ExaminationWithMember[] = examinations
@@ -361,16 +325,16 @@ function ExaminationsSection({ member, members, qc }: SectionProps) {
     .map((e) => ({ ...e, memberName: member.name }));
 
   const handleCreate = async (data: ExaminationFormData) => {
-    await createMutation.mutateAsync(data);
+    await create.mutateAsync(data);
     setShowForm(false);
   };
 
   const handleUpdate = async (id: string, input: UpdateExaminationInput) => {
-    await updateMutation.mutateAsync({ id, input });
+    await update.mutateAsync({ id, input });
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    remove.mutate(id);
   };
 
   return (
@@ -391,28 +355,19 @@ function ExaminationsSection({ member, members, qc }: SectionProps) {
   );
 }
 
-function InsurancesSection({ member, members, qc }: SectionProps) {
+function InsurancesSection({ member, members }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
-  const { data: insurances = [], isLoading } = useQuery({
+  const {
+    items: insurances,
+    isLoading,
+    create,
+    update,
+    remove,
+  } = useResource<Insurance, InsuranceFormData, UpdateInsuranceInput>({
     queryKey: queryKeys.insurances.all,
-    queryFn: () => api.get<Insurance[]>("/insurances"),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: InsuranceFormData) => api.post<Insurance>("/insurances", data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.insurances.all }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateInsuranceInput }) =>
-      api.patch<Insurance>(`/insurances/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.insurances.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/insurances/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.insurances.all }),
+    listPath: "/insurances",
+    basePath: "/insurances",
   });
 
   const items: InsuranceWithMember[] = insurances
@@ -420,16 +375,16 @@ function InsurancesSection({ member, members, qc }: SectionProps) {
     .map((i) => ({ ...i, memberName: member.name }));
 
   const handleCreate = async (data: InsuranceFormData) => {
-    await createMutation.mutateAsync(data);
+    await create.mutateAsync(data);
     setShowForm(false);
   };
 
   const handleUpdate = async (id: string, input: UpdateInsuranceInput) => {
-    await updateMutation.mutateAsync({ id, input });
+    await update.mutateAsync({ id, input });
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    remove.mutate(id);
   };
 
   return (
@@ -450,31 +405,19 @@ function InsurancesSection({ member, members, qc }: SectionProps) {
   );
 }
 
-function PrescriptionsSection({ member, members, qc }: SectionProps) {
+function PrescriptionsSection({ member, members }: SectionProps) {
   const [showForm, setShowForm] = useState(false);
 
-  const { data: prescriptions = [], isLoading } = useQuery({
+  const {
+    items: prescriptions,
+    isLoading,
+    create,
+    update,
+    remove,
+  } = useResource<Prescription, PrescriptionFormData, UpdatePrescriptionInput>({
     queryKey: queryKeys.prescriptions.all,
-    queryFn: () => api.get<Prescription[]>("/prescriptions"),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data: PrescriptionFormData) => api.post<Prescription>("/prescriptions", data),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.prescriptions.all }),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdatePrescriptionInput }) =>
-      api.patch<Prescription>(`/prescriptions/${id}`, input),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.prescriptions.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/prescriptions/${id}`),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.prescriptions.all }),
+    listPath: "/prescriptions",
+    basePath: "/prescriptions",
   });
 
   const items: PrescriptionWithMember[] = prescriptions
@@ -482,16 +425,16 @@ function PrescriptionsSection({ member, members, qc }: SectionProps) {
     .map((p) => ({ ...p, memberName: member.name }));
 
   const handleCreate = async (data: PrescriptionFormData) => {
-    await createMutation.mutateAsync(data);
+    await create.mutateAsync(data);
     setShowForm(false);
   };
 
   const handleUpdate = async (id: string, input: UpdatePrescriptionInput) => {
-    await updateMutation.mutateAsync({ id, input });
+    await update.mutateAsync({ id, input });
   };
 
   const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    remove.mutate(id);
   };
 
   return (
