@@ -5,32 +5,40 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/lib/pq"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// DashboardPreferenceRepository は "DashboardPreference" テーブルの生SQL実装（ユーザー単位の単一行）
+// DashboardPreferenceRepository は "DashboardPreference" テーブルのリポジトリ（ユーザー単位の単一行）。
+// 検索系(Get)は sqlc、書き込み系(Upsert)は GORM(ON CONFLICT)を使う。
 type DashboardPreferenceRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewDashboardPreferenceRepository(db *database.DB) *DashboardPreferenceRepository {
-	return &DashboardPreferenceRepository{db: db}
+	return &DashboardPreferenceRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
 func (r *DashboardPreferenceRepository) Get(ctx context.Context, userID string) (*entity.DashboardPreference, error) {
-	var p entity.DashboardPreference
-	err := r.db.Pool.QueryRow(ctx,
-		`SELECT "userId", "hiddenCards", "cardOrder", "defaultMemberId" FROM "DashboardPreference" WHERE "userId"=$1`,
-		userID).Scan(&p.UserID, &p.HiddenCards, &p.CardOrder, &p.DefaultMemberID)
+	row, err := r.q.GetDashboardPreference(ctx, userID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &p, nil
+	return &entity.DashboardPreference{
+		UserID:          row.UserId,
+		HiddenCards:     row.HiddenCards,
+		CardOrder:       row.CardOrder,
+		DefaultMemberID: row.DefaultMemberId,
+	}, nil
 }
 
 func (r *DashboardPreferenceRepository) Upsert(ctx context.Context, userID string, hiddenCards, cardOrder []string, defaultMemberID *string) (*entity.DashboardPreference, error) {
@@ -40,20 +48,24 @@ func (r *DashboardPreferenceRepository) Upsert(ctx context.Context, userID strin
 	if cardOrder == nil {
 		cardOrder = []string{}
 	}
-	var p entity.DashboardPreference
-	err := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "DashboardPreference" ("id", "userId", "hiddenCards", "cardOrder", "defaultMemberId", "createdAt", "updatedAt")
-		 VALUES ($1,$2,$3,$4,$5, now(), now())
-		 ON CONFLICT ("userId") DO UPDATE
-		   SET "hiddenCards"=EXCLUDED."hiddenCards",
-		       "cardOrder"=EXCLUDED."cardOrder",
-		       "defaultMemberId"=EXCLUDED."defaultMemberId",
-		       "updatedAt"=now()
-		 RETURNING "userId", "hiddenCards", "cardOrder", "defaultMemberId"`,
-		auth.NewID(), userID, hiddenCards, cardOrder, defaultMemberID).
-		Scan(&p.UserID, &p.HiddenCards, &p.CardOrder, &p.DefaultMemberID)
-	if err != nil {
+	rec := gormDashboardPreference{
+		ID:              auth.NewID(),
+		UserID:          userID,
+		HiddenCards:     pq.StringArray(hiddenCards),
+		CardOrder:       pq.StringArray(cardOrder),
+		DefaultMemberID: defaultMemberID,
+	}
+	// CONFLICT 時は EXCLUDED(=今回のINSERT値)で上書き。
+	updates := clause.AssignmentColumns([]string{"hiddenCards", "cardOrder", "defaultMemberId"})
+	updates = append(updates, clause.Assignment{
+		Column: clause.Column{Name: "updatedAt"},
+		Value:  gorm.Expr("now()"),
+	})
+	if err := r.gdb.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "userId"}},
+		DoUpdates: updates,
+	}).Create(&rec).Error; err != nil {
 		return nil, err
 	}
-	return &p, nil
+	return r.Get(ctx, userID)
 }

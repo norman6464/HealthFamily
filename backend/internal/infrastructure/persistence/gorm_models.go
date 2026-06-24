@@ -19,6 +19,53 @@ func intPtr(p *int32) *int {
 // 既存スキーマ(PascalCaseテーブル・camelCase列)に合わせて column タグを明示する。
 // createdAt は DB 既定値(now())を使うため default タグを付け、ゼロ値時は INSERT から除外させる。
 
+type gormUser struct {
+	ID                   string     `gorm:"column:id;primaryKey"`
+	Email                string     `gorm:"column:email"`
+	Password             string     `gorm:"column:password"`
+	DisplayName          *string    `gorm:"column:displayName"`
+	CharacterType        string     `gorm:"column:characterType;default:cat"`
+	CharacterName        *string    `gorm:"column:characterName"`
+	EmailVerified        bool       `gorm:"column:emailVerified"`
+	VerificationCode     *string    `gorm:"column:verificationCode"`
+	VerificationExpiry   *time.Time `gorm:"column:verificationExpiry"`
+	VerificationAttempts int        `gorm:"column:verificationAttempts;default:0"`
+	ResetCode            *string    `gorm:"column:resetCode"`
+	ResetCodeExpiry      *time.Time `gorm:"column:resetCodeExpiry"`
+	CreatedAt            time.Time  `gorm:"column:createdAt;default:now()"`
+	UpdatedAt            time.Time  `gorm:"column:updatedAt;default:now()"`
+}
+
+func (gormUser) TableName() string { return "User" }
+
+type gormNotificationSetting struct {
+	ID                                   string    `gorm:"column:id;primaryKey"`
+	UserID                               string    `gorm:"column:userId"`
+	MedicationReminderEnabled            bool      `gorm:"column:medicationReminderEnabled"`
+	MissedMedicationEnabled              bool      `gorm:"column:missedMedicationEnabled"`
+	AppointmentReminderEnabled           bool      `gorm:"column:appointmentReminderEnabled"`
+	LowStockAlertEnabled                 bool      `gorm:"column:lowStockAlertEnabled"`
+	DefaultReminderMinutesBefore         int       `gorm:"column:defaultReminderMinutesBefore"`
+	DefaultAppointmentReminderDaysBefore int       `gorm:"column:defaultAppointmentReminderDaysBefore"`
+	EmailNotificationEnabled             bool      `gorm:"column:emailNotificationEnabled"`
+	CreatedAt                            time.Time `gorm:"column:createdAt;default:now()"`
+	UpdatedAt                            time.Time `gorm:"column:updatedAt;default:now()"`
+}
+
+func (gormNotificationSetting) TableName() string { return "NotificationSetting" }
+
+type gormDashboardPreference struct {
+	ID              string         `gorm:"column:id;primaryKey"`
+	UserID          string         `gorm:"column:userId"`
+	HiddenCards     pq.StringArray `gorm:"column:hiddenCards;type:text[]"`
+	CardOrder       pq.StringArray `gorm:"column:cardOrder;type:text[]"`
+	DefaultMemberID *string        `gorm:"column:defaultMemberId"`
+	CreatedAt       time.Time      `gorm:"column:createdAt;default:now()"`
+	UpdatedAt       time.Time      `gorm:"column:updatedAt;default:now()"`
+}
+
+func (gormDashboardPreference) TableName() string { return "DashboardPreference" }
+
 type gormMedication struct {
 	ID             string     `gorm:"column:id;primaryKey"`
 	MemberID       string     `gorm:"column:memberId"`
