@@ -14,8 +14,8 @@ import (
 // 実DBに対して検証する。一時テーブル + ロールバックで本番データに影響を与えない。
 // 既定ではスキップ。実行するには HF_DB_INTEGRATION=1 と DATABASE_URL を設定する。
 func TestGormArrayWrite(t *testing.T) {
-	if os.Getenv("HF_DB_INTEGRATION") == "" {
-		t.Skip("HF_DB_INTEGRATION 未設定のためスキップ")
+	if os.Getenv("HF_DB_INTEGRATION") != "1" {
+		t.Skip("HF_DB_INTEGRATION=1 以外はスキップ")
 	}
 	url := os.Getenv("DATABASE_URL")
 	if url == "" {

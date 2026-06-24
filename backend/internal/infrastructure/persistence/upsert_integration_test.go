@@ -17,8 +17,8 @@ import (
 // 実DBの一時テーブルに対して検証する。本番データには影響しない。
 // HF_DB_INTEGRATION=1 と DATABASE_URL が必要。
 func TestGormOnConflictUpsert(t *testing.T) {
-	if os.Getenv("HF_DB_INTEGRATION") == "" {
-		t.Skip("HF_DB_INTEGRATION 未設定のためスキップ")
+	if os.Getenv("HF_DB_INTEGRATION") != "1" {
+		t.Skip("HF_DB_INTEGRATION=1 以外はスキップ")
 	}
 	url := os.Getenv("DATABASE_URL")
 	if url == "" {
