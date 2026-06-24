@@ -6,34 +6,43 @@ import (
 	"strconv"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// ExpenseRepository は "Expense" テーブルの生SQL実装
+// expenseColumns は動的フィルタ一覧(List)で利用する列一覧。
+const expenseColumns = `"id", "userId", "memberId", "category", "amount", "description", "expenseDate", "isDeductible", "createdAt"`
+
+// ExpenseRepository は "Expense" テーブルのリポジトリ。
+// 静的検索(FindByID)は sqlc、書き込み(Create/Update/Delete)は GORM。
+// 動的フィルタ(List)・集計(Summary)は生SQL(pgx)を pool で維持する。
 type ExpenseRepository struct {
-	db *database.DB
+	gdb  *gorm.DB
+	q    *sqlcgen.Queries
+	pool *pgxpool.Pool
 }
 
 func NewExpenseRepository(db *database.DB) *ExpenseRepository {
-	return &ExpenseRepository{db: db}
+	return &ExpenseRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool), pool: db.Pool}
 }
 
-const expenseColumns = `"id", "userId", "memberId", "category", "amount", "description", "expenseDate", "isDeductible", "createdAt"`
-
-func scanExpense(row pgx.Row) (*entity.Expense, error) {
-	var e entity.Expense
-	err := row.Scan(&e.ID, &e.UserID, &e.MemberID, &e.Category, &e.Amount,
-		&e.Description, &e.ExpenseDate, &e.IsDeductible, &e.CreatedAt)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil
+func expenseFromSqlc(e sqlcgen.Expense) entity.Expense {
+	return entity.Expense{
+		ID:           e.ID,
+		UserID:       e.UserId,
+		MemberID:     e.MemberId,
+		Category:     e.Category,
+		Amount:       int(e.Amount),
+		Description:  e.Description,
+		ExpenseDate:  e.ExpenseDate,
+		IsDeductible: e.IsDeductible,
+		CreatedAt:    e.CreatedAt,
 	}
-	if err != nil {
-		return nil, err
-	}
-	return &e, nil
 }
 
 func (r *ExpenseRepository) List(ctx context.Context, userID string, f repository.ExpenseFilter) ([]entity.Expense, error) {
@@ -52,7 +61,7 @@ func (r *ExpenseRepository) List(ctx context.Context, userID string, f repositor
 	}
 	query += ` ORDER BY "expenseDate" DESC`
 
-	rows, err := r.db.Pool.Query(ctx, query, args...)
+	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -70,46 +79,74 @@ func (r *ExpenseRepository) List(ctx context.Context, userID string, f repositor
 }
 
 func (r *ExpenseRepository) FindByID(ctx context.Context, id string) (*entity.Expense, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+expenseColumns+` FROM "Expense" WHERE "id"=$1`, id)
-	return scanExpense(row)
+	e, err := r.q.GetExpense(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	ent := expenseFromSqlc(e)
+	return &ent, nil
 }
 
 func (r *ExpenseRepository) Create(ctx context.Context, in repository.CreateExpenseInput) (*entity.Expense, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "Expense" ("id", "userId", "memberId", "category", "amount", "description", "expenseDate", "isDeductible", "createdAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())
-		 RETURNING `+expenseColumns,
-		id, in.UserID, in.MemberID, in.Category, in.Amount, in.Description, in.ExpenseDate, in.IsDeductible)
-	return scanExpense(row)
+	m := gormExpense{
+		ID:           auth.NewID(),
+		UserID:       in.UserID,
+		MemberID:     in.MemberID,
+		Category:     in.Category,
+		Amount:       in.Amount,
+		Description:  in.Description,
+		ExpenseDate:  in.ExpenseDate,
+		IsDeductible: in.IsDeductible,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *ExpenseRepository) Update(ctx context.Context, id string, in repository.UpdateExpenseInput) (*entity.Expense, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Expense" SET
-			"memberId" = COALESCE($2, "memberId"),
-			"category" = COALESCE($3, "category"),
-			"amount" = COALESCE($4, "amount"),
-			"description" = COALESCE($5, "description"),
-			"expenseDate" = COALESCE($6, "expenseDate"),
-			"isDeductible" = COALESCE($7, "isDeductible")
-		 WHERE "id"=$1
-		 RETURNING `+expenseColumns,
-		id, in.MemberID, in.Category, in.Amount, in.Description, in.ExpenseDate, in.IsDeductible)
-	return scanExpense(row)
+	fields := map[string]any{}
+	if in.MemberID != nil {
+		fields["memberId"] = *in.MemberID
+	}
+	if in.Category != nil {
+		fields["category"] = *in.Category
+	}
+	if in.Amount != nil {
+		fields["amount"] = *in.Amount
+	}
+	if in.Description != nil {
+		fields["description"] = *in.Description
+	}
+	if in.ExpenseDate != nil {
+		fields["expenseDate"] = *in.ExpenseDate
+	}
+	if in.IsDeductible != nil {
+		fields["isDeductible"] = *in.IsDeductible
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormExpense{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *ExpenseRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Expense" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormExpense{}).Error
 }
 
 // Summary は指定年(JST基準)の合計・控除対象合計・カテゴリ別・月別を集計する。
+// 集計のため生SQL(pgx)を維持する。
 func (r *ExpenseRepository) Summary(ctx context.Context, userID string, year int) (*entity.ExpenseSummary, error) {
 	s := &entity.ExpenseSummary{Year: year, ByCategory: map[string]int{}, ByMonth: make([]entity.MonthlyTotal, 0)}
 
 	// 合計・控除対象合計
-	if err := r.db.Pool.QueryRow(ctx,
+	if err := r.pool.QueryRow(ctx,
 		`SELECT COALESCE(SUM("amount"),0),
 			COALESCE(SUM("amount") FILTER (WHERE "isDeductible"),0)
 		 FROM "Expense"
@@ -119,7 +156,7 @@ func (r *ExpenseRepository) Summary(ctx context.Context, userID string, year int
 	}
 
 	// カテゴリ別
-	catRows, err := r.db.Pool.Query(ctx,
+	catRows, err := r.pool.Query(ctx,
 		`SELECT "category", SUM("amount") FROM "Expense"
 		 WHERE "userId"=$1 AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')=$2
 		 GROUP BY "category"`, userID, year)
@@ -140,7 +177,7 @@ func (r *ExpenseRepository) Summary(ctx context.Context, userID string, year int
 	}
 
 	// 月別
-	monRows, err := r.db.Pool.Query(ctx,
+	monRows, err := r.pool.Query(ctx,
 		`SELECT EXTRACT(MONTH FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')::int AS m, SUM("amount")
 		 FROM "Expense"
 		 WHERE "userId"=$1 AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')=$2

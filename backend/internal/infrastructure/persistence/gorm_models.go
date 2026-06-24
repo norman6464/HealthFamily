@@ -19,6 +19,72 @@ func intPtr(p *int32) *int {
 // 既存スキーマ(PascalCaseテーブル・camelCase列)に合わせて column タグを明示する。
 // createdAt は DB 既定値(now())を使うため default タグを付け、ゼロ値時は INSERT から除外させる。
 
+type gormExpense struct {
+	ID           string    `gorm:"column:id;primaryKey"`
+	UserID       string    `gorm:"column:userId"`
+	MemberID     *string   `gorm:"column:memberId"`
+	Category     string    `gorm:"column:category"`
+	Amount       int       `gorm:"column:amount"`
+	Description  *string   `gorm:"column:description"`
+	ExpenseDate  time.Time `gorm:"column:expenseDate"`
+	IsDeductible bool      `gorm:"column:isDeductible"`
+	CreatedAt    time.Time `gorm:"column:createdAt;default:now()"`
+}
+
+func (gormExpense) TableName() string { return "Expense" }
+
+type gormBudget struct {
+	ID               string    `gorm:"column:id;primaryKey"`
+	UserID           string    `gorm:"column:userId"`
+	MonthlyAmount    int       `gorm:"column:monthlyAmount"`
+	AlertEnabled     bool      `gorm:"column:alertEnabled"`
+	LastAlertedMonth *string   `gorm:"column:lastAlertedMonth"`
+	CreatedAt        time.Time `gorm:"column:createdAt;default:now()"`
+	UpdatedAt        time.Time `gorm:"column:updatedAt;default:now()"`
+}
+
+func (gormBudget) TableName() string { return "Budget" }
+
+type gormCategoryBudget struct {
+	ID            string    `gorm:"column:id;primaryKey"`
+	UserID        string    `gorm:"column:userId"`
+	Category      string    `gorm:"column:category"`
+	MonthlyAmount int       `gorm:"column:monthlyAmount"`
+	CreatedAt     time.Time `gorm:"column:createdAt;default:now()"`
+	UpdatedAt     time.Time `gorm:"column:updatedAt;default:now()"`
+}
+
+func (gormCategoryBudget) TableName() string { return "CategoryBudget" }
+
+type gormPrescription struct {
+	ID               string     `gorm:"column:id;primaryKey"`
+	UserID           string     `gorm:"column:userId"`
+	MemberID         string     `gorm:"column:memberId"`
+	PrescriptionName string     `gorm:"column:prescriptionName"`
+	PrescribedBy     *string    `gorm:"column:prescribedBy"`
+	PrescribedAt     time.Time  `gorm:"column:prescribedAt"`
+	ExpiresAt        *time.Time `gorm:"column:expiresAt"`
+	PharmacyName     *string    `gorm:"column:pharmacyName"`
+	ElectronicCode   *string    `gorm:"column:electronicCode"`
+	Notes            *string    `gorm:"column:notes"`
+	CreatedAt        time.Time  `gorm:"column:createdAt;default:now()"`
+}
+
+func (gormPrescription) TableName() string { return "Prescription" }
+
+type gormPrescriptionItem struct {
+	ID             string    `gorm:"column:id;primaryKey"`
+	PrescriptionID string    `gorm:"column:prescriptionId"`
+	Name           string    `gorm:"column:name"`
+	Dosage         *string   `gorm:"column:dosage"`
+	Frequency      *string   `gorm:"column:frequency"`
+	Days           *int      `gorm:"column:days"`
+	SortOrder      int       `gorm:"column:sortOrder"`
+	CreatedAt      time.Time `gorm:"column:createdAt;default:now()"`
+}
+
+func (gormPrescriptionItem) TableName() string { return "PrescriptionItem" }
+
 type gormUser struct {
 	ID                   string     `gorm:"column:id;primaryKey"`
 	Email                string     `gorm:"column:email"`
