@@ -35,7 +35,7 @@ func (r *MedicationRecordRepository) ListByUserFiltered(ctx context.Context, use
 		query += ` LIMIT ` + strconv.Itoa(f.Limit)
 	}
 
-	rows, err := r.db.Pool.Query(ctx, query, args...)
+	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (r *MedicationRecordRepository) ListByUserFiltered(ctx context.Context, use
 
 // ListSummary はメンバーごとの薬数を単一SQL(LEFT JOIN + GROUP BY)で集計して返す(N+1回避)。
 func (r *MemberRepository) ListSummary(ctx context.Context, userID string) ([]entity.MemberSummary, error) {
-	rows, err := r.db.Pool.Query(ctx,
+	rows, err := r.pool.Query(ctx,
 		`SELECT m."id", m."userId", m."memberType", m."name", m."petType", m."photoUrl",
 			m."birthDate", m."notes", m."createdAt", m."updatedAt",
 			COUNT(med."id") AS medication_count,
