@@ -1,60 +1,48 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Plus, X } from "lucide-react";
-import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { useResource } from "@/lib/useResource";
 import type { Hospital } from "@/lib/types";
 import { HospitalList, type UpdateHospitalInput } from "@/components/hospitals/HospitalList";
 import { HospitalForm, type HospitalFormData } from "@/components/hospitals/HospitalForm";
 
 export default function Hospitals() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
 
-  const { data: hospitals = [], isLoading } = useQuery({
+  const {
+    items: hospitals,
+    isLoading,
+    create,
+    update,
+    remove,
+  } = useResource<Hospital, Partial<HospitalFormData>, UpdateHospitalInput>({
     queryKey: queryKeys.hospitals.all,
-    queryFn: () => api.get<Hospital[]>("/hospitals"),
+    listPath: "/hospitals",
+    basePath: "/hospitals",
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data: HospitalFormData) =>
-      api.post<Hospital>("/hospitals", {
+  const handleCreate = (data: HospitalFormData) => {
+    create.mutate(
+      {
         name: data.name,
         address: data.address,
         phone: data.phone,
         department: data.department,
         doctorName: data.doctorName,
         notes: data.notes,
-      }),
-    onSuccess: () => {
-      setShowForm(false);
-      qc.invalidateQueries({ queryKey: queryKeys.hospitals.all });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateHospitalInput }) =>
-      api.patch<Hospital>(`/hospitals/${id}`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.hospitals.all }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/hospitals/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.hospitals.all }),
-  });
-
-  const handleCreate = (data: HospitalFormData) => {
-    createMutation.mutate(data);
+      },
+      { onSuccess: () => setShowForm(false) },
+    );
   };
 
   const handleUpdate = async (hospitalId: string, input: UpdateHospitalInput) => {
-    await updateMutation.mutateAsync({ id: hospitalId, input });
+    await update.mutateAsync({ id: hospitalId, input });
   };
 
   const handleDelete = (hospitalId: string) => {
-    deleteMutation.mutate(hospitalId);
+    remove.mutate(hospitalId);
   };
 
   return (

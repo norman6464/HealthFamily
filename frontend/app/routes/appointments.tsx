@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { MapPin, Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { useResource } from "@/lib/useResource";
 import type { Appointment, Hospital, Member } from "@/lib/types";
 import { TabSwitch } from "@/components/shared/TabSwitch";
 import { MiniCalendar } from "@/components/appointments/MiniCalendar";
@@ -15,7 +16,6 @@ import {
 } from "@/components/appointments/AppointmentList";
 
 export default function Appointments() {
-  const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [activeTab, setActiveTab] = useState<AppointmentFilter>("upcoming");
@@ -27,9 +27,16 @@ export default function Appointments() {
     queryFn: () => api.get<Member[]>("/members"),
   });
 
-  const { data: appointments = [], isLoading } = useQuery({
+  const {
+    items: appointments,
+    isLoading,
+    create: createMutation,
+    update: updateMutation,
+    remove: deleteMutation,
+  } = useResource<Appointment>({
     queryKey: queryKeys.appointments.all,
-    queryFn: () => api.get<Appointment[]>("/appointments"),
+    listPath: "/appointments",
+    basePath: "/appointments",
   });
 
   const { data: hospitals = [] } = useQuery({
@@ -57,44 +64,17 @@ export default function Appointments() {
     [counts],
   );
 
-  const createMutation = useMutation({
-    mutationFn: (data: AppointmentFormData) =>
-      api.post<Appointment>("/appointments", {
+  const handleCreate = (data: AppointmentFormData) => {
+    createMutation.mutate(
+      {
         memberId: data.memberId,
         hospitalId: data.hospitalId,
         appointmentDate: new Date(data.appointmentDate).toISOString(),
         type: data.type,
         notes: data.notes,
-      }),
-    onSuccess: () => {
-      setShowForm(false);
-      qc.invalidateQueries({ queryKey: queryKeys.appointments.all });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: AppointmentFormData }) =>
-      api.patch<Appointment>(`/appointments/${id}`, {
-        appointmentDate: new Date(data.appointmentDate).toISOString(),
-        hospitalId: data.hospitalId,
-        type: data.type,
-        notes: data.notes,
-      }),
-    onSuccess: () => {
-      setEditingAppointment(null);
-      qc.invalidateQueries({ queryKey: queryKeys.appointments.all });
-    },
-    onError: () => setUpdateError("更新に失敗しました。もう一度お試しください。"),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/appointments/${id}`),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.appointments.all }),
-  });
-
-  const handleCreate = (data: AppointmentFormData) => {
-    createMutation.mutate(data);
+      },
+      { onSuccess: () => setShowForm(false) },
+    );
   };
 
   const handleEdit = (appointment: Appointment) => {
@@ -112,7 +92,22 @@ export default function Appointments() {
   const handleUpdate = (data: AppointmentFormData) => {
     if (!editingAppointment) return;
     setUpdateError(null);
-    updateMutation.mutate({ id: editingAppointment.id, data });
+    updateMutation.mutate(
+      {
+        id: editingAppointment.id,
+        input: {
+          appointmentDate: new Date(data.appointmentDate).toISOString(),
+          hospitalId: data.hospitalId,
+          type: data.type,
+          notes: data.notes,
+        },
+      },
+      {
+        onSuccess: () => setEditingAppointment(null),
+        onError: () =>
+          setUpdateError("更新に失敗しました。もう一度お試しください。"),
+      },
+    );
   };
 
   const handleCancelEdit = () => {
