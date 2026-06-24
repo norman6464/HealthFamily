@@ -5,86 +5,108 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/lib/pq"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// HealthLogRepository は "HealthLog" テーブルの生SQL実装
+// HealthLogRepository は "HealthLog" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
 type HealthLogRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewHealthLogRepository(db *database.DB) *HealthLogRepository {
-	return &HealthLogRepository{db: db}
+	return &HealthLogRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const healthLogColumns = `"id", "userId", "memberId", "conditionLevel", "symptoms", "notes", "recordedAt"`
+func healthLogFromSqlc(h sqlcgen.HealthLog) entity.HealthLog {
+	return entity.HealthLog{
+		ID:             h.ID,
+		UserID:         h.UserId,
+		MemberID:       h.MemberId,
+		ConditionLevel: int(h.ConditionLevel),
+		Symptoms:       h.Symptoms,
+		Notes:          h.Notes,
+		RecordedAt:     h.RecordedAt,
+	}
+}
 
-func scanHealthLog(row pgx.Row) (*entity.HealthLog, error) {
-	var h entity.HealthLog
-	err := row.Scan(&h.ID, &h.UserID, &h.MemberID, &h.ConditionLevel, &h.Symptoms, &h.Notes, &h.RecordedAt)
+func (r *HealthLogRepository) List(ctx context.Context, userID string) ([]entity.HealthLog, error) {
+	rows, err := r.q.ListHealthLogs(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.HealthLog, 0, len(rows))
+	for _, h := range rows {
+		list = append(list, healthLogFromSqlc(h))
+	}
+	return list, nil
+}
+
+func (r *HealthLogRepository) FindByID(ctx context.Context, id string) (*entity.HealthLog, error) {
+	h, err := r.q.GetHealthLog(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &h, nil
-}
-
-func (r *HealthLogRepository) List(ctx context.Context, userID string) ([]entity.HealthLog, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+healthLogColumns+` FROM "HealthLog" WHERE "userId"=$1 ORDER BY "recordedAt" DESC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.HealthLog, 0)
-	for rows.Next() {
-		var h entity.HealthLog
-		if err := rows.Scan(&h.ID, &h.UserID, &h.MemberID, &h.ConditionLevel, &h.Symptoms, &h.Notes, &h.RecordedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, h)
-	}
-	return list, rows.Err()
-}
-
-func (r *HealthLogRepository) FindByID(ctx context.Context, id string) (*entity.HealthLog, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+healthLogColumns+` FROM "HealthLog" WHERE "id"=$1`, id)
-	return scanHealthLog(row)
+	e := healthLogFromSqlc(h)
+	return &e, nil
 }
 
 func (r *HealthLogRepository) Create(ctx context.Context, in repository.CreateHealthLogInput) (*entity.HealthLog, error) {
-	id := auth.NewID()
 	symptoms := in.Symptoms
 	if symptoms == nil {
-		symptoms = []string{}
+		symptoms = []string{} // NOT NULL 列のため空配列に正規化
 	}
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "HealthLog" ("id", "userId", "memberId", "conditionLevel", "symptoms", "notes", "recordedAt")
-		 VALUES ($1,$2,$3,$4,$5,$6, COALESCE($7, now()))
-		 RETURNING `+healthLogColumns,
-		id, in.UserID, in.MemberID, in.ConditionLevel, symptoms, in.Notes, in.RecordedAt)
-	return scanHealthLog(row)
+	m := gormHealthLog{
+		ID:             auth.NewID(),
+		UserID:         in.UserID,
+		MemberID:       in.MemberID,
+		ConditionLevel: in.ConditionLevel,
+		Symptoms:       pq.StringArray(symptoms),
+		Notes:          in.Notes,
+	}
+	// recordedAt 未指定なら DB 既定値(now())。
+	if in.RecordedAt != nil {
+		m.RecordedAt = *in.RecordedAt
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *HealthLogRepository) Update(ctx context.Context, id string, in repository.UpdateHealthLogInput) (*entity.HealthLog, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "HealthLog" SET
-			"conditionLevel" = COALESCE($2, "conditionLevel"),
-			"symptoms" = COALESCE($3, "symptoms"),
-			"notes" = COALESCE($4, "notes"),
-			"recordedAt" = COALESCE($5, "recordedAt")
-		 WHERE "id"=$1
-		 RETURNING `+healthLogColumns,
-		id, in.ConditionLevel, in.Symptoms, in.Notes, in.RecordedAt)
-	return scanHealthLog(row)
+	fields := map[string]any{}
+	if in.ConditionLevel != nil {
+		fields["conditionLevel"] = *in.ConditionLevel
+	}
+	if in.Symptoms != nil {
+		fields["symptoms"] = pq.StringArray(in.Symptoms)
+	}
+	if in.Notes != nil {
+		fields["notes"] = *in.Notes
+	}
+	if in.RecordedAt != nil {
+		fields["recordedAt"] = *in.RecordedAt
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormHealthLog{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *HealthLogRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "HealthLog" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormHealthLog{}).Error
 }

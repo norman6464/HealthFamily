@@ -91,7 +91,7 @@ func (r *MedicationRepository) ListAlerts(ctx context.Context, userID string) ([
 		     OR ("stockAlertDate" IS NOT NULL AND "stockAlertDate" <= now() + interval '7 days')
 		   )
 		 ORDER BY "stockQuantity" ASC NULLS LAST, "createdAt" ASC`
-	rows, err := r.db.Pool.Query(ctx, query, userID, lowStockThreshold)
+	rows, err := r.pool.Query(ctx, query, userID, lowStockThreshold)
 	if err != nil {
 		return nil, fmt.Errorf("list alerts: %w", err)
 	}
