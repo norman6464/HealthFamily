@@ -5,82 +5,101 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// InsuranceRepository は "Insurance" テーブルの生SQL実装
+// InsuranceRepository は "Insurance" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
 type InsuranceRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewInsuranceRepository(db *database.DB) *InsuranceRepository {
-	return &InsuranceRepository{db: db}
+	return &InsuranceRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const insuranceColumns = `"id", "userId", "memberId", "insuranceType", "providerName", "policyNumber", "notes", "createdAt"`
+func insuranceFromSqlc(i sqlcgen.Insurance) entity.Insurance {
+	return entity.Insurance{
+		ID:            i.ID,
+		UserID:        i.UserId,
+		MemberID:      i.MemberId,
+		InsuranceType: i.InsuranceType,
+		ProviderName:  i.ProviderName,
+		PolicyNumber:  i.PolicyNumber,
+		Notes:         i.Notes,
+		CreatedAt:     i.CreatedAt,
+	}
+}
 
-func scanInsurance(row pgx.Row) (*entity.Insurance, error) {
-	var i entity.Insurance
-	err := row.Scan(&i.ID, &i.UserID, &i.MemberID, &i.InsuranceType, &i.ProviderName, &i.PolicyNumber, &i.Notes, &i.CreatedAt)
+func (r *InsuranceRepository) List(ctx context.Context, userID string) ([]entity.Insurance, error) {
+	rows, err := r.q.ListInsurances(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.Insurance, 0, len(rows))
+	for _, i := range rows {
+		list = append(list, insuranceFromSqlc(i))
+	}
+	return list, nil
+}
+
+func (r *InsuranceRepository) FindByID(ctx context.Context, id string) (*entity.Insurance, error) {
+	i, err := r.q.GetInsurance(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &i, nil
-}
-
-func (r *InsuranceRepository) List(ctx context.Context, userID string) ([]entity.Insurance, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+insuranceColumns+` FROM "Insurance" WHERE "userId"=$1 ORDER BY "createdAt" DESC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.Insurance, 0)
-	for rows.Next() {
-		var i entity.Insurance
-		if err := rows.Scan(&i.ID, &i.UserID, &i.MemberID, &i.InsuranceType, &i.ProviderName, &i.PolicyNumber, &i.Notes, &i.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, i)
-	}
-	return list, rows.Err()
-}
-
-func (r *InsuranceRepository) FindByID(ctx context.Context, id string) (*entity.Insurance, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+insuranceColumns+` FROM "Insurance" WHERE "id"=$1`, id)
-	return scanInsurance(row)
+	e := insuranceFromSqlc(i)
+	return &e, nil
 }
 
 func (r *InsuranceRepository) Create(ctx context.Context, in repository.CreateInsuranceInput) (*entity.Insurance, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "Insurance" ("id", "userId", "memberId", "insuranceType", "providerName", "policyNumber", "notes", "createdAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7, now())
-		 RETURNING `+insuranceColumns,
-		id, in.UserID, in.MemberID, in.InsuranceType, in.ProviderName, in.PolicyNumber, in.Notes)
-	return scanInsurance(row)
+	m := gormInsurance{
+		ID:            auth.NewID(),
+		UserID:        in.UserID,
+		MemberID:      in.MemberID,
+		InsuranceType: in.InsuranceType,
+		ProviderName:  in.ProviderName,
+		PolicyNumber:  in.PolicyNumber,
+		Notes:         in.Notes,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *InsuranceRepository) Update(ctx context.Context, id string, in repository.UpdateInsuranceInput) (*entity.Insurance, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Insurance" SET
-			"insuranceType" = COALESCE($2, "insuranceType"),
-			"providerName" = COALESCE($3, "providerName"),
-			"policyNumber" = COALESCE($4, "policyNumber"),
-			"notes" = COALESCE($5, "notes")
-		 WHERE "id"=$1
-		 RETURNING `+insuranceColumns,
-		id, in.InsuranceType, in.ProviderName, in.PolicyNumber, in.Notes)
-	return scanInsurance(row)
+	fields := map[string]any{}
+	if in.InsuranceType != nil {
+		fields["insuranceType"] = *in.InsuranceType
+	}
+	if in.ProviderName != nil {
+		fields["providerName"] = *in.ProviderName
+	}
+	if in.PolicyNumber != nil {
+		fields["policyNumber"] = *in.PolicyNumber
+	}
+	if in.Notes != nil {
+		fields["notes"] = *in.Notes
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormInsurance{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *InsuranceRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Insurance" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormInsurance{}).Error
 }

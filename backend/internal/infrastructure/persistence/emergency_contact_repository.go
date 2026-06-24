@@ -5,82 +5,101 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// EmergencyContactRepository は "EmergencyContact" テーブルの生SQL実装
+// EmergencyContactRepository は "EmergencyContact" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
 type EmergencyContactRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewEmergencyContactRepository(db *database.DB) *EmergencyContactRepository {
-	return &EmergencyContactRepository{db: db}
+	return &EmergencyContactRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const emergencyContactColumns = `"id", "userId", "memberId", "contactName", "phoneNumber", "relationship", "notes", "createdAt"`
+func emergencyContactFromSqlc(e sqlcgen.EmergencyContact) entity.EmergencyContact {
+	return entity.EmergencyContact{
+		ID:           e.ID,
+		UserID:       e.UserId,
+		MemberID:     e.MemberId,
+		ContactName:  e.ContactName,
+		PhoneNumber:  e.PhoneNumber,
+		Relationship: e.Relationship,
+		Notes:        e.Notes,
+		CreatedAt:    e.CreatedAt,
+	}
+}
 
-func scanEmergencyContact(row pgx.Row) (*entity.EmergencyContact, error) {
-	var e entity.EmergencyContact
-	err := row.Scan(&e.ID, &e.UserID, &e.MemberID, &e.ContactName, &e.PhoneNumber, &e.Relationship, &e.Notes, &e.CreatedAt)
+func (r *EmergencyContactRepository) List(ctx context.Context, userID string) ([]entity.EmergencyContact, error) {
+	rows, err := r.q.ListEmergencyContacts(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.EmergencyContact, 0, len(rows))
+	for _, e := range rows {
+		list = append(list, emergencyContactFromSqlc(e))
+	}
+	return list, nil
+}
+
+func (r *EmergencyContactRepository) FindByID(ctx context.Context, id string) (*entity.EmergencyContact, error) {
+	e, err := r.q.GetEmergencyContact(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &e, nil
-}
-
-func (r *EmergencyContactRepository) List(ctx context.Context, userID string) ([]entity.EmergencyContact, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+emergencyContactColumns+` FROM "EmergencyContact" WHERE "userId"=$1 ORDER BY "createdAt" DESC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.EmergencyContact, 0)
-	for rows.Next() {
-		var e entity.EmergencyContact
-		if err := rows.Scan(&e.ID, &e.UserID, &e.MemberID, &e.ContactName, &e.PhoneNumber, &e.Relationship, &e.Notes, &e.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, e)
-	}
-	return list, rows.Err()
-}
-
-func (r *EmergencyContactRepository) FindByID(ctx context.Context, id string) (*entity.EmergencyContact, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+emergencyContactColumns+` FROM "EmergencyContact" WHERE "id"=$1`, id)
-	return scanEmergencyContact(row)
+	ec := emergencyContactFromSqlc(e)
+	return &ec, nil
 }
 
 func (r *EmergencyContactRepository) Create(ctx context.Context, in repository.CreateEmergencyContactInput) (*entity.EmergencyContact, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "EmergencyContact" ("id", "userId", "memberId", "contactName", "phoneNumber", "relationship", "notes", "createdAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7, now())
-		 RETURNING `+emergencyContactColumns,
-		id, in.UserID, in.MemberID, in.ContactName, in.PhoneNumber, in.Relationship, in.Notes)
-	return scanEmergencyContact(row)
+	m := gormEmergencyContact{
+		ID:           auth.NewID(),
+		UserID:       in.UserID,
+		MemberID:     in.MemberID,
+		ContactName:  in.ContactName,
+		PhoneNumber:  in.PhoneNumber,
+		Relationship: in.Relationship,
+		Notes:        in.Notes,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *EmergencyContactRepository) Update(ctx context.Context, id string, in repository.UpdateEmergencyContactInput) (*entity.EmergencyContact, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "EmergencyContact" SET
-			"contactName" = COALESCE($2, "contactName"),
-			"phoneNumber" = COALESCE($3, "phoneNumber"),
-			"relationship" = COALESCE($4, "relationship"),
-			"notes" = COALESCE($5, "notes")
-		 WHERE "id"=$1
-		 RETURNING `+emergencyContactColumns,
-		id, in.ContactName, in.PhoneNumber, in.Relationship, in.Notes)
-	return scanEmergencyContact(row)
+	fields := map[string]any{}
+	if in.ContactName != nil {
+		fields["contactName"] = *in.ContactName
+	}
+	if in.PhoneNumber != nil {
+		fields["phoneNumber"] = *in.PhoneNumber
+	}
+	if in.Relationship != nil {
+		fields["relationship"] = *in.Relationship
+	}
+	if in.Notes != nil {
+		fields["notes"] = *in.Notes
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormEmergencyContact{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *EmergencyContactRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "EmergencyContact" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormEmergencyContact{}).Error
 }

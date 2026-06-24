@@ -5,90 +5,130 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// AppointmentRepository は "Appointment" テーブルの生SQL実装
+// AppointmentRepository は "Appointment" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
 type AppointmentRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewAppointmentRepository(db *database.DB) *AppointmentRepository {
-	return &AppointmentRepository{db: db}
+	return &AppointmentRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const appointmentColumns = `"id", "userId", "memberId", "hospitalId", "appointmentType", "appointmentDate", "description", "testResults", "cost", "reminderEnabled", "reminderDaysBefore", "createdAt"`
+func appointmentFromSqlc(a sqlcgen.Appointment) entity.Appointment {
+	return entity.Appointment{
+		ID:                 a.ID,
+		UserID:             a.UserId,
+		MemberID:           a.MemberId,
+		HospitalID:         a.HospitalId,
+		AppointmentType:    a.AppointmentType,
+		AppointmentDate:    a.AppointmentDate,
+		Description:        a.Description,
+		TestResults:        a.TestResults,
+		Cost:               a.Cost,
+		ReminderEnabled:    a.ReminderEnabled,
+		ReminderDaysBefore: int(a.ReminderDaysBefore),
+		CreatedAt:          a.CreatedAt,
+	}
+}
 
-func scanAppointment(row pgx.Row) (*entity.Appointment, error) {
-	var a entity.Appointment
-	err := row.Scan(&a.ID, &a.UserID, &a.MemberID, &a.HospitalID, &a.AppointmentType, &a.AppointmentDate,
-		&a.Description, &a.TestResults, &a.Cost, &a.ReminderEnabled, &a.ReminderDaysBefore, &a.CreatedAt)
+func (r *AppointmentRepository) List(ctx context.Context, userID string) ([]entity.Appointment, error) {
+	rows, err := r.q.ListAppointments(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.Appointment, 0, len(rows))
+	for _, a := range rows {
+		list = append(list, appointmentFromSqlc(a))
+	}
+	return list, nil
+}
+
+func (r *AppointmentRepository) FindByID(ctx context.Context, id string) (*entity.Appointment, error) {
+	a, err := r.q.GetAppointment(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &a, nil
-}
-
-func (r *AppointmentRepository) List(ctx context.Context, userID string) ([]entity.Appointment, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+appointmentColumns+` FROM "Appointment" WHERE "userId"=$1 ORDER BY "appointmentDate" DESC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.Appointment, 0)
-	for rows.Next() {
-		var a entity.Appointment
-		if err := rows.Scan(&a.ID, &a.UserID, &a.MemberID, &a.HospitalID, &a.AppointmentType, &a.AppointmentDate,
-			&a.Description, &a.TestResults, &a.Cost, &a.ReminderEnabled, &a.ReminderDaysBefore, &a.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, a)
-	}
-	return list, rows.Err()
-}
-
-func (r *AppointmentRepository) FindByID(ctx context.Context, id string) (*entity.Appointment, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+appointmentColumns+` FROM "Appointment" WHERE "id"=$1`, id)
-	return scanAppointment(row)
+	e := appointmentFromSqlc(a)
+	return &e, nil
 }
 
 func (r *AppointmentRepository) Create(ctx context.Context, in repository.CreateAppointmentInput) (*entity.Appointment, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "Appointment" ("id", "userId", "memberId", "hospitalId", "appointmentType", "appointmentDate", "description", "testResults", "cost", "reminderEnabled", "reminderDaysBefore", "createdAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, COALESCE($10, TRUE), COALESCE($11, 1), now())
-		 RETURNING `+appointmentColumns,
-		id, in.UserID, in.MemberID, in.HospitalID, in.AppointmentType, in.AppointmentDate, in.Description,
-		in.TestResults, in.Cost, in.ReminderEnabled, in.ReminderDaysBefore)
-	return scanAppointment(row)
+	// 旧実装の COALESCE 既定値（reminderEnabled=TRUE, reminderDaysBefore=1）を Go 側で再現する。
+	reminderEnabled := true
+	if in.ReminderEnabled != nil {
+		reminderEnabled = *in.ReminderEnabled
+	}
+	reminderDaysBefore := 1
+	if in.ReminderDaysBefore != nil {
+		reminderDaysBefore = *in.ReminderDaysBefore
+	}
+	m := gormAppointment{
+		ID:                 auth.NewID(),
+		UserID:             in.UserID,
+		MemberID:           in.MemberID,
+		HospitalID:         in.HospitalID,
+		AppointmentType:    in.AppointmentType,
+		AppointmentDate:    in.AppointmentDate,
+		Description:        in.Description,
+		TestResults:        in.TestResults,
+		Cost:               in.Cost,
+		ReminderEnabled:    reminderEnabled,
+		ReminderDaysBefore: reminderDaysBefore,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *AppointmentRepository) Update(ctx context.Context, id string, in repository.UpdateAppointmentInput) (*entity.Appointment, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Appointment" SET
-			"hospitalId" = COALESCE($2, "hospitalId"),
-			"appointmentType" = COALESCE($3, "appointmentType"),
-			"appointmentDate" = COALESCE($4, "appointmentDate"),
-			"description" = COALESCE($5, "description"),
-			"testResults" = COALESCE($6, "testResults"),
-			"cost" = COALESCE($7, "cost"),
-			"reminderEnabled" = COALESCE($8, "reminderEnabled"),
-			"reminderDaysBefore" = COALESCE($9, "reminderDaysBefore")
-		 WHERE "id"=$1
-		 RETURNING `+appointmentColumns,
-		id, in.HospitalID, in.AppointmentType, in.AppointmentDate, in.Description, in.TestResults,
-		in.Cost, in.ReminderEnabled, in.ReminderDaysBefore)
-	return scanAppointment(row)
+	fields := map[string]any{}
+	if in.HospitalID != nil {
+		fields["hospitalId"] = *in.HospitalID
+	}
+	if in.AppointmentType != nil {
+		fields["appointmentType"] = *in.AppointmentType
+	}
+	if in.AppointmentDate != nil {
+		fields["appointmentDate"] = *in.AppointmentDate
+	}
+	if in.Description != nil {
+		fields["description"] = *in.Description
+	}
+	if in.TestResults != nil {
+		fields["testResults"] = *in.TestResults
+	}
+	if in.Cost != nil {
+		fields["cost"] = *in.Cost
+	}
+	if in.ReminderEnabled != nil {
+		fields["reminderEnabled"] = *in.ReminderEnabled
+	}
+	if in.ReminderDaysBefore != nil {
+		fields["reminderDaysBefore"] = *in.ReminderDaysBefore
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormAppointment{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *AppointmentRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Appointment" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormAppointment{}).Error
 }

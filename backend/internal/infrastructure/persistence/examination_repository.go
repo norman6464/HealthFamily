@@ -5,83 +5,106 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/infrastructure/database"
+	"healthfamily/internal/infrastructure/sqlc/sqlcgen"
 	"healthfamily/internal/pkg/auth"
 )
 
-// ExaminationRepository は "Examination" テーブルの生SQL実装
+// ExaminationRepository は "Examination" テーブルのリポジトリ。
+// 検索系(List/FindByID)は sqlc、書き込み系(Create/Update/Delete)は GORM を使う。
 type ExaminationRepository struct {
-	db *database.DB
+	gdb *gorm.DB
+	q   *sqlcgen.Queries
 }
 
 func NewExaminationRepository(db *database.DB) *ExaminationRepository {
-	return &ExaminationRepository{db: db}
+	return &ExaminationRepository{gdb: db.Gorm, q: sqlcgen.New(db.Pool)}
 }
 
-const examinationColumns = `"id", "userId", "memberId", "examinationType", "examinedAt", "nextScheduledDate", "notes", "imageData", "createdAt"`
+func examinationFromSqlc(e sqlcgen.Examination) entity.Examination {
+	return entity.Examination{
+		ID:                e.ID,
+		UserID:            e.UserId,
+		MemberID:          e.MemberId,
+		ExaminationType:   e.ExaminationType,
+		ExaminedAt:        e.ExaminedAt,
+		NextScheduledDate: e.NextScheduledDate,
+		Notes:             e.Notes,
+		ImageData:         e.ImageData,
+		CreatedAt:         e.CreatedAt,
+	}
+}
 
-func scanExamination(row pgx.Row) (*entity.Examination, error) {
-	var e entity.Examination
-	err := row.Scan(&e.ID, &e.UserID, &e.MemberID, &e.ExaminationType, &e.ExaminedAt, &e.NextScheduledDate, &e.Notes, &e.ImageData, &e.CreatedAt)
+func (r *ExaminationRepository) List(ctx context.Context, userID string) ([]entity.Examination, error) {
+	rows, err := r.q.ListExaminations(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]entity.Examination, 0, len(rows))
+	for _, e := range rows {
+		list = append(list, examinationFromSqlc(e))
+	}
+	return list, nil
+}
+
+func (r *ExaminationRepository) FindByID(ctx context.Context, id string) (*entity.Examination, error) {
+	e, err := r.q.GetExamination(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return &e, nil
-}
-
-func (r *ExaminationRepository) List(ctx context.Context, userID string) ([]entity.Examination, error) {
-	rows, err := r.db.Pool.Query(ctx,
-		`SELECT `+examinationColumns+` FROM "Examination" WHERE "userId"=$1 ORDER BY "examinedAt" DESC`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	list := make([]entity.Examination, 0)
-	for rows.Next() {
-		var e entity.Examination
-		if err := rows.Scan(&e.ID, &e.UserID, &e.MemberID, &e.ExaminationType, &e.ExaminedAt, &e.NextScheduledDate, &e.Notes, &e.ImageData, &e.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, e)
-	}
-	return list, rows.Err()
-}
-
-func (r *ExaminationRepository) FindByID(ctx context.Context, id string) (*entity.Examination, error) {
-	row := r.db.Pool.QueryRow(ctx, `SELECT `+examinationColumns+` FROM "Examination" WHERE "id"=$1`, id)
-	return scanExamination(row)
+	ex := examinationFromSqlc(e)
+	return &ex, nil
 }
 
 func (r *ExaminationRepository) Create(ctx context.Context, in repository.CreateExaminationInput) (*entity.Examination, error) {
-	id := auth.NewID()
-	row := r.db.Pool.QueryRow(ctx,
-		`INSERT INTO "Examination" ("id", "userId", "memberId", "examinationType", "examinedAt", "nextScheduledDate", "notes", "imageData", "createdAt")
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())
-		 RETURNING `+examinationColumns,
-		id, in.UserID, in.MemberID, in.ExaminationType, in.ExaminedAt, in.NextScheduledDate, in.Notes, in.ImageData)
-	return scanExamination(row)
+	m := gormExamination{
+		ID:                auth.NewID(),
+		UserID:            in.UserID,
+		MemberID:          in.MemberID,
+		ExaminationType:   in.ExaminationType,
+		ExaminedAt:        in.ExaminedAt,
+		NextScheduledDate: in.NextScheduledDate,
+		Notes:             in.Notes,
+		ImageData:         in.ImageData,
+	}
+	if err := r.gdb.WithContext(ctx).Create(&m).Error; err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, m.ID)
 }
 
 func (r *ExaminationRepository) Update(ctx context.Context, id string, in repository.UpdateExaminationInput) (*entity.Examination, error) {
-	row := r.db.Pool.QueryRow(ctx,
-		`UPDATE "Examination" SET
-			"examinationType" = COALESCE($2, "examinationType"),
-			"examinedAt" = COALESCE($3, "examinedAt"),
-			"nextScheduledDate" = COALESCE($4, "nextScheduledDate"),
-			"notes" = COALESCE($5, "notes"),
-			"imageData" = COALESCE($6, "imageData")
-		 WHERE "id"=$1
-		 RETURNING `+examinationColumns,
-		id, in.ExaminationType, in.ExaminedAt, in.NextScheduledDate, in.Notes, in.ImageData)
-	return scanExamination(row)
+	fields := map[string]any{}
+	if in.ExaminationType != nil {
+		fields["examinationType"] = *in.ExaminationType
+	}
+	if in.ExaminedAt != nil {
+		fields["examinedAt"] = *in.ExaminedAt
+	}
+	if in.NextScheduledDate != nil {
+		fields["nextScheduledDate"] = *in.NextScheduledDate
+	}
+	if in.Notes != nil {
+		fields["notes"] = *in.Notes
+	}
+	if in.ImageData != nil {
+		fields["imageData"] = *in.ImageData
+	}
+	if len(fields) > 0 {
+		if err := r.gdb.WithContext(ctx).Model(&gormExamination{}).
+			Where(`"id" = ?`, id).Updates(fields).Error; err != nil {
+			return nil, err
+		}
+	}
+	return r.FindByID(ctx, id)
 }
 
 func (r *ExaminationRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Pool.Exec(ctx, `DELETE FROM "Examination" WHERE "id"=$1`, id)
-	return err
+	return r.gdb.WithContext(ctx).Where(`"id" = ?`, id).Delete(&gormExamination{}).Error
 }

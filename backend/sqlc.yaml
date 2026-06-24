@@ -1,0 +1,21 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    # 既存マイグレーションをそのままスキーマとして利用（二重管理を避ける）
+    schema: "migrations"
+    queries: "internal/infrastructure/sqlc/queries"
+    gen:
+      go:
+        package: "sqlcgen"
+        out: "internal/infrastructure/sqlc/sqlcgen"
+        sql_package: "pgx/v5"
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              type: "time.Time"
+              pointer: true
