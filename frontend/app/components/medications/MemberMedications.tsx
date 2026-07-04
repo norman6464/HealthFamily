@@ -291,6 +291,11 @@ export function MemberMedications({ member, categoryFilter }: MemberMedicationsP
             onSubmit={(data) => createMedication.mutate(data)}
             onCancel={() => setShowAddForm(false)}
           />
+          {createMedication.isError && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              追加できませんでした: {createMedication.error.message}
+            </p>
+          )}
         </div>
       )}
 
@@ -349,6 +354,11 @@ export function MemberMedications({ member, categoryFilter }: MemberMedicationsP
             initialData={editingMed}
             onCancel={() => setEditingMed(null)}
           />
+          {updateMedication.isError && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              更新できませんでした: {updateMedication.error.message}
+            </p>
+          )}
         </div>
       )}
 
