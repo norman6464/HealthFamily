@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuth, useRequireAuth } from "@/lib/auth";
+import { BottomNavigation } from "@/components/shared/BottomNavigation";
 
 interface NavItem {
   to: string;
@@ -123,10 +124,13 @@ export default function AuthedLayout() {
           <span className="w-9" aria-hidden />
         </header>
 
-        <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 md:max-w-5xl md:px-8 md:py-8">
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-6 pb-24 md:max-w-5xl md:px-8 md:py-8">
           <Outlet />
         </main>
       </div>
+
+      {/* ===== スマホ: 下部タブバー (全ページ共通、PCはサイドバーのため非表示) ===== */}
+      <BottomNavigation />
 
       {/* ===== スマホ: ハンバーガーメニュー(ドロワー) ===== */}
       {menuOpen && (

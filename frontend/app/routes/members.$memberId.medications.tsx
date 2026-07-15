@@ -6,7 +6,6 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Medication, Schedule } from "@/lib/types";
 import { Button, Card, ErrorText, Input } from "@/components/ui";
-import { BottomNavigation } from "@/components/shared/BottomNavigation";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
 
@@ -137,7 +136,7 @@ export default function MemberMedications() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen">
       <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-3">
@@ -348,8 +347,6 @@ export default function MemberMedications() {
           </div>
         )}
       </main>
-
-      <BottomNavigation activePath="/members" />
     </div>
   );
 }
