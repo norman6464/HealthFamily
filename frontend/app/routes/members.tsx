@@ -7,7 +7,6 @@ import type { Appointment, Member, MemberWithCounts } from "@/lib/types";
 import { MemberList } from "@/components/members/MemberList";
 import { MemberForm, type MemberFormData } from "@/components/members/MemberForm";
 import type { MemberSummary } from "@/components/members/MemberSummaryCard";
-import { BottomNavigation } from "@/components/shared/BottomNavigation";
 
 interface CreateMemberBody {
   name: string;
@@ -118,7 +117,7 @@ export default function Members() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen">
       <header className="bg-gradient-header shadow-soft">
         <div className="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="text-xl font-bold text-ink-800 tracking-wide">メンバー</h1>
@@ -171,8 +170,6 @@ export default function Members() {
           summaries={summaries}
         />
       </main>
-
-      <BottomNavigation activePath="/members" />
     </div>
   );
 }
