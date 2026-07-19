@@ -35,6 +35,9 @@ interface MedicationListProps {
   scheduleEditUrl?: string;
 }
 
+// 休薬中・中止の薬は一覧から折りたたみセクションへ隔離する
+const isHiddenStatus = (status: string) => status === "paused" || status === "discontinued";
+
 export const MedicationList: React.FC<MedicationListProps> = ({
   medications,
   isLoading,
@@ -49,6 +52,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({
 }) => {
   // 並び替えの体感速度を上げるためにローカルで楽観的に更新する
   const [localOrder, setLocalOrder] = useState<MedicationViewModel[]>(medications);
+  const [showHidden, setShowHidden] = useState(false);
   const reorderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlightRef = useRef(false);
   const queuedOrderRef = useRef<string[] | null>(null);
@@ -77,6 +81,9 @@ export const MedicationList: React.FC<MedicationListProps> = ({
     );
   }
 
+  const visibleList = localOrder.filter((vm) => !isHiddenStatus(vm.medication.status));
+  const hiddenList = localOrder.filter((vm) => isHiddenStatus(vm.medication.status));
+
   const flushReorder = async () => {
     if (!onReorder || inFlightRef.current) return;
     const payload = queuedOrderRef.current;
@@ -94,12 +101,14 @@ export const MedicationList: React.FC<MedicationListProps> = ({
     }
   };
 
+  // index は visibleList 内の位置。非表示分は末尾に付けて全件の並びを送る
   const handleMove = (index: number, direction: "up" | "down") => {
     if (!onReorder) return;
     const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= localOrder.length) return;
-    const newList = [...localOrder];
-    [newList[index], newList[targetIndex]] = [newList[targetIndex], newList[index]];
+    if (targetIndex < 0 || targetIndex >= visibleList.length) return;
+    const newVisible = [...visibleList];
+    [newVisible[index], newVisible[targetIndex]] = [newVisible[targetIndex], newVisible[index]];
+    const newList = [...newVisible, ...hiddenList];
     setLocalOrder(newList);
     if (reorderTimeoutRef.current) clearTimeout(reorderTimeoutRef.current);
     reorderTimeoutRef.current = setTimeout(() => {
@@ -110,7 +119,7 @@ export const MedicationList: React.FC<MedicationListProps> = ({
 
   return (
     <div className="space-y-3">
-      {localOrder.map((vm, index) => (
+      {visibleList.map((vm, index) => (
         <MedicationCard
           key={vm.medication.id}
           viewModel={vm}
@@ -120,11 +129,44 @@ export const MedicationList: React.FC<MedicationListProps> = ({
           onEdit={onEdit}
           onChangeStatus={onChangeStatus}
           onMoveUp={onReorder && index > 0 ? () => handleMove(index, "up") : undefined}
-          onMoveDown={onReorder && index < localOrder.length - 1 ? () => handleMove(index, "down") : undefined}
+          onMoveDown={onReorder && index < visibleList.length - 1 ? () => handleMove(index, "down") : undefined}
           schedules={scheduleMap?.[vm.medication.id]}
           scheduleEditUrl={scheduleEditUrl}
         />
       ))}
+
+      {visibleList.length === 0 && hiddenList.length > 0 && (
+        <p className="text-sm text-ink-500 text-center py-2">服用中の薬はありません</p>
+      )}
+
+      {hiddenList.length > 0 && (
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowHidden((v) => !v)}
+            aria-expanded={showHidden}
+            className="flex items-center space-x-1 text-sm text-ink-500 hover:text-ink-700 transition-colors"
+          >
+            {showHidden ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            <span>休薬中・中止の薬 ({hiddenList.length}件)</span>
+          </button>
+          {showHidden && (
+            <div className="mt-2 space-y-3">
+              {hiddenList.map((vm) => (
+                <MedicationCard
+                  key={vm.medication.id}
+                  viewModel={vm}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                  onChangeStatus={onChangeStatus}
+                  schedules={scheduleMap?.[vm.medication.id]}
+                  scheduleEditUrl={scheduleEditUrl}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
