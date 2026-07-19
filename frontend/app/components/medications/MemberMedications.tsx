@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Medication, Member, Schedule } from "@/lib/types";
 import { MemberIcon, type MemberType, type PetType } from "@/components/shared/MemberIcon";
+import { useUpdateMedicationStatus } from "@/hooks/dashboard";
 import {
   MedicationList,
   type MedicationViewModel,
@@ -145,6 +146,8 @@ export function MemberMedications({ member, categoryFilter }: MemberMedicationsP
     mutationFn: (id: string) => api.delete(`/medications/${id}`),
     onSuccess: invalidateMeds,
   });
+
+  const changeStatus = useUpdateMedicationStatus();
 
   const reorderMedications = useMutation({
     mutationFn: (orderedIds: string[]) => api.post("/medications/reorder", { orderedIds }),
@@ -369,6 +372,9 @@ export function MemberMedications({ member, categoryFilter }: MemberMedicationsP
         onMarkTaken={handleMarkTaken}
         onMarkPastTaken={handleMarkPastTaken}
         onEdit={(medication) => setEditingMed(medication)}
+        onChangeStatus={async (id, status) => {
+          await changeStatus.mutateAsync({ medicationId: id, status });
+        }}
         onReorder={
           !categoryFilter
             ? async (ids) => {
