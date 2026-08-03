@@ -40,7 +40,8 @@ npm install && npm run dev   # :5173
 
 ## 本番構成 (Cloud Run)
 
-- サービス: `healthfamily-api` / リージョン: `asia-southeast1` (Supabase Singapore と同居)
+- サービス: `healthfamily-api` / プロジェクト: `healthfamily-prod` / リージョン: `asia-southeast1` (Supabase Singapore と同居)
+- URL: https://healthfamily-api-554199866293.asia-southeast1.run.app
 - スケール: min 0 / max 2、256Mi / 1vCPU、リクエスト課金 → 無料枠内 (月200万リクエスト・vCPU 18万秒)
 - コールドスタート対策: `.github/workflows/keep-warm.yml` が10分毎に `/health` を ping
   (Go + distroless でコールドスタート自体も1秒未満)
