@@ -8,6 +8,7 @@
 
 - [概要](#概要)
 - [技術スタック](#技術スタック)
+- [インフラ構成 (GCP)](#インフラ構成-gcp)
 - [セットアップ](#セットアップ)
 - [ターゲットユーザー](#ターゲットユーザー)
 - [主要機能一覧](#主要機能一覧)
@@ -34,9 +35,9 @@
 | カテゴリ | 技術 | デプロイ |
 |---------|------|---------|
 | フロントエンド | React Router v7 (SPA) / TypeScript / Tailwind CSS / TanStack Query / Zustand / Zod / lucide-react | Vercel |
-| バックエンド | Go / Gin / 生SQL (pgx) / クリーンアーキテクチャ / JWT | Render |
+| バックエンド | Go / Gin / 生SQL (pgx) / クリーンアーキテクチャ / JWT | GCP Cloud Run |
 | データベース | PostgreSQL | Supabase |
-| CI | GitHub Actions | — |
+| CI/CD | GitHub Actions | — |
 
 > 旧 Next.js 15 + Prisma + NextAuth 実装からリプレイス済み。
 
@@ -62,6 +63,23 @@ backend/    Go / Gin / 生SQL / クリーンアーキテクチャ
 ```
 
 詳細なデプロイ手順は [DEPLOY.md](DEPLOY.md) を参照。
+
+---
+
+## インフラ構成 (GCP)
+
+プロジェクト: `healthfamily-prod` / リージョン: `asia-southeast1` (Singapore、Supabase と同居しDB往復 ~17ms)
+
+| サービス | 用途 | スペック / 設定 |
+|---------|------|----------------|
+| Cloud Run | Go API (`healthfamily-api`) の実行 | 256Mi メモリ / 1 vCPU / min 0〜max 2 インスタンス / リクエスト課金 (CPUはリクエスト処理中のみ割当) / 月200万リクエスト・18万vCPU秒の無料枠内で運用 |
+| Cloud Build | `gcloud run deploy --source` のコンテナビルド | デフォルトプール / distroless マルチステージビルド (イメージ ~20MB) |
+| Artifact Registry | コンテナイメージ保管 | `cloud-run-source-deploy` リポジトリ / 無料枠 0.5GB |
+| Secret Manager | `DATABASE_URL` / `JWT_SECRET` / `RESEND_API_KEY` | 環境変数としてマウント / 無料枠 (6シークレットバージョン・月1万アクセス) |
+| Workload Identity Federation | GitHub Actions からのキーレスデプロイ認証 | pool `github` / provider `github-provider` / `norman6464/HealthFamily` リポジトリ限定 |
+| Cloud Billing 予算 | 課金の見張り | 月500円でアラート (50% / 90% / 100%) |
+
+コールドスタート対策: GitHub Actions の keep-warm (10分毎 `/health` ping)。Go + distroless のためコールドスタート自体も1秒未満。
 
 ---
 

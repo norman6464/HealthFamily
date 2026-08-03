@@ -1,0 +1,51 @@
+name: Deploy backend to Cloud Run
+
+# main への push (backend 変更時) で Cloud Run に自動デプロイする。
+# 認証は Workload Identity Federation (キーレス)。
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy healthfamily-api \
+            --source backend \
+            --region asia-southeast1 \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --allow-unauthenticated \
+            --quiet
+
+      - name: Verify health
+        run: |
+          URL=$(gcloud run services describe healthfamily-api \
+            --region asia-southeast1 \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --format 'value(status.url)')
+          code=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "$URL/health")
+          echo "health -> HTTP $code"
+          [ "$code" = "200" ]

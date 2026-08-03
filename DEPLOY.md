@@ -1,6 +1,7 @@
-# HealthFamily リプレイス版 構成 & デプロイ
+# HealthFamily 構成 & デプロイ
 
-Next.js → **React Router(SPA)** / Prisma → **Go(Gin) + 生SQL(pgx) クリーンアーキテクチャ** へ移行し、両方を **Render** にデプロイする。
+バックエンドは **GCP Cloud Run**、フロントエンドは **Vercel**、DBは **Supabase(PostgreSQL, Singapore)** で運用する。
+（旧構成: Render → 2026-07 に Cloud Run へ移行。DBとの同居を維持するため `asia-southeast1` (Singapore) を使用）
 
 ## ディレクトリ
 
@@ -19,8 +20,8 @@ backend/    Go / Gin / 生SQL / クリーンアーキテクチャ (REST API)
       router/      ルーティング
     pkg/           auth(JWT/bcrypt/ID) / mailer / response
   migrations/      *.sql (起動時に冪等適用)
-frontend/   React Router v7 (SPA, ssr:false) + TanStack Query + Tailwind
-render.yaml Blueprint (API + 静的サイト + Postgres)
+  Dockerfile       Cloud Run 用マルチステージビルド (distroless)
+frontend/   React Router v7 (SPA, ssr:false) + TanStack Query + Tailwind → Vercel
 ```
 
 ## ローカル開発
@@ -37,23 +38,46 @@ cp .env.example .env   # VITE_API_URL=http://localhost:8080
 npm install && npm run dev   # :5173
 ```
 
-## Render デプロイ（Blueprint 推奨）
+## 本番構成 (Cloud Run)
 
-Render CLI は新規サービス作成に未対応（`render blueprints validate` と既存リソース操作のみ）。
-そのため **Blueprint(render.yaml)** で API + 静的サイト + Postgres を一括作成する。
+- サービス: `healthfamily-api` / プロジェクト: `healthfamily-prod` / リージョン: `asia-southeast1` (Supabase Singapore と同居)
+- URL: https://healthfamily-api-554199866293.asia-southeast1.run.app
+- スケール: min 0 / max 2、256Mi / 1vCPU、リクエスト課金 → 無料枠内 (月200万リクエスト・vCPU 18万秒)
+- コールドスタート対策: `.github/workflows/keep-warm.yml` が10分毎に `/health` を ping
+  (Go + distroless でコールドスタート自体も1秒未満)
+- 環境変数: `MIGRATIONS_DIR` / `MAIL_FROM` / `ALLOWED_ORIGINS` は平文 env、
+  `DATABASE_URL` / `JWT_SECRET` / `RESEND_API_KEY` は **Secret Manager** 参照
+- マイグレーションは `MIGRATIONS_DIR=migrations` により起動時に自動適用 (冪等)
 
-1. `render.yaml` を含むブランチを GitHub に push
-2. Render ダッシュボード **New ▸ Blueprint** → リポジトリを選択して取り込み（3リソース作成）
-3. 作成後、相互の URL を環境変数に設定:
-   - `healthfamily-api` の `ALLOWED_ORIGINS` = 静的サイトURL (例 `https://healthfamily-web.onrender.com`)
-   - `healthfamily-web` の `VITE_API_URL` = APIのURL (例 `https://healthfamily-api.onrender.com`)
-4. 以降のデプロイ確認・ログは CLI で:
-   ```bash
-   render services                 # 一覧/ID確認
-   render deploys create <id>      # 手動デプロイ
-   render logs --resources <id> --tail
-   render psql <db-id>             # DB接続
-   ```
+### デプロイ (CD)
 
-`DATABASE_URL` は Blueprint が自動配線、`JWT_SECRET` は `generateValue` で自動生成、
-マイグレーションは `MIGRATIONS_DIR=migrations` により起動時に自動適用される。
+main への push (`backend/**` 変更時) で `.github/workflows/deploy-backend.yml` が
+Workload Identity Federation (キーレス) で認証し `gcloud run deploy --source backend` を実行する。
+
+手動デプロイ:
+
+```bash
+gcloud run deploy healthfamily-api \
+  --source backend \
+  --region asia-southeast1 \
+  --project healthfamily-prod \
+  --allow-unauthenticated
+```
+
+### 運用コマンド
+
+```bash
+gcloud run services describe healthfamily-api --region asia-southeast1 --project healthfamily-prod   # 状態/URL確認
+gcloud run services logs read healthfamily-api --region asia-southeast1 --project healthfamily-prod  # ログ
+gcloud run revisions list --service healthfamily-api --region asia-southeast1 --project healthfamily-prod
+```
+
+## フロントエンド (Vercel)
+
+- `frontend/` を Vercel が自動デプロイ (main push)
+- `VITE_API_URL` に Cloud Run のURLを設定 (ビルド時に焼き込み)。変更時は再デプロイが必要
+
+## DB (Supabase)
+
+- プロジェクト: healthfamily-sg (ap-southeast-1 Singapore)
+- 接続: session pooler (`:5432`)。pgx の prepared statement 互換のため transaction pooler (`:6543`) は使わない
