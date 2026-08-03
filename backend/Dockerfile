@@ -11,6 +11,7 @@ WORKDIR /app
 COPY --from=build /out/server ./server
 # MIGRATIONS_DIR=migrations (相対パス) で起動時に冪等適用されるため同梱する
 COPY --from=build /src/migrations ./migrations
+ENV MIGRATIONS_DIR=migrations
 ENV PORT=8080
 EXPOSE 8080
 ENTRYPOINT ["./server"]

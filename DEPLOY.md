@@ -60,15 +60,16 @@ Workload Identity Federation (キーレス) で認証し `gcloud run deploy --so
 gcloud run deploy healthfamily-api \
   --source backend \
   --region asia-southeast1 \
-  --project <PROJECT_ID>
+  --project healthfamily-prod \
+  --allow-unauthenticated
 ```
 
 ### 運用コマンド
 
 ```bash
-gcloud run services describe healthfamily-api --region asia-southeast1   # 状態/URL確認
-gcloud run services logs read healthfamily-api --region asia-southeast1  # ログ
-gcloud run revisions list --service healthfamily-api --region asia-southeast1
+gcloud run services describe healthfamily-api --region asia-southeast1 --project healthfamily-prod   # 状態/URL確認
+gcloud run services logs read healthfamily-api --region asia-southeast1 --project healthfamily-prod  # ログ
+gcloud run revisions list --service healthfamily-api --region asia-southeast1 --project healthfamily-prod
 ```
 
 ## フロントエンド (Vercel)

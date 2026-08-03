@@ -37,6 +37,7 @@ jobs:
             --source backend \
             --region asia-southeast1 \
             --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --allow-unauthenticated \
             --quiet
 
       - name: Verify health
