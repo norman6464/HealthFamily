@@ -53,6 +53,7 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 		authGroup.POST("/signup", ipLimit("signup", 10), h.Auth.SignUp)
 		authGroup.POST("/verify", ipLimit("verify", 20), h.Auth.Verify)
 		authGroup.POST("/login", ipLimit("login", 20), h.Auth.Login)
+		authGroup.POST("/google", ipLimit("google", 20), h.Auth.GoogleLogin)
 		authGroup.POST("/resend-code", ipLimit("resend", 5), h.Auth.ResendCode)
 		authGroup.POST("/forgot-password", ipLimit("forgot", 5), h.Auth.ForgotPassword)
 		authGroup.POST("/reset-password", ipLimit("reset", 5), h.Auth.ResetPassword)

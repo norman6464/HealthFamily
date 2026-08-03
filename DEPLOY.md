@@ -45,7 +45,7 @@ npm install && npm run dev   # :5173
 - スケール: min 0 / max 2、256Mi / 1vCPU、リクエスト課金 → 無料枠内 (月200万リクエスト・vCPU 18万秒)
 - コールドスタート対策: `.github/workflows/keep-warm.yml` が10分毎に `/health` を ping
   (Go + distroless でコールドスタート自体も1秒未満)
-- 環境変数: `MIGRATIONS_DIR` / `MAIL_FROM` / `ALLOWED_ORIGINS` は平文 env、
+- 環境変数: `MIGRATIONS_DIR` / `MAIL_FROM` / `ALLOWED_ORIGINS` / `GOOGLE_CLIENT_ID` は平文 env、
   `DATABASE_URL` / `JWT_SECRET` / `RESEND_API_KEY` は **Secret Manager** 参照
 - マイグレーションは `MIGRATIONS_DIR=migrations` により起動時に自動適用 (冪等)
 

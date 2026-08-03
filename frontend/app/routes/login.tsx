@@ -4,6 +4,7 @@ import { HeartPulse } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Button, Card, ErrorText, Input } from "@/components/ui";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -62,6 +63,7 @@ export default function Login() {
             {submitting ? "ログイン中..." : "ログイン"}
           </Button>
           </form>
+          <GoogleLoginButton onError={setError} />
           <div className="mt-5 text-center text-sm text-ink-500">
             アカウントをお持ちでない方は{" "}
             <Link to="/signup" className="font-semibold text-primary hover:text-primary-dark">

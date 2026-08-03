@@ -11,6 +11,7 @@ import (
 type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 	FindByID(ctx context.Context, id string) (*entity.User, error)
+	FindByGoogleID(ctx context.Context, googleID string) (*entity.User, error)
 	Create(ctx context.Context, u *entity.User) error
 	Update(ctx context.Context, u *entity.User) error
 }

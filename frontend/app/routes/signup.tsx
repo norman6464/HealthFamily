@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { api, ApiError } from "@/lib/api";
 import { Button, Card, ErrorText, Input } from "@/components/ui";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ export default function Signup() {
             {submitting ? "登録中..." : "登録して認証コードを送る"}
           </Button>
         </form>
+        <GoogleLoginButton onError={setError} />
         <div className="mt-4 text-center text-sm text-ink-500">
           <Link to="/login" className="hover:text-primary">
             ログインへ戻る
