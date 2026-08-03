@@ -35,7 +35,7 @@ jobs:
         run: |
           gcloud run deploy healthfamily-api \
             --source backend \
-            --region asia-southeast1 \
+            --region asia-northeast1 \
             --project "${{ secrets.GCP_PROJECT_ID }}" \
             --allow-unauthenticated \
             --quiet
@@ -43,7 +43,7 @@ jobs:
       - name: Verify health
         run: |
           URL=$(gcloud run services describe healthfamily-api \
-            --region asia-southeast1 \
+            --region asia-northeast1 \
             --project "${{ secrets.GCP_PROJECT_ID }}" \
             --format 'value(status.url)')
           code=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "$URL/health")
