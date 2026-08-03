@@ -1,7 +1,8 @@
 # HealthFamily 構成 & デプロイ
 
-バックエンドは **GCP Cloud Run**、フロントエンドは **Vercel**、DBは **Supabase(PostgreSQL, Singapore)** で運用する。
-（旧構成: Render → 2026-07 に Cloud Run へ移行。DBとの同居を維持するため `asia-southeast1` (Singapore) を使用）
+バックエンドは **GCP Cloud Run**、フロントエンドは **Vercel**、DBは **Supabase(PostgreSQL, 東京)** で運用する。
+（Render → 2026-07 に Cloud Run へ移行。2026-08 に DB・API とも東京リージョンへ移設し、
+`asia-northeast1` / Supabase `ap-northeast-1` で同居させている）
 
 ## ディレクトリ
 
@@ -40,8 +41,8 @@ npm install && npm run dev   # :5173
 
 ## 本番構成 (Cloud Run)
 
-- サービス: `healthfamily-api` / プロジェクト: `healthfamily-prod` / リージョン: `asia-southeast1` (Supabase Singapore と同居)
-- URL: https://healthfamily-api-554199866293.asia-southeast1.run.app
+- サービス: `healthfamily-api` / プロジェクト: `healthfamily-prod` / リージョン: `asia-northeast1` (Supabase 東京と同居)
+- URL: https://healthfamily-api-554199866293.asia-northeast1.run.app
 - スケール: min 0 / max 2、256Mi / 1vCPU、リクエスト課金 → 無料枠内 (月200万リクエスト・vCPU 18万秒)
 - コールドスタート対策: `.github/workflows/keep-warm.yml` が10分毎に `/health` を ping
   (Go + distroless でコールドスタート自体も1秒未満)
@@ -59,7 +60,7 @@ Workload Identity Federation (キーレス) で認証し `gcloud run deploy --so
 ```bash
 gcloud run deploy healthfamily-api \
   --source backend \
-  --region asia-southeast1 \
+  --region asia-northeast1 \
   --project healthfamily-prod \
   --allow-unauthenticated
 ```
@@ -67,9 +68,9 @@ gcloud run deploy healthfamily-api \
 ### 運用コマンド
 
 ```bash
-gcloud run services describe healthfamily-api --region asia-southeast1 --project healthfamily-prod   # 状態/URL確認
-gcloud run services logs read healthfamily-api --region asia-southeast1 --project healthfamily-prod  # ログ
-gcloud run revisions list --service healthfamily-api --region asia-southeast1 --project healthfamily-prod
+gcloud run services describe healthfamily-api --region asia-northeast1 --project healthfamily-prod   # 状態/URL確認
+gcloud run services logs read healthfamily-api --region asia-northeast1 --project healthfamily-prod  # ログ
+gcloud run revisions list --service healthfamily-api --region asia-northeast1 --project healthfamily-prod
 ```
 
 ## フロントエンド (Vercel)
@@ -79,5 +80,9 @@ gcloud run revisions list --service healthfamily-api --region asia-southeast1 --
 
 ## DB (Supabase)
 
-- プロジェクト: healthfamily-sg (ap-southeast-1 Singapore)
+- プロジェクト: `healthfamily-prod` (ref `mrpilmpkeepulopttwcp` / `ap-northeast-1` 東京 / PostgreSQL 17.6)
 - 接続: session pooler (`:5432`)。pgx の prepared statement 互換のため transaction pooler (`:6543`) は使わない
+  - ホスト: `aws-0-ap-northeast-1.pooler.supabase.com` / ユーザー: `postgres.mrpilmpkeepulopttwcp`
+  - Direct 接続 (`db.<ref>.supabase.co`) は IPv6 専用のため Cloud Run からは使えない
+- Supabase Auth / Storage は未使用。素の PostgreSQL としてのみ利用している
+- スキーマは `backend/migrations/*.sql` が唯一の情報源で、起動時に冪等適用される
