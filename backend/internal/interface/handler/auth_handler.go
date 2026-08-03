@@ -42,6 +42,25 @@ func (h *AuthHandler) TestLogin(c *gin.Context) {
 	response.Success(c, gin.H{"token": token, "user": user})
 }
 
+type googleLoginRequest struct {
+	Credential string `json:"credential" binding:"required"`
+}
+
+// GoogleLogin は Google Identity Services の ID トークンでログインする
+func (h *AuthHandler) GoogleLogin(c *gin.Context) {
+	var req googleLoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, 400, "認証情報が正しくありません")
+		return
+	}
+	token, user, err := h.uc.LoginWithGoogle(c.Request.Context(), req.Credential)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Success(c, gin.H{"token": token, "user": user})
+}
+
 type signUpRequest struct {
 	Email       string  `json:"email" binding:"required,email"`
 	Password    string  `json:"password" binding:"required,min=8"`

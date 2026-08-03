@@ -9,6 +9,7 @@ import (
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/domain/repository"
 	"healthfamily/internal/pkg/auth"
+	"healthfamily/internal/pkg/googleauth"
 	"healthfamily/internal/pkg/mailer"
 )
 
@@ -17,11 +18,12 @@ type AuthUsecase struct {
 	users  repository.UserRepository
 	tokens *auth.TokenManager
 	mail   mailer.Mailer
+	google googleauth.Verifier // nil なら Google ログイン無効
 	now    func() time.Time
 }
 
-func NewAuthUsecase(users repository.UserRepository, tokens *auth.TokenManager, mail mailer.Mailer) *AuthUsecase {
-	return &AuthUsecase{users: users, tokens: tokens, mail: mail, now: time.Now}
+func NewAuthUsecase(users repository.UserRepository, tokens *auth.TokenManager, mail mailer.Mailer, google googleauth.Verifier) *AuthUsecase {
+	return &AuthUsecase{users: users, tokens: tokens, mail: mail, google: google, now: time.Now}
 }
 
 // SignUp は新規登録し、認証コードをメール送信する。
@@ -117,6 +119,58 @@ func (uc *AuthUsecase) Login(ctx context.Context, email, password string) (strin
 
 // TestLogin はE2Eテスト用のログインバイパス。指定メールの検証済みユーザーを
 // 取得（無ければ作成）してJWTを発行する。ハンドラ側でシークレット検証済み前提。
+// LoginWithGoogle は Google の ID トークン (OIDC) を検証してログインする。
+// googleId 一致 → 既存メールへの紐付け → 新規作成 の順で解決する。
+func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, credential string) (string, *entity.User, error) {
+	if uc.google == nil {
+		return "", nil, domain.NewValidation("Googleログインは現在利用できません")
+	}
+	claims, err := uc.google.Verify(ctx, credential)
+	if err != nil {
+		return "", nil, domain.NewValidation("Google認証に失敗しました")
+	}
+
+	u, err := uc.users.FindByGoogleID(ctx, claims.Sub)
+	if err != nil {
+		return "", nil, err
+	}
+	if u == nil {
+		// Google側で所有確認済みのメールのみ既存アカウント紐付け/新規作成を許可
+		if !claims.EmailVerified {
+			return "", nil, domain.NewForbidden("Googleアカウントのメールアドレスが確認されていません")
+		}
+		email := strings.ToLower(strings.TrimSpace(claims.Email))
+		sub := claims.Sub
+		u, err = uc.users.FindByEmail(ctx, email)
+		if err != nil {
+			return "", nil, err
+		}
+		if u != nil {
+			u.GoogleID = &sub
+			u.EmailVerified = true
+			if err := uc.users.Update(ctx, u); err != nil {
+				return "", nil, err
+			}
+		} else {
+			u = &entity.User{
+				ID:            auth.NewID(),
+				Email:         email,
+				Password:      "", // Googleログイン専用 (bcrypt検証は常に失敗するためパスワードログイン不可)
+				DisplayName:   claims.Name,
+				CharacterType: "cat",
+				EmailVerified: true,
+				GoogleID:      &sub,
+			}
+			if err := uc.users.Create(ctx, u); err != nil {
+				return "", nil, err
+			}
+		}
+	}
+
+	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	return token, u, err
+}
+
 func (uc *AuthUsecase) TestLogin(ctx context.Context, email string) (string, *entity.User, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if email == "" {

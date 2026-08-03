@@ -15,6 +15,8 @@ type Config struct {
 	ResendAPIKey   string
 	MailFrom       string
 	AppBaseURL     string
+	// Google OIDC ログイン用 OAuth クライアントID。空なら Google ログイン無効。
+	GoogleClientID string
 	// E2Eテスト用ログインバイパスの共有シークレット。空なら無効(本番)。
 	E2ETestLoginSecret string
 }
@@ -28,6 +30,7 @@ func Load() (*Config, error) {
 		ResendAPIKey:       os.Getenv("RESEND_API_KEY"),
 		MailFrom:           getEnv("MAIL_FROM", "HealthFamily <onboarding@resend.dev>"),
 		AppBaseURL:         getEnv("APP_BASE_URL", "http://localhost:5173"),
+		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		E2ETestLoginSecret: os.Getenv("E2E_TEST_LOGIN_SECRET"),
 	}
 

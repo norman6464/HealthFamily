@@ -36,6 +36,7 @@ func userFromSqlc(u sqlcgen.User) entity.User {
 		VerificationAttempts: int(u.VerificationAttempts),
 		ResetCode:            u.ResetCode,
 		ResetCodeExpiry:      u.ResetCodeExpiry,
+		GoogleID:             u.GoogleId,
 		CreatedAt:            u.CreatedAt,
 		UpdatedAt:            u.UpdatedAt,
 	}
@@ -65,6 +66,18 @@ func (r *UserRepository) FindByID(ctx context.Context, id string) (*entity.User,
 	return &e, nil
 }
 
+func (r *UserRepository) FindByGoogleID(ctx context.Context, googleID string) (*entity.User, error) {
+	u, err := r.q.GetUserByGoogleID(ctx, &googleID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	e := userFromSqlc(u)
+	return &e, nil
+}
+
 func (r *UserRepository) Create(ctx context.Context, u *entity.User) error {
 	// 旧 INSERT 同様、characterName/verificationAttempts/resetCode 等は未指定(既定値/NULL)。
 	m := gormUser{
@@ -76,6 +89,7 @@ func (r *UserRepository) Create(ctx context.Context, u *entity.User) error {
 		EmailVerified:      u.EmailVerified,
 		VerificationCode:   u.VerificationCode,
 		VerificationExpiry: u.VerificationExpiry,
+		GoogleID:           u.GoogleID,
 	}
 	return r.gdb.WithContext(ctx).Create(&m).Error
 }
@@ -94,6 +108,7 @@ func (r *UserRepository) Update(ctx context.Context, u *entity.User) error {
 		"verificationAttempts": u.VerificationAttempts,
 		"resetCode":            u.ResetCode,
 		"resetCodeExpiry":      u.ResetCodeExpiry,
+		"googleId":             u.GoogleID,
 		"updatedAt":            gorm.Expr("now()"),
 	}
 	return r.gdb.WithContext(ctx).Model(&gormUser{}).Where(`"id" = ?`, u.ID).Updates(fields).Error

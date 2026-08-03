@@ -266,6 +266,7 @@ type User struct {
 	ResetCodeExpiry      *time.Time
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
+	GoogleId             *string
 }
 
 type Vaccination struct {

@@ -12,7 +12,7 @@ import (
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT "id", "email", "password", "displayName", "characterType", "characterName",
        "emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",
-       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt"
+       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId"
 FROM "User"
 WHERE "email" = $1
 `
@@ -35,6 +35,38 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.ResetCodeExpiry,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.GoogleId,
+	)
+	return i, err
+}
+
+const getUserByGoogleID = `-- name: GetUserByGoogleID :one
+SELECT "id", "email", "password", "displayName", "characterType", "characterName",
+       "emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",
+       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId"
+FROM "User"
+WHERE "googleId" = $1
+`
+
+func (q *Queries) GetUserByGoogleID(ctx context.Context, googleid *string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByGoogleID, googleid)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Password,
+		&i.DisplayName,
+		&i.CharacterType,
+		&i.CharacterName,
+		&i.EmailVerified,
+		&i.VerificationCode,
+		&i.VerificationExpiry,
+		&i.VerificationAttempts,
+		&i.ResetCode,
+		&i.ResetCodeExpiry,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GoogleId,
 	)
 	return i, err
 }
@@ -42,7 +74,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 const getUserByID = `-- name: GetUserByID :one
 SELECT "id", "email", "password", "displayName", "characterType", "characterName",
        "emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",
-       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt"
+       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId"
 FROM "User"
 WHERE "id" = $1
 `
@@ -65,6 +97,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.ResetCodeExpiry,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.GoogleId,
 	)
 	return i, err
 }

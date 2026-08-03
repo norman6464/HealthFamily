@@ -15,6 +15,7 @@ import (
 	"healthfamily/internal/interface/handler"
 	"healthfamily/internal/interface/router"
 	"healthfamily/internal/pkg/auth"
+	"healthfamily/internal/pkg/googleauth"
 	"healthfamily/internal/pkg/mailer"
 	"healthfamily/internal/usecase"
 )
@@ -43,6 +44,11 @@ func main() {
 	// 依存組み立て（DI）
 	tm := auth.NewTokenManager(cfg.JWTSecret, 7*24*time.Hour)
 	mail := mailer.NewResendMailer(cfg.ResendAPIKey, cfg.MailFrom)
+	var google googleauth.Verifier
+	if cfg.GoogleClientID != "" {
+		google = googleauth.New(cfg.GoogleClientID)
+		log.Println("google login enabled")
+	}
 
 	userRepo := persistence.NewUserRepository(db)
 	memberRepo := persistence.NewMemberRepository(db)
@@ -54,7 +60,7 @@ func main() {
 	dashboardPrefRepo := persistence.NewDashboardPreferenceRepository(db)
 
 	handlers := &router.Handlers{
-		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(userRepo, tm, mail), cfg.E2ETestLoginSecret),
+		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(userRepo, tm, mail, google), cfg.E2ETestLoginSecret),
 		Member:     handler.NewMemberHandler(usecase.NewMemberUsecase(memberRepo)),
 		Medication: handler.NewMedicationHandler(usecase.NewMedicationUsecase(medRepo, memberRepo)),
 		Schedule:   handler.NewScheduleHandler(usecase.NewScheduleUsecase(schedRepo, medRepo)),
