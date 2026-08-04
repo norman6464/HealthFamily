@@ -26,3 +26,12 @@ backend/app
 frontend/node_modules/
 frontend/build/
 frontend/.react-router/
+
+# Supabase CLI のローカル生成物 (リンク情報など)
+/supabase/
+
+# 旧 Next.js 構成の残骸。現行のE2Eは frontend/e2e/ + frontend/playwright.config.ts
+# (CI も working-directory: frontend で実行している)
+/e2e/
+/playwright.config.ts
+/scripts/
