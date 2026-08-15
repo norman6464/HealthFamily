@@ -19,11 +19,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * 実際の PostgreSQL に対して「服用の記録」を通す統合テスト。
@@ -34,25 +29,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * 起きないことを検証する。
  */
 @SpringBootTest
-@Testcontainers
-@Import(TakeMedicationUseCaseIT.FixedClockConfig.class)
+@Import({app.healthfamily.TestcontainersConfiguration.class, TakeMedicationUseCaseIT.FixedClockConfig.class})
 @DisplayName("服用の記録（実DB）")
 class TakeMedicationUseCaseIT {
 
     private static final Instant NOW = Instant.parse("2026-08-15T12:00:00Z");
-
-    @Container
-    @SuppressWarnings("resource")
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:17")
-                    .withInitScript("db/medication-schema.sql");
-
-    @DynamicPropertySource
-    static void datasource(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
 
     /**
      * ユースケースが参照する時刻を固定する。
