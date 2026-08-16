@@ -12,10 +12,10 @@ import {
   type MedicationScheduleMap,
 } from "@/entities/medication";
 import { getScheduleLabel, useSchedules } from "@/entities/schedule";
-import { AddMedicationForm } from "@/features/create-medication";
-import { EditMedicationForm } from "@/features/edit-medication";
-import { useDeleteMedication } from "@/features/delete-medication";
-import { useReorderMedications } from "@/features/reorder-medications";
+import { AddMedicationForm } from "@/features/manage-medications";
+import { EditMedicationForm } from "@/features/manage-medications";
+import { useDeleteMedication } from "@/features/manage-medications";
+import { useReorderMedications } from "@/features/manage-medications";
 import { useMarkMedicationTaken } from "@/features/take-medication";
 import { ScheduleForm, useCreateSchedule, type ScheduleFormData } from "@/features/create-schedule";
 

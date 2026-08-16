@@ -1,10 +1,8 @@
 import { useState } from "react";
+import { HospitalForm, type HospitalFormData, useCreateHospital, useDeleteHospital, useUpdateHospital } from "@/features/manage-hospitals";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { HospitalList, useHospitals, type UpdateHospitalInput } from "@/entities/hospital";
-import { HospitalForm, useCreateHospital, type HospitalFormData } from "@/features/create-hospital";
-import { useUpdateHospital } from "@/features/update-hospital";
-import { useDeleteHospital } from "@/features/delete-hospital";
 
 export default function Hospitals() {
   const navigate = useNavigate();

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ExpenseCreateForm, useDeleteExpense, useSaveBudget, useUpdateExpense } from "@/features/manage-expenses";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Download, Plus, Upload, X } from "lucide-react";
 import { api } from "@/shared/api";
@@ -14,10 +15,6 @@ import {
   type UpdateExpenseInput,
 } from "@/entities/expense";
 import { BudgetCard, useBudget, useBudgetAlert } from "@/entities/budget";
-import { ExpenseCreateForm } from "@/features/create-expense";
-import { useUpdateExpense } from "@/features/edit-expense";
-import { useDeleteExpense } from "@/features/delete-expense";
-import { useSaveBudget } from "@/features/save-budget";
 import { ExpenseImport } from "@/features/import-expenses";
 import { downloadDeductionCsv } from "@/features/export-expenses-csv";
 import { getExpenseCategoryLabel } from "@/shared/config";

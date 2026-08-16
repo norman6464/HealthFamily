@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EmergencyContactCreateForm, useDeleteEmergencyContact, useUpdateEmergencyContact } from "@/features/manage-emergency-contacts";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { LogOut, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from "lucide-react";
@@ -15,9 +16,6 @@ import {
 } from "@/entities/emergency-contact";
 import { CharacterSelector } from "@/features/select-character";
 import { DisplayNameEditor } from "@/features/update-user-profile";
-import { EmergencyContactCreateForm } from "@/features/create-emergency-contact";
-import { useUpdateEmergencyContact } from "@/features/edit-emergency-contact";
-import { useDeleteEmergencyContact } from "@/features/delete-emergency-contact";
 import { SectionTitle } from "@/shared/ui";
 
 export default function Settings() {

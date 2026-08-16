@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCreateAppointment, useDeleteAppointment, useUpdateAppointment } from "@/features/manage-appointments";
 import { Link } from "react-router";
 import { MapPin, Plus, X } from "lucide-react";
 import type { Appointment } from "@/shared/api";
@@ -13,9 +14,6 @@ import {
   type AppointmentFilter,
   type AppointmentFormData,
 } from "@/entities/appointment";
-import { useCreateAppointment } from "@/features/create-appointment";
-import { useUpdateAppointment } from "@/features/update-appointment";
-import { useDeleteAppointment } from "@/features/delete-appointment";
 import { useMembersQuery } from "../model/members";
 
 export default function Appointments() {
