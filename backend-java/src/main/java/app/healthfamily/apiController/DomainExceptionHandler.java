@@ -4,6 +4,10 @@ import app.healthfamily.domain.shared.DomainException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -37,6 +41,31 @@ public class DomainExceptionHandler {
     @ExceptionHandler(DomainException.Conflict.class)
     public ResponseEntity<ApiResponse<Void>> conflict(DomainException.Conflict e) {
         return respond(HttpStatus.CONFLICT, e);
+    }
+
+    /**
+     * 入力値の検証エラー。
+     *
+     * <p>これを拾わないと catch-all に流れて 500 になり、
+     * 「利用者の入力ミス」と「サーバーの不具合」が区別できなくなる。
+     * どの項目が不正かだけを返し、内部の例外内容は出さない。
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> invalidRequest(MethodArgumentNotValidException e) {
+        String fields =
+                e.getBindingResult().getFieldErrors().stream()
+                        .map(FieldError::getField)
+                        .distinct()
+                        .collect(Collectors.joining(", "));
+        String message = fields.isBlank() ? "入力値が正しくありません" : "入力値が正しくありません: " + fields;
+        return ResponseEntity.badRequest().body(ApiResponse.failure(message));
+    }
+
+    /** 本文が読めない (JSON が壊れている等)。これも利用者側の誤りなので 400。 */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> unreadableBody(HttpMessageNotReadableException e) {
+        log.debug("リクエスト本文を解釈できませんでした", e);
+        return ResponseEntity.badRequest().body(ApiResponse.failure("リクエストの形式が正しくありません"));
     }
 
     /** 想定外の例外は中身を返さない。内部構造の手がかりを与えないため。 */
