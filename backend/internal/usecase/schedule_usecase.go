@@ -37,8 +37,13 @@ func (uc *ScheduleUsecase) List(ctx context.Context, userID string) ([]entity.Sc
 	return uc.schedules.ListByUser(ctx, userID)
 }
 
+// Today は「今日」の服薬予定を返す。
+//
+// 受け取った時刻を必ず JST に直してから渡す。GetTodaySchedules は
+// date.Location() から曜日と一日の範囲を導くので、UTC のまま渡すと
+// 日本時間の 0〜9 時に前日の予定が返る。
 func (uc *ScheduleUsecase) Today(ctx context.Context, userID string, date time.Time) ([]entity.TodaySchedule, error) {
-	return uc.schedules.GetTodaySchedules(ctx, userID, date)
+	return uc.schedules.GetTodaySchedules(ctx, userID, date.In(jst))
 }
 
 func (uc *ScheduleUsecase) Create(ctx context.Context, in repository.CreateScheduleInput) (*entity.Schedule, error) {
