@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink } from "react-router";
 import { clsx } from "clsx";
 import {
   Activity,
@@ -18,7 +18,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useAuth, useRequireAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 import { BottomNavigation } from "@/shared/ui";
 
 interface NavItem {
@@ -75,18 +75,15 @@ function SidebarNavLink({ item, onClick }: { item: NavItem; onClick?: () => void
   );
 }
 
-export default function AuthedLayout() {
-  const { user, loading } = useRequireAuth();
+/**
+ * 認証済み画面の外枠。サイドバー・ヘッダー・下部タブを提供する。
+ *
+ * 認可の判断はここでは行わない。ガードは app 層のルートモジュールが担い、
+ * この widget は「認証済みであることが確定した後」にのみ描画される。
+ */
+export function AppShell({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-ink-500">
-        読み込み中...
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen md:flex">
@@ -125,7 +122,7 @@ export default function AuthedLayout() {
         </header>
 
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-6 pb-24 md:max-w-5xl md:px-8 md:py-8">
-          <Outlet />
+          {children}
         </main>
       </div>
 
