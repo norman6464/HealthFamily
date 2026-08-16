@@ -4,8 +4,8 @@ import { ArrowLeft, Plus, X } from "lucide-react";
 import { queryKeys } from "@/shared/api";
 import { useResource } from "@/shared/api";
 import type { Hospital } from "@/shared/api";
-import { HospitalList, type UpdateHospitalInput } from "@/components/hospitals/HospitalList";
-import { HospitalForm, type HospitalFormData } from "@/components/hospitals/HospitalForm";
+import { HospitalList, type UpdateHospitalInput } from "./HospitalList";
+import { HospitalForm, type HospitalFormData } from "./HospitalForm";
 
 export default function Hospitals() {
   const navigate = useNavigate();

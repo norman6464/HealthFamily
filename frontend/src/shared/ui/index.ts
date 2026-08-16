@@ -1,7 +1,6 @@
 // shared/ui の公開窓口。プロダクト非依存の再利用 UI のみを置く。
 export * from "./BottomNavigation";
 export * from "./CategoryFilter";
-export * from "./CharacterIcon";
 export * from "./ConfirmationDialog";
 export * from "./EmptyStatePrompt";
 export * from "./ErrorBoundary";

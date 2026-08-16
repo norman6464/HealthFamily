@@ -15,17 +15,17 @@ import { MemberFilter } from "@/shared/ui";
 import {
   ExpenseForm,
   type ExpenseFormData,
-} from "@/components/expenses/ExpenseForm";
+} from "./ExpenseForm";
 import {
   ExpenseList,
   type UpdateExpenseInput,
-} from "@/components/expenses/ExpenseList";
-import { ExpenseSummaryCard } from "@/components/expenses/ExpenseSummaryCard";
+} from "./ExpenseList";
+import { ExpenseSummaryCard } from "./ExpenseSummaryCard";
 import {
   BudgetCard,
   type BudgetSavePayload,
-} from "@/components/expenses/BudgetCard";
-import { ExpenseImport } from "@/components/expenses/ExpenseImport";
+} from "./BudgetCard";
+import { ExpenseImport } from "./ExpenseImport";
 import { getExpenseCategoryLabel } from "@/shared/config";
 import { formatCurrency } from "@/shared/lib";
 

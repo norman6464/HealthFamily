@@ -5,9 +5,9 @@ import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
 import type { Medication, Member } from "@/shared/api";
 import { CategoryFilter, type MedicationCategory } from "@/shared/ui";
-import { MemberMedications } from "@/components/medications/MemberMedications";
-import { InteractionWarning } from "@/components/medications/InteractionWarning";
-import { checkInteractions } from "@/lib/interactions";
+import { MemberMedications } from "./MemberMedications";
+import { InteractionWarning } from "./InteractionWarning";
+import { checkInteractions } from "@/entities/medication";
 
 export default function Medications() {
   const [selectedCategory, setSelectedCategory] = useState<MedicationCategory | null>(null);

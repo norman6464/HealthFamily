@@ -4,18 +4,18 @@ import { Link, useNavigate } from "react-router";
 import { LogOut, Pencil, Check, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/features/auth";
 import type { User, Member, EmergencyContact } from "@/shared/api";
-import { CharacterSelector } from "@/components/character/CharacterSelector";
+import { CharacterSelector } from "./CharacterSelector";
 import {
   EmergencyContactForm,
   type EmergencyContactFormData,
-} from "@/components/emergency-contacts/EmergencyContactForm";
+} from "./EmergencyContactForm";
 import {
   EmergencyContactList,
   type EmergencyContactWithMember,
   type UpdateEmergencyContactInput,
-} from "@/components/emergency-contacts/EmergencyContactList";
+} from "./EmergencyContactList";
 import { SectionTitle } from "@/shared/ui";
 
 export default function Settings() {

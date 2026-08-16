@@ -4,9 +4,9 @@ import { Plus, X } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
 import type { Appointment, Member, MemberWithCounts } from "@/shared/api";
-import { MemberList } from "@/components/members/MemberList";
-import { MemberForm, type MemberFormData } from "@/components/members/MemberForm";
-import type { MemberSummary } from "@/components/members/MemberSummaryCard";
+import { MemberList } from "./MemberList";
+import { MemberForm, type MemberFormData } from "./MemberForm";
+import type { MemberSummary } from "./MemberSummaryCard";
 
 interface CreateMemberBody {
   name: string;
