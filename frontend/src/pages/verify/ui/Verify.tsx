@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { api, ApiError } from "@/shared/api";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/features/auth";
 import type { User } from "@/shared/api";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
 

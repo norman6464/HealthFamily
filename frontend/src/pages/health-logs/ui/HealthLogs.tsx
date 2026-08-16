@@ -1,21 +1,21 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { Plus, X, Activity, Ruler, Thermometer } from "lucide-react";
-import { HealthLogList } from "@/components/health-logs/HealthLogList";
-import { HealthLogForm } from "@/components/health-logs/HealthLogForm";
-import { HealthWeeklyTrend } from "@/components/health-logs/HealthWeeklyTrend";
-import { SymptomFrequencySummary } from "@/components/health-logs/SymptomFrequencySummary";
+import { HealthLogList } from "./HealthLogList";
+import { HealthLogForm } from "./HealthLogForm";
+import { HealthWeeklyTrend } from "./HealthWeeklyTrend";
+import { SymptomFrequencySummary } from "./SymptomFrequencySummary";
 import {
   BodyMeasurementForm,
   type BodyMeasurementFormData,
-} from "@/components/body-measurements/BodyMeasurementForm";
-import { BodyMeasurementList } from "@/components/body-measurements/BodyMeasurementList";
+} from "./BodyMeasurementForm";
+import { BodyMeasurementList } from "./BodyMeasurementList";
 import {
   TemperatureForm,
   type TemperatureFormData,
-} from "@/components/temperatures/TemperatureForm";
-import { TemperatureChart } from "@/components/temperatures/TemperatureChart";
-import { TemperatureRecordList } from "@/components/temperatures/TemperatureRecordList";
+} from "./TemperatureForm";
+import { TemperatureChart } from "./TemperatureChart";
+import { TemperatureRecordList } from "./TemperatureRecordList";
 import {
   getDailyAverages,
   getMostFrequentSymptoms,
@@ -23,7 +23,7 @@ import {
   useHealthLogs,
   useMembersQuery,
   useTemperatureRecords,
-} from "@/hooks/health-logs";
+} from "../model/health-logs";
 
 export default function HealthLogs() {
   const { data: members, isLoading: membersLoading } = useMembersQuery();

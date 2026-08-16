@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback } from "react";
 import { Calendar, List, Plus } from "lucide-react";
-import { MedicationHistoryList } from "@/components/history/MedicationHistoryList";
-import { MedicationCalendar } from "@/components/history/MedicationCalendar";
-import { AddPastRecordForm } from "@/components/history/AddPastRecordForm";
+import { MedicationHistoryList } from "./MedicationHistoryList";
+import { MedicationCalendar } from "./MedicationCalendar";
+import { AddPastRecordForm } from "./AddPastRecordForm";
 import { MemberFilter } from "@/shared/ui";
 import { api } from "@/shared/api";
 import type { Medication } from "@/shared/api";
@@ -12,7 +12,7 @@ import {
   formatRecordDate,
   toDateKey,
   type DailyRecordGroup,
-} from "@/hooks/history";
+} from "../model/history";
 
 type ViewMode = "list" | "calendar";
 

@@ -7,7 +7,7 @@ import type { NotificationSetting } from "@/shared/api";
 import {
   NotificationSettingsForm,
   type UpdateNotificationSettingInput,
-} from "@/components/notification-settings/NotificationSettingsForm";
+} from "./NotificationSettingsForm";
 
 export default function NotificationSettingsPage() {
   const qc = useQueryClient();

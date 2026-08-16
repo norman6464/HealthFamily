@@ -4,20 +4,20 @@ import { SlidersHorizontal } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
 import type { DashboardPreference } from "@/shared/api";
-import { useAuth } from "@/lib/auth";
-import { useDashboardData, useMarkRecord, type MissedDose } from "@/hooks/dashboard";
-import { GreetingCard } from "@/components/dashboard/GreetingCard";
-import { WeeklySummaryCard } from "@/components/dashboard/WeeklySummaryCard";
-import { MissedDosesAlert } from "@/components/dashboard/MissedDosesAlert";
-import { TodayScheduleList } from "@/components/dashboard/TodayScheduleList";
-import { StockAlertList } from "@/components/dashboard/StockAlertList";
-import { AdherenceStatsCard } from "@/components/dashboard/AdherenceStatsCard";
-import { UpcomingAppointments } from "@/components/dashboard/UpcomingAppointments";
+import { useAuth } from "@/features/auth";
+import { useDashboardData, useMarkRecord, type MissedDose } from "../model/dashboard";
+import { GreetingCard } from "./GreetingCard";
+import { WeeklySummaryCard } from "./WeeklySummaryCard";
+import { MissedDosesAlert } from "./MissedDosesAlert";
+import { TodayScheduleList } from "./TodayScheduleList";
+import { StockAlertList } from "./StockAlertList";
+import { AdherenceStatsCard } from "./AdherenceStatsCard";
+import { UpcomingAppointments } from "./UpcomingAppointments";
 import {
   DashboardSettings,
   ORDERABLE_CARD_KEYS,
   type DashboardCardKey,
-} from "@/components/dashboard/DashboardSettings";
+} from "./DashboardSettings";
 import { MemberFilter } from "@/shared/ui";
 import { SectionTitle } from "@/shared/ui";
 

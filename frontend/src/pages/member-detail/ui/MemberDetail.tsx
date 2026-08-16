@@ -15,45 +15,45 @@ import type {
 } from "@/shared/api";
 import { MemberIcon, type MemberType, type PetType } from "@/shared/ui";
 import { LoadingSpinner } from "@/shared/ui";
-import { AllergyForm, type AllergyFormData } from "@/components/allergies/AllergyForm";
+import { AllergyForm, type AllergyFormData } from "./AllergyForm";
 import {
   AllergyList,
   type AllergyWithMember,
   type UpdateAllergyInput,
-} from "@/components/allergies/AllergyList";
+} from "./AllergyList";
 import {
   VaccinationForm,
   type VaccinationFormData,
-} from "@/components/vaccinations/VaccinationForm";
+} from "./VaccinationForm";
 import {
   VaccinationList,
   type VaccinationWithMember,
   type UpdateVaccinationInput,
-} from "@/components/vaccinations/VaccinationList";
+} from "./VaccinationList";
 import {
   ExaminationForm,
   type ExaminationFormData,
-} from "@/components/examinations/ExaminationForm";
+} from "./ExaminationForm";
 import {
   ExaminationList,
   type ExaminationWithMember,
   type UpdateExaminationInput,
-} from "@/components/examinations/ExaminationList";
-import { InsuranceForm, type InsuranceFormData } from "@/components/insurances/InsuranceForm";
+} from "./ExaminationList";
+import { InsuranceForm, type InsuranceFormData } from "./InsuranceForm";
 import {
   InsuranceList,
   type InsuranceWithMember,
   type UpdateInsuranceInput,
-} from "@/components/insurances/InsuranceList";
+} from "./InsuranceList";
 import {
   PrescriptionForm,
   type PrescriptionFormData,
-} from "@/components/prescriptions/PrescriptionForm";
+} from "./PrescriptionForm";
 import {
   PrescriptionList,
   type PrescriptionWithMember,
   type UpdatePrescriptionInput,
-} from "@/components/prescriptions/PrescriptionList";
+} from "./PrescriptionList";
 
 type TabKey = "allergies" | "vaccinations" | "examinations" | "insurances" | "prescriptions";
 

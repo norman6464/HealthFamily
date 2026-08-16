@@ -9,17 +9,8 @@ import reactHooks from "eslint-plugin-react-hooks";
  * 層の上下は app > pages > widgets > features > entities > shared。
  * 各層から「自分と同じか上の層」への import を禁止する。
  *
- * 移行中のため severity は warn。旧構成 (components / hooks / lib / routes / stores) は
- * 移行元なので対象外にしてある。すべて移し終えたら error へ昇格し、旧構成の除外も外す。
+ * 移行が完了したため severity は error。破ると CI が落ちる。
  */
-
-const LEGACY = [
-  "src/components/**",
-  "src/hooks/**",
-  "src/lib/**",
-  "src/routes/**",
-  "src/stores/**",
-];
 
 const TESTS = ["**/*.test.ts", "**/*.test.tsx", "e2e/**"];
 
@@ -27,7 +18,7 @@ const TESTS = ["**/*.test.ts", "**/*.test.tsx", "e2e/**"];
 function forbidUpward(groups, extra = []) {
   return {
     "no-restricted-imports": [
-      "warn",
+      "error",
       {
         patterns: [
           {
@@ -105,13 +96,6 @@ export default tseslint.config(
       "@/features/*",
       "@/entities/*",
     ]),
-  },
-
-  // --- 移行中の旧構成 -----------------------------------------------------
-  // 移行元なので境界検査の対象外。移行完了時にこのブロックごと削除する。
-  {
-    files: LEGACY,
-    rules: { "no-restricted-imports": "off" },
   },
 
   // --- テスト -------------------------------------------------------------

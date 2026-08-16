@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router";
 import { ChevronLeft, Printer } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
-import { useRequireAuth } from "@/lib/auth";
+import { useRequireAuth } from "@/features/auth";
 import type {
   Member,
   Medication,

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { api, ApiError } from "@/shared/api";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
-import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
+import { GoogleLoginButton } from "@/features/auth";
 
 export default function Signup() {
   const navigate = useNavigate();

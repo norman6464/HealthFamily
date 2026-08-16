@@ -7,13 +7,13 @@ import { queryKeys } from "@/shared/api";
 import { useResource } from "@/shared/api";
 import type { Appointment, Hospital, Member } from "@/shared/api";
 import { TabSwitch } from "@/shared/ui";
-import { MiniCalendar } from "@/components/appointments/MiniCalendar";
-import { AppointmentForm, type AppointmentFormData } from "@/components/appointments/AppointmentForm";
+import { MiniCalendar } from "./MiniCalendar";
+import { AppointmentForm, type AppointmentFormData } from "./AppointmentForm";
 import {
   AppointmentList,
   type AppointmentFilter,
   getAppointmentCounts,
-} from "@/components/appointments/AppointmentList";
+} from "./AppointmentList";
 
 export default function Appointments() {
   const [showForm, setShowForm] = useState(false);

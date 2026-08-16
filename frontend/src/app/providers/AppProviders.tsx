@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider } from "@/features/auth";
 
 /**
  * アプリ全体に必要な Provider をまとめる。

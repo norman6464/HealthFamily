@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { useRequireAuth } from "@/lib/auth";
+import { useRequireAuth } from "@/features/auth";
 import { AppShell } from "@/widgets/app-shell";
 
 /**
