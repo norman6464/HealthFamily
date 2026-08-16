@@ -1,23 +1,22 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { SlidersHorizontal } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
 import type { DashboardPreference } from "@/shared/api";
 import { useAuth } from "@/features/auth";
-import { useDashboardData, useMarkRecord, type MissedDose } from "../model/dashboard";
+import { useDashboardData, type MissedDose } from "../model/dashboard";
 import { GreetingCard } from "./GreetingCard";
 import { WeeklySummaryCard } from "./WeeklySummaryCard";
 import { MissedDosesAlert } from "./MissedDosesAlert";
-import { TodayScheduleList } from "./TodayScheduleList";
 import { StockAlertList } from "./StockAlertList";
 import { AdherenceStatsCard } from "./AdherenceStatsCard";
 import { UpcomingAppointments } from "./UpcomingAppointments";
+import { TodayScheduleList } from "@/entities/schedule";
 import {
-  DashboardSettings,
+  useDashboardPreference,
   ORDERABLE_CARD_KEYS,
   type DashboardCardKey,
-} from "./DashboardSettings";
+} from "@/entities/dashboard-preference";
+import { DashboardSettings } from "@/features/edit-dashboard-settings";
+import { useMarkScheduleTaken } from "@/features/take-medication";
 import { MemberFilter } from "@/shared/ui";
 import { SectionTitle } from "@/shared/ui";
 
@@ -64,17 +63,13 @@ export default function Home() {
     members,
   } = useDashboardData(userId);
 
-  const markRecord = useMarkRecord();
+  const markRecord = useMarkScheduleTaken();
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   // defaultMemberId の初期反映は一度だけ行い、以降のユーザー操作を上書きしない
   const [defaultApplied, setDefaultApplied] = useState(false);
 
-  const { data: preference = EMPTY_PREFERENCE } = useQuery({
-    queryKey: queryKeys.dashboardPreferences.all,
-    queryFn: () => api.get<DashboardPreference>("/dashboard-preferences"),
-    enabled: !!userId,
-  });
+  const { data: preference = EMPTY_PREFERENCE } = useDashboardPreference({ enabled: !!userId });
 
   const hiddenCards = useMemo(
     () => new Set(preference.hiddenCards),

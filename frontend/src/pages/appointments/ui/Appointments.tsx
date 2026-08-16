@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { MapPin, Plus, X } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
-import { useResource } from "@/shared/api";
-import type { Appointment, Hospital, Member } from "@/shared/api";
+import type { Appointment } from "@/shared/api";
 import { TabSwitch } from "@/shared/ui";
-import { MiniCalendar } from "./MiniCalendar";
-import { AppointmentForm, type AppointmentFormData } from "./AppointmentForm";
+import { useHospitals } from "@/entities/hospital";
 import {
+  AppointmentForm,
   AppointmentList,
-  type AppointmentFilter,
+  MiniCalendar,
   getAppointmentCounts,
-} from "./AppointmentList";
+  useAppointments,
+  type AppointmentFilter,
+  type AppointmentFormData,
+} from "@/entities/appointment";
+import { useCreateAppointment } from "@/features/create-appointment";
+import { useUpdateAppointment } from "@/features/update-appointment";
+import { useDeleteAppointment } from "@/features/delete-appointment";
+import { useMembersQuery } from "../model/members";
 
 export default function Appointments() {
   const [showForm, setShowForm] = useState(false);
@@ -22,27 +25,15 @@ export default function Appointments() {
   const [updateError, setUpdateError] = useState<string | null>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
-  const { data: members = [], isLoading: membersLoading } = useQuery({
-    queryKey: queryKeys.members.all,
-    queryFn: () => api.get<Member[]>("/members"),
-  });
+  const { data: members = [], isLoading: membersLoading } = useMembersQuery();
 
-  const {
-    items: appointments,
-    isLoading,
-    create: createMutation,
-    update: updateMutation,
-    remove: deleteMutation,
-  } = useResource<Appointment>({
-    queryKey: queryKeys.appointments.all,
-    listPath: "/appointments",
-    basePath: "/appointments",
-  });
+  const { data: appointments = [], isLoading } = useAppointments();
 
-  const { data: hospitals = [] } = useQuery({
-    queryKey: queryKeys.hospitals.all,
-    queryFn: () => api.get<Hospital[]>("/hospitals"),
-  });
+  const createMutation = useCreateAppointment();
+  const updateMutation = useUpdateAppointment();
+  const deleteMutation = useDeleteAppointment();
+
+  const { data: hospitals = [] } = useHospitals();
 
   const hasNoMembers = !membersLoading && members.length === 0;
 
@@ -65,16 +56,7 @@ export default function Appointments() {
   );
 
   const handleCreate = (data: AppointmentFormData) => {
-    createMutation.mutate(
-      {
-        memberId: data.memberId,
-        hospitalId: data.hospitalId,
-        appointmentDate: new Date(data.appointmentDate).toISOString(),
-        type: data.type,
-        notes: data.notes,
-      },
-      { onSuccess: () => setShowForm(false) },
-    );
+    createMutation.mutate(data, { onSuccess: () => setShowForm(false) });
   };
 
   const handleEdit = (appointment: Appointment) => {
@@ -93,15 +75,7 @@ export default function Appointments() {
     if (!editingAppointment) return;
     setUpdateError(null);
     updateMutation.mutate(
-      {
-        id: editingAppointment.id,
-        input: {
-          appointmentDate: new Date(data.appointmentDate).toISOString(),
-          hospitalId: data.hospitalId,
-          type: data.type,
-          notes: data.notes,
-        },
-      },
+      { id: editingAppointment.id, data },
       {
         onSuccess: () => setEditingAppointment(null),
         onError: () =>

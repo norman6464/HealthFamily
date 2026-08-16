@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import type { TodayScheduleViewModel } from "../model/dashboard";
+import type { TodayScheduleViewModel } from "@/entities/schedule";
 
 interface WeeklySummaryCardProps {
   schedules: TodayScheduleViewModel[];

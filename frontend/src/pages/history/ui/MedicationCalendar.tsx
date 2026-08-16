@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HealthLog } from "@/shared/api";
-import { toDateKey, type EnrichedRecord } from "../model/history";
+import { toDateKey, type EnrichedRecord } from "@/entities/medication-record";
 
 interface CalendarDay {
   date: Date;

@@ -1,98 +1,48 @@
-import { useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
-import { LogOut, Pencil, Check, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from "lucide-react";
+import { LogOut, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
 import { useAuth } from "@/features/auth";
-import type { User, Member, EmergencyContact } from "@/shared/api";
-import { CharacterSelector } from "./CharacterSelector";
-import {
-  EmergencyContactForm,
-  type EmergencyContactFormData,
-} from "./EmergencyContactForm";
+import type { Member } from "@/shared/api";
+import { useUserProfile } from "@/entities/user";
 import {
   EmergencyContactList,
+  useEmergencyContacts,
   type EmergencyContactWithMember,
   type UpdateEmergencyContactInput,
-} from "./EmergencyContactList";
+} from "@/entities/emergency-contact";
+import { CharacterSelector } from "@/features/select-character";
+import { DisplayNameEditor } from "@/features/update-user-profile";
+import { EmergencyContactCreateForm } from "@/features/create-emergency-contact";
+import { useUpdateEmergencyContact } from "@/features/edit-emergency-contact";
+import { useDeleteEmergencyContact } from "@/features/delete-emergency-contact";
 import { SectionTitle } from "@/shared/ui";
 
 export default function Settings() {
-  const qc = useQueryClient();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const { data: profile } = useQuery({
-    queryKey: queryKeys.users.me,
-    queryFn: () => api.get<User>("/users/me"),
-  });
+  const { data: profile } = useUserProfile();
 
+  // TODO: entities/member スライスができ次第そちらへ移す(複数ページで共有される取得のため)
   const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 
-  const { data: contacts = [], isLoading: contactsLoading } = useQuery({
-    queryKey: queryKeys.emergencyContacts.all,
-    queryFn: () => api.get<EmergencyContact[]>("/emergency-contacts"),
-  });
+  const { data: contacts = [], isLoading: contactsLoading } = useEmergencyContacts();
 
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [displayName, setDisplayName] = useState("");
   const [showContactForm, setShowContactForm] = useState(false);
 
-  useEffect(() => {
-    if (profile) {
-      setDisplayName(profile.displayName || "");
-    }
-  }, [profile]);
-
-  const updateProfileMutation = useMutation({
-    mutationFn: (input: { displayName: string }) => api.patch<User>("/users/me", input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.users.me }),
-  });
-
-  const createContactMutation = useMutation({
-    mutationFn: (data: EmergencyContactFormData) =>
-      api.post<EmergencyContact>("/emergency-contacts", data),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.emergencyContacts.all }),
-  });
-
-  const updateContactMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateEmergencyContactInput }) =>
-      api.patch<EmergencyContact>(`/emergency-contacts/${id}`, input),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.emergencyContacts.all }),
-  });
-
-  const deleteContactMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/emergency-contacts/${id}`),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.emergencyContacts.all }),
-  });
+  const updateContactMutation = useUpdateEmergencyContact();
+  const deleteContactMutation = useDeleteEmergencyContact();
 
   const contactsWithMember: EmergencyContactWithMember[] = contacts.map((c) => ({
     ...c,
     memberName: members.find((m) => m.id === c.memberId)?.name,
   }));
-
-  const handleSaveName = async () => {
-    if (!displayName.trim()) return;
-    await updateProfileMutation.mutateAsync({ displayName: displayName.trim() });
-    setIsEditingName(false);
-  };
-
-  const handleCancelEdit = () => {
-    setDisplayName(profile?.displayName || "");
-    setIsEditingName(false);
-  };
-
-  const handleCreateContact = async (data: EmergencyContactFormData) => {
-    await createContactMutation.mutateAsync(data);
-    setShowContactForm(false);
-  };
 
   const handleUpdateContact = async (id: string, input: UpdateEmergencyContactInput) => {
     await updateContactMutation.mutateAsync({ id, input });
@@ -121,47 +71,7 @@ export default function Settings() {
             <p className="text-xs text-ink-400">メールアドレス</p>
             <p className="text-sm text-ink-700">{user?.email}</p>
           </div>
-          <div>
-            <p className="text-xs text-ink-400">表示名</p>
-            {isEditingName ? (
-              <div className="flex items-center space-x-2 mt-1">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="flex-1 px-3 py-1.5 text-sm border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="表示名を入力"
-                  autoFocus
-                />
-                <button
-                  onClick={handleSaveName}
-                  disabled={updateProfileMutation.isPending || !displayName.trim()}
-                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
-                  aria-label="保存"
-                >
-                  <Check size={16} />
-                </button>
-                <button
-                  onClick={handleCancelEdit}
-                  className="p-1.5 text-ink-400 hover:bg-primary-50 rounded-md transition-colors"
-                  aria-label="キャンセル"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <p className="text-sm text-ink-700">{profile?.displayName || "未設定"}</p>
-                <button
-                  onClick={() => setIsEditingName(true)}
-                  className="p-1 text-ink-400 hover:text-ink-600 transition-colors"
-                  aria-label="表示名を編集"
-                >
-                  <Pencil size={14} />
-                </button>
-              </div>
-            )}
-          </div>
+          <DisplayNameEditor profile={profile} />
         </div>
       </section>
 
@@ -216,9 +126,9 @@ export default function Settings() {
         {showContactForm && !membersLoading && members.length > 0 && (
           <div className="mb-4 bg-primary-50/50 rounded-lg p-4 border border-primary-100">
             <h3 className="text-sm font-semibold text-ink-700 mb-3">緊急連絡先の追加</h3>
-            <EmergencyContactForm
+            <EmergencyContactCreateForm
               members={members}
-              onSubmit={handleCreateContact}
+              onCreated={() => setShowContactForm(false)}
               onCancel={() => setShowContactForm(false)}
             />
           </div>

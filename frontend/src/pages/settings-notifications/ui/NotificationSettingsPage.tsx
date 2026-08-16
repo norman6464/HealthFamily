@@ -1,32 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
-import type { NotificationSetting } from "@/shared/api";
-import {
-  NotificationSettingsForm,
-  type UpdateNotificationSettingInput,
-} from "./NotificationSettingsForm";
+import { useNotificationSetting } from "@/entities/notification-setting";
+import { NotificationSettingsForm } from "@/features/update-notification-settings";
 
 export default function NotificationSettingsPage() {
-  const qc = useQueryClient();
-
-  const { data: setting = null, isLoading, error } = useQuery({
-    queryKey: queryKeys.notificationSettings.all,
-    queryFn: () => api.get<NotificationSetting>("/notification-settings"),
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (input: UpdateNotificationSettingInput) =>
-      api.put<NotificationSetting>("/notification-settings", input),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: queryKeys.notificationSettings.all }),
-  });
-
-  const handleSave = async (input: UpdateNotificationSettingInput) => {
-    await updateMutation.mutateAsync(input);
-  };
+  const { data: setting = null, isLoading, error } = useNotificationSetting();
 
   return (
     <div className="space-y-4">
@@ -47,7 +25,7 @@ export default function NotificationSettingsPage() {
         </div>
       )}
 
-      <NotificationSettingsForm setting={setting} onSave={handleSave} isLoading={isLoading} />
+      <NotificationSettingsForm setting={setting} isLoading={isLoading} />
     </div>
   );
 }

@@ -1,26 +1,16 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
-import type { Medication, Member } from "@/shared/api";
 import { CategoryFilter, type MedicationCategory } from "@/shared/ui";
-import { MemberMedications } from "./MemberMedications";
-import { InteractionWarning } from "./InteractionWarning";
-import { checkInteractions } from "@/entities/medication";
+import { useMembers } from "@/entities/member";
+import { checkInteractions, useMedications, InteractionWarningList } from "@/entities/medication";
+import { MemberMedications } from "@/widgets/member-medications";
 
 export default function Medications() {
   const [selectedCategory, setSelectedCategory] = useState<MedicationCategory | null>(null);
 
-  const { data: members = [], isLoading } = useQuery({
-    queryKey: queryKeys.members.all,
-    queryFn: () => api.get<Member[]>("/members"),
-  });
+  const { data: members = [], isLoading } = useMembers();
 
-  const { data: allMedications = [] } = useQuery({
-    queryKey: queryKeys.medications.all,
-    queryFn: () => api.get<Medication[]>("/medications"),
-  });
+  const { data: allMedications = [] } = useMedications();
 
   const hasMembers = useMemo(() => members.length > 0, [members]);
 
@@ -39,7 +29,7 @@ export default function Medications() {
       </div>
 
       {!isLoading && hasMembers && (
-        <InteractionWarning warnings={interactionWarnings} />
+        <InteractionWarningList warnings={interactionWarnings} />
       )}
 
       {!isLoading && hasMembers && (

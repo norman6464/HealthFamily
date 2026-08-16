@@ -1,40 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Plus, X } from "lucide-react";
-import { queryKeys } from "@/shared/api";
-import { useResource } from "@/shared/api";
-import type { Hospital } from "@/shared/api";
-import { HospitalList, type UpdateHospitalInput } from "./HospitalList";
-import { HospitalForm, type HospitalFormData } from "./HospitalForm";
+import { HospitalList, useHospitals, type UpdateHospitalInput } from "@/entities/hospital";
+import { HospitalForm, useCreateHospital, type HospitalFormData } from "@/features/create-hospital";
+import { useUpdateHospital } from "@/features/update-hospital";
+import { useDeleteHospital } from "@/features/delete-hospital";
 
 export default function Hospitals() {
   const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
 
-  const {
-    items: hospitals,
-    isLoading,
-    create,
-    update,
-    remove,
-  } = useResource<Hospital, Partial<HospitalFormData>, UpdateHospitalInput>({
-    queryKey: queryKeys.hospitals.all,
-    listPath: "/hospitals",
-    basePath: "/hospitals",
-  });
+  const { data: hospitals = [], isLoading } = useHospitals();
+  const create = useCreateHospital();
+  const update = useUpdateHospital();
+  const remove = useDeleteHospital();
 
   const handleCreate = (data: HospitalFormData) => {
-    create.mutate(
-      {
-        name: data.name,
-        address: data.address,
-        phone: data.phone,
-        department: data.department,
-        doctorName: data.doctorName,
-        notes: data.notes,
-      },
-      { onSuccess: () => setShowForm(false) },
-    );
+    create.mutate(data, { onSuccess: () => setShowForm(false) });
   };
 
   const handleUpdate = async (hospitalId: string, input: UpdateHospitalInput) => {
