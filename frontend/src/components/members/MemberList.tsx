@@ -1,10 +1,10 @@
 import React from "react";
 import { Link } from "react-router";
 import { Pill, Pencil } from "lucide-react";
-import type { Member } from "@/lib/types";
-import { MemberIcon, type MemberType, type PetType } from "@/components/shared/MemberIcon";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
+import type { Member } from "@/shared/api";
+import { MemberIcon, type MemberType, type PetType } from "@/shared/ui";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
 import { MemberSummaryCard, type MemberSummary } from "./MemberSummaryCard";
 
 interface MemberListProps {

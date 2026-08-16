@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/shared/api";
 import { useAuth } from "@/lib/auth";
-import type { User } from "@/lib/types";
+import type { User } from "@/shared/api";
 
 const GSI_SRC = "https://accounts.google.com/gsi/client";
 

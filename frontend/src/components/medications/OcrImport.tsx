@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, ImageUp, Info, Crop, Sliders } from "lucide-react";
-import { Button, ErrorText } from "@/components/ui";
+import { Button, ErrorText } from "@/shared/ui";
 
 interface OcrImportProps {
   onPick: (text: string) => void;

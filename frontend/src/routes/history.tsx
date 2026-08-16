@@ -3,9 +3,9 @@ import { Calendar, List, Plus } from "lucide-react";
 import { MedicationHistoryList } from "@/components/history/MedicationHistoryList";
 import { MedicationCalendar } from "@/components/history/MedicationCalendar";
 import { AddPastRecordForm } from "@/components/history/AddPastRecordForm";
-import { MemberFilter } from "@/components/shared/MemberFilter";
-import { api } from "@/lib/api";
-import type { Medication } from "@/lib/types";
+import { MemberFilter } from "@/shared/ui";
+import { api } from "@/shared/api";
+import type { Medication } from "@/shared/api";
 import {
   useMedicationHistory,
   filterGroupsByMember,

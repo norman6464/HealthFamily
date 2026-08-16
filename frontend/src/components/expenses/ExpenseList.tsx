@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { Pencil, Trash2, Calendar, ShieldCheck } from "lucide-react";
-import type { Expense, Member } from "@/lib/types";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
-import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import type { Expense, Member } from "@/shared/api";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
+import { ConfirmationDialog } from "@/shared/ui";
 import { ExpenseForm, type ExpenseFormData } from "./ExpenseForm";
-import { getExpenseCategoryLabel } from "@/lib/categories";
-import { formatCurrency, formatDateLong } from "@/lib/format";
+import { getExpenseCategoryLabel } from "@/shared/config";
+import { formatCurrency, formatDateLong } from "@/shared/lib";
 
 export interface UpdateExpenseInput {
   memberId?: string | null;

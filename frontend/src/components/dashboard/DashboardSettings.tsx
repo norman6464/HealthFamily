@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Check, Eye, EyeOff, X } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { DashboardPreference, Member } from "@/lib/types";
-import { Button, Card, ErrorText } from "@/components/ui";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { DashboardPreference, Member } from "@/shared/api";
+import { Button, Card, ErrorText } from "@/shared/ui";
 
 // ダッシュボードで制御可能なカード(greeting は常時表示のため対象外)
 export const DASHBOARD_CARD_KEYS = [

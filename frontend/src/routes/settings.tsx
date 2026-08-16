@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { LogOut, Pencil, Check, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
 import { useAuth } from "@/lib/auth";
-import type { User, Member, EmergencyContact } from "@/lib/types";
+import type { User, Member, EmergencyContact } from "@/shared/api";
 import { CharacterSelector } from "@/components/character/CharacterSelector";
 import {
   EmergencyContactForm,
@@ -16,7 +16,7 @@ import {
   type EmergencyContactWithMember,
   type UpdateEmergencyContactInput,
 } from "@/components/emergency-contacts/EmergencyContactList";
-import { SectionTitle } from "@/components/shared/SectionTitle";
+import { SectionTitle } from "@/shared/ui";
 
 export default function Settings() {
   const qc = useQueryClient();

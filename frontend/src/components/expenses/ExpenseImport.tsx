@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { FileUp, Upload } from "lucide-react";
-import { api } from "@/lib/api";
-import { Button, ErrorText } from "@/components/ui";
-import { EXPENSE_CATEGORIES, getExpenseCategoryLabel } from "@/lib/categories";
+import { api } from "@/shared/api";
+import { Button, ErrorText } from "@/shared/ui";
+import { EXPENSE_CATEGORIES, getExpenseCategoryLabel } from "@/shared/config";
 
 interface ImportExpense {
   memberId: string | null;

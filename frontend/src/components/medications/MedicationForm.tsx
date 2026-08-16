@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, ScanText } from "lucide-react";
-import type { Medication } from "@/lib/types";
-import type { MedicationCategory } from "@/lib/categories";
+import type { Medication } from "@/shared/api";
+import type { MedicationCategory } from "@/shared/config";
 import { OcrImport } from "./OcrImport";
 
 export type { MedicationCategory };

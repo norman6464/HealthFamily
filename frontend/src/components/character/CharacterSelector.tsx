@@ -2,7 +2,7 @@ import React from "react";
 import { CHARACTER_CONFIGS } from "@/lib/character";
 import type { CharacterType } from "@/lib/character";
 import { useCharacterStore } from "@/stores/characterStore";
-import { CharacterIcon } from "@/components/shared/CharacterIcon";
+import { CharacterIcon } from "@/shared/ui";
 
 const characterTypes: CharacterType[] = ["dog", "cat", "rabbit", "bird"];
 

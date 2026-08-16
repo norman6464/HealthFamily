@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { MedicationRecord, Member, Medication, HealthLog } from "@/lib/types";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { MedicationRecord, Member, Medication, HealthLog } from "@/shared/api";
 
 /** 表示用に氏名・薬名を付与した服薬記録 */
 export interface EnrichedRecord {

@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { Medication, Member } from "@/lib/types";
-import { CategoryFilter, type MedicationCategory } from "@/components/shared/CategoryFilter";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { Medication, Member } from "@/shared/api";
+import { CategoryFilter, type MedicationCategory } from "@/shared/ui";
 import { MemberMedications } from "@/components/medications/MemberMedications";
 import { InteractionWarning } from "@/components/medications/InteractionWarning";
 import { checkInteractions } from "@/lib/interactions";

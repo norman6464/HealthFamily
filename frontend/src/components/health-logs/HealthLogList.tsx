@@ -7,8 +7,8 @@ import {
   getSymptomLabel,
   type DailyHealthLogGroup,
 } from "@/hooks/health-logs";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
 
 interface HealthLogListProps {
   groups: DailyHealthLogGroup[];

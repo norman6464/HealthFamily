@@ -2,7 +2,7 @@ import React from "react";
 import {
   MEDICATION_CATEGORY_LABELS,
   type MedicationCategory,
-} from "@/lib/categories";
+} from "@/shared/config";
 
 export type { MedicationCategory };
 

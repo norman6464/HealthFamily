@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router";
 import { Pill, Plus, X, ChevronLeft, FileText } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import { useResource } from "@/lib/useResource";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import { useResource } from "@/shared/api";
 import type {
   Member,
   Allergy,
@@ -12,9 +12,9 @@ import type {
   Examination,
   Insurance,
   Prescription,
-} from "@/lib/types";
-import { MemberIcon, type MemberType, type PetType } from "@/components/shared/MemberIcon";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+} from "@/shared/api";
+import { MemberIcon, type MemberType, type PetType } from "@/shared/ui";
+import { LoadingSpinner } from "@/shared/ui";
 import { AllergyForm, type AllergyFormData } from "@/components/allergies/AllergyForm";
 import {
   AllergyList,

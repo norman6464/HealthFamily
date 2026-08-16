@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import type { Member } from "@/lib/types";
-import { ErrorText } from "@/components/ui";
-import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import type { Member } from "@/shared/api";
+import { ErrorText } from "@/shared/ui";
+import { EXPENSE_CATEGORIES } from "@/shared/config";
 
 export { EXPENSE_CATEGORIES };
 

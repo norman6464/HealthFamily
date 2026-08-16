@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Check, MapPin, Pencil, Phone, Trash2, X } from "lucide-react";
-import type { Hospital } from "@/lib/types";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
-import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
+import type { Hospital } from "@/shared/api";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
+import { ConfirmationDialog } from "@/shared/ui";
 
 export interface UpdateHospitalInput {
   name?: string;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/shared/api";
 
 export default function ResetPassword() {
   const navigate = useNavigate();

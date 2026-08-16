@@ -4,10 +4,10 @@ import type {
   BodyMeasurementView,
   UpdateBodyMeasurementInput,
 } from "@/hooks/health-logs";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
-import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
-import { formatDateShort } from "@/lib/format";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
+import { ConfirmationDialog } from "@/shared/ui";
+import { formatDateShort } from "@/shared/lib";
 
 interface BodyMeasurementListProps {
   measurements: BodyMeasurementView[];

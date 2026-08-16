@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { HeartPulse } from "lucide-react";
-import { ApiError } from "@/lib/api";
+import { ApiError } from "@/shared/api";
 import { useAuth } from "@/lib/auth";
-import { Button, Card, ErrorText, Input } from "@/components/ui";
+import { Button, Card, ErrorText, Input } from "@/shared/ui";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 export default function Login() {

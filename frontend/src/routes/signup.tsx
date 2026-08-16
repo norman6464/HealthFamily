@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { api, ApiError } from "@/lib/api";
-import { Button, Card, ErrorText, Input } from "@/components/ui";
+import { api, ApiError } from "@/shared/api";
+import { Button, Card, ErrorText, Input } from "@/shared/ui";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 export default function Signup() {

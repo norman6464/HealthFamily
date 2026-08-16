@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuth, useRequireAuth } from "@/lib/auth";
-import { BottomNavigation } from "@/components/shared/BottomNavigation";
+import { BottomNavigation } from "@/shared/ui";
 
 interface NavItem {
   to: string;

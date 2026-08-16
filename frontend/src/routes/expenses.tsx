@@ -1,17 +1,17 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Download, Plus, Upload, X } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
 import type {
   Budget,
   BudgetAlertStatus,
   Expense,
   ExpenseSummary,
   Member,
-} from "@/lib/types";
-import { SectionTitle } from "@/components/shared/SectionTitle";
-import { MemberFilter } from "@/components/shared/MemberFilter";
+} from "@/shared/api";
+import { SectionTitle } from "@/shared/ui";
+import { MemberFilter } from "@/shared/ui";
 import {
   ExpenseForm,
   type ExpenseFormData,
@@ -26,8 +26,8 @@ import {
   type BudgetSavePayload,
 } from "@/components/expenses/BudgetCard";
 import { ExpenseImport } from "@/components/expenses/ExpenseImport";
-import { getExpenseCategoryLabel } from "@/lib/categories";
-import { formatCurrency } from "@/lib/format";
+import { getExpenseCategoryLabel } from "@/shared/config";
+import { formatCurrency } from "@/shared/lib";
 
 const YEAR_OPTIONS_COUNT = 5;
 

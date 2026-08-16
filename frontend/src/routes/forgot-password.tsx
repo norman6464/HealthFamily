@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/shared/api";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();

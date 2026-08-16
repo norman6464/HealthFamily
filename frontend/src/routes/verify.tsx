@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError } from "@/shared/api";
 import { useAuth } from "@/lib/auth";
-import type { User } from "@/lib/types";
-import { Button, Card, ErrorText, Input } from "@/components/ui";
+import type { User } from "@/shared/api";
+import { Button, Card, ErrorText, Input } from "@/shared/ui";
 
 export default function Verify() {
   const [params] = useSearchParams();

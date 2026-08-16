@@ -1,6 +1,6 @@
 import React from "react";
 import { useCharacterStore } from "@/stores/characterStore";
-import { CharacterIcon } from "@/components/shared/CharacterIcon";
+import { CharacterIcon } from "@/shared/ui";
 
 interface GreetingCardProps {
   displayName: string;

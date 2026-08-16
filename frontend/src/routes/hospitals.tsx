@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Plus, X } from "lucide-react";
-import { queryKeys } from "@/lib/queryKeys";
-import { useResource } from "@/lib/useResource";
-import type { Hospital } from "@/lib/types";
+import { queryKeys } from "@/shared/api";
+import { useResource } from "@/shared/api";
+import type { Hospital } from "@/shared/api";
 import { HospitalList, type UpdateHospitalInput } from "@/components/hospitals/HospitalList";
 import { HospitalForm, type HospitalFormData } from "@/components/hospitals/HospitalForm";
 

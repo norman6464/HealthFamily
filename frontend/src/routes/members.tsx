@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { Appointment, Member, MemberWithCounts } from "@/lib/types";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { Appointment, Member, MemberWithCounts } from "@/shared/api";
 import { MemberList } from "@/components/members/MemberList";
 import { MemberForm, type MemberFormData } from "@/components/members/MemberForm";
 import type { MemberSummary } from "@/components/members/MemberSummaryCard";

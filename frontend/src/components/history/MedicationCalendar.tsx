@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { HealthLog } from "@/lib/types";
+import type { HealthLog } from "@/shared/api";
 import { toDateKey, type EnrichedRecord } from "@/hooks/history";
 
 interface CalendarDay {

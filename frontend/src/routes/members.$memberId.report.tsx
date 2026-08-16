@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 import { ChevronLeft, Printer } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
 import { useRequireAuth } from "@/lib/auth";
 import type {
   Member,
@@ -11,8 +11,8 @@ import type {
   Vaccination,
   Examination,
   Appointment,
-} from "@/lib/types";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+} from "@/shared/api";
+import { LoadingSpinner } from "@/shared/ui";
 
 const memberTypeLabels: Record<string, string> = {
   human: "家族",

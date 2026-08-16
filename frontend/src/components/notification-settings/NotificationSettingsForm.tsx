@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bell, BellOff, Mail, Clock, Calendar } from "lucide-react";
-import type { NotificationSetting } from "@/lib/types";
+import type { NotificationSetting } from "@/shared/api";
 
 export type UpdateNotificationSettingInput = Partial<{
   medicationReminderEnabled: boolean;

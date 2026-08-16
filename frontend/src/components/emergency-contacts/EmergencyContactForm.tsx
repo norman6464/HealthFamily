@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Member } from "@/lib/types";
+import type { Member } from "@/shared/api";
 
 export interface EmergencyContactFormData {
   memberId: string;

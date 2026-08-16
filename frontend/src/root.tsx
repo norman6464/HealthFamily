@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Links,
   Meta,
@@ -6,9 +5,8 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./lib/auth";
-import "./app.css";
+import { AppProviders } from "@/app/providers";
+import "@/app/styles/app.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -37,18 +35,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
-      }),
-  );
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
-    </QueryClientProvider>
+    <AppProviders>
+      <Outlet />
+    </AppProviders>
   );
 }
 

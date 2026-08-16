@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import { Calendar, MapPin, Pencil, Trash2, User } from "lucide-react";
-import type { Appointment } from "@/lib/types";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
+import type { Appointment } from "@/shared/api";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
 import { APPOINTMENT_TYPE_LABELS } from "./AppointmentForm";
 
 export type AppointmentFilter = "upcoming" | "past";

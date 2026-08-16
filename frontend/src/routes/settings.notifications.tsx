@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { NotificationSetting } from "@/lib/types";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { NotificationSetting } from "@/shared/api";
 import {
   NotificationSettingsForm,
   type UpdateNotificationSettingInput,

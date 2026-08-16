@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Plus, X, Clock, Pill, Trash2 } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { Medication, Schedule } from "@/lib/types";
-import { Button, Card, ErrorText, Input } from "@/components/ui";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { Medication, Schedule } from "@/shared/api";
+import { Button, Card, ErrorText, Input } from "@/shared/ui";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
 
 interface CreateMedicationBody {
   memberId: string;

@@ -3,7 +3,7 @@
  * 複数コンポーネントで重複していたラベルマップを一元化している。
  */
 
-import type { ExpenseCategory } from "@/lib/types";
+import type { ExpenseCategory } from "@/shared/api";
 
 export type MedicationCategory =
   | "regular"

@@ -2,11 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { MapPin, Plus, X } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import { useResource } from "@/lib/useResource";
-import type { Appointment, Hospital, Member } from "@/lib/types";
-import { TabSwitch } from "@/components/shared/TabSwitch";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import { useResource } from "@/shared/api";
+import type { Appointment, Hospital, Member } from "@/shared/api";
+import { TabSwitch } from "@/shared/ui";
 import { MiniCalendar } from "@/components/appointments/MiniCalendar";
 import { AppointmentForm, type AppointmentFormData } from "@/components/appointments/AppointmentForm";
 import {

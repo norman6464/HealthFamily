@@ -8,7 +8,7 @@ import {
   type TodayScheduleViewModel,
 } from "@/hooks/dashboard";
 import { MissedDoseIndicator } from "./MissedDoseIndicator";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { LoadingSpinner } from "@/shared/ui";
 
 interface TodayScheduleListProps {
   schedules: TodayScheduleViewModel[];

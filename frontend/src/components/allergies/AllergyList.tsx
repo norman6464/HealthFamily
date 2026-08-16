@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Pencil, Trash2, Check, X } from "lucide-react";
-import type { Allergy } from "@/lib/types";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
-import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
-import { formatDateShort } from "@/lib/format";
+import type { Allergy } from "@/shared/api";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
+import { ConfirmationDialog } from "@/shared/ui";
+import { formatDateShort } from "@/shared/lib";
 
 export type AllergyWithMember = Allergy & { memberName?: string };
 

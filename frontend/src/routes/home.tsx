@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SlidersHorizontal } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { DashboardPreference } from "@/lib/types";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { DashboardPreference } from "@/shared/api";
 import { useAuth } from "@/lib/auth";
 import { useDashboardData, useMarkRecord, type MissedDose } from "@/hooks/dashboard";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
@@ -18,8 +18,8 @@ import {
   ORDERABLE_CARD_KEYS,
   type DashboardCardKey,
 } from "@/components/dashboard/DashboardSettings";
-import { MemberFilter } from "@/components/shared/MemberFilter";
-import { SectionTitle } from "@/components/shared/SectionTitle";
+import { MemberFilter } from "@/shared/ui";
+import { SectionTitle } from "@/shared/ui";
 
 const EMPTY_PREFERENCE: DashboardPreference = {
   userId: "",
