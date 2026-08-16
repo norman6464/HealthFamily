@@ -10,6 +10,9 @@ export default [
   route("forgot-password", "pages/forgot-password/index.ts"),
   route("reset-password", "pages/reset-password/index.ts"),
 
+  // Google 認可サーバーからの戻り先。Cloud Console にも同じパスの登録が必要
+  route("auth/callback", "pages/auth-callback/index.ts"),
+
   // 医師共有用の印刷最適化レポート（サイドバー等を出さない独立ページ）
   // 認証済みレイアウトの外にあるため、画面側で個別に useRequireAuth を呼んでいる
   route("members/:memberId/report", "pages/member-report/index.ts"),
