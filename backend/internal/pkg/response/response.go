@@ -30,6 +30,15 @@ func Unauthorized(c *gin.Context) {
 	Error(c, http.StatusUnauthorized, "認証エラー")
 }
 
+// Unavailable は一時的にサービスできないことを伝える。
+//
+// 認証の可否を判断できない障害で 401 を返すと、利用者には
+// 「ログインし直せば直る」ように見えて何度やっても入れない。
+// 復旧を待てばよいことが分かる形で返す。
+func Unavailable(c *gin.Context) {
+	Error(c, http.StatusServiceUnavailable, "現在サービスを利用できません。しばらくしてから再試行してください。")
+}
+
 // HandleDomainError はドメイン例外をHTTPステータスにマッピングする
 func HandleDomainError(c *gin.Context, err error) {
 	var notFound *domainerr.NotFoundError

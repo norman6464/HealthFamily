@@ -37,6 +37,7 @@ func userFromSqlc(u sqlcgen.User) entity.User {
 		ResetCode:            u.ResetCode,
 		ResetCodeExpiry:      u.ResetCodeExpiry,
 		ResetAttempts:        int(u.ResetAttempts),
+		TokenVersion:         int(u.TokenVersion),
 		GoogleID:             u.GoogleId,
 		CreatedAt:            u.CreatedAt,
 		UpdatedAt:            u.UpdatedAt,
@@ -114,4 +115,29 @@ func (r *UserRepository) Update(ctx context.Context, u *entity.User) error {
 		"updatedAt":            gorm.Expr("now()"),
 	}
 	return r.gdb.WithContext(ctx).Model(&gormUser{}).Where(`"id" = ?`, u.ID).Updates(fields).Error
+}
+
+// TokenVersion は発行済みトークンの世代だけを引く。
+//
+// 認証のたびに呼ばれるので、行全体 (パスワードハッシュや発行中のコードを含む) を
+// 読む FindByID は使わない。
+func (r *UserRepository) TokenVersion(ctx context.Context, id string) (int, bool, error) {
+	v, err := r.q.GetUserTokenVersion(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, false, nil
+	}
+	if err != nil {
+		return 0, false, err
+	}
+	return int(v), true, nil
+}
+
+// BumpTokenVersion は発行済みトークンの世代を DB 内で 1 つ繰り上げる。
+//
+// 読み出した値に 1 を足して書き戻す形にはしない。世代を上げた直後に、
+// 上げる前の値を握った並行リクエストが汎用 Update を完了させると、
+// 世代が巻き戻って失効させたはずの JWT が再び通ってしまう。
+// プロフィール更新のような何気ない操作が攻撃者を呼び戻すことになる。
+func (r *UserRepository) BumpTokenVersion(ctx context.Context, id string) error {
+	return r.q.BumpUserTokenVersion(ctx, id)
 }

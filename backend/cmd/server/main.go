@@ -13,6 +13,7 @@ import (
 	"healthfamily/internal/infrastructure/database"
 	"healthfamily/internal/infrastructure/persistence"
 	"healthfamily/internal/interface/handler"
+	"healthfamily/internal/interface/middleware"
 	"healthfamily/internal/interface/router"
 	"healthfamily/internal/pkg/auth"
 	"healthfamily/internal/pkg/googleauth"
@@ -79,7 +80,19 @@ func main() {
 		Dashboard:  handler.NewDashboardPreferenceHandler(usecase.NewDashboardPreferenceUsecase(dashboardPrefRepo)),
 	}
 
-	engine := router.Setup(handlers, tm, db, cfg.AllowedOrigins, cfg.TrustedProxyHops)
+	// 永続化層が middleware を知らずに済むよう、両者の結び付けはここで閉じる
+	tokenVersions := middleware.TokenVersionFunc(func(ctx context.Context, userID string) (int, error) {
+		v, found, err := userRepo.TokenVersion(ctx, userID)
+		if err != nil {
+			return 0, err
+		}
+		if !found {
+			return 0, middleware.ErrUserNotFound
+		}
+		return v, nil
+	})
+
+	engine := router.Setup(handlers, tm, tokenVersions, db, cfg.AllowedOrigins, cfg.TrustedProxyHops)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,

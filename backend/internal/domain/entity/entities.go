@@ -17,9 +17,11 @@ type User struct {
 	ResetCode            *string    `json:"-"`
 	ResetCodeExpiry      *time.Time `json:"-"`
 	ResetAttempts        int        `json:"-"`
-	GoogleID             *string    `json:"-"`
-	CreatedAt            time.Time  `json:"createdAt"`
-	UpdatedAt            time.Time  `json:"updatedAt"`
+	// 発行済みトークンの世代。再設定で繰り上げ、古いトークンを失効させる
+	TokenVersion int       `json:"-"`
+	GoogleID     *string   `json:"-"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 // Member は家族・ペットのメンバー

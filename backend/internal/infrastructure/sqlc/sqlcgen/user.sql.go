@@ -9,10 +9,19 @@ import (
 	"context"
 )
 
+const bumpUserTokenVersion = `-- name: BumpUserTokenVersion :exec
+UPDATE "User" SET "tokenVersion" = "tokenVersion" + 1, "updatedAt" = now() WHERE "id" = $1
+`
+
+func (q *Queries) BumpUserTokenVersion(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, bumpUserTokenVersion, id)
+	return err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT "id", "email", "password", "displayName", "characterType", "characterName",
        "emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",
-       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId", "resetAttempts"
+       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId", "resetAttempts", "tokenVersion"
 FROM "User"
 WHERE "email" = $1
 `
@@ -37,6 +46,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.UpdatedAt,
 		&i.GoogleId,
 		&i.ResetAttempts,
+		&i.TokenVersion,
 	)
 	return i, err
 }
@@ -44,7 +54,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 const getUserByGoogleID = `-- name: GetUserByGoogleID :one
 SELECT "id", "email", "password", "displayName", "characterType", "characterName",
        "emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",
-       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId", "resetAttempts"
+       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId", "resetAttempts", "tokenVersion"
 FROM "User"
 WHERE "googleId" = $1
 `
@@ -69,6 +79,7 @@ func (q *Queries) GetUserByGoogleID(ctx context.Context, googleid *string) (User
 		&i.UpdatedAt,
 		&i.GoogleId,
 		&i.ResetAttempts,
+		&i.TokenVersion,
 	)
 	return i, err
 }
@@ -76,7 +87,7 @@ func (q *Queries) GetUserByGoogleID(ctx context.Context, googleid *string) (User
 const getUserByID = `-- name: GetUserByID :one
 SELECT "id", "email", "password", "displayName", "characterType", "characterName",
        "emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",
-       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId", "resetAttempts"
+       "resetCode", "resetCodeExpiry", "createdAt", "updatedAt", "googleId", "resetAttempts", "tokenVersion"
 FROM "User"
 WHERE "id" = $1
 `
@@ -101,6 +112,18 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.UpdatedAt,
 		&i.GoogleId,
 		&i.ResetAttempts,
+		&i.TokenVersion,
 	)
 	return i, err
+}
+
+const getUserTokenVersion = `-- name: GetUserTokenVersion :one
+SELECT "tokenVersion" FROM "User" WHERE "id" = $1
+`
+
+func (q *Queries) GetUserTokenVersion(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserTokenVersion, id)
+	var tokenVersion int32
+	err := row.Scan(&tokenVersion)
+	return tokenVersion, err
 }

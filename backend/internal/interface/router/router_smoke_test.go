@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -25,7 +26,7 @@ func TestSetupRegistersWithoutPanic(t *testing.T) {
 		Budget:     handler.NewBudgetHandler(usecase.NewBudgetUsecase(nil, nil, nil, mailer.NewResendMailer("", ""))),
 		Dashboard:  handler.NewDashboardPreferenceHandler(usecase.NewDashboardPreferenceUsecase(nil)),
 	}
-	engine := Setup(h, tm, db, []string{"http://localhost:5173"}, 0)
+	engine := Setup(h, tm, noopTokenVersions{}, db, []string{"http://localhost:5173"}, 0)
 	if engine == nil {
 		t.Fatal("engine is nil")
 	}
@@ -34,3 +35,8 @@ func TestSetupRegistersWithoutPanic(t *testing.T) {
 	}
 	t.Logf("registered %d routes", len(engine.Routes()))
 }
+
+// 版番号の照合はここでの関心事ではない。常に一致させて素通しする
+type noopTokenVersions struct{}
+
+func (noopTokenVersions) TokenVersion(context.Context, string) (int, error) { return 0, nil }

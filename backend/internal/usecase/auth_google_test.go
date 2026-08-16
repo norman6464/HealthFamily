@@ -181,3 +181,24 @@ func TestLoginWithGoogle_無効時はエラー(t *testing.T) {
 		t.Fatal("Verifier未設定ならエラーを期待")
 	}
 }
+
+// 保持している利用者の版番号をそのまま返す。存在しなければ found=false。
+func (f *fakeUserRepo) TokenVersion(ctx context.Context, id string) (int, bool, error) {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return 0, false, err
+	}
+	return u.TokenVersion, true, nil
+}
+
+// 本物と同じく DB 内加算に相当する。読み出した値を書き戻さない
+func (f *fakeUserRepo) BumpTokenVersion(ctx context.Context, id string) error {
+	u, err := f.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if u != nil {
+		u.TokenVersion++
+	}
+	return nil
+}

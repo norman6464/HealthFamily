@@ -174,7 +174,7 @@ func (uc *AuthUsecase) Verify(ctx context.Context, email, code string) (string, 
 	if err := uc.users.Update(ctx, u); err != nil {
 		return "", nil, err
 	}
-	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	token, err := uc.tokens.Generate(u.ID, u.Email, u.TokenVersion, uc.now())
 	return token, u, err
 }
 
@@ -200,7 +200,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, email, password string) (strin
 	if !u.EmailVerified {
 		return "", nil, domain.NewForbidden("メールアドレスが認証されていません")
 	}
-	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	token, err := uc.tokens.Generate(u.ID, u.Email, u.TokenVersion, uc.now())
 	return token, u, err
 }
 
@@ -256,7 +256,7 @@ func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, credential string) (
 		}
 	}
 
-	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	token, err := uc.tokens.Generate(u.ID, u.Email, u.TokenVersion, uc.now())
 	return token, u, err
 }
 
@@ -287,7 +287,7 @@ func (uc *AuthUsecase) TestLogin(ctx context.Context, email string) (string, *en
 			return "", nil, err
 		}
 	}
-	token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
+	token, err := uc.tokens.Generate(u.ID, u.Email, u.TokenVersion, uc.now())
 	return token, u, err
 }
 
@@ -364,5 +364,16 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswo
 	u.ResetCode = nil
 	u.ResetCodeExpiry = nil
 	u.ResetAttempts = 0
-	return uc.users.Update(ctx, u)
+	if err := uc.users.Update(ctx, u); err != nil {
+		return err
+	}
+	// 発行済みトークンを失効させる。パスワードを変えたのに攻撃者が
+	// 有効期限(7日)まで居座れるなら、乗っ取られた利用者に打つ手が無い。
+	//
+	// 繰り上げるのは照合に成功した後だけ。失敗でも動かすと、第三者が
+	// でたらめなコードを送りつけるだけで任意の利用者を締め出せてしまう。
+	//
+	// 加算は DB 内で行う。読み出した値に足して書き戻すと、
+	// 上げる前の値を握った並行リクエストに巻き戻される
+	return uc.users.BumpTokenVersion(ctx, u.ID)
 }
