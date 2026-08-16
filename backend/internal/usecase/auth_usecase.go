@@ -233,6 +233,31 @@ func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, credential string) (
 			return "", nil, err
 		}
 		if u != nil {
+			// すでに別の Google アカウントが紐づいているなら差し替えない。
+			// Google 側でアドレスの所有が確認されていても、Workspace の
+			// アドレス付け替えや退職者アカウントの再割り当てで、
+			// 同じアドレスを名乗る別の sub が現れうる。差し替えを許すと、
+			// その時点で元の利用者のアカウントを奪えてしまう。
+			if u.GoogleID != nil && *u.GoogleID != sub {
+				return "", nil, domain.NewConflict("このメールアドレスには別のGoogleアカウントが紐付いています")
+			}
+			// 同じアドレスなら同じアカウントに寄せる。ただし、そのメールボックスを
+			// 使えることを示していない側の資格情報は引き継がない。
+			//
+			// 未認証のまま残っているパスワードは、誰が設定したものか分からない。
+			// 被害者が登録する前に攻撃者がそのアドレスで登録しておくと、
+			// 被害者の Google ログインでアカウントが「認証済み」になり、
+			// 攻撃者のパスワードでそのまま入れてしまう。
+			//
+			// ここで消しても本人は困らない。所有を示せる本人は再設定コードで
+			// 設定し直せるし、未認証のアカウントはログインできないので中身も無い。
+			if !u.EmailVerified {
+				u.Password = ""
+				u.DisplayName = claims.Name
+				u.VerificationCode = nil
+				u.VerificationExpiry = nil
+				u.VerificationAttempts = 0
+			}
 			u.GoogleID = &sub
 			u.EmailVerified = true
 			if err := uc.users.Update(ctx, u); err != nil {
