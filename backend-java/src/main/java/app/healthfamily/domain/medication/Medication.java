@@ -1,6 +1,7 @@
 package app.healthfamily.domain.medication;
 
 import app.healthfamily.domain.shared.DomainException;
+import app.healthfamily.domain.shared.OwnedResource;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -15,7 +16,7 @@ import java.util.Optional;
  *
  * <p>状態を変えられるのはこのクラスのメソッド経由だけで、setter は公開しない。
  */
-public class Medication {
+public class Medication implements OwnedResource {
 
     private final String id;
     private final String userId;
@@ -133,16 +134,15 @@ public class Medication {
         return stock.isBelow(daysUntilAlert);
     }
 
-    /** 指定ユーザーの所有物か。 */
-    public boolean ownedBy(String candidateUserId) {
-        return userId.equals(candidateUserId);
+    /** 所有者でなければ例外を投げる。 */
+    @Override
+    public String ownerId() {
+        return userId;
     }
 
-    /** 所有者でなければ例外を投げる。 */
+    /** 資源名を固定した呼び出し口。既存の呼び出しをそのまま使えるようにしている。 */
     public void requireOwnedBy(String candidateUserId) {
-        if (!ownedBy(candidateUserId)) {
-            throw DomainException.forbidden("この薬にアクセスする権限がありません");
-        }
+        requireOwnedBy(candidateUserId, "薬");
     }
 
     // --- 参照 -------------------------------------------------------------
