@@ -10,7 +10,7 @@ import (
 
 // AuthHandler は認証エンドポイント
 type AuthHandler struct {
-	uc *usecase.AuthUsecase // 空ならテストログイン無効
+	uc *usecase.AuthUsecase
 }
 
 func NewAuthHandler(uc *usecase.AuthUsecase) *AuthHandler {
