@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"healthfamily/internal/domain/entity"
 	"healthfamily/internal/infrastructure/database"
@@ -51,14 +52,17 @@ func TestTokenVersion_並行更新で巻き戻らない(t *testing.T) {
 	}
 
 	// その間にパスワード再設定が走り、世代を繰り上げる
-	if err := repo.BumpTokenVersion(ctx, id); err != nil {
-		t.Fatalf("bump: %v", err)
+	if err := repo.SaveResetCode(ctx, id, "654321", time.Now().Add(time.Hour)); err != nil {
+		t.Fatalf("save reset code: %v", err)
+	}
+	if err := repo.ApplyPasswordReset(ctx, id, "654321", "$2a$12$new"); err != nil {
+		t.Fatalf("reset: %v", err)
 	}
 
 	// 先に読み込んでいた側が、無関係な項目を更新して保存する
 	name := "更新後の名前"
 	stale.DisplayName = &name
-	if err := repo.Update(ctx, stale); err != nil {
+	if err := repo.UpdateProfile(ctx, stale); err != nil {
 		t.Fatalf("update: %v", err)
 	}
 

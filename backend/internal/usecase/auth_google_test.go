@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"healthfamily/internal/domain/repository"
 	"testing"
 	"time"
 
@@ -191,14 +192,153 @@ func (f *fakeUserRepo) TokenVersion(ctx context.Context, id string) (int, bool, 
 	return u.TokenVersion, true, nil
 }
 
-// 本物と同じく DB 内加算に相当する。読み出した値を書き戻さない
-func (f *fakeUserRepo) BumpTokenVersion(ctx context.Context, id string) error {
-	u, err := f.FindByID(ctx, id)
-	if err != nil {
+// --- repository.UserRepository の資格情報系メソッド ---
+// 本物と同じく、読み出したスナップショットを書き戻さない形で振る舞う。
+
+func (f *fakeUserRepo) UpdateProfile(ctx context.Context, u *entity.User) error {
+	cur, err := f.FindByID(ctx, u.ID)
+	if err != nil || cur == nil {
 		return err
 	}
-	if u != nil {
-		u.TokenVersion++
+	cur.DisplayName = u.DisplayName
+	cur.CharacterType = u.CharacterType
+	cur.CharacterName = u.CharacterName
+	f.updated++
+	return nil
+}
+
+func (f *fakeUserRepo) SavePendingRegistration(ctx context.Context, id, hashed string, displayName *string, code string, expiry time.Time) error {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
 	}
+	if u.EmailVerified {
+		return repository.ErrAlreadyVerified
+	}
+	u.Password = hashed
+	u.DisplayName = displayName
+	u.VerificationCode = &code
+	u.VerificationExpiry = &expiry
+	u.VerificationAttempts = 0
+	f.updated++
+	return nil
+}
+
+func (f *fakeUserRepo) SaveVerificationCode(ctx context.Context, id, code string, expiry time.Time) error {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	u.VerificationCode = &code
+	u.VerificationExpiry = &expiry
+	u.VerificationAttempts = 0
+	f.updated++
+	return nil
+}
+
+func (f *fakeUserRepo) MarkEmailVerified(ctx context.Context, id, verifiedCode string) error {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	if u.VerificationCode == nil || *u.VerificationCode != verifiedCode {
+		return repository.ErrCodeConsumed
+	}
+	u.EmailVerified = true
+	u.VerificationCode = nil
+	u.VerificationExpiry = nil
+	u.VerificationAttempts = 0
+	f.updated++
+	return nil
+}
+
+func (f *fakeUserRepo) ClaimVerificationAttempt(ctx context.Context, id string, max int) (*string, *time.Time, bool, error) {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return nil, nil, true, err
+	}
+	// 本物と同じ規則。生きているコードが無ければ消費しない
+	if u.VerificationCode == nil || u.VerificationExpiry == nil || !u.VerificationExpiry.After(time.Now()) {
+		return nil, nil, true, nil
+	}
+	code, expiry := u.VerificationCode, u.VerificationExpiry
+	u.VerificationAttempts++
+	if u.VerificationAttempts > max {
+		u.VerificationCode = nil
+		u.VerificationExpiry = nil
+	}
+	f.updated++
+	if u.VerificationAttempts > max {
+		return nil, nil, false, nil
+	}
+	return code, expiry, true, nil
+}
+
+func (f *fakeUserRepo) SaveResetCode(ctx context.Context, id, code string, expiry time.Time) error {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	u.ResetCode = &code
+	u.ResetCodeExpiry = &expiry
+	u.ResetAttempts = 0
+	f.updated++
+	return nil
+}
+
+func (f *fakeUserRepo) ClaimResetAttempt(ctx context.Context, id string, max int) (*string, *time.Time, bool, error) {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return nil, nil, true, err
+	}
+	// 本物と同じ規則。生きているコードが無ければ消費しない
+	if u.ResetCode == nil || u.ResetCodeExpiry == nil || !u.ResetCodeExpiry.After(time.Now()) {
+		return nil, nil, true, nil
+	}
+	code, expiry := u.ResetCode, u.ResetCodeExpiry
+	u.ResetAttempts++
+	if u.ResetAttempts > max {
+		u.ResetCode = nil
+		u.ResetCodeExpiry = nil
+	}
+	f.updated++
+	if u.ResetAttempts > max {
+		return nil, nil, false, nil
+	}
+	return code, expiry, true, nil
+}
+
+func (f *fakeUserRepo) ApplyPasswordReset(ctx context.Context, id, verifiedCode, hashed string) error {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	if u.ResetCode == nil || *u.ResetCode != verifiedCode {
+		return repository.ErrCodeConsumed
+	}
+	u.Password = hashed
+	u.ResetCode = nil
+	u.ResetCodeExpiry = nil
+	u.ResetAttempts = 0
+	u.TokenVersion++
+	f.updated++
+	return nil
+}
+
+func (f *fakeUserRepo) LinkGoogle(ctx context.Context, id, subject string, resetCredentials bool, displayName *string) error {
+	u, err := f.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	if resetCredentials {
+		u.Password = ""
+		u.DisplayName = displayName
+		u.VerificationCode = nil
+		u.VerificationExpiry = nil
+		u.VerificationAttempts = 0
+	}
+	u.GoogleID = &subject
+	u.EmailVerified = true
+	f.updated++
 	return nil
 }

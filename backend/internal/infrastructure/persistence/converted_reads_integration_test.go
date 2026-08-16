@@ -11,6 +11,30 @@ import (
 )
 
 // sqlc へ置き換えた読み取りが、実DBに対して期待どおり動くこと。
+// このパッケージの読み取りテストが使う最小限のデータを用意する。
+// 外部で投入されている前提にすると、DB を作り直した瞬間に落ちる。
+func seedReadFixtures(t *testing.T, db *database.DB) {
+	t.Helper()
+	ctx := context.Background()
+	stmts := []string{
+		`DELETE FROM "User" WHERE "id" = 'u1'`,
+		`INSERT INTO "User"("id","email","password") VALUES ('u1','u1@example.test','x')`,
+		`INSERT INTO "Member"("id","userId","name") VALUES ('m1','u1','太郎')`,
+		`INSERT INTO "Medication"("id","memberId","userId","name","stockQuantity","isActive") VALUES ('med1','m1','u1','薬A',3,true)`,
+		`INSERT INTO "MedicationRecord"("id","memberId","medicationId","userId","takenAt") VALUES ('r1','m1','med1','u1',now())`,
+		`INSERT INTO "Expense"("id","userId","memberId","category","amount","expenseDate","isDeductible") VALUES ('e1','u1','m1','診察',3000,now(),true)`,
+		`INSERT INTO "Prescription"("id","userId","memberId","prescriptionName","prescribedAt") VALUES ('p1','u1','m1','処方箋A',now())`,
+		`INSERT INTO "PrescriptionItem"("id","prescriptionId","name","sortOrder") VALUES ('pi1','p1','薬X',1),('pi2','p1','薬Y',2)`,
+		`INSERT INTO "Schedule"("id","medicationId","userId","memberId","scheduledTime","isEnabled") VALUES ('s1','med1','u1','m1','08:00',true)`,
+	}
+	for _, q := range stmts {
+		if _, err := db.Pool.Exec(ctx, q); err != nil {
+			t.Fatalf("seed (%s): %v", q, err)
+		}
+	}
+	t.Cleanup(func() { _, _ = db.Pool.Exec(context.Background(), `DELETE FROM "User" WHERE "id" = 'u1'`) })
+}
+
 func TestConverted_sqlc読み取り(t *testing.T) {
 	if os.Getenv("HF_DB_INTEGRATION") != "1" {
 		t.Skip("HF_DB_INTEGRATION=1 以外はスキップ")
@@ -21,6 +45,7 @@ func TestConverted_sqlc読み取り(t *testing.T) {
 		t.Fatalf("connect: %v", err)
 	}
 	defer db.Close()
+	seedReadFixtures(t, db)
 
 	t.Run("メンバー集計", func(t *testing.T) {
 		got, err := NewMemberRepository(db).ListSummary(ctx, "u1")
@@ -95,6 +120,7 @@ func TestConverted_sqlc読み取り後半(t *testing.T) {
 		t.Fatalf("connect: %v", err)
 	}
 	defer db.Close()
+	seedReadFixtures(t, db)
 
 	t.Run("医療費の絞り込み", func(t *testing.T) {
 		repo := NewExpenseRepository(db)

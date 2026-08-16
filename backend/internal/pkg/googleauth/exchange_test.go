@@ -98,11 +98,11 @@ func TestExchangerRequiresIDToken(t *testing.T) {
 
 func TestCodeGrantValidation(t *testing.T) {
 	cases := map[string]CodeGrant{
-		"コードが空":            {Code: "", CodeVerifier: strings.Repeat("v", 43), RedirectURI: "https://a.example.com/cb"},
-		"code_verifier が空": {Code: "c", CodeVerifier: "", RedirectURI: "https://a.example.com/cb"},
+		"コードが空":             {Code: "", CodeVerifier: strings.Repeat("v", 43), RedirectURI: "https://a.example.com/cb"},
+		"code_verifier が空":  {Code: "c", CodeVerifier: "", RedirectURI: "https://a.example.com/cb"},
 		"code_verifier が短い": {Code: "c", CodeVerifier: strings.Repeat("v", 42), RedirectURI: "https://a.example.com/cb"},
 		"code_verifier が長い": {Code: "c", CodeVerifier: strings.Repeat("v", 129), RedirectURI: "https://a.example.com/cb"},
-		"redirect_uri が空":  {Code: "c", CodeVerifier: strings.Repeat("v", 43), RedirectURI: ""},
+		"redirect_uri が空":   {Code: "c", CodeVerifier: strings.Repeat("v", 43), RedirectURI: ""},
 	}
 
 	for name, grant := range cases {
