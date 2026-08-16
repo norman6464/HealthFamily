@@ -4,6 +4,9 @@ import app.healthfamily.domain.hospital.Hospital;
 import app.healthfamily.domain.member.MemberRepository;
 import app.healthfamily.domain.memberrecord.Allergy;
 import app.healthfamily.domain.memberrecord.EmergencyContact;
+import app.healthfamily.domain.healthrecord.BodyMeasurementRecord;
+import app.healthfamily.domain.healthrecord.TemperatureRecord;
+import app.healthfamily.domain.healthrecord.VaccinationRecord;
 import app.healthfamily.domain.memberrecord.Insurance;
 import app.healthfamily.usecase.crud.MemberScopedCrudUseCase;
 import app.healthfamily.usecase.crud.OwnedCrudRepository;
@@ -39,6 +42,27 @@ public class CrudUseCaseConfig {
             OwnedCrudRepository<EmergencyContact> repository, MemberRepository members) {
         return new MemberScopedCrudUseCase<>(
                 repository, members, EmergencyContact::memberId, "緊急連絡先");
+    }
+
+    @Bean
+    public MemberScopedCrudUseCase<TemperatureRecord> temperatureUseCase(
+            OwnedCrudRepository<TemperatureRecord> repository, MemberRepository members) {
+        return new MemberScopedCrudUseCase<>(
+                repository, members, TemperatureRecord::memberId, "体温の記録");
+    }
+
+    @Bean
+    public MemberScopedCrudUseCase<BodyMeasurementRecord> bodyMeasurementUseCase(
+            OwnedCrudRepository<BodyMeasurementRecord> repository, MemberRepository members) {
+        return new MemberScopedCrudUseCase<>(
+                repository, members, BodyMeasurementRecord::memberId, "体格の記録");
+    }
+
+    @Bean
+    public MemberScopedCrudUseCase<VaccinationRecord> vaccinationUseCase(
+            OwnedCrudRepository<VaccinationRecord> repository, MemberRepository members) {
+        return new MemberScopedCrudUseCase<>(
+                repository, members, VaccinationRecord::memberId, "ワクチンの記録");
     }
 
     @Bean
