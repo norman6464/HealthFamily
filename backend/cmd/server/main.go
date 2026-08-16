@@ -70,7 +70,7 @@ func main() {
 	}
 
 	handlers := &router.Handlers{
-		Auth:       handler.NewAuthHandler(authUsecase, cfg.E2ETestLoginSecret),
+		Auth:       handler.NewAuthHandler(authUsecase),
 		Member:     handler.NewMemberHandler(usecase.NewMemberUsecase(memberRepo)),
 		Medication: handler.NewMedicationHandler(usecase.NewMedicationUsecase(medRepo, memberRepo)),
 		Schedule:   handler.NewScheduleHandler(usecase.NewScheduleUsecase(schedRepo, medRepo)),

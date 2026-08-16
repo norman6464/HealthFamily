@@ -17,7 +17,7 @@ func TestSetupRegistersWithoutPanic(t *testing.T) {
 	db := &database.DB{}
 	tm := auth.NewTokenManager("test-secret", time.Hour)
 	h := &Handlers{
-		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(nil, tm, mailer.NewResendMailer("", ""), nil), ""),
+		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(nil, tm, mailer.NewResendMailer("", ""), nil)),
 		Member:     handler.NewMemberHandler(usecase.NewMemberUsecase(nil)),
 		Medication: handler.NewMedicationHandler(usecase.NewMedicationUsecase(nil, nil)),
 		Schedule:   handler.NewScheduleHandler(usecase.NewScheduleUsecase(nil, nil)),

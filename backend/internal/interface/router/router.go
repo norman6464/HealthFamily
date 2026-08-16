@@ -62,10 +62,6 @@ func Setup(h *Handlers, tm *auth.TokenManager, tokenVersions middleware.TokenVer
 		authGroup.POST("/resend-code", ipLimit("resend", 5), h.Auth.ResendCode)
 		authGroup.POST("/forgot-password", ipLimit("forgot", 5), h.Auth.ForgotPassword)
 		authGroup.POST("/reset-password", ipLimit("reset", 5), h.Auth.ResetPassword)
-		// E2Eテスト用ログインバイパス（E2E_TEST_LOGIN_SECRET 設定時のみ登録。本番では無効）
-		if h.Auth.TestLoginEnabled() {
-			authGroup.POST("/test-login", h.Auth.TestLogin)
-		}
 	}
 
 	// --- 認証必須 ---

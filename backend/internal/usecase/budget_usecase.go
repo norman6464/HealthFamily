@@ -11,8 +11,6 @@ import (
 	"healthfamily/internal/pkg/mailer"
 )
 
-var jst = time.FixedZone("Asia/Tokyo", 9*60*60)
-
 // BudgetUsecase は月次予算（パーソナライズ）と予算超過アラートのビジネスロジック
 type BudgetUsecase struct {
 	budgets  repository.BudgetRepository

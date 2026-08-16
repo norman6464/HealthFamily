@@ -30,7 +30,9 @@ func NewResendMailer(apiKey, from string) *ResendMailer {
 func (m *ResendMailer) send(ctx context.Context, to, subject, html string) error {
 	// APIキー未設定時は開発用にログ出力のみ（送信スキップ）
 	if m.apiKey == "" {
-		fmt.Printf("[mailer] (skipped, no API key) to=%s subject=%s\n", to, subject)
+		// 宛先は出さない。APIキーの設定漏れでログが「登録を試みた人の一覧」になる。
+		// 開発時に知りたいのは「送信が起きたか」であって誰宛かではない
+		fmt.Printf("[mailer] (skipped, no API key) subject=%s\n", subject)
 		return nil
 	}
 	payload, _ := json.Marshal(map[string]any{

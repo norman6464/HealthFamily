@@ -21,8 +21,6 @@ type Config struct {
 	// 認可コードグラント用のクライアントシークレット。
 	// 空なら /google/callback は無効。ID トークン方式 (/google) だけが残る。
 	GoogleClientSecret string
-	// E2Eテスト用ログインバイパスの共有シークレット。空なら無効(本番)。
-	E2ETestLoginSecret string
 	// 自分たちの基盤が X-Forwarded-For に足す段数。
 	// Cloud Run に直接ぶら下げるなら 1、前段が無ければ 0。
 	// 既定を 0 にしているのは、設定し忘れたときに「クライアントの言い値を信じる」
@@ -73,7 +71,6 @@ func Load() (*Config, error) {
 		AppBaseURL:         getEnv("APP_BASE_URL", "http://localhost:5173"),
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		E2ETestLoginSecret: os.Getenv("E2E_TEST_LOGIN_SECRET"),
 		TrustedProxyHops:   trustedProxyHops(),
 	}
 
