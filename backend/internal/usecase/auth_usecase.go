@@ -60,6 +60,16 @@ func NewAuthUsecase(users repository.UserRepository, tokens *auth.TokenManager, 
 	return &AuthUsecase{users: users, tokens: tokens, mail: mail, google: google, now: time.Now}
 }
 
+// MaxCodeAttempts は 1 つのコードに対して許す失敗回数。
+//
+// コードは100万通りしかない。IP 単位の制限だけでは、攻撃者が IP を分散させれば
+// 現実的な時間で尽くせてしまうので、アカウント側でも数える。
+//
+// アカウントを凍結するのではなくコードを捨てるのは、凍結だと第三者が
+// でたらめなコードを送りつけるだけで任意の利用者を締め出せてしまうため。
+// コードを捨てる方式なら、本人は再送を受け取ればやり直せる。
+const MaxCodeAttempts = 5
+
 // SignUp は新規登録し、認証コードをメール送信する。
 // ユーザー列挙攻撃を防ぐため、既存の認証済みユーザーでも同じ結果を返す。
 func (uc *AuthUsecase) SignUp(ctx context.Context, email, password string, displayName *string) error {
@@ -123,12 +133,28 @@ func (uc *AuthUsecase) Verify(ctx context.Context, email, code string) (string, 
 		u.VerificationCode == nil || u.VerificationExpiry == nil ||
 		subtle.ConstantTimeCompare([]byte(*u.VerificationCode), []byte(code)) != 1 ||
 		uc.now().After(*u.VerificationExpiry) {
+		// 当たりうるコードが生きているときだけ数える。無い・期限切れなら
+		// どんな入力も当たりようがなく、数えると「でたらめなアドレスを投げるだけで
+		// 書き込みを起こせる」経路になる
+		if u != nil && u.VerificationCode != nil && u.VerificationExpiry != nil &&
+			!uc.now().After(*u.VerificationExpiry) {
+			u.VerificationAttempts++
+			if u.VerificationAttempts >= MaxCodeAttempts {
+				u.VerificationCode = nil
+				u.VerificationExpiry = nil
+			}
+			// 保存しなければ次のリクエストで数え直しになり、上限が効かない
+			if err := uc.users.Update(ctx, u); err != nil {
+				return "", nil, err
+			}
+		}
 		return "", nil, domain.NewValidation(invalidCode)
 	}
 
 	u.EmailVerified = true
 	u.VerificationCode = nil
 	u.VerificationExpiry = nil
+	u.VerificationAttempts = 0
 	if err := uc.users.Update(ctx, u); err != nil {
 		return "", nil, err
 	}
@@ -249,6 +275,9 @@ func (uc *AuthUsecase) ResendCode(ctx context.Context, email string) error {
 	expiry := uc.now().Add(10 * time.Minute)
 	u.VerificationCode = &code
 	u.VerificationExpiry = &expiry
+	// 新しいコードには新しい枠を与える。戻さないと、総当たりを受けた本人が
+	// 再送を受け取っても永久にやり直せなくなる
+	u.VerificationAttempts = 0
 	if err := uc.users.Update(ctx, u); err != nil {
 		return err
 	}
@@ -266,6 +295,7 @@ func (uc *AuthUsecase) ForgotPassword(ctx context.Context, email string) error {
 	expiry := uc.now().Add(10 * time.Minute)
 	u.ResetCode = &code
 	u.ResetCodeExpiry = &expiry
+	u.ResetAttempts = 0
 	if err := uc.users.Update(ctx, u); err != nil {
 		return err
 	}
@@ -284,6 +314,19 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswo
 	if u == nil || u.ResetCode == nil || u.ResetCodeExpiry == nil ||
 		subtle.ConstantTimeCompare([]byte(*u.ResetCode), []byte(code)) != 1 ||
 		uc.now().After(*u.ResetCodeExpiry) {
+		// 試行回数はメール認証とは別に数える。片方への攻撃で、
+		// もう片方まで本人が使えなくなるのを避けるため
+		if u != nil && u.ResetCode != nil && u.ResetCodeExpiry != nil &&
+			!uc.now().After(*u.ResetCodeExpiry) {
+			u.ResetAttempts++
+			if u.ResetAttempts >= MaxCodeAttempts {
+				u.ResetCode = nil
+				u.ResetCodeExpiry = nil
+			}
+			if err := uc.users.Update(ctx, u); err != nil {
+				return err
+			}
+		}
 		return domain.NewValidation("再設定コードが正しくないか、有効期限が切れています")
 	}
 	hashed, err := auth.HashPassword(newPassword)
@@ -293,5 +336,6 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswo
 	u.Password = hashed
 	u.ResetCode = nil
 	u.ResetCodeExpiry = nil
+	u.ResetAttempts = 0
 	return uc.users.Update(ctx, u)
 }

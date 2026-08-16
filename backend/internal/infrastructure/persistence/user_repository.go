@@ -36,6 +36,7 @@ func userFromSqlc(u sqlcgen.User) entity.User {
 		VerificationAttempts: int(u.VerificationAttempts),
 		ResetCode:            u.ResetCode,
 		ResetCodeExpiry:      u.ResetCodeExpiry,
+		ResetAttempts:        int(u.ResetAttempts),
 		GoogleID:             u.GoogleId,
 		CreatedAt:            u.CreatedAt,
 		UpdatedAt:            u.UpdatedAt,
@@ -108,6 +109,7 @@ func (r *UserRepository) Update(ctx context.Context, u *entity.User) error {
 		"verificationAttempts": u.VerificationAttempts,
 		"resetCode":            u.ResetCode,
 		"resetCodeExpiry":      u.ResetCodeExpiry,
+		"resetAttempts":        u.ResetAttempts,
 		"googleId":             u.GoogleID,
 		"updatedAt":            gorm.Expr("now()"),
 	}
