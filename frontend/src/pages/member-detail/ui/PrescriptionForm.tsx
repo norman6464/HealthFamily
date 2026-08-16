@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import type { Member } from "@/shared/api";
+import React, { useState } from 'react';
+import type { Member } from '@/shared/api';
 
 export interface PrescriptionFormData {
   memberId: string;
@@ -29,23 +29,30 @@ interface PrescriptionFormProps {
 }
 
 const toDateInput = (value: string | null | undefined): string => {
-  if (!value) return "";
-  return new Date(value).toISOString().split("T")[0];
+  if (!value) return '';
+  return new Date(value).toISOString().split('T')[0];
 };
 
-const todayInput = (): string => new Date().toISOString().split("T")[0];
+const todayInput = (): string => new Date().toISOString().split('T')[0];
 
-export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onSubmit, onCancel, initialData }) => {
-  const [memberId, setMemberId] = useState(initialData?.memberId || (members.length === 1 ? members[0].id : ""));
-  const [prescriptionName, setPrescriptionName] = useState(initialData?.prescriptionName || "");
-  const [prescribedBy, setPrescribedBy] = useState(initialData?.prescribedBy || "");
+export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({
+  members,
+  onSubmit,
+  onCancel,
+  initialData,
+}) => {
+  const [memberId, setMemberId] = useState(
+    initialData?.memberId || (members.length === 1 ? members[0].id : ''),
+  );
+  const [prescriptionName, setPrescriptionName] = useState(initialData?.prescriptionName || '');
+  const [prescribedBy, setPrescribedBy] = useState(initialData?.prescribedBy || '');
   const [prescribedAt, setPrescribedAt] = useState(
     initialData?.prescribedAt ? toDateInput(initialData.prescribedAt) : todayInput(),
   );
   const [expiresAt, setExpiresAt] = useState(toDateInput(initialData?.expiresAt));
-  const [pharmacyName, setPharmacyName] = useState(initialData?.pharmacyName || "");
-  const [electronicCode, setElectronicCode] = useState(initialData?.electronicCode || "");
-  const [notes, setNotes] = useState(initialData?.notes || "");
+  const [pharmacyName, setPharmacyName] = useState(initialData?.pharmacyName || '');
+  const [electronicCode, setElectronicCode] = useState(initialData?.electronicCode || '');
+  const [notes, setNotes] = useState(initialData?.notes || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,36 +70,40 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
     });
 
     if (!initialData) {
-      setPrescriptionName("");
-      setPrescribedBy("");
-      setExpiresAt("");
-      setPharmacyName("");
-      setElectronicCode("");
-      setNotes("");
+      setPrescriptionName('');
+      setPrescribedBy('');
+      setExpiresAt('');
+      setPharmacyName('');
+      setElectronicCode('');
+      setNotes('');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="rx-member" className="block text-sm font-medium text-ink-700 mb-1">
-          メンバー
-        </label>
-        <select
-          id="rx-member"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          required
-        >
-          <option value="">選択してください</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* 候補が1人しかいないなら選ばせる意味が無い。
+          メンバー詳細から開いたフォームは常にその1人に限られる */}
+      {members.length > 1 && (
+        <div>
+          <label htmlFor="rx-member" className="block text-sm font-medium text-ink-700 mb-1">
+            メンバー
+          </label>
+          <select
+            id="rx-member"
+            value={memberId}
+            onChange={(e) => setMemberId(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            required
+          >
+            <option value="">選択してください</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label htmlFor="rx-name" className="block text-sm font-medium text-ink-700 mb-1">
@@ -198,7 +209,7 @@ export const PrescriptionForm: React.FC<PrescriptionFormProps> = ({ members, onS
           type="submit"
           className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium"
         >
-          {initialData ? "更新する" : "登録する"}
+          {initialData ? '更新する' : '登録する'}
         </button>
         {onCancel && (
           <button

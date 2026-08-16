@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import type { Member } from "@/shared/api";
+import React, { useState } from 'react';
+import type { Member } from '@/shared/api';
 
 export interface VaccinationFormData {
   memberId: string;
@@ -23,20 +23,29 @@ interface VaccinationFormProps {
 }
 
 const toDateInput = (value: string | null | undefined): string => {
-  if (!value) return "";
-  return new Date(value).toISOString().split("T")[0];
+  if (!value) return '';
+  return new Date(value).toISOString().split('T')[0];
 };
 
-const todayInput = (): string => new Date().toISOString().split("T")[0];
+const todayInput = (): string => new Date().toISOString().split('T')[0];
 
-export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSubmit, onCancel, initialData }) => {
-  const [memberId, setMemberId] = useState(initialData?.memberId || (members.length === 1 ? members[0].id : ""));
-  const [vaccineName, setVaccineName] = useState(initialData?.vaccineName || "");
+export const VaccinationForm: React.FC<VaccinationFormProps> = ({
+  members,
+  onSubmit,
+  onCancel,
+  initialData,
+}) => {
+  const [memberId, setMemberId] = useState(
+    initialData?.memberId || (members.length === 1 ? members[0].id : ''),
+  );
+  const [vaccineName, setVaccineName] = useState(initialData?.vaccineName || '');
   const [vaccinatedAt, setVaccinatedAt] = useState(
     initialData?.vaccinatedAt ? toDateInput(initialData.vaccinatedAt) : todayInput(),
   );
-  const [nextScheduledDate, setNextScheduledDate] = useState(toDateInput(initialData?.nextScheduledDate));
-  const [notes, setNotes] = useState(initialData?.notes || "");
+  const [nextScheduledDate, setNextScheduledDate] = useState(
+    toDateInput(initialData?.nextScheduledDate),
+  );
+  const [notes, setNotes] = useState(initialData?.notes || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,34 +60,38 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
     });
 
     if (!initialData) {
-      setVaccineName("");
+      setVaccineName('');
       setVaccinatedAt(todayInput());
-      setNextScheduledDate("");
-      setNotes("");
+      setNextScheduledDate('');
+      setNotes('');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="vacc-member" className="block text-sm font-medium text-ink-700 mb-1">
-          メンバー
-        </label>
-        <select
-          id="vacc-member"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          required
-        >
-          <option value="">選択してください</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* 候補が1人しかいないなら選ばせる意味が無い。
+          メンバー詳細から開いたフォームは常にその1人に限られる */}
+      {members.length > 1 && (
+        <div>
+          <label htmlFor="vacc-member" className="block text-sm font-medium text-ink-700 mb-1">
+            メンバー
+          </label>
+          <select
+            id="vacc-member"
+            value={memberId}
+            onChange={(e) => setMemberId(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            required
+          >
+            <option value="">選択してください</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label htmlFor="vacc-name" className="block text-sm font-medium text-ink-700 mb-1">
@@ -141,7 +154,7 @@ export const VaccinationForm: React.FC<VaccinationFormProps> = ({ members, onSub
           type="submit"
           className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium"
         >
-          {initialData ? "更新する" : "登録する"}
+          {initialData ? '更新する' : '登録する'}
         </button>
         {onCancel && (
           <button

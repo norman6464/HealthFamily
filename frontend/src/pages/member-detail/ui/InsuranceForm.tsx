@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import type { Member } from "@/shared/api";
+import React, { useState } from 'react';
+import type { Member } from '@/shared/api';
 
 export interface InsuranceFormData {
   memberId: string;
@@ -22,12 +22,19 @@ interface InsuranceFormProps {
   };
 }
 
-export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit, onCancel, initialData }) => {
-  const [memberId, setMemberId] = useState(initialData?.memberId || (members.length === 1 ? members[0].id : ""));
-  const [insuranceType, setInsuranceType] = useState(initialData?.insuranceType || "");
-  const [providerName, setProviderName] = useState(initialData?.providerName || "");
-  const [policyNumber, setPolicyNumber] = useState(initialData?.policyNumber || "");
-  const [notes, setNotes] = useState(initialData?.notes || "");
+export const InsuranceForm: React.FC<InsuranceFormProps> = ({
+  members,
+  onSubmit,
+  onCancel,
+  initialData,
+}) => {
+  const [memberId, setMemberId] = useState(
+    initialData?.memberId || (members.length === 1 ? members[0].id : ''),
+  );
+  const [insuranceType, setInsuranceType] = useState(initialData?.insuranceType || '');
+  const [providerName, setProviderName] = useState(initialData?.providerName || '');
+  const [policyNumber, setPolicyNumber] = useState(initialData?.policyNumber || '');
+  const [notes, setNotes] = useState(initialData?.notes || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,34 +49,38 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
     });
 
     if (!initialData) {
-      setInsuranceType("");
-      setProviderName("");
-      setPolicyNumber("");
-      setNotes("");
+      setInsuranceType('');
+      setProviderName('');
+      setPolicyNumber('');
+      setNotes('');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="ins-member" className="block text-sm font-medium text-ink-700 mb-1">
-          メンバー
-        </label>
-        <select
-          id="ins-member"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          required
-        >
-          <option value="">選択してください</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* 候補が1人しかいないなら選ばせる意味が無い。
+          メンバー詳細から開いたフォームは常にその1人に限られる */}
+      {members.length > 1 && (
+        <div>
+          <label htmlFor="ins-member" className="block text-sm font-medium text-ink-700 mb-1">
+            メンバー
+          </label>
+          <select
+            id="ins-member"
+            value={memberId}
+            onChange={(e) => setMemberId(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            required
+          >
+            <option value="">選択してください</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label htmlFor="ins-type" className="block text-sm font-medium text-ink-700 mb-1">
@@ -133,7 +144,7 @@ export const InsuranceForm: React.FC<InsuranceFormProps> = ({ members, onSubmit,
           type="submit"
           className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium"
         >
-          {initialData ? "更新する" : "登録する"}
+          {initialData ? '更新する' : '登録する'}
         </button>
         {onCancel && (
           <button

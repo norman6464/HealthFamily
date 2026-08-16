@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import type { Member } from "@/shared/api";
+import React, { useState } from 'react';
+import { ALLERGY_SEVERITY_OPTIONS } from '@/entities/allergy';
+import type { Member } from '@/shared/api';
 
 export interface AllergyFormData {
   memberId: string;
@@ -27,28 +28,29 @@ interface AllergyFormProps {
 }
 
 const ALLERGY_TYPES = [
-  { value: "food", label: "食物" },
-  { value: "medication", label: "薬物" },
-  { value: "environmental", label: "環境" },
-  { value: "pollen", label: "花粉" },
-  { value: "atopy", label: "アトピー" },
-  { value: "other", label: "その他" },
+  { value: 'food', label: '食物' },
+  { value: 'medication', label: '薬物' },
+  { value: 'environmental', label: '環境' },
+  { value: 'pollen', label: '花粉' },
+  { value: 'atopy', label: 'アトピー' },
+  { value: 'other', label: 'その他' },
 ];
 
-const SEVERITY_LEVELS = [
-  { value: "mild", label: "軽度" },
-  { value: "moderate", label: "中度" },
-  { value: "severe", label: "重度" },
-];
-
-export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onCancel, initialData }) => {
-  const [memberId, setMemberId] = useState(initialData?.memberId || (members.length === 1 ? members[0].id : ""));
-  const [allergenName, setAllergenName] = useState(initialData?.allergenName || "");
-  const [allergyType, setAllergyType] = useState(initialData?.allergyType || "");
-  const [severity, setSeverity] = useState(initialData?.severity || "");
-  const [symptoms, setSymptoms] = useState(initialData?.symptoms || "");
-  const [diagnosedAt, setDiagnosedAt] = useState(initialData?.diagnosedAt || "");
-  const [notes, setNotes] = useState(initialData?.notes || "");
+export const AllergyForm: React.FC<AllergyFormProps> = ({
+  members,
+  onSubmit,
+  onCancel,
+  initialData,
+}) => {
+  const [memberId, setMemberId] = useState(
+    initialData?.memberId || (members.length === 1 ? members[0].id : ''),
+  );
+  const [allergenName, setAllergenName] = useState(initialData?.allergenName || '');
+  const [allergyType, setAllergyType] = useState(initialData?.allergyType || '');
+  const [severity, setSeverity] = useState(initialData?.severity || '');
+  const [symptoms, setSymptoms] = useState(initialData?.symptoms || '');
+  const [diagnosedAt, setDiagnosedAt] = useState(initialData?.diagnosedAt || '');
+  const [notes, setNotes] = useState(initialData?.notes || '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,36 +67,40 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
     });
 
     if (!initialData) {
-      setAllergenName("");
-      setAllergyType("");
-      setSeverity("");
-      setSymptoms("");
-      setDiagnosedAt("");
-      setNotes("");
+      setAllergenName('');
+      setAllergyType('');
+      setSeverity('');
+      setSymptoms('');
+      setDiagnosedAt('');
+      setNotes('');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="allergy-member" className="block text-sm font-medium text-ink-700 mb-1">
-          メンバー
-        </label>
-        <select
-          id="allergy-member"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          required
-        >
-          <option value="">選択してください</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* 候補が1人しかいないなら選ばせる意味が無い。
+          メンバー詳細から開いたフォームは常にその1人に限られる */}
+      {members.length > 1 && (
+        <div>
+          <label htmlFor="allergy-member" className="block text-sm font-medium text-ink-700 mb-1">
+            メンバー
+          </label>
+          <select
+            id="allergy-member"
+            value={memberId}
+            onChange={(e) => setMemberId(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            required
+          >
+            <option value="">選択してください</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label htmlFor="allergy-name" className="block text-sm font-medium text-ink-700 mb-1">
@@ -143,7 +149,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           required
         >
           <option value="">選択してください</option>
-          {SEVERITY_LEVELS.map((s) => (
+          {ALLERGY_SEVERITY_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>
               {s.label}
             </option>
@@ -199,7 +205,7 @@ export const AllergyForm: React.FC<AllergyFormProps> = ({ members, onSubmit, onC
           type="submit"
           className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium"
         >
-          {initialData ? "更新する" : "登録する"}
+          {initialData ? '更新する' : '登録する'}
         </button>
         {onCancel && (
           <button
