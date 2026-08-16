@@ -108,6 +108,11 @@ func (uc *AuthUsecase) SignUp(ctx context.Context, email, password string, displ
 		}
 		if err := uc.users.SavePendingRegistration(
 			ctx, existing.ID, hashed, displayName, code, expiry); err != nil {
+			// 読んでから書くまでの間に認証が完了していた。認証済みには
+			// 上書きさせない。登録済みであることは伝えないので成功扱いで返す
+			if errors.Is(err, repository.ErrAlreadyVerified) {
+				return nil
+			}
 			return err
 		}
 		return uc.mail.SendVerificationCode(ctx, email, code)
@@ -132,39 +137,42 @@ func (uc *AuthUsecase) SignUp(ctx context.Context, email, password string, displ
 // Verify は認証コードを検証しメールアドレスを有効化する
 func (uc *AuthUsecase) Verify(ctx context.Context, email, code string) (string, *entity.User, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
-	u, err := uc.users.FindByEmail(ctx, email)
-	if err != nil {
-		return "", nil, err
-	}
 	// 存在しないユーザーと、コードが合わないユーザーは同じ結果にする（列挙防止）。
 	// ここで分岐すると「そのメールアドレスは登録済みか」が漏れる。
 	const invalidCode = "認証コードが正しくないか、有効期限が切れています"
 
-	// 認証済みかどうかに関わらず、必ずコードを検証する。
-	// 以前はここで EmailVerified を見て検証を飛ばしていたため、
-	// メールアドレスを知っているだけで任意のアカウントのトークンを発行できた。
-	if u == nil ||
-		u.VerificationCode == nil || u.VerificationExpiry == nil ||
-		subtle.ConstantTimeCompare([]byte(*u.VerificationCode), []byte(code)) != 1 ||
-		uc.now().After(*u.VerificationExpiry) {
-		// 当たりうるコードが生きているときだけ数える。無い・期限切れなら
-		// どんな入力も当たりようがなく、数えると「でたらめなアドレスを投げるだけで
-		// 書き込みを起こせる」経路になる
-		// 当たりうるコードが生きているときだけ数える。無い・期限切れなら
-		// どんな入力も当たりようがなく、数えると「でたらめなアドレスを投げるだけで
-		// 書き込みを起こせる」経路になる
-		if u != nil && u.VerificationCode != nil && u.VerificationExpiry != nil &&
-			!uc.now().After(*u.VerificationExpiry) {
-			// 加算は DB 内で行う。読んだ値に +1 して書き戻すと、並列に来た
-			// リクエストが同じ値を読み、上限が並列数だけ薄くなる
-			if err := uc.users.IncrementVerificationAttempts(ctx, u.ID, MaxCodeAttempts); err != nil {
-				return "", nil, err
-			}
-		}
+	u, err := uc.users.FindByEmail(ctx, email)
+	if err != nil {
+		return "", nil, err
+	}
+	if u == nil {
 		return "", nil, domain.NewValidation(invalidCode)
 	}
 
-	if err := uc.users.MarkEmailVerified(ctx, u.ID); err != nil {
+	// 先に試行を消費してからコードを受け取る。
+	//
+	// 「読む → 比較 → 加算」の順にすると、並列に来たリクエストが全員同じ状態を
+	// 読んで全員が比較まで到達する。加算だけ原子的にしても縛れるのはラウンド数で、
+	// 1ラウンドあたり並列数だけ推測を試せてしまう。
+	//
+	// 認証済みかどうかに関わらず必ず照合する。以前はここで EmailVerified を見て
+	// 検証を飛ばしていたため、メールアドレスを知っているだけで任意のアカウントの
+	// トークンを発行できた。
+	stored, expiry, withinLimit, err := uc.users.ClaimVerificationAttempt(ctx, u.ID, MaxCodeAttempts)
+	if err != nil {
+		return "", nil, err
+	}
+	if !withinLimit || stored == nil || expiry == nil ||
+		subtle.ConstantTimeCompare([]byte(*stored), []byte(code)) != 1 ||
+		uc.now().After(*expiry) {
+		return "", nil, domain.NewValidation(invalidCode)
+	}
+
+	// 照合したコードを渡す。照合と書き込みの間に再送で差し替わっていたら適用しない
+	if err := uc.users.MarkEmailVerified(ctx, u.ID, *stored); err != nil {
+		if errors.Is(err, repository.ErrCodeConsumed) {
+			return "", nil, domain.NewValidation(invalidCode)
+		}
 		return "", nil, err
 	}
 	u.EmailVerified = true
@@ -316,25 +324,32 @@ func (uc *AuthUsecase) ForgotPassword(ctx context.Context, email string) error {
 // ResetPassword は再設定コードを検証し新パスワードを設定する
 func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPassword string) error {
 	email = strings.ToLower(strings.TrimSpace(email))
+	const invalidCode = "再設定コードが正しくないか、有効期限が切れています"
+
 	u, err := uc.users.FindByEmail(ctx, email)
 	if err != nil {
 		return err
 	}
-	// コードの比較は定数時間で行う。通常の文字列比較は先頭一致の長さで
-	// 応答時間が変わるため、6桁のコードを1桁ずつ絞り込まれうる。
-	if u == nil || u.ResetCode == nil || u.ResetCodeExpiry == nil ||
-		subtle.ConstantTimeCompare([]byte(*u.ResetCode), []byte(code)) != 1 ||
-		uc.now().After(*u.ResetCodeExpiry) {
-		// 試行回数はメール認証とは別に数える。片方への攻撃で、
-		// もう片方まで本人が使えなくなるのを避けるため
-		if u != nil && u.ResetCode != nil && u.ResetCodeExpiry != nil &&
-			!uc.now().After(*u.ResetCodeExpiry) {
-			if err := uc.users.IncrementResetAttempts(ctx, u.ID, MaxCodeAttempts); err != nil {
-				return err
-			}
-		}
-		return domain.NewValidation("再設定コードが正しくないか、有効期限が切れています")
+	if u == nil {
+		return domain.NewValidation(invalidCode)
 	}
+
+	// 先に試行を消費してからコードを受け取る。Verify と同じ理由で、
+	// 比較の前に消費しないと上限が並列数だけ薄くなる。
+	// 回数はメール認証とは別に数える。片方への攻撃で、もう片方まで
+	// 本人が使えなくなるのを避けるため。
+	stored, expiry, withinLimit, err := uc.users.ClaimResetAttempt(ctx, u.ID, MaxCodeAttempts)
+	if err != nil {
+		return err
+	}
+	// 比較は定数時間で行う。通常の文字列比較は先頭一致の長さで応答時間が
+	// 変わるため、6桁のコードを1桁ずつ絞り込まれうる。
+	if !withinLimit || stored == nil || expiry == nil ||
+		subtle.ConstantTimeCompare([]byte(*stored), []byte(code)) != 1 ||
+		uc.now().After(*expiry) {
+		return domain.NewValidation(invalidCode)
+	}
+
 	hashed, err := auth.HashPassword(newPassword)
 	if err != nil {
 		return err
@@ -345,12 +360,12 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswo
 	// 有効期限(7日)まで居座れてしまう。分けて書くと、間に挟まった
 	// 書き込みに巻き戻され、失効させたはずのトークンが生き残る。
 	//
-	// 繰り上げるのは照合に成功した後だけ。失敗でも動かすと、第三者が
-	// でたらめなコードを送りつけるだけで任意の利用者を締め出せてしまう。
-	if err := uc.users.ApplyPasswordReset(ctx, u.ID, hashed); err != nil {
-		// コードが既に消えていた場合も、利用者からは通常の失敗と同じに見せる
-		if errors.Is(err, repository.ErrResetCodeConsumed) {
-			return domain.NewValidation("再設定コードが正しくないか、有効期限が切れています")
+	// 照合したコードを渡すことで、その間に再発行された別のコードには
+	// 適用しない。古い照合結果でパスワードを差し替えられるのを防ぐ。
+	if err := uc.users.ApplyPasswordReset(ctx, u.ID, *stored, hashed); err != nil {
+		// コードが差し替わっていた場合も、利用者からは通常の失敗と同じに見せる
+		if errors.Is(err, repository.ErrCodeConsumed) {
+			return domain.NewValidation(invalidCode)
 		}
 		return err
 	}

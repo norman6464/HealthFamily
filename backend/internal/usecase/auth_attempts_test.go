@@ -108,11 +108,14 @@ func TestVerify_上限を超えたらコードを捨てる(t *testing.T) {
 		_, _, _ = uc.Verify(context.Background(), "pending@example.com", "000000")
 	}
 
-	if u.VerificationCode != nil {
-		t.Error("上限に達してもコードが残っている。分散した総当たりを止められない")
-	}
+	// 上限に達した後は、正しいコードでも比較まで到達しない。
+	// コード自体は上限を「超えた」呼び出しで捨てる。ちょうどの回で消すと、
+	// 4回間違えた本人が5回目に正しく入力しても弾かれてしまう
 	if _, _, err := uc.Verify(context.Background(), "pending@example.com", "123456"); err == nil {
 		t.Error("正しいコードがまだ通ってしまう")
+	}
+	if u.VerificationCode != nil {
+		t.Error("上限を超えた呼び出しの後もコードが残っている")
 	}
 	if u.EmailVerified {
 		t.Error("上限超過後に認証が通っている")
@@ -212,11 +215,11 @@ func TestResetPassword_上限を超えたらコードを捨てる(t *testing.T) 
 		_ = uc.ResetPassword(context.Background(), "user@example.com", "000000", "newpassword1")
 	}
 
-	if u.ResetCode != nil {
-		t.Error("上限に達しても再設定コードが残っている")
-	}
 	if err := uc.ResetPassword(context.Background(), "user@example.com", "654321", "newpassword1"); err == nil {
 		t.Error("正しいコードがまだ通ってしまう")
+	}
+	if u.ResetCode != nil {
+		t.Error("上限を超えた呼び出しの後も再設定コードが残っている")
 	}
 	if u.Password != "$2a$12$dummy" {
 		t.Error("パスワードが差し替わっている")

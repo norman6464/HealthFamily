@@ -119,7 +119,11 @@ func (r *UserRepository) UpdateProfile(ctx context.Context, u *entity.User) erro
 func (r *UserRepository) SavePendingRegistration(
 	ctx context.Context, id, hashedPassword string, displayName *string, code string, expiry time.Time,
 ) error {
-	return r.gdb.WithContext(ctx).Model(&gormUser{}).Where(`"id" = ?`, id).
+	// 未認証の行にだけ適用する。呼び出し側も認証状態を見ているが、
+	// 読んでから書くまでの間に認証が完了しうる。そこで上書きを許すと、
+	// 攻撃者が送ったパスワードが認証済みアカウントに載ってしまう。
+	res := r.gdb.WithContext(ctx).Model(&gormUser{}).
+		Where(`"id" = ? AND "emailVerified" = FALSE`, id).
 		Updates(map[string]any{
 			"password":             hashedPassword,
 			"displayName":          displayName,
@@ -127,7 +131,14 @@ func (r *UserRepository) SavePendingRegistration(
 			"verificationExpiry":   expiry,
 			"verificationAttempts": 0,
 			"updatedAt":            gorm.Expr("now()"),
-		}).Error
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return repository.ErrAlreadyVerified
+	}
+	return nil
 }
 
 // SaveVerificationCode は新しい認証コードを置き、失敗回数を戻す。
@@ -143,31 +154,25 @@ func (r *UserRepository) SaveVerificationCode(ctx context.Context, id, code stri
 }
 
 // MarkEmailVerified は認証済みにし、使い終わったコードを捨てる。
-func (r *UserRepository) MarkEmailVerified(ctx context.Context, id string) error {
-	return r.gdb.WithContext(ctx).Model(&gormUser{}).Where(`"id" = ?`, id).
+// 呼び出し側が検証したコードを渡す。検証と書き込みの間に再送で
+// 差し替わっていたら適用しない。古い検証結果で認証を通さないため。
+func (r *UserRepository) MarkEmailVerified(ctx context.Context, id, verifiedCode string) error {
+	res := r.gdb.WithContext(ctx).Model(&gormUser{}).
+		Where(`"id" = ? AND "verificationCode" = ?`, id, verifiedCode).
 		Updates(map[string]any{
 			"emailVerified":        true,
 			"verificationCode":     nil,
 			"verificationExpiry":   nil,
 			"verificationAttempts": 0,
 			"updatedAt":            gorm.Expr("now()"),
-		}).Error
-}
-
-// IncrementVerificationAttempts は失敗回数を DB 内で1つ増やし、
-// 上限に達していればコードを捨てる。
-//
-// 読んだ値に +1 して書き戻す形だと、同時に来たリクエストが同じ値を読み、
-// 全員が同じ数を書く。上限に対して並列度ぶんだけ余計に試せてしまい、
-// アカウント側の総当たり防御が並列数だけ薄くなる。
-func (r *UserRepository) IncrementVerificationAttempts(ctx context.Context, id string, max int) error {
-	return r.gdb.WithContext(ctx).Exec(`
-		UPDATE "User"
-		SET "verificationAttempts" = "verificationAttempts" + 1,
-		    "verificationCode"     = CASE WHEN "verificationAttempts" + 1 >= ? THEN NULL ELSE "verificationCode" END,
-		    "verificationExpiry"   = CASE WHEN "verificationAttempts" + 1 >= ? THEN NULL ELSE "verificationExpiry" END,
-		    "updatedAt"            = now()
-		WHERE "id" = ?`, max, max, id).Error
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return repository.ErrCodeConsumed
+	}
+	return nil
 }
 
 // SaveResetCode は再設定コードを置き、その試行回数を戻す。
@@ -181,19 +186,6 @@ func (r *UserRepository) SaveResetCode(ctx context.Context, id, code string, exp
 		}).Error
 }
 
-// IncrementResetAttempts は再設定コードについて同じことを行う。
-// メール認証とは別に数えるのは、片方への攻撃でもう片方まで
-// 本人が使えなくなるのを避けるため。
-func (r *UserRepository) IncrementResetAttempts(ctx context.Context, id string, max int) error {
-	return r.gdb.WithContext(ctx).Exec(`
-		UPDATE "User"
-		SET "resetAttempts"   = "resetAttempts" + 1,
-		    "resetCode"       = CASE WHEN "resetAttempts" + 1 >= ? THEN NULL ELSE "resetCode" END,
-		    "resetCodeExpiry" = CASE WHEN "resetAttempts" + 1 >= ? THEN NULL ELSE "resetCodeExpiry" END,
-		    "updatedAt"       = now()
-		WHERE "id" = ?`, max, max, id).Error
-}
-
 // ApplyPasswordReset は新しいパスワードを設定し、コードを消して世代を繰り上げる。
 //
 // 再設定コードが残っている行にだけ適用する。呼び出し側は定数時間比較で
@@ -202,7 +194,7 @@ func (r *UserRepository) IncrementResetAttempts(ctx context.Context, id string, 
 //
 // 世代の繰り上げも同じ文で行う。分けると、間に挟まった書き込みに
 // 巻き戻され、失効させたはずのトークンが生き残る。
-func (r *UserRepository) ApplyPasswordReset(ctx context.Context, id, hashedPassword string) error {
+func (r *UserRepository) ApplyPasswordReset(ctx context.Context, id, verifiedCode, hashedPassword string) error {
 	res := r.gdb.WithContext(ctx).Exec(`
 		UPDATE "User"
 		SET "password"        = ?,
@@ -211,12 +203,12 @@ func (r *UserRepository) ApplyPasswordReset(ctx context.Context, id, hashedPassw
 		    "resetAttempts"   = 0,
 		    "tokenVersion"    = "tokenVersion" + 1,
 		    "updatedAt"       = now()
-		WHERE "id" = ? AND "resetCode" IS NOT NULL`, hashedPassword, id)
+		WHERE "id" = ? AND "resetCode" = ?`, hashedPassword, id, verifiedCode)
 	if res.Error != nil {
 		return res.Error
 	}
 	if res.RowsAffected == 0 {
-		return repository.ErrResetCodeConsumed
+		return repository.ErrCodeConsumed
 	}
 	return nil
 }
@@ -257,4 +249,82 @@ func (r *UserRepository) TokenVersion(ctx context.Context, id string) (int, bool
 		return 0, false, err
 	}
 	return int(v), true, nil
+}
+
+// ClaimVerificationAttempt は試行を1つ消費し、上限内であればコードを返す。
+//
+// 「読む → 比較 → 加算」の順にすると、並列に来たリクエストが全員同じ状態を
+// 読んで全員が比較まで到達する。加算だけ原子的にしても縛れるのはラウンド数で、
+// 1ラウンドあたり並列数だけ推測を試せてしまう。先に DB 内で消費し、
+// 返ってきた回数が上限内のときだけコードを渡すことで、比較の回数そのものを縛る。
+//
+// ok が false なら上限超過。code が nil ならコード未発行。
+// 上限に達した時点でコードは捨てられるので、その後は何を送っても当たらない。
+func (r *UserRepository) ClaimVerificationAttempt(
+	ctx context.Context, id string, max int,
+) (code *string, expiresAt *time.Time, ok bool, err error) {
+	return r.claimAttempt(ctx, id, max,
+		"verificationAttempts", "verificationCode", "verificationExpiry")
+}
+
+// ClaimResetAttempt は再設定コードについて同じことを行う。
+// メール認証とは別に数えるのは、片方への攻撃でもう片方まで
+// 本人が使えなくなるのを避けるため。
+func (r *UserRepository) ClaimResetAttempt(
+	ctx context.Context, id string, max int,
+) (code *string, expiresAt *time.Time, ok bool, err error) {
+	return r.claimAttempt(ctx, id, max, "resetAttempts", "resetCode", "resetCodeExpiry")
+}
+
+// claimAttempt は消費と取得を1文で行う。列名は呼び出し元が固定値で渡す。
+//
+// 消費「前」のコードを返すのが肝。SET の CASE で上限到達時にコードを捨てるが、
+// RETURNING は更新後の値なので、そのまま返すと上限ちょうどの回で必ず NULL になり、
+// 4回間違えた本人が5回目に正しく入力しても通らなくなる。
+// CTE で先に現在値を確保し、それを返す。
+//
+// 生きているコードが無ければ 1 行も返らない。数えるものが無いので消費もしない。
+// ここで数えると、コードを持たないアカウントに投げるだけで書き込みを起こせる。
+//
+// コードを捨てるのは上限を「超えた」ときで、ちょうどの回では残す。上限の回で
+// 消してしまうと、4回間違えた本人が5回目に正しく入力しても、直後の
+// MarkEmailVerified がコードを見つけられず弾かれる。上限を超えた呼び出しは
+// withinLimit=false で比較まで到達しないので、推測できる回数は変わらない。
+func (r *UserRepository) claimAttempt(
+	ctx context.Context, id string, max int, cntCol, codeCol, expCol string,
+) (*string, *time.Time, bool, error) {
+	var row struct {
+		Code      *string
+		ExpiresAt *time.Time
+		Attempts  int
+	}
+	err := r.gdb.WithContext(ctx).Raw(`
+		WITH cur AS (
+		    SELECT "id", "`+codeCol+`" AS code, "`+expCol+`" AS expires_at
+		    FROM "User"
+		    WHERE "id" = ? AND "`+codeCol+`" IS NOT NULL AND "`+expCol+`" > now()
+		    FOR UPDATE
+		), upd AS (
+		    UPDATE "User" u
+		    SET "`+cntCol+`" = u."`+cntCol+`" + 1,
+		        "`+codeCol+`" = CASE WHEN u."`+cntCol+`" + 1 > ? THEN NULL ELSE u."`+codeCol+`" END,
+		        "`+expCol+`"  = CASE WHEN u."`+cntCol+`" + 1 > ? THEN NULL ELSE u."`+expCol+`" END,
+		        "updatedAt"   = now()
+		    FROM cur
+		    WHERE u."id" = cur."id"
+		    RETURNING u."`+cntCol+`" AS attempts
+		)
+		SELECT cur.code, cur.expires_at, upd.attempts FROM cur, upd`,
+		id, max, max).Scan(&row).Error
+	if err != nil {
+		return nil, nil, false, err
+	}
+	if row.Attempts == 0 {
+		// 生きているコードが無い。当たりようがないので、消費もせず素通りさせる
+		return nil, nil, true, nil
+	}
+	if row.Attempts > max {
+		return nil, nil, false, nil
+	}
+	return row.Code, row.ExpiresAt, true, nil
 }

@@ -187,6 +187,9 @@ func (r *verifyUserRepo) SavePendingRegistration(ctx context.Context, id, hashed
 	if err != nil || u == nil {
 		return err
 	}
+	if u.EmailVerified {
+		return repository.ErrAlreadyVerified
+	}
 	u.Password = hashed
 	u.DisplayName = displayName
 	u.VerificationCode = &code
@@ -208,10 +211,13 @@ func (r *verifyUserRepo) SaveVerificationCode(ctx context.Context, id, code stri
 	return nil
 }
 
-func (r *verifyUserRepo) MarkEmailVerified(ctx context.Context, id string) error {
+func (r *verifyUserRepo) MarkEmailVerified(ctx context.Context, id, verifiedCode string) error {
 	u, err := r.FindByID(ctx, id)
 	if err != nil || u == nil {
 		return err
+	}
+	if u.VerificationCode == nil || *u.VerificationCode != verifiedCode {
+		return repository.ErrCodeConsumed
 	}
 	u.EmailVerified = true
 	u.VerificationCode = nil
@@ -221,18 +227,26 @@ func (r *verifyUserRepo) MarkEmailVerified(ctx context.Context, id string) error
 	return nil
 }
 
-func (r *verifyUserRepo) IncrementVerificationAttempts(ctx context.Context, id string, max int) error {
+func (r *verifyUserRepo) ClaimVerificationAttempt(ctx context.Context, id string, max int) (*string, *time.Time, bool, error) {
 	u, err := r.FindByID(ctx, id)
 	if err != nil || u == nil {
-		return err
+		return nil, nil, true, err
 	}
+	// 本物と同じ規則。生きているコードが無ければ消費しない
+	if u.VerificationCode == nil || u.VerificationExpiry == nil || !u.VerificationExpiry.After(time.Now()) {
+		return nil, nil, true, nil
+	}
+	code, expiry := u.VerificationCode, u.VerificationExpiry
 	u.VerificationAttempts++
-	if u.VerificationAttempts >= max {
+	if u.VerificationAttempts > max {
 		u.VerificationCode = nil
 		u.VerificationExpiry = nil
 	}
 	r.updated = u
-	return nil
+	if u.VerificationAttempts > max {
+		return nil, nil, false, nil
+	}
+	return code, expiry, true, nil
 }
 
 func (r *verifyUserRepo) SaveResetCode(ctx context.Context, id, code string, expiry time.Time) error {
@@ -247,27 +261,35 @@ func (r *verifyUserRepo) SaveResetCode(ctx context.Context, id, code string, exp
 	return nil
 }
 
-func (r *verifyUserRepo) IncrementResetAttempts(ctx context.Context, id string, max int) error {
+func (r *verifyUserRepo) ClaimResetAttempt(ctx context.Context, id string, max int) (*string, *time.Time, bool, error) {
 	u, err := r.FindByID(ctx, id)
 	if err != nil || u == nil {
-		return err
+		return nil, nil, true, err
 	}
+	// 本物と同じ規則。生きているコードが無ければ消費しない
+	if u.ResetCode == nil || u.ResetCodeExpiry == nil || !u.ResetCodeExpiry.After(time.Now()) {
+		return nil, nil, true, nil
+	}
+	code, expiry := u.ResetCode, u.ResetCodeExpiry
 	u.ResetAttempts++
-	if u.ResetAttempts >= max {
+	if u.ResetAttempts > max {
 		u.ResetCode = nil
 		u.ResetCodeExpiry = nil
 	}
 	r.updated = u
-	return nil
+	if u.ResetAttempts > max {
+		return nil, nil, false, nil
+	}
+	return code, expiry, true, nil
 }
 
-func (r *verifyUserRepo) ApplyPasswordReset(ctx context.Context, id, hashed string) error {
+func (r *verifyUserRepo) ApplyPasswordReset(ctx context.Context, id, verifiedCode, hashed string) error {
 	u, err := r.FindByID(ctx, id)
 	if err != nil || u == nil {
 		return err
 	}
-	if u.ResetCode == nil {
-		return repository.ErrResetCodeConsumed
+	if u.ResetCode == nil || *u.ResetCode != verifiedCode {
+		return repository.ErrCodeConsumed
 	}
 	u.Password = hashed
 	u.ResetCode = nil

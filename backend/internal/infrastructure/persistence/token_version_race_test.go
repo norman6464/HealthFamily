@@ -55,7 +55,7 @@ func TestTokenVersion_並行更新で巻き戻らない(t *testing.T) {
 	if err := repo.SaveResetCode(ctx, id, "654321", time.Now().Add(time.Hour)); err != nil {
 		t.Fatalf("save reset code: %v", err)
 	}
-	if err := repo.ApplyPasswordReset(ctx, id, "$2a$12$new"); err != nil {
+	if err := repo.ApplyPasswordReset(ctx, id, "654321", "$2a$12$new"); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
 

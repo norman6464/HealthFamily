@@ -64,7 +64,7 @@ func TestUpdateProfile_資格情報を巻き戻さない(t *testing.T) {
 	if err := repo.SaveResetCode(ctx, id, "654321", time.Now().Add(time.Hour)); err != nil {
 		t.Fatalf("save reset code: %v", err)
 	}
-	if err := repo.ApplyPasswordReset(ctx, id, "$2a$12$brandnew"); err != nil {
+	if err := repo.ApplyPasswordReset(ctx, id, "654321", "$2a$12$brandnew"); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
 
@@ -100,7 +100,7 @@ func TestUpdateProfile_消費済みコードを復活させない(t *testing.T) 
 	}
 	stale, _ := repo.FindByID(ctx, id)
 
-	if err := repo.ApplyPasswordReset(ctx, id, "$2a$12$brandnew"); err != nil {
+	if err := repo.ApplyPasswordReset(ctx, id, "654321", "$2a$12$brandnew"); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
 
@@ -132,7 +132,10 @@ func TestIncrementAttempts_並列でも数え落とさない(t *testing.T) {
 			save: func(r *UserRepository, id string) error {
 				return r.SaveVerificationCode(ctx, id, "123456", time.Now().Add(time.Hour))
 			},
-			bump:   func(r *UserRepository, id string) error { return r.IncrementVerificationAttempts(ctx, id, 100) },
+			bump: func(r *UserRepository, id string) error {
+				_, _, _, err := r.ClaimVerificationAttempt(ctx, id, 100)
+				return err
+			},
 			column: "verificationAttempts",
 		},
 		{
@@ -140,7 +143,10 @@ func TestIncrementAttempts_並列でも数え落とさない(t *testing.T) {
 			save: func(r *UserRepository, id string) error {
 				return r.SaveResetCode(ctx, id, "123456", time.Now().Add(time.Hour))
 			},
-			bump:   func(r *UserRepository, id string) error { return r.IncrementResetAttempts(ctx, id, 100) },
+			bump: func(r *UserRepository, id string) error {
+				_, _, _, err := r.ClaimResetAttempt(ctx, id, 100)
+				return err
+			},
 			column: "resetAttempts",
 		},
 	} {
@@ -187,9 +193,11 @@ func TestIncrementAttempts_上限でコードを捨てる(t *testing.T) {
 	if err := repo.SaveVerificationCode(ctx, id, "123456", time.Now().Add(time.Hour)); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	for range 5 {
-		if err := repo.IncrementVerificationAttempts(ctx, id, 5); err != nil {
-			t.Fatalf("bump: %v", err)
+	// 上限を「超えた」回で捨てる。ちょうどの回で消すと、4回間違えた本人が
+	// 5回目に正しく入力しても、直後の照合でコードが見つからず弾かれる
+	for range 6 {
+		if _, _, _, err := repo.ClaimVerificationAttempt(ctx, id, 5); err != nil {
+			t.Fatalf("claim: %v", err)
 		}
 	}
 
@@ -213,12 +221,12 @@ func TestApplyPasswordReset_コードが消えていれば適用しない(t *tes
 	if err := repo.SaveResetCode(ctx, id, "654321", time.Now().Add(time.Hour)); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if err := repo.ApplyPasswordReset(ctx, id, "$2a$12$first"); err != nil {
+	if err := repo.ApplyPasswordReset(ctx, id, "654321", "$2a$12$first"); err != nil {
 		t.Fatalf("first reset: %v", err)
 	}
 
 	// 二度目。コードは既に消えている
-	if err := repo.ApplyPasswordReset(ctx, id, "$2a$12$second"); err == nil {
+	if err := repo.ApplyPasswordReset(ctx, id, "654321", "$2a$12$second"); err == nil {
 		t.Fatal("コードが無いのに再設定が通った")
 	}
 
@@ -239,12 +247,149 @@ func TestApplyPasswordReset_世代を繰り上げる(t *testing.T) {
 	if err := repo.SaveResetCode(ctx, id, "654321", time.Now().Add(time.Hour)); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if err := repo.ApplyPasswordReset(ctx, id, "$2a$12$new"); err != nil {
+	if err := repo.ApplyPasswordReset(ctx, id, "654321", "$2a$12$new"); err != nil {
 		t.Fatalf("reset: %v", err)
 	}
 
 	after, _, _ := repo.TokenVersion(ctx, id)
 	if after != before+1 {
 		t.Errorf("世代 = %d, want %d。再設定しても攻撃者のトークンが生き残る", after, before+1)
+	}
+}
+
+// 上限は「比較の回数」を縛らなければ意味がない。
+//
+// 読む→比較→加算 の順だと、並列に来たリクエストが全員同じ状態を読み、
+// 全員が比較まで到達する。加算を原子的にしても、縛れるのはラウンド数だけで、
+// 1ラウンドあたり並列数だけ推測を試せてしまう。
+// 加算を先に行い、返ってきた回数が上限内のときだけコードを渡す形にする。
+func TestClaimVerificationAttempt_並列でも上限を超えて配らない(t *testing.T) {
+	db := credTestDB(t)
+	ctx := context.Background()
+	const id = "u-claim-verify"
+	const max = 5
+	repo := seedUser(t, db, id)
+
+	if err := repo.SaveVerificationCode(ctx, id, "123456", time.Now().Add(time.Hour)); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+
+	const parallel = 20
+	var mu sync.Mutex
+	granted := 0
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	for range parallel {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			code, _, ok, err := repo.ClaimVerificationAttempt(ctx, id, max)
+			if err == nil && ok && code != nil {
+				mu.Lock()
+				granted++
+				mu.Unlock()
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+
+	if granted > max {
+		t.Errorf("並列 %d 件に対して %d 回も推測を許した (上限 %d)。上限が並列数だけ薄くなっている",
+			parallel, granted, max)
+	}
+	if granted == 0 {
+		t.Error("一度も推測できないのは締め出しであって防御ではない")
+	}
+}
+
+func TestClaimResetAttempt_並列でも上限を超えて配らない(t *testing.T) {
+	db := credTestDB(t)
+	ctx := context.Background()
+	const id = "u-claim-reset"
+	const max = 5
+	repo := seedUser(t, db, id)
+
+	if err := repo.SaveResetCode(ctx, id, "654321", time.Now().Add(time.Hour)); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+
+	var mu sync.Mutex
+	granted := 0
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	for range 20 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			code, _, ok, err := repo.ClaimResetAttempt(ctx, id, max)
+			if err == nil && ok && code != nil {
+				mu.Lock()
+				granted++
+				mu.Unlock()
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+
+	if granted > max {
+		t.Errorf("並列20件に対して %d 回も推測を許した (上限 %d)", granted, max)
+	}
+}
+
+// 認証済みになったアカウントに、後から登録内容を上書きできないこと。
+func TestSavePendingRegistration_認証済みには適用しない(t *testing.T) {
+	db := credTestDB(t)
+	ctx := context.Background()
+	const id = "u-pending-guard"
+	repo := seedUser(t, db, id)
+
+	// 間に認証が完了した
+	if err := repo.SaveVerificationCode(ctx, id, "123456", time.Now().Add(time.Hour)); err != nil {
+		t.Fatalf("save code: %v", err)
+	}
+	if err := repo.MarkEmailVerified(ctx, id, "123456"); err != nil {
+		t.Fatalf("verify: %v", err)
+	}
+
+	err := repo.SavePendingRegistration(ctx, id, "$2a$12$attacker", nil, "111111", time.Now().Add(time.Hour))
+	if err == nil {
+		t.Fatal("認証済みアカウントに登録内容を上書きできた。攻撃者のパスワードで入れる")
+	}
+
+	after, _ := repo.FindByID(ctx, id)
+	if after.Password != "$2a$12$original" {
+		t.Errorf("パスワードが上書きされた: %q", after.Password)
+	}
+}
+
+// 再設定は、呼び出し側が実際に検証したコードに対してだけ適用されること。
+func TestApplyPasswordReset_検証したコードにだけ適用する(t *testing.T) {
+	db := credTestDB(t)
+	ctx := context.Background()
+	const id = "u-reset-bind"
+	repo := seedUser(t, db, id)
+
+	if err := repo.SaveResetCode(ctx, id, "111111", time.Now().Add(time.Hour)); err != nil {
+		t.Fatalf("save: %v", err)
+	}
+	// 呼び出し側が 111111 を検証した直後に、新しいコードが発行された
+	if err := repo.SaveResetCode(ctx, id, "222222", time.Now().Add(time.Hour)); err != nil {
+		t.Fatalf("save2: %v", err)
+	}
+
+	if err := repo.ApplyPasswordReset(ctx, id, "111111", "$2a$12$stale"); err == nil {
+		t.Fatal("古いコードでの再設定が通った")
+	}
+
+	after, _ := repo.FindByID(ctx, id)
+	if after.Password != "$2a$12$original" {
+		t.Errorf("古いコードでパスワードが変わった: %q", after.Password)
+	}
+	if after.ResetCode == nil || *after.ResetCode != "222222" {
+		t.Error("新しいコードが巻き添えで消えた")
 	}
 }
