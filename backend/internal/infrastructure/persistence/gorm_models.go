@@ -97,6 +97,7 @@ type gormUser struct {
 	VerificationExpiry   *time.Time `gorm:"column:verificationExpiry"`
 	VerificationAttempts int        `gorm:"column:verificationAttempts;default:0"`
 	ResetAttempts        int        `gorm:"column:resetAttempts;default:0"`
+	TokenVersion         int        `gorm:"column:tokenVersion;default:0"`
 	ResetCode            *string    `gorm:"column:resetCode"`
 	ResetCodeExpiry      *time.Time `gorm:"column:resetCodeExpiry"`
 	GoogleID             *string    `gorm:"column:googleId"`

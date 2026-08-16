@@ -11,6 +11,9 @@ import (
 type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 	FindByID(ctx context.Context, id string) (*entity.User, error)
+	// TokenVersion は発行済みトークンの世代を返す。found が false なら利用者が存在しない。
+	// 認証のたびに呼ばれるため、行全体ではなくこの1列だけを引く。
+	TokenVersion(ctx context.Context, id string) (version int, found bool, err error)
 	FindByGoogleID(ctx context.Context, googleID string) (*entity.User, error)
 	Create(ctx context.Context, u *entity.User) error
 	Update(ctx context.Context, u *entity.User) error

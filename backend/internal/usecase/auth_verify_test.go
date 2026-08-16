@@ -156,3 +156,12 @@ func TestVerify_期限切れのコードを拒否する(t *testing.T) {
 func asValidation(err error, target **domain.ValidationError) bool {
 	return errors.As(err, target)
 }
+
+// 保持している利用者の版番号をそのまま返す。存在しなければ found=false。
+func (r *verifyUserRepo) TokenVersion(ctx context.Context, id string) (int, bool, error) {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return 0, false, err
+	}
+	return u.TokenVersion, true, nil
+}

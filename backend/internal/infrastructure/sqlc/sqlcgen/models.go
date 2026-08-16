@@ -268,6 +268,7 @@ type User struct {
 	UpdatedAt            time.Time
 	GoogleId             *string
 	ResetAttempts        int32
+	TokenVersion         int32
 }
 
 type Vaccination struct {
