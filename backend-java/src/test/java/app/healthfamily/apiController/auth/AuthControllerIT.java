@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.healthfamily.TestcontainersConfiguration;
 import app.healthfamily.domain.auth.AuthorizationCodeGrant;
 import app.healthfamily.domain.auth.GoogleIdentity;
 import app.healthfamily.domain.auth.GoogleTokenExchanger;
@@ -33,7 +32,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, AuthControllerIT.StubExchangerConfig.class})
+@Import(AuthControllerIT.StubExchangerConfig.class)
 @DisplayName("認証エンドポイント")
 class AuthControllerIT {
 

@@ -34,3 +34,7 @@ build/
 
 ### Local ###
 .env
+
+### jOOQ ###
+# コード生成物はビルド時に compose の DB から起こす
+/target/generated-sources/

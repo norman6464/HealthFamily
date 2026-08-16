@@ -29,7 +29,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
  * 起きないことを検証する。
  */
 @SpringBootTest
-@Import({app.healthfamily.TestcontainersConfiguration.class, TakeMedicationUseCaseIT.FixedClockConfig.class})
+@Import(TakeMedicationUseCaseIT.FixedClockConfig.class)
 @DisplayName("服用の記録（実DB）")
 class TakeMedicationUseCaseIT {
 

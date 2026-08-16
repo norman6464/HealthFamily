@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.healthfamily.TestcontainersConfiguration;
 import app.healthfamily.domain.auth.AccessTokenIssuer;
 import app.healthfamily.domain.auth.User;
 import java.time.Clock;
@@ -38,7 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, MedicationControllerIT.FixedClockConfig.class})
+@Import(MedicationControllerIT.FixedClockConfig.class)
 @DisplayName("薬エンドポイント（実DB）")
 class MedicationControllerIT {
 
