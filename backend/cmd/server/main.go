@@ -59,8 +59,17 @@ func main() {
 	budgetRepo := persistence.NewBudgetRepository(db)
 	dashboardPrefRepo := persistence.NewDashboardPreferenceRepository(db)
 
+	authUsecase := usecase.NewAuthUsecase(userRepo, tm, mail, google)
+	// client_secret がある時だけ認可コードグラントを有効にする。
+	// 中途半端に有効化すると、失敗の理由が分かりにくい形で表に出る
+	if cfg.GoogleClientID != "" && cfg.GoogleClientSecret != "" {
+		authUsecase.WithGoogleExchanger(
+			googleauth.NewExchanger(cfg.GoogleClientID, cfg.GoogleClientSecret, googleauth.TokenEndpoint, nil),
+		)
+	}
+
 	handlers := &router.Handlers{
-		Auth:       handler.NewAuthHandler(usecase.NewAuthUsecase(userRepo, tm, mail, google), cfg.E2ETestLoginSecret),
+		Auth:       handler.NewAuthHandler(authUsecase, cfg.E2ETestLoginSecret),
 		Member:     handler.NewMemberHandler(usecase.NewMemberUsecase(memberRepo)),
 		Medication: handler.NewMedicationHandler(usecase.NewMedicationUsecase(medRepo, memberRepo)),
 		Schedule:   handler.NewScheduleHandler(usecase.NewScheduleUsecase(schedRepo, medRepo)),
