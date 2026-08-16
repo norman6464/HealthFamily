@@ -1,10 +1,10 @@
 import React from "react";
 import { TrendingUp, Wallet, ShieldCheck } from "lucide-react";
-import type { ExpenseSummary } from "@/lib/types";
-import { Card } from "@/components/ui";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { getExpenseCategoryLabel } from "@/lib/categories";
-import { formatCurrency } from "@/lib/format";
+import type { ExpenseSummary } from "@/shared/api";
+import { Card } from "@/shared/ui";
+import { LoadingSpinner } from "@/shared/ui";
+import { getExpenseCategoryLabel } from "@/shared/config";
+import { formatCurrency } from "@/shared/lib";
 
 const DEDUCTION_THRESHOLD = 100000;
 

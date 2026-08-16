@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Clock, X, Check } from "lucide-react";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import type { Medication, Member, Schedule } from "@/lib/types";
-import { MemberIcon, type MemberType, type PetType } from "@/components/shared/MemberIcon";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import type { Medication, Member, Schedule } from "@/shared/api";
+import { MemberIcon, type MemberType, type PetType } from "@/shared/ui";
 import { useUpdateMedicationStatus } from "@/hooks/dashboard";
 import {
   MedicationList,
@@ -23,7 +23,7 @@ import {
 import {
   getMedicationCategoryLabel,
   type MedicationCategory,
-} from "@/lib/categories";
+} from "@/shared/config";
 
 const DAY_LABELS: Record<DayOfWeek, string> = {
   mon: "月",

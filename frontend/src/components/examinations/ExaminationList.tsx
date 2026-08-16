@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Pencil, Trash2, Check, X, Calendar, ImagePlus } from "lucide-react";
-import type { Examination } from "@/lib/types";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
-import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
-import { formatDateLong } from "@/lib/format";
+import type { Examination } from "@/shared/api";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
+import { ConfirmationDialog } from "@/shared/ui";
+import { formatDateLong } from "@/shared/lib";
 
 export type ExaminationWithMember = Examination & { memberName?: string };
 

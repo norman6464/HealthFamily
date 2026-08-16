@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, ImagePlus } from "lucide-react";
-import type { Member } from "@/lib/types";
+import type { Member } from "@/shared/api";
 
 export interface ExaminationFormData {
   memberId: string;

@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pill, Check, Pencil, Clock, ChevronUp, ChevronDown, AlertCircle } from "lucide-react";
-import type { Medication } from "@/lib/types";
-import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
-import { formatDateShort } from "@/lib/format";
+import type { Medication } from "@/shared/api";
+import { ConfirmationDialog } from "@/shared/ui";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
+import { formatDateShort } from "@/shared/lib";
 
 export interface MedicationViewModel {
   medication: Medication;

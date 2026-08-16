@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { api, ApiError, clearToken, getToken, setToken } from "./api";
-import type { User } from "./types";
+import { api, ApiError, clearToken, getToken, setToken } from "@/shared/api";
+import type { User } from "@/shared/api";
 
 interface AuthState {
   user: User | null;

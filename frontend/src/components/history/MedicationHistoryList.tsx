@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Clock, Pill, User, Trash2, Pencil, Check, X } from "lucide-react";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
 import type { DailyRecordGroup, EnrichedRecord } from "@/hooks/history";
 import { formatRecordDate, formatRecordTime } from "@/hooks/history";
 

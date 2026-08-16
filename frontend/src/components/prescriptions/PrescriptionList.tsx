@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, Check, X, QrCode, PillBottle, Plus, ListChecks } from "lucide-react";
-import type { Medication, Prescription, PrescriptionItem } from "@/lib/types";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyStatePrompt } from "@/components/shared/EmptyStatePrompt";
-import { ConfirmationDialog } from "@/components/shared/ConfirmationDialog";
-import { formatDateShort } from "@/lib/format";
+import type { Medication, Prescription, PrescriptionItem } from "@/shared/api";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import { LoadingSpinner } from "@/shared/ui";
+import { EmptyStatePrompt } from "@/shared/ui";
+import { ConfirmationDialog } from "@/shared/ui";
+import { formatDateShort } from "@/shared/lib";
 
 // 処方明細の編集用ローカル行（入力中は文字列で保持し、保存時に整形する）
 interface ItemDraft {

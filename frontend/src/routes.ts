@@ -1,33 +1,33 @@
 import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
 
+// ルート定義は app 層の責務。参照先は pages スライスの Public API に固定し、
+// スライス内部の構成には依存しない。
 export default [
   // 公開ルート
-  route("login", "routes/login.tsx"),
-  route("signup", "routes/signup.tsx"),
-  route("verify", "routes/verify.tsx"),
-  route("forgot-password", "routes/forgot-password.tsx"),
-  route("reset-password", "routes/reset-password.tsx"),
+  route("login", "pages/login/index.ts"),
+  route("signup", "pages/signup/index.ts"),
+  route("verify", "pages/verify/index.ts"),
+  route("forgot-password", "pages/forgot-password/index.ts"),
+  route("reset-password", "pages/reset-password/index.ts"),
 
   // 医師共有用の印刷最適化レポート（サイドバー等を出さない独立ページ）
-  route("members/:memberId/report", "routes/members.$memberId.report.tsx"),
+  // 認証済みレイアウトの外にあるため、画面側で個別に useRequireAuth を呼んでいる
+  route("members/:memberId/report", "pages/member-report/index.ts"),
 
   // 認証済みレイアウト配下
-  layout("routes/_authed.tsx", [
-    index("routes/home.tsx"),
-    route("members", "routes/members.tsx"),
-    route("members/:memberId", "routes/members.$memberId.tsx"),
-    route(
-      "members/:memberId/medications",
-      "routes/members.$memberId.medications.tsx",
-    ),
-    route("medications", "routes/medications.tsx"),
-    route("appointments", "routes/appointments.tsx"),
-    route("hospitals", "routes/hospitals.tsx"),
-    route("health-logs", "routes/health-logs.tsx"),
-    route("expenses", "routes/expenses.tsx"),
-    route("history", "routes/history.tsx"),
-    route("settings", "routes/settings.tsx"),
-    route("settings/notifications", "routes/settings.notifications.tsx"),
-    route("guide", "routes/guide.tsx"),
+  layout("app/AuthedLayout.tsx", [
+    index("pages/home/index.ts"),
+    route("members", "pages/members/index.ts"),
+    route("members/:memberId", "pages/member-detail/index.ts"),
+    route("members/:memberId/medications", "pages/member-medications/index.ts"),
+    route("medications", "pages/medications/index.ts"),
+    route("appointments", "pages/appointments/index.ts"),
+    route("hospitals", "pages/hospitals/index.ts"),
+    route("health-logs", "pages/health-logs/index.ts"),
+    route("expenses", "pages/expenses/index.ts"),
+    route("history", "pages/history/index.ts"),
+    route("settings", "pages/settings/index.ts"),
+    route("settings/notifications", "pages/settings-notifications/index.ts"),
+    route("guide", "pages/guide/index.ts"),
   ]),
 ] satisfies RouteConfig;

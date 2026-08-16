@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { PiggyBank, Pencil, Check, X, Bell, BellOff } from "lucide-react";
-import type { Budget, CategoryBudget, ExpenseSummary } from "@/lib/types";
-import { Card } from "@/components/ui";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EXPENSE_CATEGORIES, getExpenseCategoryLabel } from "@/lib/categories";
-import { formatCurrency } from "@/lib/format";
+import type { Budget, CategoryBudget, ExpenseSummary } from "@/shared/api";
+import { Card } from "@/shared/ui";
+import { LoadingSpinner } from "@/shared/ui";
+import { EXPENSE_CATEGORIES, getExpenseCategoryLabel } from "@/shared/config";
+import { formatCurrency } from "@/shared/lib";
 
 const MONTH_LABELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 

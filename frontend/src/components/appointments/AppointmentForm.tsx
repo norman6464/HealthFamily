@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import type { Appointment, Hospital, Member } from "@/lib/types";
-import { MemberIcon, type MemberType, type PetType } from "@/components/shared/MemberIcon";
+import type { Appointment, Hospital, Member } from "@/shared/api";
+import { MemberIcon, type MemberType, type PetType } from "@/shared/ui";
 
 export interface AppointmentFormData {
   memberId: string;

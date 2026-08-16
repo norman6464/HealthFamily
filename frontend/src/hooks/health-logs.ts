@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
-import { useResource } from "@/lib/useResource";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
+import { useResource } from "@/shared/api";
 import type {
   BodyMeasurement,
   HealthLog,
   Member,
   TemperatureRecord,
-} from "@/lib/types";
+} from "@/shared/api";
 
 // ---------------------------------------------------------------------------
 // 体調記録ドメインロジック（旧 HealthLogEntity / TemperatureRecordEntity から移植）

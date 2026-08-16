@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { queryKeys } from "@/lib/queryKeys";
+import { api } from "@/shared/api";
+import { queryKeys } from "@/shared/api";
 import type {
   Appointment,
   Hospital,
@@ -10,7 +10,7 @@ import type {
   Member,
   Schedule,
   TodaySchedule,
-} from "@/lib/types";
+} from "@/shared/api";
 
 // ---- ドメインロジック (旧 domain/entities から忠実移植) ----
 
