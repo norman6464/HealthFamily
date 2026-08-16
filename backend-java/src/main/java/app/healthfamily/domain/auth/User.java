@@ -20,12 +20,14 @@ public class User {
 
     private final String id;
     private final String email;
-    private final String password;
     private final String characterType;
 
     private String displayName;
     private String googleId;
     private boolean emailVerified;
+    private VerificationCode verificationCode;
+    private VerificationCode resetCode;
+    private String password;
 
     private User(
             String id,
@@ -60,6 +62,12 @@ public class User {
             String googleId,
             boolean emailVerified) {
         return new User(id, email, password, displayName, characterType, googleId, emailVerified);
+    }
+
+    /** メールアドレスとパスワードで新規登録する。認証は未完了の状態で作る。 */
+    public static User registerWithPassword(
+            String id, String email, String hashedPassword, String displayName) {
+        return new User(id, email, hashedPassword, displayName, DEFAULT_CHARACTER, null, false);
     }
 
     /**
@@ -97,6 +105,69 @@ public class User {
         if (displayName == null || displayName.isBlank()) {
             identity.displayName().ifPresent(n -> this.displayName = n);
         }
+    }
+
+    /**
+     * 認証コードを発行しなおす。
+     *
+     * <p>未認証の利用者にだけ許す。認証済みの利用者にコードを発行できると、
+     * メールアドレスを知っているだけで登録内容を書き換えられてしまう。
+     */
+    public VerificationCode issueVerificationCode(java.time.Instant now) {
+        if (emailVerified) {
+            throw DomainException.conflict("すでに認証が完了しています");
+        }
+        this.verificationCode = VerificationCode.issue(now);
+        return this.verificationCode;
+    }
+
+    /**
+     * 認証コードを照合し、一致すれば認証済みにする。
+     *
+     * <p>認証済みかどうかに関わらず、必ずコードを検証する。
+     * 「すでに認証済みなら素通し」にすると、メールアドレスを知っているだけで
+     * 任意のアカウントのトークンを得られる。
+     */
+    public void confirmEmail(String candidate, java.time.Instant now) {
+        if (verificationCode == null || !verificationCode.matches(candidate, now)) {
+            throw DomainException.validation("認証コードが正しくないか、有効期限が切れています");
+        }
+        this.emailVerified = true;
+        this.verificationCode = null;
+    }
+
+    /** パスワード再設定コードを発行する。認証状態は問わない。 */
+    public VerificationCode issueResetCode(java.time.Instant now) {
+        this.resetCode = VerificationCode.issue(now);
+        return this.resetCode;
+    }
+
+    /** 再設定コードを照合し、一致すればパスワードを差し替える。 */
+    public void resetPassword(String candidate, String newHashedPassword, java.time.Instant now) {
+        if (resetCode == null || !resetCode.matches(candidate, now)) {
+            throw DomainException.validation("再設定コードが正しくないか、有効期限が切れています");
+        }
+        this.password = newHashedPassword;
+        this.resetCode = null;
+    }
+
+    /** 未認証の利用者の登録内容を差し替える。認証済みには使わせない。 */
+    public void replacePendingRegistration(String hashedPassword, String newDisplayName) {
+        if (emailVerified) {
+            throw DomainException.conflict("すでに認証が完了しています");
+        }
+        this.password = hashedPassword;
+        if (newDisplayName != null && !newDisplayName.isBlank()) {
+            this.displayName = newDisplayName;
+        }
+    }
+
+    public java.util.Optional<VerificationCode> verificationCode() {
+        return java.util.Optional.ofNullable(verificationCode);
+    }
+
+    public java.util.Optional<VerificationCode> resetCode() {
+        return java.util.Optional.ofNullable(resetCode);
     }
 
     public String id() {
