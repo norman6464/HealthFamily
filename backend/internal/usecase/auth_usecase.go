@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"crypto/subtle"
 	"strings"
 	"time"
 
@@ -78,16 +79,18 @@ func (uc *AuthUsecase) Verify(ctx context.Context, email, code string) (string, 
 	if err != nil {
 		return "", nil, err
 	}
-	if u == nil {
-		return "", nil, domain.NewValidation("認証コードが正しくありません")
-	}
-	if u.EmailVerified {
-		token, err := uc.tokens.Generate(u.ID, u.Email, uc.now())
-		return token, u, err
-	}
-	if u.VerificationCode == nil || u.VerificationExpiry == nil ||
-		*u.VerificationCode != code || uc.now().After(*u.VerificationExpiry) {
-		return "", nil, domain.NewValidation("認証コードが正しくないか、有効期限が切れています")
+	// 存在しないユーザーと、コードが合わないユーザーは同じ結果にする（列挙防止）。
+	// ここで分岐すると「そのメールアドレスは登録済みか」が漏れる。
+	const invalidCode = "認証コードが正しくないか、有効期限が切れています"
+
+	// 認証済みかどうかに関わらず、必ずコードを検証する。
+	// 以前はここで EmailVerified を見て検証を飛ばしていたため、
+	// メールアドレスを知っているだけで任意のアカウントのトークンを発行できた。
+	if u == nil ||
+		u.VerificationCode == nil || u.VerificationExpiry == nil ||
+		subtle.ConstantTimeCompare([]byte(*u.VerificationCode), []byte(code)) != 1 ||
+		uc.now().After(*u.VerificationExpiry) {
+		return "", nil, domain.NewValidation(invalidCode)
 	}
 
 	u.EmailVerified = true
@@ -243,8 +246,11 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswo
 	if err != nil {
 		return err
 	}
+	// コードの比較は定数時間で行う。通常の文字列比較は先頭一致の長さで
+	// 応答時間が変わるため、6桁のコードを1桁ずつ絞り込まれうる。
 	if u == nil || u.ResetCode == nil || u.ResetCodeExpiry == nil ||
-		*u.ResetCode != code || uc.now().After(*u.ResetCodeExpiry) {
+		subtle.ConstantTimeCompare([]byte(*u.ResetCode), []byte(code)) != 1 ||
+		uc.now().After(*u.ResetCodeExpiry) {
 		return domain.NewValidation("再設定コードが正しくないか、有効期限が切れています")
 	}
 	hashed, err := auth.HashPassword(newPassword)

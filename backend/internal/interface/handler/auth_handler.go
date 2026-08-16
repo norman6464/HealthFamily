@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"crypto/subtle"
 	"github.com/gin-gonic/gin"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
@@ -25,7 +26,9 @@ type testLoginRequest struct {
 
 // TestLogin はE2E用のログインバイパス。X-E2E-Secret が一致した場合のみ JWT を返す。
 func (h *AuthHandler) TestLogin(c *gin.Context) {
-	if h.testLoginSecret == "" || c.GetHeader("X-E2E-Secret") != h.testLoginSecret {
+	// シークレットの比較は定数時間で行う。応答時間の差から1文字ずつ絞り込まれうる。
+	if h.testLoginSecret == "" ||
+		subtle.ConstantTimeCompare([]byte(c.GetHeader("X-E2E-Secret")), []byte(h.testLoginSecret)) != 1 {
 		response.Error(c, 403, "テストログインは無効です")
 		return
 	}
