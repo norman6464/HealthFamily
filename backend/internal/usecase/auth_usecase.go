@@ -23,6 +23,22 @@ type AuthUsecase struct {
 	// nil なら認可コードグラントは無効。ID トークン方式とは別に設定する
 	exchange googleauth.Exchanger
 	now      func() time.Time
+	// verifyPassword は「bcryptが何回・どのハッシュで走ったか」をテストから
+	// 観測するための差し替え口。実測時間に頼るテストは環境依存で不安定になり、
+	// タイミング対策が外れても気づけないため、この観測点を置いている。
+	// nil のときは本物へ落ちる (passwordVerifier を参照)。
+	verifyPassword func(hashed, plain string) bool
+}
+
+// passwordVerifier は差し替えが無ければ本物の bcrypt 照合を返す。
+//
+// NewAuthUsecase を通さず AuthUsecase{...} を直接組まれても、nil を呼んで
+// 落ちたり、パスワード照合そのものが素通りになったりしないようにする。
+func (uc *AuthUsecase) passwordVerifier() func(hashed, plain string) bool {
+	if uc.verifyPassword == nil {
+		return auth.VerifyPassword
+	}
+	return uc.verifyPassword
 }
 
 // WithGoogleExchanger は認可コードグラントを有効にする。
@@ -169,7 +185,16 @@ func (uc *AuthUsecase) Login(ctx context.Context, email, password string) (strin
 	if err != nil {
 		return "", nil, err
 	}
-	if u == nil || !auth.VerifyPassword(u.Password, password) {
+	// 照合対象が無い場合もダミーハッシュで bcrypt を必ず1回走らせる。
+	// || の短絡評価で照合を飛ばすと、未登録メールへの応答だけ数百ms速くなる。
+	// 応答の中身は登録済みの場合と揃えてあるが、揃っているのは中身だけで、
+	// 時間差が残る限りそこから「そのアドレスは登録済みか」を読み取れてしまう。
+	hashed := auth.DummyPasswordHash
+	loginable := u != nil && u.Password != ""
+	if loginable {
+		hashed = u.Password
+	}
+	if !uc.passwordVerifier()(hashed, password) || !loginable {
 		return "", nil, domain.NewValidation("メールアドレスまたはパスワードが正しくありません")
 	}
 	if !u.EmailVerified {
@@ -215,9 +240,11 @@ func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, credential string) (
 			}
 		} else {
 			u = &entity.User{
-				ID:            auth.NewID(),
-				Email:         email,
-				Password:      "", // Googleログイン専用 (bcrypt検証は常に失敗するためパスワードログイン不可)
+				ID:    auth.NewID(),
+				Email: email,
+				// パスワード未設定。Login は空を見てダミーハッシュで照合したうえで、
+				// 照合結果によらず拒否するため、パスワードではログインできない
+				Password:      "",
 				DisplayName:   claims.Name,
 				CharacterType: "cat",
 				EmailVerified: true,
