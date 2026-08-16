@@ -3,7 +3,6 @@ package persistence
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -46,36 +45,24 @@ func expenseFromSqlc(e sqlcgen.Expense) entity.Expense {
 }
 
 func (r *ExpenseRepository) List(ctx context.Context, userID string, f repository.ExpenseFilter) ([]entity.Expense, error) {
-	query := `SELECT ` + expenseColumns + ` FROM "Expense" WHERE "userId"=$1`
-	args := []any{userID}
-	n := 1
+	params := sqlcgen.ListExpensesFilteredParams{UserID: userID}
 	if f.MemberID != "" {
-		n++
-		query += ` AND "memberId"=$` + strconv.Itoa(n)
-		args = append(args, f.MemberID)
+		params.MemberID = &f.MemberID
 	}
 	if f.Year > 0 {
-		n++
-		query += ` AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo') = $` + strconv.Itoa(n)
-		args = append(args, f.Year)
+		year := int32(f.Year)
+		params.Year = &year
 	}
-	query += ` ORDER BY "expenseDate" DESC`
 
-	rows, err := r.pool.Query(ctx, query, args...)
+	rows, err := r.q.ListExpensesFiltered(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	list := make([]entity.Expense, 0)
-	for rows.Next() {
-		var e entity.Expense
-		if err := rows.Scan(&e.ID, &e.UserID, &e.MemberID, &e.Category, &e.Amount,
-			&e.Description, &e.ExpenseDate, &e.IsDeductible, &e.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, e)
+	list := make([]entity.Expense, 0, len(rows))
+	for _, row := range rows {
+		list = append(list, expenseFromSqlc(row))
 	}
-	return list, rows.Err()
+	return list, nil
 }
 
 func (r *ExpenseRepository) FindByID(ctx context.Context, id string) (*entity.Expense, error) {
@@ -141,57 +128,31 @@ func (r *ExpenseRepository) Delete(ctx context.Context, id string) error {
 }
 
 // Summary は指定年(JST基準)の合計・控除対象合計・カテゴリ別・月別を集計する。
-// 集計のため生SQL(pgx)を維持する。
 func (r *ExpenseRepository) Summary(ctx context.Context, userID string, year int) (*entity.ExpenseSummary, error) {
 	s := &entity.ExpenseSummary{Year: year, ByCategory: map[string]int{}, ByMonth: make([]entity.MonthlyTotal, 0)}
+	y := int32(year)
 
-	// 合計・控除対象合計
-	if err := r.pool.QueryRow(ctx,
-		`SELECT COALESCE(SUM("amount"),0),
-			COALESCE(SUM("amount") FILTER (WHERE "isDeductible"),0)
-		 FROM "Expense"
-		 WHERE "userId"=$1 AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')=$2`,
-		userID, year).Scan(&s.Total, &s.DeductibleTotal); err != nil {
-		return nil, err
-	}
-
-	// カテゴリ別
-	catRows, err := r.pool.Query(ctx,
-		`SELECT "category", SUM("amount") FROM "Expense"
-		 WHERE "userId"=$1 AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')=$2
-		 GROUP BY "category"`, userID, year)
+	totals, err := r.q.SumExpensesByYear(ctx, sqlcgen.SumExpensesByYearParams{UserID: userID, Year: y})
 	if err != nil {
 		return nil, err
 	}
-	defer catRows.Close()
-	for catRows.Next() {
-		var cat string
-		var sum int
-		if err := catRows.Scan(&cat, &sum); err != nil {
-			return nil, err
-		}
-		s.ByCategory[cat] = sum
-	}
-	if err := catRows.Err(); err != nil {
-		return nil, err
-	}
+	s.Total = int(totals.Total)
+	s.DeductibleTotal = int(totals.DeductibleTotal)
 
-	// 月別
-	monRows, err := r.pool.Query(ctx,
-		`SELECT EXTRACT(MONTH FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')::int AS m, SUM("amount")
-		 FROM "Expense"
-		 WHERE "userId"=$1 AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')=$2
-		 GROUP BY m ORDER BY m`, userID, year)
+	cats, err := r.q.SumExpensesByCategory(ctx, sqlcgen.SumExpensesByCategoryParams{UserID: userID, Year: y})
 	if err != nil {
 		return nil, err
 	}
-	defer monRows.Close()
-	for monRows.Next() {
-		var mt entity.MonthlyTotal
-		if err := monRows.Scan(&mt.Month, &mt.Total); err != nil {
-			return nil, err
-		}
-		s.ByMonth = append(s.ByMonth, mt)
+	for _, c := range cats {
+		s.ByCategory[c.Category] = int(c.Total)
 	}
-	return s, monRows.Err()
+
+	months, err := r.q.SumExpensesByMonth(ctx, sqlcgen.SumExpensesByMonthParams{UserID: userID, Year: y})
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range months {
+		s.ByMonth = append(s.ByMonth, entity.MonthlyTotal{Month: int(m.Month), Total: int(m.Total)})
+	}
+	return s, nil
 }

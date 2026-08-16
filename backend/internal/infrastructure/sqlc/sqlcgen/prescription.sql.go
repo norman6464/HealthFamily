@@ -93,3 +93,103 @@ func (q *Queries) ListPrescriptionItems(ctx context.Context, prescriptionid stri
 	}
 	return items, nil
 }
+
+const listPrescriptionItemsForPrescriptions = `-- name: ListPrescriptionItemsForPrescriptions :many
+SELECT "id", "prescriptionId", "name", "dosage", "frequency", "days", "sortOrder"
+FROM "PrescriptionItem"
+WHERE "prescriptionId" = ANY($1::text[])
+ORDER BY "sortOrder", "createdAt"
+`
+
+type ListPrescriptionItemsForPrescriptionsRow struct {
+	ID             string
+	PrescriptionId string
+	Name           string
+	Dosage         *string
+	Frequency      *string
+	Days           *int32
+	SortOrder      int32
+}
+
+// 複数の処方箋の明細をまとめて引く。処方箋ごとに引くと件数分の往復になる。
+func (q *Queries) ListPrescriptionItemsForPrescriptions(ctx context.Context, prescriptionIds []string) ([]ListPrescriptionItemsForPrescriptionsRow, error) {
+	rows, err := q.db.Query(ctx, listPrescriptionItemsForPrescriptions, prescriptionIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPrescriptionItemsForPrescriptionsRow{}
+	for rows.Next() {
+		var i ListPrescriptionItemsForPrescriptionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PrescriptionId,
+			&i.Name,
+			&i.Dosage,
+			&i.Frequency,
+			&i.Days,
+			&i.SortOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPrescriptionsByUser = `-- name: ListPrescriptionsByUser :many
+SELECT "id", "userId", "memberId", "prescriptionName", "prescribedBy", "prescribedAt",
+       "expiresAt", "pharmacyName", "electronicCode", "notes", "createdAt"
+FROM "Prescription"
+WHERE "userId" = $1
+ORDER BY "createdAt" DESC
+`
+
+type ListPrescriptionsByUserRow struct {
+	ID               string
+	UserId           string
+	MemberId         string
+	PrescriptionName string
+	PrescribedBy     *string
+	PrescribedAt     time.Time
+	ExpiresAt        *time.Time
+	PharmacyName     *string
+	ElectronicCode   *string
+	Notes            *string
+	CreatedAt        time.Time
+}
+
+func (q *Queries) ListPrescriptionsByUser(ctx context.Context, userid string) ([]ListPrescriptionsByUserRow, error) {
+	rows, err := q.db.Query(ctx, listPrescriptionsByUser, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPrescriptionsByUserRow{}
+	for rows.Next() {
+		var i ListPrescriptionsByUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserId,
+			&i.MemberId,
+			&i.PrescriptionName,
+			&i.PrescribedBy,
+			&i.PrescribedAt,
+			&i.ExpiresAt,
+			&i.PharmacyName,
+			&i.ElectronicCode,
+			&i.Notes,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

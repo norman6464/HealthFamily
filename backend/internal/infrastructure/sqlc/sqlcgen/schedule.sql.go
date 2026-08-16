@@ -7,6 +7,7 @@ package sqlcgen
 
 import (
 	"context"
+	"time"
 )
 
 const getSchedule = `-- name: GetSchedule :one
@@ -64,6 +65,103 @@ func (q *Queries) ListSchedulesByUser(ctx context.Context, userid string) ([]Sch
 			&i.IsEnabled,
 			&i.ReminderMinutesBefore,
 			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTodaySchedules = `-- name: ListTodaySchedules :many
+SELECT s."id", s."medicationId", s."userId", s."memberId", s."scheduledTime",
+       s."daysOfWeek", s."intervalDays", s."startDate", s."isEnabled",
+       s."reminderMinutesBefore", s."createdAt",
+       m."name" AS medication_name,
+       mem."name" AS member_name,
+       mem."memberType" AS member_type,
+       m."displayOrder" AS display_order,
+       EXISTS(
+         SELECT 1 FROM "MedicationRecord" r
+         WHERE r."scheduleId" = s."id" AND r."userId" = s."userId"
+           AND r."takenAt" >= $1::timestamptz
+           AND r."takenAt" < $2::timestamptz
+       ) AS is_completed
+FROM "Schedule" s
+JOIN "Medication" m ON m."id" = s."medicationId"
+JOIN "Member" mem ON mem."id" = s."memberId"
+WHERE s."userId" = $3
+  AND s."isEnabled" = TRUE
+  AND m."isActive" = TRUE
+  AND m."status" NOT IN ('paused', 'discontinued')
+  AND (array_length(s."daysOfWeek", 1) IS NULL OR $4::text = ANY(s."daysOfWeek"))
+ORDER BY s."scheduledTime" ASC
+`
+
+type ListTodaySchedulesParams struct {
+	DayStart time.Time
+	DayEnd   time.Time
+	UserID   string
+	Weekday  string
+}
+
+type ListTodaySchedulesRow struct {
+	ID                    string
+	MedicationId          string
+	UserId                string
+	MemberId              string
+	ScheduledTime         string
+	DaysOfWeek            []string
+	IntervalDays          *int32
+	StartDate             *time.Time
+	IsEnabled             bool
+	ReminderMinutesBefore int32
+	CreatedAt             time.Time
+	MedicationName        string
+	MemberName            string
+	MemberType            string
+	DisplayOrder          int32
+	IsCompleted           bool
+}
+
+// 当日有効なスケジュールを薬・メンバー情報と結合して返す。
+// is_completed の所有者一致 (r."userId" = s."userId") は必須。外れると、
+// 他人のアカウントから作られた記録だけで「服薬済み」と表示され、
+// 当人へのリマインドが黙って消える。
+func (q *Queries) ListTodaySchedules(ctx context.Context, arg ListTodaySchedulesParams) ([]ListTodaySchedulesRow, error) {
+	rows, err := q.db.Query(ctx, listTodaySchedules,
+		arg.DayStart,
+		arg.DayEnd,
+		arg.UserID,
+		arg.Weekday,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListTodaySchedulesRow{}
+	for rows.Next() {
+		var i ListTodaySchedulesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.MedicationId,
+			&i.UserId,
+			&i.MemberId,
+			&i.ScheduledTime,
+			&i.DaysOfWeek,
+			&i.IntervalDays,
+			&i.StartDate,
+			&i.IsEnabled,
+			&i.ReminderMinutesBefore,
+			&i.CreatedAt,
+			&i.MedicationName,
+			&i.MemberName,
+			&i.MemberType,
+			&i.DisplayOrder,
+			&i.IsCompleted,
 		); err != nil {
 			return nil, err
 		}
