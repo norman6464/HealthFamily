@@ -165,3 +165,15 @@ func (r *verifyUserRepo) TokenVersion(ctx context.Context, id string) (int, bool
 	}
 	return u.TokenVersion, true, nil
 }
+
+// 本物と同じく DB 内加算に相当する。読み出した値を書き戻さない
+func (r *verifyUserRepo) BumpTokenVersion(ctx context.Context, id string) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if u != nil {
+		u.TokenVersion++
+	}
+	return nil
+}

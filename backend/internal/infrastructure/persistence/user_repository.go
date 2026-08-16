@@ -111,7 +111,6 @@ func (r *UserRepository) Update(ctx context.Context, u *entity.User) error {
 		"resetCode":            u.ResetCode,
 		"resetCodeExpiry":      u.ResetCodeExpiry,
 		"resetAttempts":        u.ResetAttempts,
-		"tokenVersion":         u.TokenVersion,
 		"googleId":             u.GoogleID,
 		"updatedAt":            gorm.Expr("now()"),
 	}
@@ -131,4 +130,14 @@ func (r *UserRepository) TokenVersion(ctx context.Context, id string) (int, bool
 		return 0, false, err
 	}
 	return int(v), true, nil
+}
+
+// BumpTokenVersion は発行済みトークンの世代を DB 内で 1 つ繰り上げる。
+//
+// 読み出した値に 1 を足して書き戻す形にはしない。世代を上げた直後に、
+// 上げる前の値を握った並行リクエストが汎用 Update を完了させると、
+// 世代が巻き戻って失効させたはずの JWT が再び通ってしまう。
+// プロフィール更新のような何気ない操作が攻撃者を呼び戻すことになる。
+func (r *UserRepository) BumpTokenVersion(ctx context.Context, id string) error {
+	return r.q.BumpUserTokenVersion(ctx, id)
 }
