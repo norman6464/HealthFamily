@@ -41,8 +41,12 @@ test.describe("認証付きフロー", () => {
   test("ログイン済みならホーム(ダッシュボード)が表示される", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/$/);
-    // _authed レイアウトのナビ（サイドバー）が出る
-    await expect(page.getByRole("link", { name: "ホーム" })).toBeVisible();
+    // 認証済みレイアウトのナビが出る。
+    // 「ホーム」リンクは PC のサイドバーとスマホの下部タブの両方に存在するため、
+    // どちらを見ているかを明示しないと strict mode 違反になる。
+    await expect(
+      page.getByRole("complementary").getByRole("link", { name: "ホーム" }),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "ログアウト" })).toBeVisible();
   });
 
