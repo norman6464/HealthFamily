@@ -20,7 +20,40 @@ type AuthUsecase struct {
 	tokens *auth.TokenManager
 	mail   mailer.Mailer
 	google googleauth.Verifier // nil なら Google ログイン無効
-	now    func() time.Time
+	// nil なら認可コードグラントは無効。ID トークン方式とは別に設定する
+	exchange googleauth.Exchanger
+	now      func() time.Time
+}
+
+// WithGoogleExchanger は認可コードグラントを有効にする。
+//
+// client_secret を持つ設定でのみ呼ぶ。設定しなければ /google/callback は
+// 「利用できません」を返すだけで、中途半端に動くことはない。
+func (uc *AuthUsecase) WithGoogleExchanger(ex googleauth.Exchanger) *AuthUsecase {
+	uc.exchange = ex
+	return uc
+}
+
+// LoginWithGoogleCode は認可コードグラント (PKCE) でログインする。
+//
+// ブラウザから受け取るのは一度きりの認可コードだけで、ID トークンはここで
+// サーバー間通信により取得する。client_secret を知らない第三者は、
+// 認可コードを盗んでもトークンに換えられない。
+func (uc *AuthUsecase) LoginWithGoogleCode(ctx context.Context, grant googleauth.CodeGrant) (string, *entity.User, error) {
+	if uc.exchange == nil {
+		return "", nil, domain.NewValidation("Googleログインは現在利用できません")
+	}
+	// Google へ投げる前に形式を確かめる。壊れた入力を外部へ運ぶ理由がない
+	if err := grant.Validate(); err != nil {
+		return "", nil, domain.NewValidation("Google認証に失敗しました")
+	}
+
+	idToken, err := uc.exchange.Exchange(ctx, grant)
+	if err != nil {
+		// Google の応答内容は利用者に返さない。設定や状態が応答に混ざりうる
+		return "", nil, domain.NewValidation("Google認証に失敗しました")
+	}
+	return uc.LoginWithGoogle(ctx, idToken)
 }
 
 func NewAuthUsecase(users repository.UserRepository, tokens *auth.TokenManager, mail mailer.Mailer, google googleauth.Verifier) *AuthUsecase {

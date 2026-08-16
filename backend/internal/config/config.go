@@ -17,6 +17,9 @@ type Config struct {
 	AppBaseURL     string
 	// Google OIDC ログイン用 OAuth クライアントID。空なら Google ログイン無効。
 	GoogleClientID string
+	// 認可コードグラント用のクライアントシークレット。
+	// 空なら /google/callback は無効。ID トークン方式 (/google) だけが残る。
+	GoogleClientSecret string
 	// E2Eテスト用ログインバイパスの共有シークレット。空なら無効(本番)。
 	E2ETestLoginSecret string
 }
@@ -31,6 +34,7 @@ func Load() (*Config, error) {
 		MailFrom:           getEnv("MAIL_FROM", "HealthFamily <onboarding@resend.dev>"),
 		AppBaseURL:         getEnv("APP_BASE_URL", "http://localhost:5173"),
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		E2ETestLoginSecret: os.Getenv("E2E_TEST_LOGIN_SECRET"),
 	}
 

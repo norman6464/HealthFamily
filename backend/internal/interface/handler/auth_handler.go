@@ -3,6 +3,8 @@ package handler
 import (
 	"crypto/subtle"
 	"github.com/gin-gonic/gin"
+
+	"healthfamily/internal/pkg/googleauth"
 	"healthfamily/internal/pkg/response"
 	"healthfamily/internal/usecase"
 )
@@ -57,6 +59,34 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 		return
 	}
 	token, user, err := h.uc.LoginWithGoogle(c.Request.Context(), req.Credential)
+	if err != nil {
+		response.HandleDomainError(c, err)
+		return
+	}
+	response.Success(c, gin.H{"token": token, "user": user})
+}
+
+type googleCallbackRequest struct {
+	Code         string `json:"code" binding:"required"`
+	CodeVerifier string `json:"codeVerifier" binding:"required"`
+	RedirectURI  string `json:"redirectUri" binding:"required"`
+}
+
+// GoogleCallback は認可コードグラント (PKCE) でログインする。
+//
+// ブラウザが持つのは一度きりの認可コードだけで、ID トークンもリフレッシュトークンも
+// 渡らない。トークンへの交換は client_secret を持つこのサーバーだけが行える。
+func (h *AuthHandler) GoogleCallback(c *gin.Context) {
+	var req googleCallbackRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, 400, "認証情報が正しくありません")
+		return
+	}
+	token, user, err := h.uc.LoginWithGoogleCode(c.Request.Context(), googleauth.CodeGrant{
+		Code:         req.Code,
+		CodeVerifier: req.CodeVerifier,
+		RedirectURI:  req.RedirectURI,
+	})
 	if err != nil {
 		response.HandleDomainError(c, err)
 		return
