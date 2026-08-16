@@ -97,9 +97,13 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
         name: prescription.prescriptionName,
       }),
     // 薬を作ったら一覧を取り直す。隣の dispenseMutation は無効化しているのに
-    // こちらだけ抜けており、登録しても薬の画面に出てこなかった
+    // こちらだけ抜けており、登録しても薬の画面に出てこなかった。
+    // メンバー別の一覧は別のキーで持っているので、そちらも無効化する
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medications.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.members.medications(prescription.memberId),
+      });
     },
   });
 
