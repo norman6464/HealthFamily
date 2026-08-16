@@ -1,6 +1,7 @@
 package app.healthfamily.domain.prescription;
 
 import app.healthfamily.domain.shared.DomainException;
+import app.healthfamily.domain.shared.OwnedResource;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,7 +17,7 @@ import java.util.Optional;
  *
  * <p>明細の入れ替えも調剤も、必ずこのクラスのメソッド経由で行う。
  */
-public class Prescription {
+public class Prescription implements OwnedResource {
 
     /** 一度の調剤で作れる薬の上限。誤操作で大量生成されるのを防ぐ */
     private static final int MAX_ITEMS = 50;
@@ -122,10 +123,14 @@ public class Prescription {
         return expiresAt != null && now.isAfter(expiresAt);
     }
 
+    @Override
+    public String ownerId() {
+        return userId;
+    }
+
+    /** 資源名を固定した呼び出し口。既存の呼び出しをそのまま使えるようにしている。 */
     public void requireOwnedBy(String candidateUserId) {
-        if (!userId.equals(candidateUserId)) {
-            throw DomainException.forbidden("この処方箋にアクセスする権限がありません");
-        }
+        requireOwnedBy(candidateUserId, "処方箋");
     }
 
     // --- 参照 -------------------------------------------------------------

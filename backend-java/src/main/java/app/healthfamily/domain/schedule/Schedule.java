@@ -1,6 +1,7 @@
 package app.healthfamily.domain.schedule;
 
 import app.healthfamily.domain.shared.DomainException;
+import app.healthfamily.domain.shared.OwnedResource;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -27,7 +28,7 @@ import java.util.Set;
  *   <li>頓服（決まった予定日を持たない）</li>
  * </ul>
  */
-public class Schedule {
+public class Schedule implements OwnedResource {
 
     /** 頓服を表す間隔の値。DB に -1 で入っている */
     public static final int AS_NEEDED = -1;
@@ -143,10 +144,14 @@ public class Schedule {
         return LocalDateTime.of(date, scheduledTime);
     }
 
+    @Override
+    public String ownerId() {
+        return userId;
+    }
+
+    /** 資源名を固定した呼び出し口。既存の呼び出しをそのまま使えるようにしている。 */
     public void requireOwnedBy(String candidateUserId) {
-        if (!userId.equals(candidateUserId)) {
-            throw DomainException.forbidden("このスケジュールにアクセスする権限がありません");
-        }
+        requireOwnedBy(candidateUserId, "スケジュール");
     }
 
     // --- 参照 -------------------------------------------------------------

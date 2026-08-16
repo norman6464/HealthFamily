@@ -1,6 +1,7 @@
 package app.healthfamily.domain.member;
 
 import app.healthfamily.domain.shared.DomainException;
+import app.healthfamily.domain.shared.OwnedResource;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Optional;
@@ -15,7 +16,7 @@ import java.util.Optional;
  * 組み立て時に必ず検証する。DB は両方 nullable な text なので、
  * 型で防げない分をここで潰す。
  */
-public class Member {
+public class Member implements OwnedResource {
 
     private final String id;
     private final String userId;
@@ -67,10 +68,14 @@ public class Member {
         return userId.equals(candidateUserId);
     }
 
+    @Override
+    public String ownerId() {
+        return userId;
+    }
+
+    /** 資源名を固定した呼び出し口。既存の呼び出しをそのまま使えるようにしている。 */
     public void requireOwnedBy(String candidateUserId) {
-        if (!ownedBy(candidateUserId)) {
-            throw DomainException.forbidden("このメンバーにアクセスする権限がありません");
-        }
+        requireOwnedBy(candidateUserId, "メンバー");
     }
 
     // --- 参照 -------------------------------------------------------------
