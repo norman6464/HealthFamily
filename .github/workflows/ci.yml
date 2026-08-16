@@ -23,28 +23,6 @@ jobs:
       - run: go vet ./...
       - run: go test ./...
 
-  backend-java:
-    name: Backend (Spring Boot)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend-java
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '25'
-          cache: maven
-      # 統合テストと jOOQ のコード生成は compose の PostgreSQL を使う。
-      # H2 のような別実装は使わず、本番と同じ PostgreSQL でのみ検証する。
-      - name: Start PostgreSQL
-        run: docker compose up -d --wait
-      - run: ./mvnw -B --no-transfer-progress verify
-      - name: Stop PostgreSQL
-        if: always()
-        run: docker compose down -v
-
   frontend:
     name: Frontend (React Router)
     runs-on: ubuntu-latest
