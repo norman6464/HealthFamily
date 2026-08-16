@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"crypto/subtle"
+	"errors"
 	"strings"
 	"time"
 
@@ -105,11 +106,8 @@ func (uc *AuthUsecase) SignUp(ctx context.Context, email, password string, displ
 		if existing.EmailVerified {
 			return nil // 列挙防止: 何もせず成功扱い
 		}
-		existing.Password = hashed
-		existing.DisplayName = displayName
-		existing.VerificationCode = &code
-		existing.VerificationExpiry = &expiry
-		if err := uc.users.Update(ctx, existing); err != nil {
+		if err := uc.users.SavePendingRegistration(
+			ctx, existing.ID, hashed, displayName, code, expiry); err != nil {
 			return err
 		}
 		return uc.mail.SendVerificationCode(ctx, email, code)
@@ -152,28 +150,27 @@ func (uc *AuthUsecase) Verify(ctx context.Context, email, code string) (string, 
 		// 当たりうるコードが生きているときだけ数える。無い・期限切れなら
 		// どんな入力も当たりようがなく、数えると「でたらめなアドレスを投げるだけで
 		// 書き込みを起こせる」経路になる
+		// 当たりうるコードが生きているときだけ数える。無い・期限切れなら
+		// どんな入力も当たりようがなく、数えると「でたらめなアドレスを投げるだけで
+		// 書き込みを起こせる」経路になる
 		if u != nil && u.VerificationCode != nil && u.VerificationExpiry != nil &&
 			!uc.now().After(*u.VerificationExpiry) {
-			u.VerificationAttempts++
-			if u.VerificationAttempts >= MaxCodeAttempts {
-				u.VerificationCode = nil
-				u.VerificationExpiry = nil
-			}
-			// 保存しなければ次のリクエストで数え直しになり、上限が効かない
-			if err := uc.users.Update(ctx, u); err != nil {
+			// 加算は DB 内で行う。読んだ値に +1 して書き戻すと、並列に来た
+			// リクエストが同じ値を読み、上限が並列数だけ薄くなる
+			if err := uc.users.IncrementVerificationAttempts(ctx, u.ID, MaxCodeAttempts); err != nil {
 				return "", nil, err
 			}
 		}
 		return "", nil, domain.NewValidation(invalidCode)
 	}
 
+	if err := uc.users.MarkEmailVerified(ctx, u.ID); err != nil {
+		return "", nil, err
+	}
 	u.EmailVerified = true
 	u.VerificationCode = nil
 	u.VerificationExpiry = nil
 	u.VerificationAttempts = 0
-	if err := uc.users.Update(ctx, u); err != nil {
-		return "", nil, err
-	}
 	token, err := uc.tokens.Generate(u.ID, u.Email, u.TokenVersion, uc.now())
 	return token, u, err
 }
@@ -249,7 +246,11 @@ func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, credential string) (
 			//
 			// ここで消しても本人は困らない。所有を示せる本人は再設定コードで
 			// 設定し直せるし、未認証のアカウントはログインできないので中身も無い。
-			if !u.EmailVerified {
+			resetCredentials := !u.EmailVerified
+			if err := uc.users.LinkGoogle(ctx, u.ID, sub, resetCredentials, claims.Name); err != nil {
+				return "", nil, err
+			}
+			if resetCredentials {
 				u.Password = ""
 				u.DisplayName = claims.Name
 				u.VerificationCode = nil
@@ -258,9 +259,6 @@ func (uc *AuthUsecase) LoginWithGoogle(ctx context.Context, credential string) (
 			}
 			u.GoogleID = &sub
 			u.EmailVerified = true
-			if err := uc.users.Update(ctx, u); err != nil {
-				return "", nil, err
-			}
 		} else {
 			u = &entity.User{
 				ID:    auth.NewID(),
@@ -292,12 +290,9 @@ func (uc *AuthUsecase) ResendCode(ctx context.Context, email string) error {
 	}
 	code := auth.NewVerificationCode()
 	expiry := uc.now().Add(10 * time.Minute)
-	u.VerificationCode = &code
-	u.VerificationExpiry = &expiry
 	// 新しいコードには新しい枠を与える。戻さないと、総当たりを受けた本人が
 	// 再送を受け取っても永久にやり直せなくなる
-	u.VerificationAttempts = 0
-	if err := uc.users.Update(ctx, u); err != nil {
+	if err := uc.users.SaveVerificationCode(ctx, u.ID, code, expiry); err != nil {
 		return err
 	}
 	return uc.mail.SendVerificationCode(ctx, email, code)
@@ -312,10 +307,7 @@ func (uc *AuthUsecase) ForgotPassword(ctx context.Context, email string) error {
 	}
 	code := auth.NewVerificationCode()
 	expiry := uc.now().Add(10 * time.Minute)
-	u.ResetCode = &code
-	u.ResetCodeExpiry = &expiry
-	u.ResetAttempts = 0
-	if err := uc.users.Update(ctx, u); err != nil {
+	if err := uc.users.SaveResetCode(ctx, u.ID, code, expiry); err != nil {
 		return err
 	}
 	return uc.mail.SendResetCode(ctx, email, code)
@@ -337,12 +329,7 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswo
 		// もう片方まで本人が使えなくなるのを避けるため
 		if u != nil && u.ResetCode != nil && u.ResetCodeExpiry != nil &&
 			!uc.now().After(*u.ResetCodeExpiry) {
-			u.ResetAttempts++
-			if u.ResetAttempts >= MaxCodeAttempts {
-				u.ResetCode = nil
-				u.ResetCodeExpiry = nil
-			}
-			if err := uc.users.Update(ctx, u); err != nil {
+			if err := uc.users.IncrementResetAttempts(ctx, u.ID, MaxCodeAttempts); err != nil {
 				return err
 			}
 		}
@@ -352,20 +339,20 @@ func (uc *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswo
 	if err != nil {
 		return err
 	}
-	u.Password = hashed
-	u.ResetCode = nil
-	u.ResetCodeExpiry = nil
-	u.ResetAttempts = 0
-	if err := uc.users.Update(ctx, u); err != nil {
-		return err
-	}
-	// 発行済みトークンを失効させる。パスワードを変えたのに攻撃者が
-	// 有効期限(7日)まで居座れるなら、乗っ取られた利用者に打つ手が無い。
+	// パスワードの設定・コードの破棄・世代の繰り上げを一文で行う。
+	//
+	// 発行済みトークンを失効させないと、パスワードを変えたのに攻撃者が
+	// 有効期限(7日)まで居座れてしまう。分けて書くと、間に挟まった
+	// 書き込みに巻き戻され、失効させたはずのトークンが生き残る。
 	//
 	// 繰り上げるのは照合に成功した後だけ。失敗でも動かすと、第三者が
 	// でたらめなコードを送りつけるだけで任意の利用者を締め出せてしまう。
-	//
-	// 加算は DB 内で行う。読み出した値に足して書き戻すと、
-	// 上げる前の値を握った並行リクエストに巻き戻される
-	return uc.users.BumpTokenVersion(ctx, u.ID)
+	if err := uc.users.ApplyPasswordReset(ctx, u.ID, hashed); err != nil {
+		// コードが既に消えていた場合も、利用者からは通常の失敗と同じに見せる
+		if errors.Is(err, repository.ErrResetCodeConsumed) {
+			return domain.NewValidation("再設定コードが正しくないか、有効期限が切れています")
+		}
+		return err
+	}
+	return nil
 }

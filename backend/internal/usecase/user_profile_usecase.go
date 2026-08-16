@@ -52,7 +52,7 @@ func (uc *UserProfileUsecase) Update(ctx context.Context, userID string, in Upda
 	if in.CharacterName != nil {
 		u.CharacterName = in.CharacterName
 	}
-	if err := uc.users.Update(ctx, u); err != nil {
+	if err := uc.users.UpdateProfile(ctx, u); err != nil {
 		return nil, err
 	}
 	return u, nil

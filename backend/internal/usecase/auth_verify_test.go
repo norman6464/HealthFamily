@@ -24,15 +24,16 @@ func (r *verifyUserRepo) FindByEmail(_ context.Context, email string) (*entity.U
 	}
 	return nil, nil
 }
-func (r *verifyUserRepo) FindByID(context.Context, string) (*entity.User, error) { return nil, nil }
+func (r *verifyUserRepo) FindByID(_ context.Context, id string) (*entity.User, error) {
+	if r.user != nil && r.user.ID == id {
+		return r.user, nil
+	}
+	return nil, nil
+}
 func (r *verifyUserRepo) FindByGoogleID(context.Context, string) (*entity.User, error) {
 	return nil, nil
 }
 func (r *verifyUserRepo) Create(context.Context, *entity.User) error { return nil }
-func (r *verifyUserRepo) Update(_ context.Context, u *entity.User) error {
-	r.updated = u
-	return nil
-}
 
 var _ repository.UserRepository = (*verifyUserRepo)(nil)
 
@@ -166,14 +167,131 @@ func (r *verifyUserRepo) TokenVersion(ctx context.Context, id string) (int, bool
 	return u.TokenVersion, true, nil
 }
 
-// 本物と同じく DB 内加算に相当する。読み出した値を書き戻さない
-func (r *verifyUserRepo) BumpTokenVersion(ctx context.Context, id string) error {
-	u, err := r.FindByID(ctx, id)
-	if err != nil {
+// --- repository.UserRepository の資格情報系メソッド ---
+// 本物と同じく、読み出したスナップショットを書き戻さない形で振る舞う。
+
+func (r *verifyUserRepo) UpdateProfile(ctx context.Context, u *entity.User) error {
+	cur, err := r.FindByID(ctx, u.ID)
+	if err != nil || cur == nil {
 		return err
 	}
-	if u != nil {
-		u.TokenVersion++
+	cur.DisplayName = u.DisplayName
+	cur.CharacterType = u.CharacterType
+	cur.CharacterName = u.CharacterName
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) SavePendingRegistration(ctx context.Context, id, hashed string, displayName *string, code string, expiry time.Time) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
 	}
+	u.Password = hashed
+	u.DisplayName = displayName
+	u.VerificationCode = &code
+	u.VerificationExpiry = &expiry
+	u.VerificationAttempts = 0
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) SaveVerificationCode(ctx context.Context, id, code string, expiry time.Time) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	u.VerificationCode = &code
+	u.VerificationExpiry = &expiry
+	u.VerificationAttempts = 0
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) MarkEmailVerified(ctx context.Context, id string) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	u.EmailVerified = true
+	u.VerificationCode = nil
+	u.VerificationExpiry = nil
+	u.VerificationAttempts = 0
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) IncrementVerificationAttempts(ctx context.Context, id string, max int) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	u.VerificationAttempts++
+	if u.VerificationAttempts >= max {
+		u.VerificationCode = nil
+		u.VerificationExpiry = nil
+	}
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) SaveResetCode(ctx context.Context, id, code string, expiry time.Time) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	u.ResetCode = &code
+	u.ResetCodeExpiry = &expiry
+	u.ResetAttempts = 0
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) IncrementResetAttempts(ctx context.Context, id string, max int) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	u.ResetAttempts++
+	if u.ResetAttempts >= max {
+		u.ResetCode = nil
+		u.ResetCodeExpiry = nil
+	}
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) ApplyPasswordReset(ctx context.Context, id, hashed string) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	if u.ResetCode == nil {
+		return repository.ErrResetCodeConsumed
+	}
+	u.Password = hashed
+	u.ResetCode = nil
+	u.ResetCodeExpiry = nil
+	u.ResetAttempts = 0
+	u.TokenVersion++
+	r.updated = u
+	return nil
+}
+
+func (r *verifyUserRepo) LinkGoogle(ctx context.Context, id, subject string, resetCredentials bool, displayName *string) error {
+	u, err := r.FindByID(ctx, id)
+	if err != nil || u == nil {
+		return err
+	}
+	if resetCredentials {
+		u.Password = ""
+		u.DisplayName = displayName
+		u.VerificationCode = nil
+		u.VerificationExpiry = nil
+		u.VerificationAttempts = 0
+	}
+	u.GoogleID = &subject
+	u.EmailVerified = true
+	r.updated = u
 	return nil
 }
