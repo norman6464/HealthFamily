@@ -41,6 +41,63 @@ func (q *Queries) GetMedication(ctx context.Context, id string) (Medication, err
 	return i, err
 }
 
+const listMedicationAlerts = `-- name: ListMedicationAlerts :many
+SELECT "id", "memberId", "userId", "name", "category", "dosageAmount", "frequency",
+       "stockQuantity", "stockAlertDate", "intervalHours", "instructions", "displayOrder",
+       "isActive", "status", "createdAt", "updatedAt"
+FROM "Medication"
+WHERE "userId" = $1
+  AND "isActive" = TRUE
+  AND (
+    ("stockQuantity" IS NOT NULL AND "stockQuantity" <= $2)
+    OR ("stockAlertDate" IS NOT NULL AND "stockAlertDate" <= now() + interval '7 days')
+  )
+ORDER BY "stockQuantity" ASC NULLS LAST, "createdAt" ASC
+`
+
+type ListMedicationAlertsParams struct {
+	UserId        string
+	StockQuantity *int32
+}
+
+// 在庫僅少(残数が閾値以下、もしくは在庫アラート日が7日以内)の有効な薬。
+func (q *Queries) ListMedicationAlerts(ctx context.Context, arg ListMedicationAlertsParams) ([]Medication, error) {
+	rows, err := q.db.Query(ctx, listMedicationAlerts, arg.UserId, arg.StockQuantity)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Medication{}
+	for rows.Next() {
+		var i Medication
+		if err := rows.Scan(
+			&i.ID,
+			&i.MemberId,
+			&i.UserId,
+			&i.Name,
+			&i.Category,
+			&i.DosageAmount,
+			&i.Frequency,
+			&i.StockQuantity,
+			&i.StockAlertDate,
+			&i.IntervalHours,
+			&i.Instructions,
+			&i.DisplayOrder,
+			&i.IsActive,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMedicationsByMember = `-- name: ListMedicationsByMember :many
 SELECT "id", "memberId", "userId", "name", "category", "dosageAmount", "frequency",
        "stockQuantity", "stockAlertDate", "intervalHours", "instructions", "displayOrder",
