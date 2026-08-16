@@ -39,4 +39,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      # PKCE と認可リクエストの組み立てはここでしか検証していない。
+      # 走らせていなければ、書いてあっても無いのと同じ
+      - run: npm test
       - run: npm run build
