@@ -131,7 +131,9 @@ func (h *MedicationHandler) Update(c *gin.Context) {
 }
 
 type updateStockRequest struct {
-	StockQuantity int `json:"stockQuantity"`
+	// ポインタで受ける。値型だとキー省略が Go のゼロ値 0 と区別できず、
+	// 「stockQuantity を送らなかっただけ」で在庫が 0 に上書きされてしまう。
+	StockQuantity *int `json:"stockQuantity"`
 }
 
 func (h *MedicationHandler) UpdateStock(c *gin.Context) {
@@ -141,7 +143,15 @@ func (h *MedicationHandler) UpdateStock(c *gin.Context) {
 		response.Error(c, 400, "在庫数は0以上の数値を指定してください")
 		return
 	}
-	m, err := h.uc.UpdateStock(c.Request.Context(), userID, c.Param("medicationId"), req.StockQuantity)
+	if req.StockQuantity == nil {
+		response.Error(c, 400, "在庫数は0以上の数値を指定してください")
+		return
+	}
+	if *req.StockQuantity < 0 {
+		response.Error(c, 400, "在庫数は0以上の数値を指定してください")
+		return
+	}
+	m, err := h.uc.UpdateStock(c.Request.Context(), userID, c.Param("medicationId"), *req.StockQuantity)
 	if err != nil {
 		response.HandleDomainError(c, err)
 		return

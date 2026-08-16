@@ -76,7 +76,25 @@ func (uc *MedicationUsecase) UpdateStock(ctx context.Context, userID, medID stri
 	return uc.medications.UpdateStock(ctx, medID, quantity)
 }
 
+// Reorder は薬の表示順を入れ替える。
+//
+// 指定された ID がすべて自分の薬であることを、並び替える前に確認する。
+// 以前はリポジトリの WHERE 句に頼っており、他人の ID や存在しない ID を
+// 混ぜても黙って無視されて 200 を返していた。呼び出し側は成功したと誤認するし、
+// 応答が変わらないことを利用して ID の当たり判定にも使えてしまう。
 func (uc *MedicationUsecase) Reorder(ctx context.Context, userID string, orderedIDs []string) error {
+	seen := make(map[string]struct{}, len(orderedIDs))
+	for _, id := range orderedIDs {
+		if _, dup := seen[id]; dup {
+			// 重複があると並び順が一意に定まらない
+			return domain.NewValidation("並び順に同じ薬が重複しています")
+		}
+		seen[id] = struct{}{}
+
+		if _, err := uc.ensureMedOwner(ctx, userID, id); err != nil {
+			return err
+		}
+	}
 	return uc.medications.Reorder(ctx, userID, orderedIDs)
 }
 
