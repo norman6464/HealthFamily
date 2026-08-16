@@ -138,39 +138,40 @@ func (r *ScheduleRepository) GetTodaySchedules(ctx context.Context, userID strin
 	dayStart := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	dayEnd := dayStart.Add(24 * time.Hour)
 
-	rows, err := r.pool.Query(ctx,
-		`SELECT `+prefixCols("s", scheduleColumns)+`,
-			m."name", mem."name", mem."memberType", m."displayOrder",
-			EXISTS(
-				SELECT 1 FROM "MedicationRecord" r
-				WHERE r."scheduleId" = s."id" AND r."takenAt" >= $3 AND r."takenAt" < $4
-			) AS is_completed
-		 FROM "Schedule" s
-		 JOIN "Medication" m ON m."id" = s."medicationId"
-		 JOIN "Member" mem ON mem."id" = s."memberId"
-		 WHERE s."userId" = $1
-		   AND s."isEnabled" = TRUE
-		   AND m."isActive" = TRUE
-		   AND m."status" NOT IN ('paused', 'discontinued')
-		   AND (array_length(s."daysOfWeek", 1) IS NULL OR $2 = ANY(s."daysOfWeek"))
-		 ORDER BY s."scheduledTime" ASC`,
-		userID, weekday, dayStart, dayEnd)
+	rows, err := r.q.ListTodaySchedules(ctx, sqlcgen.ListTodaySchedulesParams{
+		UserID:   userID,
+		Weekday:  weekday,
+		DayStart: dayStart,
+		DayEnd:   dayEnd,
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	list := make([]entity.TodaySchedule, 0)
-	for rows.Next() {
-		var t entity.TodaySchedule
-		if err := rows.Scan(&t.ID, &t.MedicationID, &t.UserID, &t.MemberID, &t.ScheduledTime,
-			&t.DaysOfWeek, &t.IntervalDays, &t.StartDate, &t.IsEnabled, &t.ReminderMinutesBefore, &t.CreatedAt,
-			&t.MedicationName, &t.MemberName, &t.MemberType, &t.MedicationDisplayOrder, &t.IsCompleted); err != nil {
-			return nil, err
-		}
-		list = append(list, t)
+	list := make([]entity.TodaySchedule, 0, len(rows))
+	for _, row := range rows {
+		list = append(list, entity.TodaySchedule{
+			Schedule: entity.Schedule{
+				ID:                    row.ID,
+				MedicationID:          row.MedicationId,
+				UserID:                row.UserId,
+				MemberID:              row.MemberId,
+				ScheduledTime:         row.ScheduledTime,
+				DaysOfWeek:            row.DaysOfWeek,
+				IntervalDays:          intPtr(row.IntervalDays),
+				StartDate:             row.StartDate,
+				IsEnabled:             row.IsEnabled,
+				ReminderMinutesBefore: int(row.ReminderMinutesBefore),
+				CreatedAt:             row.CreatedAt,
+			},
+			MedicationName:         row.MedicationName,
+			MemberName:             row.MemberName,
+			MemberType:             row.MemberType,
+			MedicationDisplayOrder: int(row.DisplayOrder),
+			IsCompleted:            row.IsCompleted,
+		})
 	}
-	return list, rows.Err()
+	return list, nil
 }
 
 // prefixCols は `"id", "name"` を `s."id", s."name"` の形に変換する。

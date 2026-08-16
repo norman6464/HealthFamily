@@ -31,3 +31,155 @@ func (q *Queries) GetExpense(ctx context.Context, id string) (Expense, error) {
 	)
 	return i, err
 }
+
+const listExpensesFiltered = `-- name: ListExpensesFiltered :many
+SELECT "id", "userId", "memberId", "category", "amount", "description",
+       "expenseDate", "isDeductible", "createdAt"
+FROM "Expense"
+WHERE "userId" = $1
+  AND ($2::text IS NULL OR "memberId" = $2::text)
+  AND ($3::int IS NULL
+       OR EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo') = $3::int)
+ORDER BY "expenseDate" DESC
+`
+
+type ListExpensesFilteredParams struct {
+	UserID   string
+	MemberID *string
+	Year     *int32
+}
+
+// 任意の絞り込み(メンバー/年)で医療費を返す。NULL を渡した条件は無視される。
+// 年は JST 基準。UTC で切ると、元日や大晦日の記録が前後の年に混ざる。
+func (q *Queries) ListExpensesFiltered(ctx context.Context, arg ListExpensesFilteredParams) ([]Expense, error) {
+	rows, err := q.db.Query(ctx, listExpensesFiltered, arg.UserID, arg.MemberID, arg.Year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Expense{}
+	for rows.Next() {
+		var i Expense
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserId,
+			&i.MemberId,
+			&i.Category,
+			&i.Amount,
+			&i.Description,
+			&i.ExpenseDate,
+			&i.IsDeductible,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const sumExpensesByCategory = `-- name: SumExpensesByCategory :many
+SELECT "category", SUM("amount")::bigint AS total
+FROM "Expense"
+WHERE "userId" = $1
+  AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo') = $2::int
+GROUP BY "category"
+`
+
+type SumExpensesByCategoryParams struct {
+	UserID string
+	Year   int32
+}
+
+type SumExpensesByCategoryRow struct {
+	Category string
+	Total    int64
+}
+
+func (q *Queries) SumExpensesByCategory(ctx context.Context, arg SumExpensesByCategoryParams) ([]SumExpensesByCategoryRow, error) {
+	rows, err := q.db.Query(ctx, sumExpensesByCategory, arg.UserID, arg.Year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SumExpensesByCategoryRow{}
+	for rows.Next() {
+		var i SumExpensesByCategoryRow
+		if err := rows.Scan(&i.Category, &i.Total); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const sumExpensesByMonth = `-- name: SumExpensesByMonth :many
+SELECT EXTRACT(MONTH FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo')::int AS month,
+       SUM("amount")::bigint AS total
+FROM "Expense"
+WHERE "userId" = $1
+  AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo') = $2::int
+GROUP BY month
+ORDER BY month
+`
+
+type SumExpensesByMonthParams struct {
+	UserID string
+	Year   int32
+}
+
+type SumExpensesByMonthRow struct {
+	Month int32
+	Total int64
+}
+
+func (q *Queries) SumExpensesByMonth(ctx context.Context, arg SumExpensesByMonthParams) ([]SumExpensesByMonthRow, error) {
+	rows, err := q.db.Query(ctx, sumExpensesByMonth, arg.UserID, arg.Year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SumExpensesByMonthRow{}
+	for rows.Next() {
+		var i SumExpensesByMonthRow
+		if err := rows.Scan(&i.Month, &i.Total); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const sumExpensesByYear = `-- name: SumExpensesByYear :one
+SELECT COALESCE(SUM("amount"), 0)::bigint AS total,
+       COALESCE(SUM("amount") FILTER (WHERE "isDeductible"), 0)::bigint AS deductible_total
+FROM "Expense"
+WHERE "userId" = $1
+  AND EXTRACT(YEAR FROM "expenseDate" AT TIME ZONE 'Asia/Tokyo') = $2::int
+`
+
+type SumExpensesByYearParams struct {
+	UserID string
+	Year   int32
+}
+
+type SumExpensesByYearRow struct {
+	Total           int64
+	DeductibleTotal int64
+}
+
+func (q *Queries) SumExpensesByYear(ctx context.Context, arg SumExpensesByYearParams) (SumExpensesByYearRow, error) {
+	row := q.db.QueryRow(ctx, sumExpensesByYear, arg.UserID, arg.Year)
+	var i SumExpensesByYearRow
+	err := row.Scan(&i.Total, &i.DeductibleTotal)
+	return i, err
+}

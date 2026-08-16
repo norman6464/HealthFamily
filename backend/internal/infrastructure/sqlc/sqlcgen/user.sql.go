@@ -9,15 +9,6 @@ import (
 	"context"
 )
 
-const bumpUserTokenVersion = `-- name: BumpUserTokenVersion :exec
-UPDATE "User" SET "tokenVersion" = "tokenVersion" + 1, "updatedAt" = now() WHERE "id" = $1
-`
-
-func (q *Queries) BumpUserTokenVersion(ctx context.Context, id string) error {
-	_, err := q.db.Exec(ctx, bumpUserTokenVersion, id)
-	return err
-}
-
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT "id", "email", "password", "displayName", "characterType", "characterName",
        "emailVerified", "verificationCode", "verificationExpiry", "verificationAttempts",

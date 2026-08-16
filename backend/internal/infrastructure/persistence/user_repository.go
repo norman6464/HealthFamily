@@ -139,5 +139,11 @@ func (r *UserRepository) TokenVersion(ctx context.Context, id string) (int, bool
 // 世代が巻き戻って失効させたはずの JWT が再び通ってしまう。
 // プロフィール更新のような何気ない操作が攻撃者を呼び戻すことになる。
 func (r *UserRepository) BumpTokenVersion(ctx context.Context, id string) error {
-	return r.q.BumpUserTokenVersion(ctx, id)
+	return r.gdb.WithContext(ctx).
+		Model(&gormUser{}).
+		Where(`"id" = ?`, id).
+		Updates(map[string]any{
+			"tokenVersion": gorm.Expr(`"tokenVersion" + 1`),
+			"updatedAt":    gorm.Expr("now()"),
+		}).Error
 }

@@ -74,50 +74,55 @@ func scanPrescriptionItems(rows pgx.Rows) ([]entity.PrescriptionItem, error) {
 }
 
 func (r *PrescriptionRepository) List(ctx context.Context, userID string) ([]entity.Prescription, error) {
-	rows, err := r.pool.Query(ctx,
-		`SELECT `+prescriptionColumns+` FROM "Prescription" WHERE "userId"=$1 ORDER BY "createdAt" DESC`, userID)
+	rows, err := r.q.ListPrescriptionsByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	list := make([]entity.Prescription, 0)
-	for rows.Next() {
-		var p entity.Prescription
-		if err := rows.Scan(&p.ID, &p.UserID, &p.MemberID, &p.PrescriptionName, &p.PrescribedBy, &p.PrescribedAt, &p.ExpiresAt, &p.PharmacyName, &p.ElectronicCode, &p.Notes, &p.CreatedAt); err != nil {
-			return nil, err
-		}
-		list = append(list, p)
+
+	list := make([]entity.Prescription, 0, len(rows))
+	ids := make([]string, 0, len(rows))
+	byID := make(map[string]int, len(rows))
+	for _, row := range rows {
+		byID[row.ID] = len(list)
+		ids = append(ids, row.ID)
+		list = append(list, entity.Prescription{
+			ID:               row.ID,
+			UserID:           row.UserId,
+			MemberID:         row.MemberId,
+			PrescriptionName: row.PrescriptionName,
+			PrescribedBy:     row.PrescribedBy,
+			PrescribedAt:     row.PrescribedAt,
+			ExpiresAt:        row.ExpiresAt,
+			PharmacyName:     row.PharmacyName,
+			ElectronicCode:   row.ElectronicCode,
+			Notes:            row.Notes,
+			CreatedAt:        row.CreatedAt,
+			Items:            []entity.PrescriptionItem{},
+		})
 	}
-	if err := rows.Err(); err != nil {
+	if len(ids) == 0 {
+		return list, nil
+	}
+
+	// 明細は一度にまとめて引く。処方箋ごとに引くと件数分の往復になる
+	items, err := r.q.ListPrescriptionItemsForPrescriptions(ctx, ids)
+	if err != nil {
 		return nil, err
 	}
-	// 明細をまとめて取得して各処方箋へ割り当て（N+1回避）
-	ids := make([]string, len(list))
-	for i := range list {
-		ids[i] = list[i].ID
-		list[i].Items = []entity.PrescriptionItem{}
-	}
-	if len(ids) > 0 {
-		itemRows, err := r.pool.Query(ctx,
-			`SELECT `+prescriptionItemColumns+`
-			 FROM "PrescriptionItem" WHERE "prescriptionId" = ANY($1) ORDER BY "sortOrder", "createdAt"`, ids)
-		if err != nil {
-			return nil, err
+	for _, it := range items {
+		idx, ok := byID[it.PrescriptionId]
+		if !ok {
+			continue
 		}
-		defer itemRows.Close()
-		items, err := scanPrescriptionItems(itemRows)
-		if err != nil {
-			return nil, err
-		}
-		byPid := map[string]int{}
-		for i := range list {
-			byPid[list[i].ID] = i
-		}
-		for _, it := range items {
-			if idx, ok := byPid[it.PrescriptionID]; ok {
-				list[idx].Items = append(list[idx].Items, it)
-			}
-		}
+		list[idx].Items = append(list[idx].Items, entity.PrescriptionItem{
+			ID:             it.ID,
+			PrescriptionID: it.PrescriptionId,
+			Name:           it.Name,
+			Dosage:         it.Dosage,
+			Frequency:      it.Frequency,
+			Days:           intPtr(it.Days),
+			SortOrder:      int(it.SortOrder),
+		})
 	}
 	return list, nil
 }

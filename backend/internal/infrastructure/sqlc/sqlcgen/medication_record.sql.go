@@ -7,6 +7,7 @@ package sqlcgen
 
 import (
 	"context"
+	"time"
 )
 
 const getMedicationRecord = `-- name: GetMedicationRecord :one
@@ -76,6 +77,62 @@ ORDER BY "takenAt" DESC
 
 func (q *Queries) ListMedicationRecordsByUser(ctx context.Context, userid string) ([]MedicationRecord, error) {
 	rows, err := q.db.Query(ctx, listMedicationRecordsByUser, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MedicationRecord{}
+	for rows.Next() {
+		var i MedicationRecord
+		if err := rows.Scan(
+			&i.ID,
+			&i.MemberId,
+			&i.MedicationId,
+			&i.UserId,
+			&i.ScheduleId,
+			&i.TakenAt,
+			&i.Notes,
+			&i.DosageAmount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRecordsByUserFiltered = `-- name: ListRecordsByUserFiltered :many
+SELECT "id", "memberId", "medicationId", "userId", "scheduleId", "takenAt", "notes", "dosageAmount"
+FROM "MedicationRecord"
+WHERE "userId" = $1
+  AND ($2::text IS NULL OR "memberId" = $2::text)
+  AND ($3::timestamptz IS NULL OR "takenAt" >= $3::timestamptz)
+  AND ($4::timestamptz IS NULL OR "takenAt" < $4::timestamptz)
+ORDER BY "takenAt" DESC
+LIMIT $5::int
+`
+
+type ListRecordsByUserFilteredParams struct {
+	UserID   string
+	MemberID *string
+	FromAt   *time.Time
+	ToAt     *time.Time
+	RowLimit *int32
+}
+
+// 任意の絞り込み(メンバー/期間/件数上限)で服薬記録を返す。
+// NULL を渡した条件は無視される。SQL を文字列連結で組み立てずに済ませるための形。
+func (q *Queries) ListRecordsByUserFiltered(ctx context.Context, arg ListRecordsByUserFilteredParams) ([]MedicationRecord, error) {
+	rows, err := q.db.Query(ctx, listRecordsByUserFiltered,
+		arg.UserID,
+		arg.MemberID,
+		arg.FromAt,
+		arg.ToAt,
+		arg.RowLimit,
+	)
 	if err != nil {
 		return nil, err
 	}

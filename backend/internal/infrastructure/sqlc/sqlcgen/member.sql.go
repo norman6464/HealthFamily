@@ -7,6 +7,7 @@ package sqlcgen
 
 import (
 	"context"
+	"time"
 )
 
 const getMember = `-- name: GetMember :one
@@ -31,6 +32,67 @@ func (q *Queries) GetMember(ctx context.Context, id string) (Member, error) {
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const listMemberSummaries = `-- name: ListMemberSummaries :many
+SELECT m."id", m."userId", m."memberType", m."name", m."petType", m."photoUrl",
+       m."birthDate", m."notes", m."createdAt", m."updatedAt",
+       COUNT(med."id") AS medication_count,
+       COUNT(med."id") FILTER (WHERE med."isActive") AS active_count
+FROM "Member" m
+LEFT JOIN "Medication" med ON med."memberId" = m."id"
+WHERE m."userId" = $1
+GROUP BY m."id"
+ORDER BY m."createdAt" ASC
+`
+
+type ListMemberSummariesRow struct {
+	ID              string
+	UserId          string
+	MemberType      string
+	Name            string
+	PetType         *string
+	PhotoUrl        *string
+	BirthDate       *time.Time
+	Notes           *string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	MedicationCount int64
+	ActiveCount     int64
+}
+
+// メンバーごとの薬数を単一SQLで集計する(N+1回避)。
+func (q *Queries) ListMemberSummaries(ctx context.Context, userid string) ([]ListMemberSummariesRow, error) {
+	rows, err := q.db.Query(ctx, listMemberSummaries, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListMemberSummariesRow{}
+	for rows.Next() {
+		var i ListMemberSummariesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserId,
+			&i.MemberType,
+			&i.Name,
+			&i.PetType,
+			&i.PhotoUrl,
+			&i.BirthDate,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.MedicationCount,
+			&i.ActiveCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listMembers = `-- name: ListMembers :many

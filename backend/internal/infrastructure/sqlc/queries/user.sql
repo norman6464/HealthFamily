@@ -21,6 +21,3 @@ WHERE "googleId" = $1;
 
 -- name: GetUserTokenVersion :one
 SELECT "tokenVersion" FROM "User" WHERE "id" = $1;
-
--- name: BumpUserTokenVersion :exec
-UPDATE "User" SET "tokenVersion" = "tokenVersion" + 1, "updatedAt" = now() WHERE "id" = $1;
