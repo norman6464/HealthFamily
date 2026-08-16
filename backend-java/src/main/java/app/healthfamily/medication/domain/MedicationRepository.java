@@ -1,5 +1,6 @@
 package app.healthfamily.medication.domain;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -11,6 +12,9 @@ import java.util.Optional;
 public interface MedicationRepository {
 
     Optional<Medication> findById(String medicationId);
+
+    /** 所有ユーザーの薬をすべて返す。 */
+    List<Medication> listByUser(String userId);
 
     /** 集約の現在の状態を書き戻す。 */
     void save(Medication medication);

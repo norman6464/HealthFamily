@@ -31,6 +31,15 @@ public class JdbcMedicationRepository implements MedicationRepository {
              WHERE id = :id
             """;
 
+    private static final String SELECT_BY_USER =
+            """
+            SELECT id, "memberId", "userId", name, category, "dosageAmount",
+                   "stockQuantity", "stockAlertDate", "intervalHours", status
+              FROM "Medication"
+             WHERE "userId" = :userId
+             ORDER BY "displayOrder", "createdAt"
+            """;
+
     private static final String UPDATE_STOCK =
             """
             UPDATE "Medication"
@@ -51,6 +60,14 @@ public class JdbcMedicationRepository implements MedicationRepository {
                 .param("id", medicationId)
                 .query(JdbcMedicationRepository::toAggregate)
                 .optional();
+    }
+
+    @Override
+    public java.util.List<Medication> listByUser(String userId) {
+        return jdbc.sql(SELECT_BY_USER)
+                .param("userId", userId)
+                .query(JdbcMedicationRepository::toAggregate)
+                .list();
     }
 
     @Override
