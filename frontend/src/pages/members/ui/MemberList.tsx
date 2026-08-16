@@ -1,4 +1,5 @@
 import React from "react";
+import { getMemberAge } from "@/entities/member";
 import { Link } from "react-router";
 import { Pill, Pencil } from "lucide-react";
 import type { Member } from "@/shared/api";
@@ -19,18 +20,6 @@ const memberTypeLabels: Record<string, string> = {
   human: "家族",
   pet: "ペット",
 };
-
-function getAge(birthDate: string | null): number | null {
-  if (!birthDate) return null;
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age;
-}
 
 export const MemberList: React.FC<MemberListProps> = ({
   members,
@@ -75,7 +64,7 @@ export interface MemberCardProps {
 }
 
 const MemberCard: React.FC<MemberCardProps> = React.memo(({ member, onDelete, onEdit, summary }) => {
-  const age = getAge(member.birthDate);
+  const age = getMemberAge(member.birthDate);
   const typeLabel = memberTypeLabels[member.memberType] ?? member.memberType;
 
   return (

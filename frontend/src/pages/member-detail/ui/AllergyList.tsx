@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ALLERGY_SEVERITY_LABELS } from "@/entities/allergy";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import type { Allergy } from "@/shared/api";
 import { LoadingSpinner } from "@/shared/ui";
@@ -23,12 +24,6 @@ const ALLERGY_TYPE_LABELS: Record<string, string> = {
   pollen: "花粉",
   atopy: "アトピー",
   other: "その他",
-};
-
-const SEVERITY_LABELS: Record<string, string> = {
-  mild: "軽度",
-  moderate: "中度",
-  severe: "重度",
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -137,7 +132,7 @@ const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate,
             onChange={(e) => setEditSeverity(e.target.value)}
             className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
           >
-            {Object.entries(SEVERITY_LABELS).map(([value, label]) => (
+            {Object.entries(ALLERGY_SEVERITY_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
@@ -192,7 +187,7 @@ const AllergyCard: React.FC<AllergyCardProps> = React.memo(({ allergy, onUpdate,
             <span
               className={`text-xs px-1.5 py-0.5 rounded ${SEVERITY_COLORS[allergy.severity] || "bg-primary-50 text-ink-600"}`}
             >
-              {SEVERITY_LABELS[allergy.severity] || allergy.severity}
+              {ALLERGY_SEVERITY_LABELS[allergy.severity] || allergy.severity}
             </span>
             <span className="text-xs bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded">
               {ALLERGY_TYPE_LABELS[allergy.allergyType] || allergy.allergyType}

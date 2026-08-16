@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { getMemberAge } from "@/entities/member";
+import { ALLERGY_SEVERITY_LABELS } from "@/entities/allergy";
 import { Link, useParams } from "react-router";
 import { ChevronLeft, Printer } from "lucide-react";
 import { api } from "@/shared/api";
@@ -19,12 +21,6 @@ const memberTypeLabels: Record<string, string> = {
   pet: "ペット",
 };
 
-const severityLabels: Record<string, string> = {
-  mild: "軽度",
-  moderate: "中等度",
-  severe: "重度",
-};
-
 function formatDate(value: string | null | undefined): string {
   if (!value) return "-";
   const d = new Date(value);
@@ -37,14 +33,8 @@ function formatDate(value: string | null | undefined): string {
 }
 
 function calcAge(birthDate: string | null): string {
-  if (!birthDate) return "-";
-  const d = new Date(birthDate);
-  if (Number.isNaN(d.getTime())) return "-";
-  const now = new Date();
-  let age = now.getFullYear() - d.getFullYear();
-  const m = now.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age -= 1;
-  return `${age}歳`;
+  const age = getMemberAge(birthDate);
+  return age === null ? "-" : `${age}歳`;
 }
 
 export default function MemberReport() {
@@ -231,7 +221,7 @@ export default function MemberReport() {
                 <li key={a.id} className="flex flex-wrap items-baseline gap-x-2">
                   <span className="font-medium">{a.allergenName}</span>
                   <span className="text-ink-500">
-                    （{severityLabels[a.severity] ?? a.severity}）
+                    （{ALLERGY_SEVERITY_LABELS[a.severity] ?? a.severity}）
                   </span>
                   {a.symptoms ? (
                     <span className="text-ink-500">{a.symptoms}</span>

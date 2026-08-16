@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { X, ImagePlus } from "lucide-react";
-import type { Member } from "@/shared/api";
+import React, { useState } from 'react';
+import { X, ImagePlus } from 'lucide-react';
+import type { Member } from '@/shared/api';
 
 export interface ExaminationFormData {
   memberId: string;
@@ -26,11 +26,11 @@ interface ExaminationFormProps {
 }
 
 const toDateInput = (value: string | null | undefined): string => {
-  if (!value) return "";
-  return new Date(value).toISOString().split("T")[0];
+  if (!value) return '';
+  return new Date(value).toISOString().split('T')[0];
 };
 
-const todayInput = (): string => new Date().toISOString().split("T")[0];
+const todayInput = (): string => new Date().toISOString().split('T')[0];
 
 async function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -51,16 +51,16 @@ async function compressImage(file: File): Promise<string> {
             height = MAX_DIM;
           }
         }
-        const canvas = document.createElement("canvas");
+        const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext('2d');
         if (!ctx) {
-          reject(new Error("Canvas not available"));
+          reject(new Error('Canvas not available'));
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
       };
       img.src = e.target?.result as string;
     };
@@ -68,38 +68,47 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
-export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSubmit, onCancel, initialData }) => {
-  const [memberId, setMemberId] = useState(initialData?.memberId || (members.length === 1 ? members[0].id : ""));
-  const [examinationType, setExaminationType] = useState(initialData?.examinationType || "");
+export const ExaminationForm: React.FC<ExaminationFormProps> = ({
+  members,
+  onSubmit,
+  onCancel,
+  initialData,
+}) => {
+  const [memberId, setMemberId] = useState(
+    initialData?.memberId || (members.length === 1 ? members[0].id : ''),
+  );
+  const [examinationType, setExaminationType] = useState(initialData?.examinationType || '');
   const [examinedAt, setExaminedAt] = useState(
     initialData?.examinedAt ? toDateInput(initialData.examinedAt) : todayInput(),
   );
-  const [nextScheduledDate, setNextScheduledDate] = useState(toDateInput(initialData?.nextScheduledDate));
-  const [notes, setNotes] = useState(initialData?.notes || "");
+  const [nextScheduledDate, setNextScheduledDate] = useState(
+    toDateInput(initialData?.nextScheduledDate),
+  );
+  const [notes, setNotes] = useState(initialData?.notes || '');
   const [imageData, setImageData] = useState<string | null>(initialData?.imageData ?? null);
-  const [imageError, setImageError] = useState("");
-  const [submitError, setSubmitError] = useState("");
+  const [imageError, setImageError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      setImageError("10MB以下の画像を選択してください");
+      setImageError('10MB以下の画像を選択してください');
       return;
     }
-    setImageError("");
+    setImageError('');
     try {
       const compressed = await compressImage(file);
       if (compressed.length > 1_500_000) {
-        setImageError("画像を圧縮できませんでした。より小さい画像を選択してください");
+        setImageError('画像を圧縮できませんでした。より小さい画像を選択してください');
         return;
       }
       setImageData(compressed);
     } catch {
-      setImageError("画像の読み込みに失敗しました");
+      setImageError('画像の読み込みに失敗しました');
     }
-    e.target.value = "";
+    e.target.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,27 +116,29 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
     if (!memberId || !examinationType.trim() || !examinedAt) return;
     if (isSubmitting) return;
 
-    setSubmitError("");
+    setSubmitError('');
     setIsSubmitting(true);
     try {
       await onSubmit({
         memberId,
         examinationType: examinationType.trim(),
         examinedAt: new Date(examinedAt).toISOString(),
-        nextScheduledDate: nextScheduledDate ? new Date(nextScheduledDate).toISOString() : undefined,
+        nextScheduledDate: nextScheduledDate
+          ? new Date(nextScheduledDate).toISOString()
+          : undefined,
         notes: notes.trim() || undefined,
         imageData: imageData ?? undefined,
       });
 
       if (!initialData) {
-        setExaminationType("");
+        setExaminationType('');
         setExaminedAt(todayInput());
-        setNextScheduledDate("");
-        setNotes("");
+        setNextScheduledDate('');
+        setNotes('');
         setImageData(null);
       }
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "登録に失敗しました");
+      setSubmitError(err instanceof Error ? err.message : '登録に失敗しました');
     } finally {
       setIsSubmitting(false);
     }
@@ -135,25 +146,29 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="exam-member" className="block text-sm font-medium text-ink-700 mb-1">
-          メンバー
-        </label>
-        <select
-          id="exam-member"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          required
-        >
-          <option value="">選択してください</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* 候補が1人しかいないなら選ばせる意味が無い。
+          メンバー詳細から開いたフォームは常にその1人に限られる */}
+      {members.length > 1 && (
+        <div>
+          <label htmlFor="exam-member" className="block text-sm font-medium text-ink-700 mb-1">
+            メンバー
+          </label>
+          <select
+            id="exam-member"
+            value={memberId}
+            onChange={(e) => setMemberId(e.target.value)}
+            className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            required
+          >
+            <option value="">選択してください</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label htmlFor="exam-type" className="block text-sm font-medium text-ink-700 mb-1">
@@ -240,7 +255,9 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
       </div>
 
       {submitError && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{submitError}</p>
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {submitError}
+        </p>
       )}
 
       <div className="flex space-x-2">
@@ -249,7 +266,7 @@ export const ExaminationForm: React.FC<ExaminationFormProps> = ({ members, onSub
           disabled={isSubmitting}
           className="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? "送信中..." : initialData ? "更新する" : "登録する"}
+          {isSubmitting ? '送信中...' : initialData ? '更新する' : '登録する'}
         </button>
         {onCancel && (
           <button
