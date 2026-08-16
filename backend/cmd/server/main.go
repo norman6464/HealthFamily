@@ -79,7 +79,7 @@ func main() {
 		Dashboard:  handler.NewDashboardPreferenceHandler(usecase.NewDashboardPreferenceUsecase(dashboardPrefRepo)),
 	}
 
-	engine := router.Setup(handlers, tm, db, cfg.AllowedOrigins)
+	engine := router.Setup(handlers, tm, db, cfg.AllowedOrigins, cfg.TrustedProxyHops)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,

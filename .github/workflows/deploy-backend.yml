@@ -41,11 +41,27 @@ jobs:
             --quiet
 
       - name: Verify health
+        id: health
         run: |
           URL=$(gcloud run services describe healthfamily-api \
             --region asia-northeast1 \
             --project "${{ secrets.GCP_PROJECT_ID }}" \
             --format 'value(status.url)')
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
           code=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "$URL/health")
           echo "health -> HTTP $code"
           [ "$code" = "200" ]
+
+      # 単体テストが緑でも、本番に届いていなければ意味がない。
+      # 実際に「修正を直接デプロイ → 修正の入っていない main から自動デプロイされて
+      # 巻き戻る」という事故が起きた。デプロイのたびに、守れていることを実物で確かめる。
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Verify security invariants against the deployed service
+        working-directory: backend
+        env:
+          SMOKE_BASE_URL: ${{ steps.health.outputs.url }}
+        run: go test ./internal/smoke/ -v -count=1

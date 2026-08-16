@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -22,6 +23,25 @@ type Config struct {
 	GoogleClientSecret string
 	// E2Eテスト用ログインバイパスの共有シークレット。空なら無効(本番)。
 	E2ETestLoginSecret string
+	// 自分たちの基盤が X-Forwarded-For に足す段数。
+	// Cloud Run に直接ぶら下げるなら 1、前段が無ければ 0。
+	// 既定を 0 にしているのは、設定し忘れたときに「クライアントの言い値を信じる」
+	// 側へ倒れると、ヘッダを名乗るだけでレート制限を回避されるため。
+	TrustedProxyHops int
+}
+
+// trustedProxyHops は TRUSTED_PROXY_HOPS を読む。
+// 未設定・不正な値・負の値は 0 (ヘッダを信用しない) として扱う。
+func trustedProxyHops() int {
+	raw := os.Getenv("TRUSTED_PROXY_HOPS")
+	if raw == "" {
+		return 0
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil || n < 0 {
+		return 0
+	}
+	return n
 }
 
 // Load は環境変数から設定を読み込む
@@ -36,6 +56,7 @@ func Load() (*Config, error) {
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		E2ETestLoginSecret: os.Getenv("E2E_TEST_LOGIN_SECRET"),
+		TrustedProxyHops:   trustedProxyHops(),
 	}
 
 	origins := getEnv("ALLOWED_ORIGINS", "http://localhost:5173")

@@ -25,7 +25,7 @@ func TestSetupRegistersWithoutPanic(t *testing.T) {
 		Budget:     handler.NewBudgetHandler(usecase.NewBudgetUsecase(nil, nil, nil, mailer.NewResendMailer("", ""))),
 		Dashboard:  handler.NewDashboardPreferenceHandler(usecase.NewDashboardPreferenceUsecase(nil)),
 	}
-	engine := Setup(h, tm, db, []string{"http://localhost:5173"})
+	engine := Setup(h, tm, db, []string{"http://localhost:5173"}, 0)
 	if engine == nil {
 		t.Fatal("engine is nil")
 	}
