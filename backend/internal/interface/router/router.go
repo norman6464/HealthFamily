@@ -25,7 +25,11 @@ type Handlers struct {
 }
 
 // Setup はGinエンジンを構築する
-func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins []string) *gin.Engine {
+//
+// trustedProxyHops は自分たちの基盤が X-Forwarded-For に足す段数。
+// Cloud Run に直接ぶら下げる場合は 1、前段が無ければ 0。
+// 詳しくは middleware.ResolveClientIP を参照。
+func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins []string, trustedProxyHops int) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 
@@ -48,7 +52,7 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 	authGroup := api.Group("/auth")
 	{
 		ipLimit := func(name string, max int) gin.HandlerFunc {
-			return middleware.RateLimit(name, max, time.Minute, nil)
+			return middleware.RateLimit(name, max, time.Minute, trustedProxyHops, nil)
 		}
 		authGroup.POST("/signup", ipLimit("signup", 10), h.Auth.SignUp)
 		authGroup.POST("/verify", ipLimit("verify", 20), h.Auth.Verify)
@@ -67,7 +71,7 @@ func Setup(h *Handlers, tm *auth.TokenManager, db *database.DB, allowedOrigins [
 	// --- 認証必須 ---
 	authed := api.Group("")
 	authed.Use(middleware.Auth(tm))
-	authed.Use(middleware.RateLimit("api", 120, time.Minute, middleware.PerUser))
+	authed.Use(middleware.RateLimit("api", 120, time.Minute, trustedProxyHops, middleware.PerUser))
 	{
 		authed.GET("/members", h.Member.List)
 		authed.GET("/members/summary", h.Member.Summary)

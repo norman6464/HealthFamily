@@ -85,7 +85,10 @@ func (rl *rateLimiter) allow(key string, now time.Time) bool {
 
 // RateLimit はユーザーIDまたはIP単位でリクエストを制限する。
 // keyFunc が空文字を返した場合はIPアドレスをキーに使う。
-func RateLimit(name string, max int, window time.Duration, keyFunc func(c *gin.Context) string) gin.HandlerFunc {
+//
+// trustedHops は自分たちの基盤が X-Forwarded-For に足す段数。
+// 0 ならヘッダを一切信用しない。詳しくは ResolveClientIP を参照。
+func RateLimit(name string, max int, window time.Duration, trustedHops int, keyFunc func(c *gin.Context) string) gin.HandlerFunc {
 	rl := getLimiter(name, max, window)
 	return func(c *gin.Context) {
 		key := ""
@@ -96,7 +99,7 @@ func RateLimit(name string, max int, window time.Duration, keyFunc func(c *gin.C
 			// gin の ClientIP() は使わない。既定ですべてのプロキシを信頼し、
 			// クライアントが自由に書ける X-Forwarded-For の左端を返すため、
 			// ヘッダを変えるだけで上限を回避できてしまう
-			key = ResolveClientIP(c.Request)
+			key = ResolveClientIP(c.Request, trustedHops)
 		}
 		if !rl.allow(name+":"+key, time.Now()) {
 			response.Error(c, 429, "リクエストが多すぎます。しばらくしてから再試行してください。")

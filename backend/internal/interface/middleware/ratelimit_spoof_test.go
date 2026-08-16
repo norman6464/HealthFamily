@@ -21,9 +21,11 @@ func TestRateLimitIgnoresSpoofedForwardedFor(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const limit = 5
+	// 基盤が右端に実接続元を足す配置 (Cloud Run 直下) を想定する
+	const trustedHops = 1
 	r := gin.New()
 	r.POST("/api/auth/reset-password",
-		RateLimit("spoof-test", limit, time.Minute, nil),
+		RateLimit("spoof-test", limit, time.Minute, trustedHops, nil),
 		func(c *gin.Context) { c.Status(http.StatusOK) })
 
 	send := func(forwardedFor string) int {
@@ -56,9 +58,10 @@ func TestRateLimitStillSeparatesRealClients(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const limit = 5
+	const trustedHops = 1
 	r := gin.New()
 	r.POST("/api/auth/forgot-password",
-		RateLimit("separation-test", limit, time.Minute, nil),
+		RateLimit("separation-test", limit, time.Minute, trustedHops, nil),
 		func(c *gin.Context) { c.Status(http.StatusOK) })
 
 	send := func(clientIP string) int {

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -22,6 +23,43 @@ type Config struct {
 	GoogleClientSecret string
 	// E2Eテスト用ログインバイパスの共有シークレット。空なら無効(本番)。
 	E2ETestLoginSecret string
+	// 自分たちの基盤が X-Forwarded-For に足す段数。
+	// Cloud Run に直接ぶら下げるなら 1、前段が無ければ 0。
+	// 既定を 0 にしているのは、設定し忘れたときに「クライアントの言い値を信じる」
+	// 側へ倒れると、ヘッダを名乗るだけでレート制限を回避されるため。
+	TrustedProxyHops int
+}
+
+// trustedProxyHops は、自分たちの基盤が X-Forwarded-For に足す段数を決める。
+//
+// 設定を人手に委ねると、付け忘れた瞬間に静かに壊れる。Cloud Run 上で 0 だと
+// 全利用者が 1 つの枠を共有し、数人が使っただけで全員が締め出される。
+// 逆に前段の無い環境で 1 だと、ヘッダを名乗るだけで上限を回避される。
+// どちらも設定ミスで起きてはならないので、実行環境から既定を決める。
+//
+// K_SERVICE は Cloud Run が必ず設定する。実行環境が与えるものであり
+// リクエストから注入できないため、判定の根拠にしてよい。
+// TRUSTED_PROXY_HOPS を明示すればそちらが優先される。
+func trustedProxyHops() int {
+	fallback := 0
+	if os.Getenv("K_SERVICE") != "" {
+		// Cloud Run のフロントエンドが右端に実接続元を足す
+		fallback = 1
+	}
+
+	raw := strings.TrimSpace(os.Getenv("TRUSTED_PROXY_HOPS"))
+	if raw == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil {
+		// 壊れた値で緩む側にも絞りすぎる側にも倒さず、環境から決めた既定に戻す
+		return fallback
+	}
+	if n < 0 {
+		return 0
+	}
+	return n
 }
 
 // Load は環境変数から設定を読み込む
@@ -36,6 +74,7 @@ func Load() (*Config, error) {
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		E2ETestLoginSecret: os.Getenv("E2E_TEST_LOGIN_SECRET"),
+		TrustedProxyHops:   trustedProxyHops(),
 	}
 
 	origins := getEnv("ALLOWED_ORIGINS", "http://localhost:5173")
