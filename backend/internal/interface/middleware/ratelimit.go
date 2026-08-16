@@ -93,7 +93,10 @@ func RateLimit(name string, max int, window time.Duration, keyFunc func(c *gin.C
 			key = keyFunc(c)
 		}
 		if key == "" {
-			key = c.ClientIP()
+			// gin の ClientIP() は使わない。既定ですべてのプロキシを信頼し、
+			// クライアントが自由に書ける X-Forwarded-For の左端を返すため、
+			// ヘッダを変えるだけで上限を回避できてしまう
+			key = ResolveClientIP(c.Request)
 		}
 		if !rl.allow(name+":"+key, time.Now()) {
 			response.Error(c, 429, "リクエストが多すぎます。しばらくしてから再試行してください。")

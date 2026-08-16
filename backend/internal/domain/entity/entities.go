@@ -16,6 +16,7 @@ type User struct {
 	VerificationAttempts int        `json:"-"`
 	ResetCode            *string    `json:"-"`
 	ResetCodeExpiry      *time.Time `json:"-"`
+	ResetAttempts        int        `json:"-"`
 	GoogleID             *string    `json:"-"`
 	CreatedAt            time.Time  `json:"createdAt"`
 	UpdatedAt            time.Time  `json:"updatedAt"`
