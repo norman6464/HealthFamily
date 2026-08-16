@@ -26,7 +26,9 @@ func RegisterExtraRoutes(authed *gin.RouterGroup, db *database.DB) {
 	authed.DELETE("/hospitals/:hospitalId", hospitalH.Delete)
 
 	// --- Appointment ---
-	appointmentH := handler.NewAppointmentHandler(usecase.NewMemberScopedCRUD[entity.Appointment, repository.CreateAppointmentInput, repository.UpdateAppointmentInput](persistence.NewAppointmentRepository(db), memberRepo, "通院予定", "この通院予定にアクセスする権限がありません", func(e *entity.Appointment) string { return e.UserID }, func(c repository.CreateAppointmentInput) string { return c.UserID }, func(c repository.CreateAppointmentInput) string { return c.MemberID }))
+	appointmentCRUD := usecase.NewMemberScopedCRUD[entity.Appointment, repository.CreateAppointmentInput, repository.UpdateAppointmentInput](persistence.NewAppointmentRepository(db), memberRepo, "通院予定", "この通院予定にアクセスする権限がありません", func(e *entity.Appointment) string { return e.UserID }, func(c repository.CreateAppointmentInput) string { return c.UserID }, func(c repository.CreateAppointmentInput) string { return c.MemberID })
+	// hospitalId の所有権も確認するため、汎用CRUDを専用ユースケースで包む
+	appointmentH := handler.NewAppointmentHandler(usecase.NewAppointmentUsecase(appointmentCRUD, persistence.NewHospitalRepository(db)))
 	authed.GET("/appointments", appointmentH.List)
 	authed.POST("/appointments", appointmentH.Create)
 	authed.GET("/appointments/:appointmentId", appointmentH.Get)
