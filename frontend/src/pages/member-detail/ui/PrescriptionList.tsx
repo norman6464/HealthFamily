@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRegisterMedicationFromPrescription, useSavePrescriptionItems, useDispensePrescription } from "@/features/manage-prescriptions";
 import { Pencil, Trash2, Check, X, QrCode, PillBottle, Plus, ListChecks } from "lucide-react";
-import type { Medication, Prescription, PrescriptionItem } from "@/shared/api";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
+import type { Prescription, PrescriptionItem } from "@/shared/api";
 import { LoadingSpinner } from "@/shared/ui";
 import { EmptyStatePrompt } from "@/shared/ui";
 import { ConfirmationDialog } from "@/shared/ui";
@@ -77,7 +75,6 @@ const itemToDraft = (item: PrescriptionItem): ItemDraft => ({
 });
 
 const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescription, onUpdate, onDelete }) => {
-  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
@@ -90,38 +87,11 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = React.memo(({ prescrip
   const [isEditingItems, setIsEditingItems] = useState(false);
   const [itemDrafts, setItemDrafts] = useState<ItemDraft[]>([]);
 
-  const registerMedicationMutation = useMutation({
-    mutationFn: () =>
-      api.post<Medication>("/medications", {
-        memberId: prescription.memberId,
-        name: prescription.prescriptionName,
-      }),
-    // 薬を作ったら一覧を取り直す。隣の dispenseMutation は無効化しているのに
-    // こちらだけ抜けており、登録しても薬の画面に出てこなかった。
-    // メンバー別の一覧は別のキーで持っているので、そちらも無効化する
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medications.all });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.members.medications(prescription.memberId),
-      });
-    },
-  });
-
-  const saveItemsMutation = useMutation({
-    mutationFn: (items: SaveItemsPayload[]) =>
-      api.put<Prescription>(`/prescriptions/${prescription.id}/items`, { items }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptions.all });
-      setIsEditingItems(false);
-    },
-  });
-
-  const dispenseMutation = useMutation({
-    mutationFn: () => api.post<Medication[]>(`/prescriptions/${prescription.id}/dispense`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medications.all });
-    },
-  });
+  const registerMedicationMutation = useRegisterMedicationFromPrescription(prescription);
+  const saveItemsMutation = useSavePrescriptionItems(prescription.id, () =>
+    setIsEditingItems(false),
+  );
+  const dispenseMutation = useDispensePrescription(prescription);
 
   const startEditingItems = () => {
     const drafts = prescription.items.length > 0 ? prescription.items.map(itemToDraft) : [{ name: "", dosage: "", frequency: "", days: "" }];

@@ -1,13 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useAppointments } from "@/entities/appointment";
+import { useExaminations } from "@/entities/examination";
+import { useVaccinations } from "@/entities/vaccination";
 import { useMemberMedications } from "@/entities/medication";
 import { getMemberAge, useMember } from "@/entities/member";
-import { ALLERGY_SEVERITY_LABELS } from "@/entities/allergy";
+import { ALLERGY_SEVERITY_LABELS, useAllergies } from "@/entities/allergy";
 import { Link, useParams } from "react-router";
 import { ChevronLeft, Printer } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
 import { useRequireAuth } from "@/features/auth";
-import type { Allergy, Vaccination, Examination, Appointment } from "@/shared/api";
 import { LoadingSpinner } from "@/shared/ui";
 
 const memberTypeLabels: Record<string, string> = {
@@ -39,29 +38,13 @@ export default function MemberReport() {
 
   const { data: medications = [], isLoading: medsLoading } = useMemberMedications(memberId);
 
-  const { data: allergies = [] } = useQuery({
-    queryKey: queryKeys.allergies.all,
-    queryFn: () => api.get<Allergy[]>("/allergies"),
-    enabled: !!user,
-  });
+  const { data: allergies = [] } = useAllergies({ enabled: !!user });
 
-  const { data: vaccinations = [] } = useQuery({
-    queryKey: queryKeys.vaccinations.all,
-    queryFn: () => api.get<Vaccination[]>("/vaccinations"),
-    enabled: !!user,
-  });
+  const { data: vaccinations = [] } = useVaccinations({ enabled: !!user });
 
-  const { data: examinations = [] } = useQuery({
-    queryKey: queryKeys.examinations.all,
-    queryFn: () => api.get<Examination[]>("/examinations"),
-    enabled: !!user,
-  });
+  const { data: examinations = [] } = useExaminations({ enabled: !!user });
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: queryKeys.appointments.all,
-    queryFn: () => api.get<Appointment[]>("/appointments"),
-    enabled: !!user,
-  });
+  const { data: appointments = [] } = useAppointments({ enabled: !!user });
 
   if (authLoading || (user && (memberLoading || medsLoading))) {
     return <LoadingSpinner />;

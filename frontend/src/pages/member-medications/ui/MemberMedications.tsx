@@ -1,25 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useCreateMedicationRaw, useDeleteMedication } from "@/features/manage-medications";
 import { useCreateSchedule, useDeleteSchedule } from "@/features/manage-schedules";
 import { useSchedules } from "@/entities/schedule";
 import { useMemberMedications } from "@/entities/medication";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Plus, X, Clock, Pill, Trash2 } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
 import type { Medication } from "@/shared/api";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
 import { LoadingSpinner } from "@/shared/ui";
 import { EmptyStatePrompt } from "@/shared/ui";
-
-interface CreateMedicationBody {
-  memberId: string;
-  name: string;
-  category: string;
-  dosageAmount?: string;
-  frequency?: string;
-  instructions?: string;
-}
 
 const DAY_LABELS: Record<string, string> = {
   mon: "月",
@@ -34,7 +23,6 @@ const DAY_LABELS: Record<string, string> = {
 export default function MemberMedications() {
   const { memberId = "" } = useParams();
   const navigate = useNavigate();
-  const qc = useQueryClient();
 
   const [showMedForm, setShowMedForm] = useState(false);
   const [medName, setMedName] = useState("");
@@ -60,28 +48,15 @@ export default function MemberMedications() {
   const medicationName = (id: string) =>
     medications.find((m) => m.id === id)?.name ?? "";
 
-  const createMedMutation = useMutation({
-    mutationFn: (body: CreateMedicationBody) => api.post<Medication>("/medications", body),
-    onSuccess: () => {
-      setMedName("");
-      setMedDosage("");
-      setMedFrequency("");
-      setMedInstructions("");
-      setMedError(null);
-      setShowMedForm(false);
-      qc.invalidateQueries({ queryKey: queryKeys.medications.byMember(memberId) });
-      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
-    },
-    onError: (e: Error) => setMedError(e.message),
+  const createMedMutation = useCreateMedicationRaw(memberId, () => {
+    setMedName("");
+    setMedDosage("");
+    setMedFrequency("");
+    setMedInstructions("");
+    setMedError(null);
+    setShowMedForm(false);
   });
-
-  const deleteMedMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/medications/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.medications.byMember(memberId) });
-      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
-    },
-  });
+  const deleteMedMutation = useDeleteMedication(memberId);
 
   const createScheduleMutation = useCreateSchedule(() => {
     setScheduleTarget(null);
@@ -90,6 +65,12 @@ export default function MemberMedications() {
     setScheduleError(null);
   });
   const deleteScheduleMutation = useDeleteSchedule();
+
+  // 作成の失敗はこの画面のフォーム内に出す。features 側で固定すると
+  // 画面ごとの出し分けができない
+  useEffect(() => {
+    if (createMedMutation.error) setMedError(createMedMutation.error.message);
+  }, [createMedMutation.error]);
 
   const handleCreateMedication = () => {
     if (!medName.trim()) return;

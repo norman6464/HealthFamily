@@ -9,4 +9,5 @@ export {
   resendVerificationCode,
   requestPasswordReset,
   resetPassword,
+  exchangeGoogleAuthorizationCode,
 } from "./api/mutations";

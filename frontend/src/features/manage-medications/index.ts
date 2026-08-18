@@ -5,3 +5,5 @@ export { useReorderMedications } from "./api/useReorderMedications";
 export { useUpdateMedication } from "./api/useUpdateMedication";
 export { AddMedicationForm } from "./ui/AddMedicationForm";
 export { EditMedicationForm } from "./ui/EditMedicationForm";
+export { useCreateMedicationRaw } from "./api/mutations";
+export type { CreateMedicationBody } from "./api/mutations";

@@ -32,3 +32,17 @@ export function requestPasswordReset(email: string) {
 export function resetPassword(input: { email: string; code: string; newPassword: string }) {
   return api.post("/auth/reset-password", input, false);
 }
+
+/**
+ * Google の認可コードをトークンに交換する。
+ *
+ * 交換はサーバー側で行われる。ブラウザが渡すのは一度きりの認可コードと
+ * PKCE の合言葉だけで、ID トークンもリフレッシュトークンも受け取らない。
+ */
+export function exchangeGoogleAuthorizationCode(input: {
+  code: string;
+  codeVerifier: string;
+  redirectUri: string;
+}) {
+  return api.post<{ token: string; user: User }>("/auth/google/callback", input, false);
+}
