@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
+import { GoogleLoginButton, useAuth } from "@/features/auth";
 import { Link, useNavigate } from "react-router";
 import { HeartPulse } from "lucide-react";
 import { ApiError } from "@/shared/api";
-import { useAuth } from "@/features/auth";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
-import { GoogleLoginButton } from "@/features/auth";
 
 export default function Login() {
   const { login, user } = useAuth();

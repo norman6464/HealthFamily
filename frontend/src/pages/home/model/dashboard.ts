@@ -1,102 +1,21 @@
 import { useMemo } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
-import type {
-  Appointment,
-  Hospital,
-  Medication,
-  MedicationRecord,
-  Member,
-  Schedule,
-  TodaySchedule,
-} from "@/shared/api";
+import type { Appointment } from "@/shared/api";
+import { useMembers } from "@/entities/member";
+import { useMedications } from "@/entities/medication";
+import { useRecentMedicationRecords } from "@/entities/medication-record";
+import { useAppointments } from "@/entities/appointment";
+import { useHospitals } from "@/entities/hospital";
+import {
+  isActiveOnDay,
+  normalizeDays,
+  toTodayScheduleViewModels,
+  useSchedules,
+  useTodaySchedules,
+  type DayOfWeek,
+  type TodayScheduleViewModel,
+} from "@/entities/schedule";
 
-// ---- ドメインロジック (旧 domain/entities から忠実移植) ----
-
-export type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
-export type ScheduleStatus = "pending" | "completed" | "overdue";
-export type OverdueLevel = "none" | "warning" | "danger";
-
-const VALID_DAYS: readonly DayOfWeek[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-const DAY_MAP: Record<number, DayOfWeek> = {
-  0: "sun", 1: "mon", 2: "tue", 3: "wed", 4: "thu", 5: "fri", 6: "sat",
-};
-
-const PROXIMITY_SOON_MINUTES = 30;
-const PROXIMITY_NEAR_MINUTES = 60;
-
-function normalizeDays(days: string[] | null | undefined): DayOfWeek[] {
-  if (!days) return [];
-  return days.filter((d): d is DayOfWeek => VALID_DAYS.includes(d as DayOfWeek));
-}
-
-function getScheduledDateTime(scheduledTime: string, baseTime: Date): Date {
-  const [hours, minutes] = scheduledTime.split(":").map(Number);
-  const dt = new Date(baseTime);
-  dt.setHours(hours, minutes, 0, 0);
-  return dt;
-}
-
-export function getScheduleStatus(scheduledTime: string, currentTime: Date, isCompleted: boolean): ScheduleStatus {
-  if (isCompleted) return "completed";
-  const scheduledDateTime = getScheduledDateTime(scheduledTime, currentTime);
-  if (currentTime > scheduledDateTime) return "overdue";
-  return "pending";
-}
-
-export function getOverdueLevel(scheduledTime: string, currentTime: Date, isCompleted: boolean): OverdueLevel {
-  if (isCompleted) return "none";
-  const scheduledDateTime = getScheduledDateTime(scheduledTime, currentTime);
-  const diffMs = currentTime.getTime() - scheduledDateTime.getTime();
-  if (diffMs <= 0) return "none";
-  const diffMinutes = diffMs / (1000 * 60);
-  if (diffMinutes >= PROXIMITY_NEAR_MINUTES) return "danger";
-  if (diffMinutes >= PROXIMITY_SOON_MINUTES) return "warning";
-  return "none";
-}
-
-export function getOverdueMinutes(scheduledTime: string, currentTime: Date): number {
-  const scheduledDateTime = getScheduledDateTime(scheduledTime, currentTime);
-  const diffMs = currentTime.getTime() - scheduledDateTime.getTime();
-  if (diffMs <= 0) return 0;
-  return Math.floor(diffMs / (1000 * 60));
-}
-
-export function getOverdueLevelStyle(level: OverdueLevel): { bg: string; text: string; border: string } {
-  switch (level) {
-    case "danger":
-      return { bg: "bg-red-50", text: "text-red-600", border: "border-red-300" };
-    case "warning":
-      return { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-300" };
-    default:
-      return { bg: "", text: "", border: "" };
-  }
-}
-
-interface ScheduleLike {
-  daysOfWeek: string[] | null;
-  intervalDays: number | null;
-  startDate: string | null;
-  isEnabled: boolean;
-}
-
-function isActiveOnDay(s: ScheduleLike, date: Date): boolean {
-  if (!s.isEnabled) return false;
-  if (s.intervalDays === -1) return false;
-  if (s.intervalDays && s.intervalDays > 0 && s.startDate) {
-    const start = new Date(s.startDate);
-    start.setHours(0, 0, 0, 0);
-    const target = new Date(date);
-    target.setHours(0, 0, 0, 0);
-    const diffDays = Math.round((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return false;
-    return diffDays % s.intervalDays === 0;
-  }
-  const days = normalizeDays(s.daysOfWeek);
-  if (days.length === 0) return true;
-  return days.includes(DAY_MAP[date.getDay()]);
-}
+// ---- ダッシュボード固有の集計ロジック ----
 
 // アドヒアランス
 function getActiveDaysCount(days: DayOfWeek[]): number {
@@ -137,21 +56,6 @@ export function getRemainingDaysLabel(remainingDays: number | null): string {
 }
 
 // ---- ViewModel 型 ----
-
-export interface TodayScheduleViewModel {
-  scheduleId: string;
-  medicationId: string;
-  medicationName: string;
-  userId: string;
-  memberId: string;
-  memberName: string;
-  memberType: "human" | "pet";
-  scheduledTime: string;
-  medicationDisplayOrder: number;
-  status: ScheduleStatus;
-  isEnabled: boolean;
-  reminderMinutesBefore: number;
-}
 
 export interface MissedDose {
   date: string;
@@ -208,43 +112,15 @@ function toDateKey(date: Date): string {
 export function useDashboardData(userId: string | null) {
   const enabled = !!userId;
 
-  const todayQuery = useQuery({
-    queryKey: queryKeys.schedules.today,
-    queryFn: () => api.get<TodaySchedule[]>("/schedules/today"),
-    enabled,
-  });
-  const schedulesQuery = useQuery({
-    queryKey: queryKeys.schedules.all,
-    queryFn: () => api.get<Schedule[]>("/schedules"),
-    enabled,
-  });
+  const todayQuery = useTodaySchedules({ enabled });
+  const schedulesQuery = useSchedules({ enabled });
   // ダッシュボードの集計は週次/月次のみ。全件ではなく直近40日に絞って取得する。
   // (invalidateQueries({queryKey:["records"]}) はプレフィックス一致でこのキーも無効化する)
-  const recordsQuery = useQuery({
-    queryKey: queryKeys.records.window(40),
-    queryFn: () => api.get<MedicationRecord[]>("/records?days=40"),
-    enabled,
-  });
-  const medicationsQuery = useQuery({
-    queryKey: queryKeys.medications.all,
-    queryFn: () => api.get<Medication[]>("/medications"),
-    enabled,
-  });
-  const membersQuery = useQuery({
-    queryKey: queryKeys.members.all,
-    queryFn: () => api.get<Member[]>("/members"),
-    enabled,
-  });
-  const appointmentsQuery = useQuery({
-    queryKey: queryKeys.appointments.all,
-    queryFn: () => api.get<Appointment[]>("/appointments"),
-    enabled,
-  });
-  const hospitalsQuery = useQuery({
-    queryKey: queryKeys.hospitals.all,
-    queryFn: () => api.get<Hospital[]>("/hospitals"),
-    enabled,
-  });
+  const recordsQuery = useRecentMedicationRecords(40, { enabled });
+  const medicationsQuery = useMedications({ enabled });
+  const membersQuery = useMembers({ enabled });
+  const appointmentsQuery = useAppointments({ enabled });
+  const hospitalsQuery = useHospitals({ enabled });
 
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data]);
   const medications = useMemo(() => medicationsQuery.data ?? [], [medicationsQuery.data]);
@@ -259,31 +135,10 @@ export function useDashboardData(userId: string | null) {
     return map;
   }, [members]);
 
-  const todaySchedules = useMemo<TodayScheduleViewModel[]>(() => {
-    const now = new Date();
-    const items = (todayQuery.data ?? []).map((item): TodayScheduleViewModel => ({
-      scheduleId: item.id,
-      medicationId: item.medicationId,
-      medicationName: item.medicationName,
-      userId: item.userId,
-      memberId: item.memberId,
-      memberName: item.memberName,
-      memberType: item.memberType === "pet" ? "pet" : "human",
-      scheduledTime: item.scheduledTime,
-      medicationDisplayOrder: item.medicationDisplayOrder ?? 0,
-      status: getScheduleStatus(item.scheduledTime, now, item.isCompleted),
-      isEnabled: item.isEnabled,
-      reminderMinutesBefore: item.reminderMinutesBefore ?? 10,
-    }));
-    items.sort((a, b) => {
-      const timeCompare = a.scheduledTime.localeCompare(b.scheduledTime);
-      if (timeCompare !== 0) return timeCompare;
-      const memberCompare = a.memberName.localeCompare(b.memberName);
-      if (memberCompare !== 0) return memberCompare;
-      return a.medicationDisplayOrder - b.medicationDisplayOrder;
-    });
-    return items;
-  }, [todayQuery.data]);
+  const todaySchedules = useMemo<TodayScheduleViewModel[]>(
+    () => toTodayScheduleViewModels(todayQuery.data ?? [], new Date()),
+    [todayQuery.data],
+  );
 
   const missedDoses = useMemo<MissedDose[]>(() => {
     if (allSchedules.length === 0) return [];
@@ -438,33 +293,4 @@ export function useDashboardData(userId: string | null) {
     appointmentsLoading: appointmentsQuery.isLoading,
     members,
   };
-}
-
-export interface MarkRecordInput {
-  memberId: string;
-  medicationId: string;
-  scheduleId: string;
-  takenAt?: string;
-  notes?: string;
-}
-
-/**
- * 服薬記録を作成し、関連クエリを無効化する。
- */
-export function useMarkRecord() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: MarkRecordInput) =>
-      api.post<MedicationRecord>("/records", {
-        memberId: input.memberId,
-        medicationId: input.medicationId,
-        scheduleId: input.scheduleId,
-        ...(input.takenAt ? { takenAt: input.takenAt } : {}),
-        ...(input.notes ? { notes: input.notes } : {}),
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.schedules.today });
-      qc.invalidateQueries({ queryKey: queryKeys.records.all });
-    },
-  });
 }

@@ -1,38 +1,28 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ExpenseCreateForm, useDeleteExpense, useSaveBudget, useUpdateExpense } from "@/features/manage-expenses";
+import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Download, Plus, Upload, X } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
-import type {
-  Budget,
-  BudgetAlertStatus,
-  Expense,
-  ExpenseSummary,
-  Member,
-} from "@/shared/api";
+import type { Member } from "@/shared/api";
 import { SectionTitle } from "@/shared/ui";
 import { MemberFilter } from "@/shared/ui";
 import {
-  ExpenseForm,
-  type ExpenseFormData,
-} from "./ExpenseForm";
-import {
   ExpenseList,
+  ExpenseSummaryCard,
+  useExpenses,
+  useExpenseSummary,
   type UpdateExpenseInput,
-} from "./ExpenseList";
-import { ExpenseSummaryCard } from "./ExpenseSummaryCard";
-import {
-  BudgetCard,
-  type BudgetSavePayload,
-} from "./BudgetCard";
-import { ExpenseImport } from "./ExpenseImport";
+} from "@/entities/expense";
+import { BudgetCard, useBudget, useBudgetAlert } from "@/entities/budget";
+import { ExpenseImport } from "@/features/import-expenses";
+import { downloadDeductionCsv } from "@/features/export-expenses-csv";
 import { getExpenseCategoryLabel } from "@/shared/config";
 import { formatCurrency } from "@/shared/lib";
 
 const YEAR_OPTIONS_COUNT = 5;
 
 export default function Expenses() {
-  const qc = useQueryClient();
   const currentYear = new Date().getFullYear();
 
   const [year, setYear] = useState<number>(currentYear);
@@ -45,70 +35,24 @@ export default function Expenses() {
     [currentYear],
   );
 
+  // TODO: entities/member スライスができ次第そちらへ移す(複数ページで共有される取得のため)
   const { data: members = [] } = useQuery({
     queryKey: queryKeys.members.all,
     queryFn: () => api.get<Member[]>("/members"),
   });
 
-  const { data: expenses = [], isLoading: expensesLoading } = useQuery({
-    queryKey: queryKeys.expenses.list(year, selectedMemberId),
-    queryFn: () => {
-      const params = new URLSearchParams({ year: String(year) });
-      if (selectedMemberId) params.set("memberId", selectedMemberId);
-      return api.get<Expense[]>(`/expenses?${params.toString()}`);
-    },
-  });
-
-  const { data: summary, isLoading: summaryLoading } = useQuery({
-    queryKey: queryKeys.expenses.summary(year),
-    queryFn: () => api.get<ExpenseSummary>(`/expenses/summary?year=${year}`),
-  });
-
-  const { data: budget, isLoading: budgetLoading } = useQuery({
-    queryKey: queryKeys.budget.all,
-    queryFn: () => api.get<Budget>("/budget"),
-  });
-
-  const saveBudgetMutation = useMutation({
-    mutationFn: (payload: BudgetSavePayload) =>
-      api.put<Budget>("/budget", payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.budget.all });
-      qc.invalidateQueries({ queryKey: queryKeys.budget.alert });
-    },
-  });
-
+  const { data: expenses = [], isLoading: expensesLoading } = useExpenses(
+    year,
+    selectedMemberId,
+  );
+  const { data: summary, isLoading: summaryLoading } = useExpenseSummary(year);
+  const { data: budget, isLoading: budgetLoading } = useBudget();
   // ページ表示時に予算超過を判定（メールアラート連動）
-  const { data: alertStatus } = useQuery({
-    queryKey: queryKeys.budget.alert,
-    queryFn: () => api.post<BudgetAlertStatus>("/budget/alert"),
-  });
+  const { data: alertStatus } = useBudgetAlert();
 
-  const invalidateAll = () => {
-    qc.invalidateQueries({ queryKey: queryKeys.expenses.all });
-    qc.invalidateQueries({ queryKey: queryKeys.expenses.summary(year) });
-  };
-
-  const createMutation = useMutation({
-    mutationFn: (data: ExpenseFormData) => api.post<Expense>("/expenses", data),
-    onSuccess: invalidateAll,
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateExpenseInput }) =>
-      api.patch<Expense>(`/expenses/${id}`, input),
-    onSuccess: invalidateAll,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/expenses/${id}`),
-    onSuccess: invalidateAll,
-  });
-
-  const handleCreate = async (data: ExpenseFormData) => {
-    await createMutation.mutateAsync(data);
-    setShowForm(false);
-  };
+  const saveBudgetMutation = useSaveBudget();
+  const updateMutation = useUpdateExpense(year);
+  const deleteMutation = useDeleteExpense(year);
 
   const handleUpdate = async (id: string, input: UpdateExpenseInput) => {
     await updateMutation.mutateAsync({ id, input });
@@ -118,45 +62,8 @@ export default function Expenses() {
     deleteMutation.mutate(id);
   };
 
-  // 国税庁「医療費控除の明細書」風の区分にカテゴリをマッピング
-  const TAX_DIVISION: Record<string, string> = {
-    hospital: "診療・治療",
-    checkup: "診療・治療",
-    medication: "医薬品購入",
-    pharmacy: "医薬品購入",
-    transport: "その他の医療費",
-    insurance: "その他の医療費",
-    pet: "その他の医療費",
-    other: "その他の医療費",
-  };
-
-  const memberNameMap = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const mem of members) m.set(mem.id, mem.name);
-    return m;
-  }, [members]);
-
   const handleExportCsv = () => {
-    if (expenses.length === 0) return;
-    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const header = ["医療を受けた人", "支払先", "医療費の区分", "支払った金額", "支払日", "控除対象"];
-    const rows = expenses.map((e) => [
-      e.memberId ? (memberNameMap.get(e.memberId) ?? "") : "世帯",
-      e.description ?? "",
-      TAX_DIVISION[e.category] ?? "その他の医療費",
-      String(e.amount),
-      e.expenseDate.slice(0, 10),
-      e.isDeductible ? "対象" : "対象外",
-    ]);
-    const csv = [header, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
-    // Excel での文字化け防止に UTF-8 BOM を付与
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `医療費控除明細書_${year}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadDeductionCsv(expenses, members, year);
   };
 
   const categoryLabel = getExpenseCategoryLabel;
@@ -246,12 +153,7 @@ export default function Expenses() {
                 <X size={18} />
               </button>
             </div>
-            <ExpenseImport
-              onImported={() => {
-                invalidateAll();
-                qc.invalidateQueries({ queryKey: queryKeys.budget.alert });
-              }}
-            />
+            <ExpenseImport year={year} />
           </div>
         </div>
       )}
@@ -285,9 +187,10 @@ export default function Expenses() {
 
       {showForm && (
         <div className="rounded-2xl border border-primary-100 bg-white p-4 shadow-sm">
-          <ExpenseForm
+          <ExpenseCreateForm
             members={members}
-            onSubmit={handleCreate}
+            year={year}
+            onCreated={() => setShowForm(false)}
             onCancel={() => setShowForm(false)}
           />
         </div>

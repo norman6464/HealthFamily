@@ -1,34 +1,27 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Calendar, List, Plus } from "lucide-react";
-import { MedicationHistoryList } from "./MedicationHistoryList";
 import { MedicationCalendar } from "./MedicationCalendar";
-import { AddPastRecordForm } from "./AddPastRecordForm";
 import { MemberFilter } from "@/shared/ui";
-import { api } from "@/shared/api";
-import type { Medication } from "@/shared/api";
 import {
-  useMedicationHistory,
+  MedicationHistoryList,
   filterGroupsByMember,
   formatRecordDate,
   toDateKey,
   type DailyRecordGroup,
-} from "../model/history";
+} from "@/entities/medication-record";
+import { AddPastRecordForm } from "@/features/add-past-record";
+import { useMedicationHistory } from "../model/history";
 
 type ViewMode = "list" | "calendar";
 
 export default function History() {
-  const { groups, records, healthLogs, members, isLoading, deleteRecord, createRecord } = useMedicationHistory();
+  const { groups, records, healthLogs, members, isLoading, deleteRecord } = useMedicationHistory();
   const [viewMode, setViewMode] = useState<ViewMode>("calendar");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const memberOptions = useMemo(() => members.map((m) => ({ id: m.id, name: m.name })), [members]);
-
-  const fetchMedicationsByMember = useCallback(async (memberId: string) => {
-    const meds = await api.get<Medication[]>(`/members/${memberId}/medications`);
-    return meds.map((m) => ({ id: m.id, name: m.name, memberId: m.memberId }));
-  }, []);
 
   // メンバーフィルタ適用済みグループ
   const memberFilteredGroups = useMemo(
@@ -116,8 +109,6 @@ export default function History() {
                   <AddPastRecordForm
                     selectedDate={selectedDate}
                     members={memberOptions}
-                    fetchMedicationsByMember={fetchMedicationsByMember}
-                    onSubmit={createRecord}
                     onClose={() => setShowAddForm(false)}
                   />
                 </div>

@@ -1,47 +1,44 @@
 import { useMemo, useState } from "react";
+import { TemperatureForm, type TemperatureFormData, useCreateTemperatureRecord, useDeleteTemperatureRecord } from "@/features/manage-temperature-records";
+import { BodyMeasurementForm, type BodyMeasurementFormData, useCreateBodyMeasurement, useDeleteBodyMeasurement, useUpdateBodyMeasurement } from "@/features/manage-body-measurements";
+import { HealthLogForm, type CreateHealthLogInput, useCreateHealthLog, useDeleteHealthLog } from "@/features/manage-health-logs";
 import { Link } from "react-router";
 import { Plus, X, Activity, Ruler, Thermometer } from "lucide-react";
-import { HealthLogList } from "./HealthLogList";
-import { HealthLogForm } from "./HealthLogForm";
-import { HealthWeeklyTrend } from "./HealthWeeklyTrend";
-import { SymptomFrequencySummary } from "./SymptomFrequencySummary";
 import {
-  BodyMeasurementForm,
-  type BodyMeasurementFormData,
-} from "./BodyMeasurementForm";
-import { BodyMeasurementList } from "./BodyMeasurementList";
-import {
-  TemperatureForm,
-  type TemperatureFormData,
-} from "./TemperatureForm";
-import { TemperatureChart } from "./TemperatureChart";
-import { TemperatureRecordList } from "./TemperatureRecordList";
-import {
+  HealthLogList,
+  HealthWeeklyTrend,
+  SymptomFrequencySummary,
   getDailyAverages,
   getMostFrequentSymptoms,
+  useHealthLogViews,
+} from "@/entities/health-log";
+import {
+  BodyMeasurementList,
   useBodyMeasurements,
-  useHealthLogs,
-  useMembersQuery,
+  type UpdateBodyMeasurementInput,
+} from "@/entities/body-measurement";
+import {
+  TemperatureChart,
+  TemperatureRecordList,
   useTemperatureRecords,
-} from "../model/health-logs";
+} from "@/entities/temperature-record";
+import { useMembersQuery } from "../model/members";
 
 export default function HealthLogs() {
   const { data: members, isLoading: membersLoading } = useMembersQuery();
-  const { logs, groups, isLoading, createLog, deleteLog } =
-    useHealthLogs(members);
-  const {
-    measurements,
-    isLoading: measurementsLoading,
-    createMeasurement,
-    updateMeasurement,
-    deleteMeasurement,
-  } = useBodyMeasurements(members);
-  const {
-    records: temperatureRecords,
-    isLoading: temperatureLoading,
-    createRecord: createTemperature,
-    deleteRecord: deleteTemperature,
-  } = useTemperatureRecords(members);
+  const { logs, groups, isLoading } = useHealthLogViews(members);
+  const { measurements, isLoading: measurementsLoading } =
+    useBodyMeasurements(members);
+  const { records: temperatureRecords, isLoading: temperatureLoading } =
+    useTemperatureRecords(members);
+
+  const createLogMutation = useCreateHealthLog();
+  const deleteLogMutation = useDeleteHealthLog();
+  const createMeasurementMutation = useCreateBodyMeasurement();
+  const updateMeasurementMutation = useUpdateBodyMeasurement();
+  const deleteMeasurementMutation = useDeleteBodyMeasurement();
+  const createTemperatureMutation = useCreateTemperatureRecord();
+  const deleteTemperatureMutation = useDeleteTemperatureRecord();
 
   const [showForm, setShowForm] = useState(false);
   const [showMeasurementForm, setShowMeasurementForm] = useState(false);
@@ -59,34 +56,38 @@ export default function HealthLogs() {
 
   const memberList = members ?? [];
 
-  const handleSubmit = async (input: {
-    memberId: string;
-    conditionLevel: number;
-    symptoms?: string[];
-    notes?: string;
-  }) => {
-    await createLog(input);
+  const handleSubmit = async (input: CreateHealthLogInput) => {
+    await createLogMutation.mutateAsync(input);
     setShowForm(false);
   };
 
+  const handleDeleteLog = (id: string) => deleteLogMutation.mutateAsync(id);
+
   const handleCreateMeasurement = async (data: BodyMeasurementFormData) => {
-    await createMeasurement(data);
+    await createMeasurementMutation.mutateAsync(data);
     setShowMeasurementForm(false);
+  };
+
+  const handleUpdateMeasurement = async (
+    id: string,
+    input: UpdateBodyMeasurementInput,
+  ): Promise<void> => {
+    await updateMeasurementMutation.mutateAsync({ id, input });
   };
 
   const handleDeleteMeasurement = async (id: string) => {
     if (!window.confirm("この記録を削除しますか？")) return;
-    await deleteMeasurement(id);
+    await deleteMeasurementMutation.mutateAsync(id);
   };
 
   const handleCreateTemperature = async (data: TemperatureFormData) => {
-    await createTemperature(data);
+    await createTemperatureMutation.mutateAsync(data);
     setShowTemperatureForm(false);
   };
 
   const handleDeleteTemperature = async (id: string) => {
     if (!window.confirm("この体温記録を削除しますか？")) return;
-    await deleteTemperature(id);
+    await deleteTemperatureMutation.mutateAsync(id);
   };
 
   return (
@@ -123,7 +124,7 @@ export default function HealthLogs() {
 
       <SymptomFrequencySummary symptoms={frequentSymptoms} />
 
-      <HealthLogList groups={groups} isLoading={isLoading} onDelete={deleteLog} />
+      <HealthLogList groups={groups} isLoading={isLoading} onDelete={handleDeleteLog} />
 
       <div className="mt-8">
         <div className="flex items-center justify-between mb-3">
@@ -169,7 +170,7 @@ export default function HealthLogs() {
         <BodyMeasurementList
           measurements={measurements}
           isLoading={measurementsLoading}
-          onUpdate={updateMeasurement}
+          onUpdate={handleUpdateMeasurement}
           onDelete={handleDeleteMeasurement}
         />
       </div>
