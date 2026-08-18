@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useCreateSchedule, useDeleteSchedule } from "@/features/manage-schedules";
 import { useSchedules } from "@/entities/schedule";
 import { useMemberMedications } from "@/entities/medication";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +7,7 @@ import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Plus, X, Clock, Pill, Trash2 } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
-import type { Medication, Schedule } from "@/shared/api";
+import type { Medication } from "@/shared/api";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
 import { LoadingSpinner } from "@/shared/ui";
 import { EmptyStatePrompt } from "@/shared/ui";
@@ -18,14 +19,6 @@ interface CreateMedicationBody {
   dosageAmount?: string;
   frequency?: string;
   instructions?: string;
-}
-
-interface CreateScheduleBody {
-  medicationId: string;
-  memberId: string;
-  scheduledTime: string;
-  daysOfWeek: string[];
-  reminderMinutesBefore: number;
 }
 
 const DAY_LABELS: Record<string, string> = {
@@ -90,22 +83,13 @@ export default function MemberMedications() {
     },
   });
 
-  const createScheduleMutation = useMutation({
-    mutationFn: (body: CreateScheduleBody) => api.post<Schedule>("/schedules", body),
-    onSuccess: () => {
-      setScheduleTarget(null);
-      setScheduledTime("08:00");
-      setReminderMinutes("10");
-      setScheduleError(null);
-      qc.invalidateQueries({ queryKey: queryKeys.schedules.all });
-    },
-    onError: (e: Error) => setScheduleError(e.message),
+  const createScheduleMutation = useCreateSchedule(() => {
+    setScheduleTarget(null);
+    setScheduledTime("08:00");
+    setReminderMinutes("10");
+    setScheduleError(null);
   });
-
-  const deleteScheduleMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/schedules/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.schedules.all }),
-  });
+  const deleteScheduleMutation = useDeleteSchedule();
 
   const handleCreateMedication = () => {
     if (!medName.trim()) return;
