@@ -12,10 +12,13 @@ export function useMedications(options?: { enabled?: boolean }) {
 }
 
 /** 指定メンバーの薬一覧。 */
-export function useMemberMedications(memberId: string) {
+export function useMemberMedications(memberId: string | undefined) {
   return useQuery({
-    queryKey: queryKeys.medications.byMember(memberId),
+    queryKey: queryKeys.medications.byMember(memberId ?? ""),
     queryFn: () => api.get<Medication[]>(`/members/${memberId}/medications`),
+    // memberId は useParams 由来で undefined になりうる。
+    // 未確定のまま /members/undefined/medications を叩かせない
+    enabled: !!memberId,
   });
 }
 

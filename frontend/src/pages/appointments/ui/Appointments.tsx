@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useMembers } from "@/entities/member";
 import { useCreateAppointment, useDeleteAppointment, useUpdateAppointment } from "@/features/manage-appointments";
 import { Link } from "react-router";
 import { MapPin, Plus, X } from "lucide-react";
@@ -14,7 +15,6 @@ import {
   type AppointmentFilter,
   type AppointmentFormData,
 } from "@/entities/appointment";
-import { useMembersQuery } from "../model/members";
 
 export default function Appointments() {
   const [showForm, setShowForm] = useState(false);
@@ -23,7 +23,7 @@ export default function Appointments() {
   const [updateError, setUpdateError] = useState<string | null>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
 
-  const { data: members = [], isLoading: membersLoading } = useMembersQuery();
+  const { data: members = [], isLoading: membersLoading } = useMembers();
 
   const { data: appointments = [], isLoading } = useAppointments();
 

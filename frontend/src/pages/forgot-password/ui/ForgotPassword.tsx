@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { requestPasswordReset } from "@/features/auth";
 import { Link, useNavigate } from "react-router";
-import { api, ApiError } from "@/shared/api";
+import { ApiError } from "@/shared/api";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function ForgotPassword() {
     setIsSubmitting(true);
 
     try {
-      await api.post("/auth/forgot-password", { email }, false);
+      await requestPasswordReset(email);
       navigate(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch (err) {
       if (err instanceof ApiError) {

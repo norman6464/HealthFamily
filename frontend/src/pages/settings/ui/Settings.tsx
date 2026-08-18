@@ -1,12 +1,9 @@
 import { useState } from "react";
+import { useMembers } from "@/entities/member";
 import { EmergencyContactCreateForm, useDeleteEmergencyContact, useUpdateEmergencyContact } from "@/features/manage-emergency-contacts";
-import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router";
 import { LogOut, X, Plus, Phone, Bell, ChevronRight, HelpCircle } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
 import { useAuth } from "@/features/auth";
-import type { Member } from "@/shared/api";
 import { useUserProfile } from "@/entities/user";
 import {
   EmergencyContactList,
@@ -24,11 +21,7 @@ export default function Settings() {
 
   const { data: profile } = useUserProfile();
 
-  // TODO: entities/member スライスができ次第そちらへ移す(複数ページで共有される取得のため)
-  const { data: members = [], isLoading: membersLoading } = useQuery({
-    queryKey: queryKeys.members.all,
-    queryFn: () => api.get<Member[]>("/members"),
-  });
+  const { data: members = [], isLoading: membersLoading } = useMembers();
 
   const { data: contacts = [], isLoading: contactsLoading } = useEmergencyContacts();
 

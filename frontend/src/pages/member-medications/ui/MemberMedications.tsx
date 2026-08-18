@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSchedules } from "@/entities/schedule";
+import { useMemberMedications } from "@/entities/medication";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Plus, X, Clock, Pill, Trash2 } from "lucide-react";
 import { api } from "@/shared/api";
@@ -53,16 +55,9 @@ export default function MemberMedications() {
   const [reminderMinutes, setReminderMinutes] = useState("10");
   const [scheduleError, setScheduleError] = useState<string | null>(null);
 
-  const { data: medications = [], isLoading } = useQuery({
-    queryKey: queryKeys.members.medications(memberId),
-    queryFn: () => api.get<Medication[]>(`/members/${memberId}/medications`),
-    enabled: !!memberId,
-  });
+  const { data: medications = [], isLoading } = useMemberMedications(memberId);
 
-  const { data: allSchedules = [], isLoading: schedulesLoading } = useQuery({
-    queryKey: queryKeys.schedules.all,
-    queryFn: () => api.get<Schedule[]>("/schedules"),
-  });
+  const { data: allSchedules = [], isLoading: schedulesLoading } = useSchedules();
 
   const memberSchedules = useMemo(
     () => allSchedules.filter((s) => s.memberId === memberId),
@@ -81,7 +76,7 @@ export default function MemberMedications() {
       setMedInstructions("");
       setMedError(null);
       setShowMedForm(false);
-      qc.invalidateQueries({ queryKey: queryKeys.members.medications(memberId) });
+      qc.invalidateQueries({ queryKey: queryKeys.medications.byMember(memberId) });
       qc.invalidateQueries({ queryKey: queryKeys.medications.all });
     },
     onError: (e: Error) => setMedError(e.message),
@@ -90,7 +85,7 @@ export default function MemberMedications() {
   const deleteMedMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/medications/${id}`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.members.medications(memberId) });
+      qc.invalidateQueries({ queryKey: queryKeys.medications.byMember(memberId) });
       qc.invalidateQueries({ queryKey: queryKeys.medications.all });
     },
   });

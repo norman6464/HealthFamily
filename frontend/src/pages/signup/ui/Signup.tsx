@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { api, ApiError } from "@/shared/api";
+import { ApiError } from "@/shared/api";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
-import { GoogleLoginButton } from "@/features/auth";
+import { GoogleLoginButton, signUp } from "@/features/auth";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function Signup() {
     setError(null);
     setSubmitting(true);
     try {
-      await api.post("/auth/signup", { email, password, displayName }, false);
+      await signUp({ email, password, displayName });
       navigate(`/verify?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "登録に失敗しました");

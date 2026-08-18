@@ -1,19 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMemberAge } from "@/entities/member";
+import { useMemberMedications } from "@/entities/medication";
+import { getMemberAge, useMember } from "@/entities/member";
 import { ALLERGY_SEVERITY_LABELS } from "@/entities/allergy";
 import { Link, useParams } from "react-router";
 import { ChevronLeft, Printer } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
 import { useRequireAuth } from "@/features/auth";
-import type {
-  Member,
-  Medication,
-  Allergy,
-  Vaccination,
-  Examination,
-  Appointment,
-} from "@/shared/api";
+import type { Allergy, Vaccination, Examination, Appointment } from "@/shared/api";
 import { LoadingSpinner } from "@/shared/ui";
 
 const memberTypeLabels: Record<string, string> = {
@@ -41,18 +35,9 @@ export default function MemberReport() {
   const { memberId } = useParams();
   const { user, loading: authLoading } = useRequireAuth();
 
-  const { data: member, isLoading: memberLoading } = useQuery({
-    queryKey: queryKeys.members.detail(memberId),
-    queryFn: () => api.get<Member>(`/members/${memberId}`),
-    enabled: !!memberId && !!user,
-    retry: false,
-  });
+  const { data: member, isLoading: memberLoading } = useMember(memberId);
 
-  const { data: medications = [], isLoading: medsLoading } = useQuery({
-    queryKey: queryKeys.members.medications(memberId),
-    queryFn: () => api.get<Medication[]>(`/members/${memberId}/medications`),
-    enabled: !!memberId && !!user,
-  });
+  const { data: medications = [], isLoading: medsLoading } = useMemberMedications(memberId);
 
   const { data: allergies = [] } = useQuery({
     queryKey: queryKeys.allergies.all,

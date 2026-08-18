@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useMembers } from "@/entities/member";
 import { TemperatureForm, type TemperatureFormData, useCreateTemperatureRecord, useDeleteTemperatureRecord } from "@/features/manage-temperature-records";
 import { BodyMeasurementForm, type BodyMeasurementFormData, useCreateBodyMeasurement, useDeleteBodyMeasurement, useUpdateBodyMeasurement } from "@/features/manage-body-measurements";
 import { HealthLogForm, type CreateHealthLogInput, useCreateHealthLog, useDeleteHealthLog } from "@/features/manage-health-logs";
@@ -22,10 +23,9 @@ import {
   TemperatureRecordList,
   useTemperatureRecords,
 } from "@/entities/temperature-record";
-import { useMembersQuery } from "../model/members";
 
 export default function HealthLogs() {
-  const { data: members, isLoading: membersLoading } = useMembersQuery();
+  const { data: members, isLoading: membersLoading } = useMembers();
   const { logs, groups, isLoading } = useHealthLogViews(members);
   const { measurements, isLoading: measurementsLoading } =
     useBodyMeasurements(members);

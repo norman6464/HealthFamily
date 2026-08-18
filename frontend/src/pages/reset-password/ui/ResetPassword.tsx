@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { resetPassword } from "@/features/auth";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
-import { api, ApiError } from "@/shared/api";
+import { ApiError } from "@/shared/api";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ export default function ResetPassword() {
     setIsSubmitting(true);
 
     try {
-      await api.post("/auth/reset-password", { email, code, newPassword }, false);
+      await resetPassword({ email, code, newPassword });
       setSuccessMessage("パスワードを再設定しました。ログイン画面に移動します。");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {

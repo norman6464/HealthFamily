@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAppointments } from "@/entities/appointment";
+import { useMemberSummaries } from "@/entities/member";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
-import type { Appointment, Member, MemberWithCounts } from "@/shared/api";
+import type { Member } from "@/shared/api";
 import { MemberList } from "./MemberList";
 import { MemberForm, type MemberFormData } from "./MemberForm";
 import type { MemberSummary } from "./MemberSummaryCard";
@@ -28,16 +30,9 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
 
-  // サーバ集計の /members/summary を使用（全medications取得＋クライアント集計のN+1を解消）
-  const { data: members = [], isLoading } = useQuery({
-    queryKey: queryKeys.members.all,
-    queryFn: () => api.get<MemberWithCounts[]>("/members/summary"),
-  });
+  const { data: members = [], isLoading } = useMemberSummaries();
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: queryKeys.appointments.all,
-    queryFn: () => api.get<Appointment[]>("/appointments"),
-  });
+  const { data: appointments = [] } = useAppointments();
 
   // サーバ集計(activeMedicationCount)＋直近予約をビューモデルに合成する
   const summaries = useMemo<MemberSummary[]>(() => {
