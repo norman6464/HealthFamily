@@ -72,6 +72,10 @@ export default function MemberMedications() {
     if (createMedMutation.error) setMedError(createMedMutation.error.message);
   }, [createMedMutation.error]);
 
+  useEffect(() => {
+    if (createScheduleMutation.error) setScheduleError(createScheduleMutation.error.message);
+  }, [createScheduleMutation.error]);
+
   const handleCreateMedication = () => {
     if (!medName.trim()) return;
     createMedMutation.mutate({

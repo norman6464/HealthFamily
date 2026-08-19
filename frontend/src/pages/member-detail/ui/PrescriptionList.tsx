@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useRegisterMedicationFromPrescription, useSavePrescriptionItems, useDispensePrescription } from "@/features/manage-prescriptions";
+import { useDispensePrescription, useRegisterMedicationFromPrescription, useSavePrescriptionItems } from "@/features/manage-prescriptions";
+import type { SaveItemsPayload } from "@/features/manage-prescriptions";
 import { Pencil, Trash2, Check, X, QrCode, PillBottle, Plus, ListChecks } from "lucide-react";
 import type { Prescription, PrescriptionItem } from "@/shared/api";
 import { LoadingSpinner } from "@/shared/ui";
@@ -13,13 +14,6 @@ interface ItemDraft {
   dosage: string;
   frequency: string;
   days: string;
-}
-
-interface SaveItemsPayload {
-  name: string;
-  dosage?: string;
-  frequency?: string;
-  days?: number;
 }
 
 export type PrescriptionWithMember = Prescription & { memberName?: string };

@@ -23,12 +23,13 @@ export function useMember(memberId: string | undefined) {
 /**
  * メンバーごとの薬の件数を添えた一覧。一覧画面が使う。
  *
- * キーは members.all のまま。サーバ集計に切り替えた際も同じキーを使っており、
- * 変えると作成・削除後の無効化が効かなくなる。
+ * useMembers とはキーを分ける。取得先も応答の型も違うので、同じキーだと
+ * 先に /members の応答がキャッシュされた時に件数フィールドが欠ける。
+ * members.all の子なので、メンバー更新時の無効化は今までどおり効く。
  */
 export function useMemberSummaries() {
   return useQuery({
-    queryKey: queryKeys.members.all,
+    queryKey: queryKeys.members.summary,
     queryFn: () => api.get<MemberWithCounts[]>("/members/summary"),
   });
 }

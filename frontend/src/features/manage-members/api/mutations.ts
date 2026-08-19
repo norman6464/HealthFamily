@@ -47,6 +47,12 @@ export function useDeleteMember() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.delete(`/members/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.members.all }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.members.all });
+      // メンバーを消すと、その薬とスケジュールもサーバ側で消える。
+      // 取り直さないと、他の画面に消えたはずのデータが残り続ける
+      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
+      qc.invalidateQueries({ queryKey: queryKeys.schedules.all });
+    },
   });
 }
