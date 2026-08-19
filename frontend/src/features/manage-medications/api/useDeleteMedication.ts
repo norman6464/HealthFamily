@@ -8,6 +8,7 @@ export function useDeleteMedication(memberId: string) {
     mutationFn: (id: string) => api.delete(`/medications/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.medications.byMember(memberId) });
+      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
     },
   });
 }

@@ -1,59 +1,22 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMember } from "@/entities/member";
 import { Link, Navigate, useParams } from "react-router";
 import { Pill, Plus, X, ChevronLeft, FileText } from "lucide-react";
-import { api } from "@/shared/api";
 import { queryKeys } from "@/shared/api";
 import { useResource } from "@/shared/api";
-import type {
-  Member,
-  Allergy,
-  Vaccination,
-  Examination,
-  Insurance,
-  Prescription,
-} from "@/shared/api";
+import type { Member, Allergy, Vaccination, Examination, Insurance, Prescription } from "@/shared/api";
 import { MemberIcon, type MemberType, type PetType } from "@/shared/ui";
 import { LoadingSpinner } from "@/shared/ui";
 import { AllergyForm, type AllergyFormData } from "./AllergyForm";
-import {
-  AllergyList,
-  type AllergyWithMember,
-  type UpdateAllergyInput,
-} from "./AllergyList";
-import {
-  VaccinationForm,
-  type VaccinationFormData,
-} from "./VaccinationForm";
-import {
-  VaccinationList,
-  type VaccinationWithMember,
-  type UpdateVaccinationInput,
-} from "./VaccinationList";
-import {
-  ExaminationForm,
-  type ExaminationFormData,
-} from "./ExaminationForm";
-import {
-  ExaminationList,
-  type ExaminationWithMember,
-  type UpdateExaminationInput,
-} from "./ExaminationList";
+import { AllergyList, type AllergyWithMember, type UpdateAllergyInput } from "./AllergyList";
+import { VaccinationForm, type VaccinationFormData } from "./VaccinationForm";
+import { VaccinationList, type VaccinationWithMember, type UpdateVaccinationInput } from "./VaccinationList";
+import { ExaminationForm, type ExaminationFormData } from "./ExaminationForm";
+import { ExaminationList, type ExaminationWithMember, type UpdateExaminationInput } from "./ExaminationList";
 import { InsuranceForm, type InsuranceFormData } from "./InsuranceForm";
-import {
-  InsuranceList,
-  type InsuranceWithMember,
-  type UpdateInsuranceInput,
-} from "./InsuranceList";
-import {
-  PrescriptionForm,
-  type PrescriptionFormData,
-} from "./PrescriptionForm";
-import {
-  PrescriptionList,
-  type PrescriptionWithMember,
-  type UpdatePrescriptionInput,
-} from "./PrescriptionList";
+import { InsuranceList, type InsuranceWithMember, type UpdateInsuranceInput } from "./InsuranceList";
+import { PrescriptionForm, type PrescriptionFormData } from "./PrescriptionForm";
+import { PrescriptionList, type PrescriptionWithMember, type UpdatePrescriptionInput } from "./PrescriptionList";
 
 type TabKey = "allergies" | "vaccinations" | "examinations" | "insurances" | "prescriptions";
 
@@ -78,12 +41,7 @@ export default function MemberDetail() {
     data: member,
     isLoading: memberLoading,
     isError: memberError,
-  } = useQuery({
-    queryKey: queryKeys.members.detail(memberId),
-    queryFn: () => api.get<Member>(`/members/${memberId}`),
-    enabled: !!memberId,
-    retry: false,
-  });
+  } = useMember(memberId);
 
   if (memberLoading) {
     return <LoadingSpinner />;

@@ -20,6 +20,8 @@ export function useCreateMedication(memberId: string) {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.medications.byMember(memberId) });
+      // 薬の一覧画面はメンバー横断のキーで持っているので、そちらも取り直す
+      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
     },
   });
 }

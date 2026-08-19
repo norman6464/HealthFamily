@@ -3,3 +3,11 @@
 export { AuthProvider, useAuth, useRequireAuth } from "./model/auth";
 export { GoogleLoginButton, GOOGLE_CALLBACK_PATH } from "./ui/GoogleLoginButton";
 export { buildAuthorizationRequest, consumeAuthorizationState } from "./model/googleOauth";
+export {
+  signUp,
+  verifyEmail,
+  resendVerificationCode,
+  requestPasswordReset,
+  resetPassword,
+  exchangeGoogleAuthorizationCode,
+} from "./api/mutations";

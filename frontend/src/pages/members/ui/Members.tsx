@@ -1,43 +1,20 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCreateMember, useUpdateMember, useDeleteMember } from "@/features/manage-members";
+import { useAppointments } from "@/entities/appointment";
+import { useMemberSummaries } from "@/entities/member";
 import { Plus, X } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
-import type { Appointment, Member, MemberWithCounts } from "@/shared/api";
+import type { Member } from "@/shared/api";
 import { MemberList } from "./MemberList";
 import { MemberForm, type MemberFormData } from "./MemberForm";
 import type { MemberSummary } from "./MemberSummaryCard";
 
-interface CreateMemberBody {
-  name: string;
-  memberType: string;
-  petType?: string;
-  birthDate?: string;
-  notes?: string;
-}
-
-interface UpdateMemberBody {
-  name?: string;
-  petType?: string;
-  birthDate?: string;
-  notes?: string;
-}
-
 export default function Members() {
-  const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
 
-  // サーバ集計の /members/summary を使用（全medications取得＋クライアント集計のN+1を解消）
-  const { data: members = [], isLoading } = useQuery({
-    queryKey: queryKeys.members.all,
-    queryFn: () => api.get<MemberWithCounts[]>("/members/summary"),
-  });
+  const { data: members = [], isLoading } = useMemberSummaries();
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: queryKeys.appointments.all,
-    queryFn: () => api.get<Appointment[]>("/appointments"),
-  });
+  const { data: appointments = [] } = useAppointments();
 
   // サーバ集計(activeMedicationCount)＋直近予約をビューモデルに合成する
   const summaries = useMemo<MemberSummary[]>(() => {
@@ -62,27 +39,9 @@ export default function Members() {
     });
   }, [members, appointments]);
 
-  const createMutation = useMutation({
-    mutationFn: (body: CreateMemberBody) => api.post<Member>("/members", body),
-    onSuccess: () => {
-      setShowForm(false);
-      qc.invalidateQueries({ queryKey: queryKeys.members.all });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: UpdateMemberBody }) =>
-      api.patch<Member>(`/members/${id}`, body),
-    onSuccess: () => {
-      setEditingMember(null);
-      qc.invalidateQueries({ queryKey: queryKeys.members.all });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/members/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.members.all }),
-  });
+  const createMutation = useCreateMember(() => setShowForm(false));
+  const updateMutation = useUpdateMember(() => setEditingMember(null));
+  const deleteMutation = useDeleteMember();
 
   const handleCreate = (data: MemberFormData) => {
     createMutation.mutate({

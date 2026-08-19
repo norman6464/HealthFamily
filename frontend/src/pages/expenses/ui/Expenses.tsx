@@ -1,10 +1,7 @@
 import { useMemo, useState } from "react";
+import { useMembers } from "@/entities/member";
 import { ExpenseCreateForm, useDeleteExpense, useSaveBudget, useUpdateExpense } from "@/features/manage-expenses";
-import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Download, Plus, Upload, X } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
-import type { Member } from "@/shared/api";
 import { SectionTitle } from "@/shared/ui";
 import { MemberFilter } from "@/shared/ui";
 import {
@@ -35,11 +32,7 @@ export default function Expenses() {
     [currentYear],
   );
 
-  // TODO: entities/member スライスができ次第そちらへ移す(複数ページで共有される取得のため)
-  const { data: members = [] } = useQuery({
-    queryKey: queryKeys.members.all,
-    queryFn: () => api.get<Member[]>("/members"),
-  });
+  const { data: members = [] } = useMembers();
 
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses(
     year,

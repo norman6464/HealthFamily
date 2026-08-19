@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { api, ApiError } from "@/shared/api";
-import { useAuth } from "@/features/auth";
-import type { User } from "@/shared/api";
+import { ApiError } from "@/shared/api";
+import { resendVerificationCode, useAuth, verifyEmail } from "@/features/auth";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
 
 export default function Verify() {
@@ -19,11 +18,7 @@ export default function Verify() {
     setError(null);
     setSubmitting(true);
     try {
-      const data = await api.post<{ token: string; user: User }>(
-        "/auth/verify",
-        { email, code },
-        false,
-      );
+      const data = await verifyEmail({ email, code });
       loginWithToken(data.token, data.user);
       navigate("/", { replace: true });
     } catch (err) {
@@ -36,7 +31,7 @@ export default function Verify() {
   const resend = async () => {
     setError(null);
     try {
-      await api.post("/auth/resend-code", { email }, false);
+      await resendVerificationCode(email);
     } catch {
       /* 列挙防止のため成否は表示しない */
     }

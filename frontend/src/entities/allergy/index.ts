@@ -3,3 +3,4 @@ export {
   ALLERGY_SEVERITY_OPTIONS,
   allergySeverityLabel,
 } from "./model/severity";
+export { useAllergies } from "./api/queries";

@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { api, ApiError } from "@/shared/api";
-import type { User } from "@/shared/api";
-import { consumeAuthorizationState, useAuth } from "@/features/auth";
+import { ApiError } from "@/shared/api";
+import { consumeAuthorizationState, exchangeGoogleAuthorizationCode, useAuth } from "@/features/auth";
 
 /**
  * Google からの戻り先。
@@ -40,11 +39,11 @@ export default function AuthCallback() {
 
       try {
         const pending = consumeAuthorizationState(state);
-        const data = await api.post<{ token: string; user: User }>(
-          "/auth/google/callback",
-          { code, codeVerifier: pending.codeVerifier, redirectUri: pending.redirectUri },
-          false,
-        );
+        const data = await exchangeGoogleAuthorizationCode({
+          code,
+          codeVerifier: pending.codeVerifier,
+          redirectUri: pending.redirectUri,
+        });
         loginWithToken(data.token, data.user);
         navigate("/", { replace: true });
       } catch (err) {

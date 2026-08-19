@@ -15,6 +15,10 @@ export const queryKeys = {
     // memberId は useParams() 由来で string | undefined になり得る。
     // 既存リテラル ["members", memberId] の挙動を完全一致で維持するため undefined も許容する。
     detail: (memberId: string | undefined) => ["members", memberId] as const,
+    // 取得先も応答の型も /members とは違う。同じキーにすると、先に
+    // /members の応答がキャッシュされた時に件数フィールドが無い状態で描画される。
+    // members.all の子にして、メンバー更新時のプレフィックス無効化は効かせる
+    summary: ["members", "summary"] as const,
     medications: (memberId: string | undefined) =>
       ["members", memberId, "medications"] as const,
   },

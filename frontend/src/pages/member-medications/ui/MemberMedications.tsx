@@ -1,30 +1,14 @@
-import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useCreateMedicationRaw, useDeleteMedication } from "@/features/manage-medications";
+import { useCreateSchedule, useDeleteSchedule } from "@/features/manage-schedules";
+import { useSchedules } from "@/entities/schedule";
+import { useMemberMedications } from "@/entities/medication";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Plus, X, Clock, Pill, Trash2 } from "lucide-react";
-import { api } from "@/shared/api";
-import { queryKeys } from "@/shared/api";
-import type { Medication, Schedule } from "@/shared/api";
+import type { Medication } from "@/shared/api";
 import { Button, Card, ErrorText, Input } from "@/shared/ui";
 import { LoadingSpinner } from "@/shared/ui";
 import { EmptyStatePrompt } from "@/shared/ui";
-
-interface CreateMedicationBody {
-  memberId: string;
-  name: string;
-  category: string;
-  dosageAmount?: string;
-  frequency?: string;
-  instructions?: string;
-}
-
-interface CreateScheduleBody {
-  medicationId: string;
-  memberId: string;
-  scheduledTime: string;
-  daysOfWeek: string[];
-  reminderMinutesBefore: number;
-}
 
 const DAY_LABELS: Record<string, string> = {
   mon: "月",
@@ -39,7 +23,6 @@ const DAY_LABELS: Record<string, string> = {
 export default function MemberMedications() {
   const { memberId = "" } = useParams();
   const navigate = useNavigate();
-  const qc = useQueryClient();
 
   const [showMedForm, setShowMedForm] = useState(false);
   const [medName, setMedName] = useState("");
@@ -53,16 +36,9 @@ export default function MemberMedications() {
   const [reminderMinutes, setReminderMinutes] = useState("10");
   const [scheduleError, setScheduleError] = useState<string | null>(null);
 
-  const { data: medications = [], isLoading } = useQuery({
-    queryKey: queryKeys.members.medications(memberId),
-    queryFn: () => api.get<Medication[]>(`/members/${memberId}/medications`),
-    enabled: !!memberId,
-  });
+  const { data: medications = [], isLoading } = useMemberMedications(memberId);
 
-  const { data: allSchedules = [], isLoading: schedulesLoading } = useQuery({
-    queryKey: queryKeys.schedules.all,
-    queryFn: () => api.get<Schedule[]>("/schedules"),
-  });
+  const { data: allSchedules = [], isLoading: schedulesLoading } = useSchedules();
 
   const memberSchedules = useMemo(
     () => allSchedules.filter((s) => s.memberId === memberId),
@@ -72,45 +48,33 @@ export default function MemberMedications() {
   const medicationName = (id: string) =>
     medications.find((m) => m.id === id)?.name ?? "";
 
-  const createMedMutation = useMutation({
-    mutationFn: (body: CreateMedicationBody) => api.post<Medication>("/medications", body),
-    onSuccess: () => {
-      setMedName("");
-      setMedDosage("");
-      setMedFrequency("");
-      setMedInstructions("");
-      setMedError(null);
-      setShowMedForm(false);
-      qc.invalidateQueries({ queryKey: queryKeys.members.medications(memberId) });
-      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
-    },
-    onError: (e: Error) => setMedError(e.message),
+  const createMedMutation = useCreateMedicationRaw(memberId, () => {
+    setMedName("");
+    setMedDosage("");
+    setMedFrequency("");
+    setMedInstructions("");
+    setMedError(null);
+    setShowMedForm(false);
   });
+  const deleteMedMutation = useDeleteMedication(memberId);
 
-  const deleteMedMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/medications/${id}`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.members.medications(memberId) });
-      qc.invalidateQueries({ queryKey: queryKeys.medications.all });
-    },
+  const createScheduleMutation = useCreateSchedule(() => {
+    setScheduleTarget(null);
+    setScheduledTime("08:00");
+    setReminderMinutes("10");
+    setScheduleError(null);
   });
+  const deleteScheduleMutation = useDeleteSchedule();
 
-  const createScheduleMutation = useMutation({
-    mutationFn: (body: CreateScheduleBody) => api.post<Schedule>("/schedules", body),
-    onSuccess: () => {
-      setScheduleTarget(null);
-      setScheduledTime("08:00");
-      setReminderMinutes("10");
-      setScheduleError(null);
-      qc.invalidateQueries({ queryKey: queryKeys.schedules.all });
-    },
-    onError: (e: Error) => setScheduleError(e.message),
-  });
+  // 作成の失敗はこの画面のフォーム内に出す。features 側で固定すると
+  // 画面ごとの出し分けができない
+  useEffect(() => {
+    if (createMedMutation.error) setMedError(createMedMutation.error.message);
+  }, [createMedMutation.error]);
 
-  const deleteScheduleMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/schedules/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.schedules.all }),
-  });
+  useEffect(() => {
+    if (createScheduleMutation.error) setScheduleError(createScheduleMutation.error.message);
+  }, [createScheduleMutation.error]);
 
   const handleCreateMedication = () => {
     if (!medName.trim()) return;
