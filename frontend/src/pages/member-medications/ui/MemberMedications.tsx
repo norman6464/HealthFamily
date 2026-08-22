@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCreateMedicationRaw, useDeleteMedication } from "@/features/manage-medications";
-import { useCreateSchedule, useDeleteSchedule } from "@/features/manage-schedules";
+import { useCreateSchedule, useDeleteSchedule, useSetScheduleEnabled } from "@/features/manage-schedules";
 import { useSchedules } from "@/entities/schedule";
 import { useMemberMedications } from "@/entities/medication";
 import { useNavigate, useParams } from "react-router";
@@ -45,6 +45,10 @@ export default function MemberMedications() {
     [allSchedules, memberId],
   );
 
+  // 停止中は「今日の予定」に出ない。薬は登録されているのに予定に現れない
+  // 状態になるので、件数を出して気づけるようにする
+  const pausedCount = memberSchedules.filter((s) => !s.isEnabled).length;
+
   const medicationName = (id: string) =>
     medications.find((m) => m.id === id)?.name ?? "";
 
@@ -65,6 +69,7 @@ export default function MemberMedications() {
     setScheduleError(null);
   });
   const deleteScheduleMutation = useDeleteSchedule();
+  const setEnabledMutation = useSetScheduleEnabled();
 
   // 作成の失敗はこの画面のフォーム内に出す。features 側で固定すると
   // 画面ごとの出し分けができない
@@ -274,20 +279,45 @@ export default function MemberMedications() {
 
         {memberSchedules.length > 0 && (
           <div id="schedules" className="mt-6">
-            <h2 className="text-sm font-medium text-ink-600 mb-3">スケジュール管理</h2>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-medium text-ink-600">スケジュール管理</h2>
+              {pausedCount > 0 && (
+                <span className="text-xs text-amber-700">
+                  {pausedCount}件が停止中（今日の予定に出ません）
+                </span>
+              )}
+            </div>
             {schedulesLoading ? (
               <LoadingSpinner />
             ) : (
               <div className="space-y-2">
                 {memberSchedules.map((schedule) => (
-                  <Card key={schedule.id} className="flex items-center justify-between">
+                  <Card
+                    key={schedule.id}
+                    className={`flex items-center justify-between${schedule.isEnabled ? "" : " bg-ink-50"}`}
+                  >
                     <div className="flex items-center gap-3">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <span
+                        className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                          schedule.isEnabled
+                            ? "bg-primary/10 text-primary"
+                            : "bg-ink-100 text-ink-400"
+                        }`}
+                      >
                         <Clock className="h-5 w-5" />
                       </span>
                       <div>
-                        <p className="font-medium text-ink-800">
+                        <p
+                          className={`font-medium ${
+                            schedule.isEnabled ? "text-ink-800" : "text-ink-500"
+                          }`}
+                        >
                           {medicationName(schedule.medicationId)}
+                          {!schedule.isEnabled && (
+                            <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-normal text-amber-800">
+                              停止中
+                            </span>
+                          )}
                         </p>
                         <p className="text-xs text-ink-500">
                           {schedule.scheduledTime}
@@ -297,13 +327,31 @@ export default function MemberMedications() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => deleteScheduleMutation.mutate(schedule.id)}
-                      className="text-ink-400 hover:text-red-500"
-                      aria-label="削除"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          setEnabledMutation.mutate({
+                            id: schedule.id,
+                            isEnabled: !schedule.isEnabled,
+                          })
+                        }
+                        disabled={setEnabledMutation.isPending}
+                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                          schedule.isEnabled
+                            ? "bg-ink-100 text-ink-600 hover:bg-ink-200"
+                            : "bg-primary text-white hover:bg-primary-dark"
+                        }`}
+                      >
+                        {schedule.isEnabled ? "停止" : "再開"}
+                      </button>
+                      <button
+                        onClick={() => deleteScheduleMutation.mutate(schedule.id)}
+                        className="text-ink-400 hover:text-red-500"
+                        aria-label="削除"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
                   </Card>
                 ))}
               </div>
