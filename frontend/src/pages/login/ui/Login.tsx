@@ -62,6 +62,17 @@ export default function Login() {
             {submitting ? "ログイン中..." : "ログイン"}
           </Button>
           </form>
+          {/* 再設定のページはあるのに、ここからの導線が無かった。
+              URL を知らない利用者は再設定にたどり着けない。
+              Google で作ったアカウントにパスワードを足す唯一の経路でもある */}
+          <div className="mt-3 text-right text-sm">
+            <Link
+              to="/forgot-password"
+              className="text-ink-500 hover:text-primary hover:underline"
+            >
+              パスワードをお忘れですか？
+            </Link>
+          </div>
           <GoogleLoginButton onError={setError} />
           <div className="mt-5 text-center text-sm text-ink-500">
             アカウントをお持ちでない方は{" "}
