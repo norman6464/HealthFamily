@@ -257,7 +257,7 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
           isDimmed ? " opacity-60" : ""
         }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-y-2">
           {(onMoveUp || onMoveDown) && (
             <div className="flex flex-col mr-2 -my-1">
               <button
@@ -282,7 +282,9 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
               </button>
             </div>
           )}
-          <div className="flex-1">
+          {/* min-w-0 が無いと flex-1 は min-width:auto のままで縮まない。
+              狭い画面で右の操作列に押され、薬名が一文字ずつ改行されていた */}
+          <div className="w-full min-w-0 basis-full sm:w-auto sm:flex-1 sm:basis-0">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
               <Pill size={20} className="text-primary-600" />
               <p className="font-semibold text-ink-800">{displayInfo.name}</p>
@@ -313,7 +315,9 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
               )}
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          {/* 操作は縮めない。縮むとボタンの文字が縦積みになる。
+              代わりに狭い画面では折り返して次の行へ逃がす */}
+          <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:ml-2 sm:w-auto">
             {onEdit && (
               <button
                 onClick={() => onEdit(medication)}
