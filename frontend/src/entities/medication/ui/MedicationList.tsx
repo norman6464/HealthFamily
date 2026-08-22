@@ -16,6 +16,8 @@ export interface MedicationScheduleInfo {
   scheduleId: string;
   time: string;
   label: string; // "毎日", "月・水・金", "21日毎" etc.
+  /** 停止中は「今日の予定」に出ない。出ていないのに時刻だけ見えると誤解する */
+  isEnabled: boolean;
 }
 
 export interface MedicationScheduleMap {
@@ -117,8 +119,26 @@ export const MedicationList: React.FC<MedicationListProps> = ({
     }, 400);
   };
 
+  // 予定が1件も無い、または全部止まっている薬は「今日の予定」に出てこない。
+  // カード単位のバッジだけだと、薬が多いほど見落とす。先頭でまとめて知らせる
+  const unscheduled = visibleList.filter((vm) => {
+    const list = scheduleMap?.[vm.medication.id];
+    return !list || list.length === 0 || list.every((s) => !s.isEnabled);
+  });
+
   return (
     <div className="space-y-3">
+      {unscheduled.length > 0 && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <AlertCircle size={16} className="mt-0.5 shrink-0" />
+          <p>
+            <span className="font-medium">{unscheduled.length}件</span>
+            の薬は今日の予定に出ません（
+            {unscheduled.map((vm) => vm.medication.name).join("、")}）。
+            時刻の設定か、停止中の解除が必要です。
+          </p>
+        </div>
+      )}
       {visibleList.map((vm, index) => (
         <MedicationCard
           key={vm.medication.id}
@@ -375,13 +395,17 @@ const MedicationCard: React.FC<MedicationCardProps> = React.memo(
           {schedules && schedules.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
               {schedules.map((s) => {
-                const chipClass =
-                  "inline-flex items-center space-x-1 px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs";
+                const chipClass = s.isEnabled
+                  ? "inline-flex items-center space-x-1 px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs"
+                  : "inline-flex items-center space-x-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs";
                 const content = (
                   <>
                     <Clock size={10} />
                     <span>{s.time}</span>
-                    <span className="text-primary-500">{s.label}</span>
+                    <span className={s.isEnabled ? "text-primary-500" : "text-amber-600"}>
+                      {s.label}
+                    </span>
+                    {!s.isEnabled && <span className="font-medium">停止中</span>}
                   </>
                 );
                 return scheduleEditUrl ? (
