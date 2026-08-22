@@ -6,7 +6,8 @@ import { expect, test } from "@playwright/test";
 test("ログイン画面にスタイルが当たっている", async ({ page }) => {
   await page.goto("/login");
 
-  const button = page.getByRole("button", { name: "ログイン" });
+  // 「Googleでログイン」も名前に一致するため、完全一致で絞る
+  const button = page.getByRole("button", { name: "ログイン", exact: true });
   await expect(button).toBeVisible();
 
   const style = await button.evaluate((el) => {
