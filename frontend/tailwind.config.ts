@@ -3,7 +3,10 @@ import type { Config } from "tailwindcss";
 // デザイン刷新: "Calm Wellness" — 落ち着いたエメラルド/ティール + クールニュートラル。
 // アプリ全体が primary/accent/ink トークンを使うため、ここの定義が全画面に反映される。
 export default {
-  content: ["./app/**/*.{ts,tsx}"],
+  // FSD の全レイヤーを見る。ここが実際の配置とずれると、
+  // ビルドは成功したままユーティリティが1つも生成されず、
+  // 画面だけが素のHTMLになる。既存のE2Eは文字とURLしか見ないので気づけない。
+  content: ["./src/**/*.{ts,tsx}", "./index.html"],
   theme: {
     extend: {
       colors: {
