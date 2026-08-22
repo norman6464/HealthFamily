@@ -34,3 +34,25 @@ export function useDeleteSchedule() {
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.schedules.all }),
   });
 }
+
+/**
+ * スケジュールの再開・停止。
+ *
+ * 停止したスケジュールは「今日の予定」に出なくなる。画面に区別が
+ * 出ていなかったため、薬は登録されているのに予定に出ない状態から
+ * 利用者が自力で復帰できなかった。ここを操作できるようにする。
+ *
+ * 今日の予定は別のキーで持っているので、そちらも取り直す。
+ * 片方だけだと、再開しても当日の一覧に現れない。
+ */
+export function useSetScheduleEnabled() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isEnabled }: { id: string; isEnabled: boolean }) =>
+      api.patch<Schedule>(`/schedules/${id}`, { isEnabled }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.schedules.all });
+      qc.invalidateQueries({ queryKey: queryKeys.schedules.today });
+    },
+  });
+}
