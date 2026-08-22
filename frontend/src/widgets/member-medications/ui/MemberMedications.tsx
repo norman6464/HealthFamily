@@ -63,6 +63,7 @@ export function MemberMedications({ member, categoryFilter }: MemberMedicationsP
         scheduleId: s.id,
         time: s.scheduledTime,
         label: getScheduleLabel(s.daysOfWeek, s.intervalDays),
+        isEnabled: s.isEnabled,
       });
     }
     return map;
