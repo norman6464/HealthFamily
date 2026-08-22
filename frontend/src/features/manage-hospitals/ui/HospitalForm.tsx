@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { HospitalFormData } from "../api/createHospital";
+import type { HospitalFormData } from "../api/mutations";
 
 interface HospitalFormProps {
   onSubmit: (data: HospitalFormData) => void;
